@@ -7,6 +7,7 @@ import 'dashboard_screen.dart';
 import '../live/live_operations_screen.dart';
 import '../bookings/bookings_screen.dart';
 import '../zones/zones_screen.dart';
+import '../coupons/coupons_screen.dart';
 
 class AdminShell extends StatefulWidget {
   const AdminShell({super.key});
@@ -48,6 +49,10 @@ class _AdminShellState extends State<AdminShell> {
     _AdminMenuItem(
       title: 'Zones',
       icon: Icons.map_outlined,
+    ),
+    _AdminMenuItem(
+      title: 'Coupons',
+      icon: Icons.local_offer_outlined,
     ),
     _AdminMenuItem(
       title: 'Payments',
@@ -98,7 +103,6 @@ class _AdminShellState extends State<AdminShell> {
         if (constraints.maxWidth < 900) {
           return _buildMobileLayout();
         }
-
         return _buildDesktopLayout();
       },
     );
@@ -115,9 +119,7 @@ class _AdminShellState extends State<AdminShell> {
             child: Column(
               children: [
                 _buildTopBar(),
-                Expanded(
-                  child: _buildContent(),
-                ),
+                Expanded(child: _buildContent()),
               ],
             ),
           ),
@@ -136,9 +138,7 @@ class _AdminShellState extends State<AdminShell> {
         elevation: 0,
         title: const Text(
           'DOJO WALK',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w800),
         ),
         actions: [
           IconButton(
@@ -148,9 +148,7 @@ class _AdminShellState extends State<AdminShell> {
         ],
       ),
       drawer: Drawer(
-        child: SafeArea(
-          child: _buildDrawerContent(),
-        ),
+        child: SafeArea(child: _buildDrawerContent()),
       ),
       body: _buildContent(),
       bottomNavigationBar: _buildMobileBottomBar(),
@@ -165,9 +163,7 @@ class _AdminShellState extends State<AdminShell> {
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(
-          right: BorderSide(
-            color: Color(0xFFEAEAEA),
-          ),
+          right: BorderSide(color: Color(0xFFEAEAEA)),
         ),
       ),
       child: SafeArea(
@@ -221,9 +217,7 @@ class _AdminShellState extends State<AdminShell> {
             const SizedBox(height: 30),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 itemCount: _menuItems.length,
                 itemBuilder: (context, index) {
                   final item = _menuItems[index];
@@ -233,9 +227,8 @@ class _AdminShellState extends State<AdminShell> {
                     padding: const EdgeInsets.only(bottom: 4),
                     child: ListTile(
                       selected: selected,
-                      selectedTileColor:
-                          const Color(0xFFFF6A00)
-                              .withValues(alpha: 0.10),
+                      selectedTileColor: const Color(0xFFFF6A00)
+                          .withValues(alpha: 0.10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -258,9 +251,7 @@ class _AdminShellState extends State<AdminShell> {
                         ),
                       ),
                       onTap: () {
-                        setState(() {
-                          _selectedIndex = index;
-                        });
+                        setState(() => _selectedIndex = index);
                       },
                     ),
                   );
@@ -330,9 +321,8 @@ class _AdminShellState extends State<AdminShell> {
 
               return ListTile(
                 selected: selected,
-                selectedTileColor:
-                    const Color(0xFFFF6A00)
-                        .withValues(alpha: 0.10),
+                selectedTileColor: const Color(0xFFFF6A00)
+                    .withValues(alpha: 0.10),
                 leading: Icon(
                   item.icon,
                   color: selected
@@ -342,18 +332,15 @@ class _AdminShellState extends State<AdminShell> {
                 title: Text(
                   item.title,
                   style: TextStyle(
-                    fontWeight: selected
-                        ? FontWeight.w700
-                        : FontWeight.w500,
+                    fontWeight:
+                        selected ? FontWeight.w700 : FontWeight.w500,
                     color: selected
                         ? const Color(0xFFFF6A00)
                         : Colors.grey.shade800,
                   ),
                 ),
                 onTap: () {
-                  setState(() {
-                    _selectedIndex = index;
-                  });
+                  setState(() => _selectedIndex = index);
                   Navigator.pop(context);
                 },
               );
@@ -380,9 +367,7 @@ class _AdminShellState extends State<AdminShell> {
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(
-          bottom: BorderSide(
-            color: Color(0xFFEAEAEA),
-          ),
+          bottom: BorderSide(color: Color(0xFFEAEAEA)),
         ),
       ),
       child: Row(
@@ -414,9 +399,7 @@ class _AdminShellState extends State<AdminShell> {
             child: Text(
               FirebaseAuth.instance.currentUser?.email ?? 'Admin',
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -427,37 +410,34 @@ class _AdminShellState extends State<AdminShell> {
   // CONTENT ROUTER
 
   Widget _buildContent() {
-    if (_selectedIndex == 0) {
-      return const DashboardScreen();
-    }
-
-    if (_selectedIndex == 1) {
-      return const LiveOperationsScreen();
-    }
-
-    if (_selectedIndex == 2) {
-      return const BookingsScreen();
-    }
-
-    if (_selectedIndex == 6) {
-      return const ZonesScreen();
-    }
-
-    return Container(
-      width: double.infinity,
-      color: const Color(0xFFF7F7F7),
-      padding: const EdgeInsets.all(24),
-      child: Center(
-        child: Text(
-          '${_menuItems[_selectedIndex].title} Screen',
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w800,
+    switch (_selectedIndex) {
+      case 0:
+        return const DashboardScreen();
+      case 1:
+        return const LiveOperationsScreen();
+      case 2:
+        return const BookingsScreen();
+      case 6:
+        return const ZonesScreen();
+      case 7:
+        return const CouponsScreen();
+      default:
+        return Container(
+          width: double.infinity,
+          color: const Color(0xFFF7F7F7),
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: Text(
+              '${_menuItems[_selectedIndex].title} Screen',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ),
-        ),
-      ),
-    );
+        );
+    }
   }
 
   // MOBILE BOTTOM NAVIGATION
@@ -478,9 +458,7 @@ class _AdminShellState extends State<AdminShell> {
     return NavigationBar(
       selectedIndex: selectedIndex,
       onDestinationSelected: (index) {
-        setState(() {
-          _selectedIndex = index;
-        });
+        setState(() => _selectedIndex = index);
       },
       destinations: items.map((item) {
         return NavigationDestination(
