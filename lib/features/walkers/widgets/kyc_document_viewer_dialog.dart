@@ -5,16 +5,12 @@ import 'package:pdfrx/pdfrx.dart';
 const Color _kycOrange = Color(0xFFFF7900);
 const Color _kycBackground = Color(0xFFFFFAF5);
 const Color _kycText = Color(0xFF292524);
-const Color _kycMuted = Color(0xFF78716C);
+const Color _kycMuted = Color(0xFF78716C';
 
-/// Opens a KYC document in a comfortable popup dialog.
+/// Opens a KYC document in a popup dialog.
 ///
-/// Supports:
-/// - Public HTTPS image/PDF URLs
-/// - Firebase Storage download URLs
-/// - Firebase Storage paths
-/// - Map references containing url, downloadUrl,
-///   path, or storagePath
+/// Supports HTTPS URLs, Firebase Storage URLs,
+/// Storage paths, and map-based document references.
 Future<void> showKycDocumentViewerDialog({
   required BuildContext context,
   required String title,
@@ -50,10 +46,12 @@ class _KycDocumentViewerDialogState
     extends State<KycDocumentViewerDialog> {
   String? _documentUrl;
   String? _error;
+
   bool _loading = true;
   bool _isPdf = false;
 
   late final PdfViewerController _pdfController;
+
   final TransformationController _imageController =
       TransformationController();
 
@@ -69,7 +67,8 @@ class _KycDocumentViewerDialogState
 
   @override
   void dispose() {
-    _pdfController.dispose();
+    // PdfViewerController in the project's pdfrx version
+    // does not expose dispose().
     _imageController.dispose();
     super.dispose();
   }
@@ -180,13 +179,8 @@ class _KycDocumentViewerDialogState
       return false;
     }
 
-    // Firebase Storage download URLs may not contain a file extension.
-    // Check Storage metadata when the reference is a Storage path.
-    if (document is String &&
-        !_isHttpUrl(document.trim())) {
-      return false;
-    }
-
+    // If the URL has no extension, use the document metadata
+    // above when available. Otherwise, default to image mode.
     return false;
   }
 
@@ -239,6 +233,7 @@ class _KycDocumentViewerDialogState
     if (!_pdfController.isReady) return;
 
     final page = _pdfController.pageNumber ?? 1;
+
     final matrix = _pdfController.calcMatrixForFit(
       pageNumber: page,
     );
