@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -8,6 +7,7 @@ import '../live/live_operations_screen.dart';
 import '../bookings/bookings_screen.dart';
 import '../zones/zones_screen.dart';
 import '../coupons/coupons_screen.dart';
+import '../walkers/screens/walker_verification_screen.dart';
 
 class AdminShell extends StatefulWidget {
   const AdminShell({super.key});
@@ -20,6 +20,9 @@ class _AdminShellState extends State<AdminShell> {
   int _selectedIndex = 0;
 
   final AuthService _authService = AuthService();
+
+  static const Color _orange = Color(0xFFFF6A00);
+  static const Color _background = Color(0xFFF7F7F7);
 
   final List<_AdminMenuItem> _menuItems = const [
     _AdminMenuItem(
@@ -103,6 +106,7 @@ class _AdminShellState extends State<AdminShell> {
         if (constraints.maxWidth < 900) {
           return _buildMobileLayout();
         }
+
         return _buildDesktopLayout();
       },
     );
@@ -112,6 +116,7 @@ class _AdminShellState extends State<AdminShell> {
 
   Widget _buildDesktopLayout() {
     return Scaffold(
+      backgroundColor: _background,
       body: Row(
         children: [
           _buildSidebar(),
@@ -119,7 +124,9 @@ class _AdminShellState extends State<AdminShell> {
             child: Column(
               children: [
                 _buildTopBar(),
-                Expanded(child: _buildContent()),
+                Expanded(
+                  child: _buildContent(),
+                ),
               ],
             ),
           ),
@@ -132,13 +139,16 @@ class _AdminShellState extends State<AdminShell> {
 
   Widget _buildMobileLayout() {
     return Scaffold(
+      backgroundColor: _background,
       appBar: AppBar(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         elevation: 0,
         title: const Text(
           'DOJO WALK',
-          style: TextStyle(fontWeight: FontWeight.w800),
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+          ),
         ),
         actions: [
           IconButton(
@@ -148,7 +158,9 @@ class _AdminShellState extends State<AdminShell> {
         ],
       ),
       drawer: Drawer(
-        child: SafeArea(child: _buildDrawerContent()),
+        child: SafeArea(
+          child: _buildDrawerContent(),
+        ),
       ),
       body: _buildContent(),
       bottomNavigationBar: _buildMobileBottomBar(),
@@ -163,13 +175,16 @@ class _AdminShellState extends State<AdminShell> {
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(
-          right: BorderSide(color: Color(0xFFEAEAEA)),
+          right: BorderSide(
+            color: Color(0xFFEAEAEA),
+          ),
         ),
       ),
       child: SafeArea(
         child: Column(
           children: [
             const SizedBox(height: 24),
+
             Row(
               children: [
                 const SizedBox(width: 20),
@@ -177,7 +192,7 @@ class _AdminShellState extends State<AdminShell> {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFF6A00),
+                    color: _orange,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   alignment: Alignment.center,
@@ -214,28 +229,34 @@ class _AdminShellState extends State<AdminShell> {
                 ),
               ],
             ),
+
             const SizedBox(height: 30),
+
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                ),
                 itemCount: _menuItems.length,
                 itemBuilder: (context, index) {
                   final item = _menuItems[index];
                   final selected = _selectedIndex == index;
 
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
+                    padding: const EdgeInsets.only(
+                      bottom: 4,
+                    ),
                     child: ListTile(
                       selected: selected,
-                      selectedTileColor: const Color(0xFFFF6A00)
-                          .withValues(alpha: 0.10),
+                      selectedTileColor:
+                          _orange.withValues(alpha: 0.10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       leading: Icon(
                         item.icon,
                         color: selected
-                            ? const Color(0xFFFF6A00)
+                            ? _orange
                             : Colors.grey.shade700,
                       ),
                       title: Text(
@@ -246,24 +267,29 @@ class _AdminShellState extends State<AdminShell> {
                               ? FontWeight.w700
                               : FontWeight.w500,
                           color: selected
-                              ? const Color(0xFFFF6A00)
+                              ? _orange
                               : Colors.grey.shade800,
                         ),
                       ),
                       onTap: () {
-                        setState(() => _selectedIndex = index);
+                        setState(() {
+                          _selectedIndex = index;
+                        });
                       },
                     ),
                   );
                 },
               ),
             ),
+
             const Divider(height: 1),
+
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
               onTap: _logout,
             ),
+
             const SizedBox(height: 8),
           ],
         ),
@@ -277,11 +303,12 @@ class _AdminShellState extends State<AdminShell> {
     return Column(
       children: [
         const SizedBox(height: 24),
+
         Container(
           width: 52,
           height: 52,
           decoration: BoxDecoration(
-            color: const Color(0xFFFF6A00),
+            color: _orange,
             borderRadius: BorderRadius.circular(15),
           ),
           alignment: Alignment.center,
@@ -294,7 +321,9 @@ class _AdminShellState extends State<AdminShell> {
             ),
           ),
         ),
+
         const SizedBox(height: 12),
+
         const Text(
           'DOJO WALK',
           style: TextStyle(
@@ -302,6 +331,7 @@ class _AdminShellState extends State<AdminShell> {
             fontWeight: FontWeight.w800,
           ),
         ),
+
         const Text(
           'ADMIN',
           style: TextStyle(
@@ -311,7 +341,9 @@ class _AdminShellState extends State<AdminShell> {
             fontWeight: FontWeight.w700,
           ),
         ),
+
         const SizedBox(height: 24),
+
         Expanded(
           child: ListView.builder(
             itemCount: _menuItems.length,
@@ -321,38 +353,45 @@ class _AdminShellState extends State<AdminShell> {
 
               return ListTile(
                 selected: selected,
-                selectedTileColor: const Color(0xFFFF6A00)
-                    .withValues(alpha: 0.10),
+                selectedTileColor:
+                    _orange.withValues(alpha: 0.10),
                 leading: Icon(
                   item.icon,
                   color: selected
-                      ? const Color(0xFFFF6A00)
+                      ? _orange
                       : Colors.grey.shade700,
                 ),
                 title: Text(
                   item.title,
                   style: TextStyle(
-                    fontWeight:
-                        selected ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: selected
+                        ? FontWeight.w700
+                        : FontWeight.w500,
                     color: selected
-                        ? const Color(0xFFFF6A00)
+                        ? _orange
                         : Colors.grey.shade800,
                   ),
                 ),
                 onTap: () {
-                  setState(() => _selectedIndex = index);
+                  setState(() {
+                    _selectedIndex = index;
+                  });
+
                   Navigator.pop(context);
                 },
               );
             },
           ),
         ),
+
         const Divider(height: 1),
+
         ListTile(
           leading: const Icon(Icons.logout),
           title: const Text('Logout'),
           onTap: _logout,
         ),
+
         const SizedBox(height: 8),
       ],
     );
@@ -363,11 +402,15 @@ class _AdminShellState extends State<AdminShell> {
   Widget _buildTopBar() {
     return Container(
       height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 28),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 28,
+      ),
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(
-          bottom: BorderSide(color: Color(0xFFEAEAEA)),
+          bottom: BorderSide(
+            color: Color(0xFFEAEAEA),
+          ),
         ),
       ),
       child: Row(
@@ -379,27 +422,36 @@ class _AdminShellState extends State<AdminShell> {
               fontWeight: FontWeight.w700,
             ),
           ),
+
           const Spacer(),
+
           IconButton(
             onPressed: () {},
             icon: const Icon(Icons.notifications_none),
           ),
+
           const SizedBox(width: 12),
+
           const CircleAvatar(
             radius: 18,
-            backgroundColor: Color(0xFFFF6A00),
+            backgroundColor: _orange,
             child: Icon(
               Icons.person,
               color: Colors.white,
               size: 20,
             ),
           ),
+
           const SizedBox(width: 10),
+
           Flexible(
             child: Text(
-              FirebaseAuth.instance.currentUser?.email ?? 'Admin',
+              FirebaseAuth.instance.currentUser?.email ??
+                  'Admin',
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -413,18 +465,27 @@ class _AdminShellState extends State<AdminShell> {
     switch (_selectedIndex) {
       case 0:
         return const DashboardScreen();
+
       case 1:
         return const LiveOperationsScreen();
+
       case 2:
         return const BookingsScreen();
+
+      case 3:
+        // WALKER VERIFICATION SCREEN
+        return const WalkerVerificationScreen();
+
       case 6:
         return const ZonesScreen();
+
       case 7:
         return const CouponsScreen();
+
       default:
         return Container(
           width: double.infinity,
-          color: const Color(0xFFF7F7F7),
+          color: _background,
           padding: const EdgeInsets.all(24),
           child: Center(
             child: Text(
@@ -458,7 +519,9 @@ class _AdminShellState extends State<AdminShell> {
     return NavigationBar(
       selectedIndex: selectedIndex,
       onDestinationSelected: (index) {
-        setState(() => _selectedIndex = index);
+        setState(() {
+          _selectedIndex = index;
+        });
       },
       destinations: items.map((item) {
         return NavigationDestination(
