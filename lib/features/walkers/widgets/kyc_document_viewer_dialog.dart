@@ -5,7 +5,7 @@ import 'package:pdfrx/pdfrx.dart';
 const Color _kycOrange = Color(0xFFFF7900);
 const Color _kycBackground = Color(0xFFFFFAF5);
 const Color _kycText = Color(0xFF292524);
-const Color _kycMuted = Color(0xFF78716C';
+const Color _kycMuted = Color(0xFF78716C);
 
 /// Opens a KYC document in a popup dialog.
 ///
