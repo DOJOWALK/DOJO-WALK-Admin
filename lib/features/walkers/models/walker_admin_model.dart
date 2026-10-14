@@ -1,269 +1,216 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Shared data model for DOJO WALK Admin Walker Management.
-///
-/// Converts Firestore walker documents into a consistent model.
-class WalkerAdminModel {
-  const WalkerAdminModel({
-    required this.id,
-    required this.name,
-    required this.status,
-    required this.verificationStatus,
-    required this.isActive,
-    required this.isApproved,
-    this.phone,
-    this.email,
-    this.photoUrl,
-    this.gender,
-    this.dateOfBirth,
-    this.address,
-    this.city,
-    this.state,
-    this.area,
-    this.zone,
-    this.createdAt,
-    this.updatedAt,
-    this.applicationSubmitted = false,
-    this.additionalData = const {},
-  });
+import '../utils/walker_admin_helpers.dart';
 
-  final String id;
+/// Data model for a DOJO WALK Partner / Walker.
+///
+/// This model reads walker data from Firestore.
+/// Admin decisions and Firestore writes belong in WalkerAdminService.
+class WalkerAdminModel {
+  final String uid;
+
   final String name;
+  final String? phoneNumber;
+  final String? email;
+  final String? photoUrl;
+
   final String status;
   final String verificationStatus;
 
-  final bool isActive;
   final bool isApproved;
+  final bool isActive;
   final bool applicationSubmitted;
 
-  final String? phone;
-  final String? email;
-  final String? photoUrl;
-  final String? gender;
-  final String? dateOfBirth;
-
-  final String? address;
+  final String? area;
   final String? city;
   final String? state;
-  final String? area;
-  final String? zone;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final DateTime? submittedAt;
+  final DateTime? decisionAt;
 
-  /// Preserves other existing Firestore fields.
-  final Map<String, dynamic> additionalData;
+  final String? decisionBy;
+  final String? decisionReason;
 
-  /// Creates a model from a Firestore document.
+  final Map<String, dynamic> kyc;
+  final Map<String, dynamic> rawData;
+
+  const WalkerAdminModel({
+    required this.uid,
+    required this.name,
+    required this.status,
+    required this.verificationStatus,
+    required this.isApproved,
+    required this.isActive,
+    required this.applicationSubmitted,
+    this.phoneNumber,
+    this.email,
+    this.photoUrl,
+    this.area,
+    this.city,
+    this.state,
+    this.createdAt,
+    this.updatedAt,
+    this.submittedAt,
+    this.decisionAt,
+    this.decisionBy,
+    this.decisionReason,
+    this.kyc = const <String, dynamic>{},
+    this.rawData = const <String, dynamic>{},
+  });
+
+  // ----------------------------------------------------------
+  // FIRESTORE CONVERSION
+  // ----------------------------------------------------------
+
+  /// Creates a model from a Firestore walker document.
   factory WalkerAdminModel.fromFirestore(
-    DocumentSnapshot<Map<String, dynamic>> document,
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
   ) {
-    final data = document.data() ?? <String, dynamic>{};
+    final data = snapshot.data() ?? <String, dynamic>{};
 
     return WalkerAdminModel.fromMap(
-      id: document.id,
+      uid: snapshot.id,
       data: data,
     );
   }
 
-  /// Creates a model from a document ID and data map.
+  /// Creates a model from a map.
+  ///
+  /// The supplied map is not modified.
   factory WalkerAdminModel.fromMap({
-    required String id,
+    required String uid,
     required Map<String, dynamic> data,
   }) {
-    final knownKeys = <String>{
-      'walkerId',
-      'name',
-      'fullName',
-      'displayName',
-      'phone',
-      'phoneNumber',
-      'mobile',
-      'email',
-      'photoUrl',
-      'profilePhoto',
-      'profileImage',
-      'gender',
-      'dateOfBirth',
-      'dob',
-      'status',
-      'verificationStatus',
-      'isActive',
-      'isApproved',
-      'applicationSubmitted',
-      'address',
-      'currentAddress',
-      'city',
-      'state',
-      'area',
-      'zone',
-      'zoneName',
-      'createdAt',
-      'updatedAt',
-    };
+    final kycData = WalkerAdminHelpers.asMap(data['kyc']);
 
     return WalkerAdminModel(
-      id: id,
-      name: _firstString(data, [
-        'name',
-        'fullName',
-        'displayName',
-      ]) ?? 'Walker',
-      status: _stringValue(data['status']) ?? 'pending',
-      verificationStatus:
-          _stringValue(data['verificationStatus']) ?? 'pending',
-      isActive: data['isActive'] == true,
+      uid: uid,
+      name: WalkerAdminHelpers.walkerName(data),
+      phoneNumber: WalkerAdminHelpers.phoneNumber(data),
+      email: WalkerAdminHelpers.email(data),
+      photoUrl: WalkerAdminHelpers.photoUrl(data),
+      status: WalkerAdminHelpers.normalizeStatus(data['status']),
+      verificationStatus: WalkerAdminHelpers.normalizeStatus(
+        data['verificationStatus'],
+      ),
       isApproved: data['isApproved'] == true,
+      isActive: data['isActive'] == true,
       applicationSubmitted: data['applicationSubmitted'] == true,
-      phone: _firstString(data, [
-        'phone',
-        'phoneNumber',
-        'mobile',
-      ]),
-      email: _stringValue(data['email']),
-      photoUrl: _firstString(data, [
-        'photoUrl',
-        'profilePhoto',
-        'profileImage',
-      ]),
-      gender: _stringValue(data['gender']),
-      dateOfBirth: _firstString(data, [
-        'dateOfBirth',
-        'dob',
-      ]),
-      address: _firstString(data, [
-        'address',
-        'currentAddress',
-      ]),
-      city: _stringValue(data['city']),
-      state: _stringValue(data['state']),
-      area: _stringValue(data['area']),
-      zone: _firstString(data, [
-        'zone',
-        'zoneName',
-      ]),
-      createdAt: _dateTimeValue(data['createdAt']),
-      updatedAt: _dateTimeValue(data['updatedAt']),
-      additionalData: Map<String, dynamic>.fromEntries(
-        data.entries.where(
-          (entry) => !knownKeys.contains(entry.key),
-        ),
+      area: _firstString(data, ['area', 'locality']),
+      city: _firstString(data, ['city']),
+      state: _firstString(data, ['state', 'stateName']),
+      createdAt: WalkerAdminHelpers.toDateTime(
+        data['createdAt'],
+      ),
+      updatedAt: WalkerAdminHelpers.toDateTime(
+        data['updatedAt'],
+      ),
+      submittedAt: WalkerAdminHelpers.toDateTime(
+        data['submittedAt'] ?? data['applicationSubmittedAt'],
+      ),
+      decisionAt: WalkerAdminHelpers.toDateTime(
+        data['decisionAt'],
+      ),
+      decisionBy: _firstString(data, ['decisionBy']),
+      decisionReason: _firstString(
+        data,
+        ['decisionReason'],
+      ),
+      kyc: Map<String, dynamic>.unmodifiable(kycData),
+      rawData: Map<String, dynamic>.unmodifiable(
+        Map<String, dynamic>.from(data),
       ),
     );
   }
 
-  /// Converts the model to a map.
-  ///
-  /// By default, this excludes fields that should normally be
-  /// controlled by the server or admin decision workflow.
-  Map<String, dynamic> toMap() {
-    return {
-      ...additionalData,
-      'walkerId': id,
-      'name': name,
-      'status': status,
-      'verificationStatus': verificationStatus,
-      'isActive': isActive,
-      'isApproved': isApproved,
-      'applicationSubmitted': applicationSubmitted,
-      if (phone != null) 'phone': phone,
-      if (email != null) 'email': email,
-      if (photoUrl != null) 'photoUrl': photoUrl,
-      if (gender != null) 'gender': gender,
-      if (dateOfBirth != null) 'dateOfBirth': dateOfBirth,
-      if (address != null) 'address': address,
-      if (city != null) 'city': city,
-      if (state != null) 'state': state,
-      if (area != null) 'area': area,
-      if (zone != null) 'zone': zone,
-      if (createdAt != null) 'createdAt': Timestamp.fromDate(createdAt!),
-      if (updatedAt != null) 'updatedAt': Timestamp.fromDate(updatedAt!),
-    };
+  // ----------------------------------------------------------
+  // STATUS HELPERS
+  // ----------------------------------------------------------
+
+  /// Human-readable account status.
+  String get displayStatus {
+    return WalkerAdminHelpers.displayStatus(status);
   }
 
-  /// Returns a new model with selected values changed.
-  WalkerAdminModel copyWith({
-    String? name,
-    String? status,
-    String? verificationStatus,
-    bool? isActive,
-    bool? isApproved,
-    bool? applicationSubmitted,
-    String? phone,
-    String? email,
-    String? photoUrl,
-    String? gender,
-    String? dateOfBirth,
-    String? address,
-    String? city,
-    String? state,
-    String? area,
-    String? zone,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) {
-    return WalkerAdminModel(
-      id: id,
-      name: name ?? this.name,
-      status: status ?? this.status,
-      verificationStatus:
-          verificationStatus ?? this.verificationStatus,
-      isActive: isActive ?? this.isActive,
-      isApproved: isApproved ?? this.isApproved,
-      applicationSubmitted:
-          applicationSubmitted ?? this.applicationSubmitted,
-      phone: phone ?? this.phone,
-      email: email ?? this.email,
-      photoUrl: photoUrl ?? this.photoUrl,
-      gender: gender ?? this.gender,
-      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
-      address: address ?? this.address,
-      city: city ?? this.city,
-      state: state ?? this.state,
-      area: area ?? this.area,
-      zone: zone ?? this.zone,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      additionalData: additionalData,
+  /// Human-readable verification status.
+  String get displayVerificationStatus {
+    return WalkerAdminHelpers.displayStatus(
+      verificationStatus,
     );
   }
 
-  static String? _stringValue(dynamic value) {
-    if (value is String && value.trim().isNotEmpty) {
-      return value.trim();
-    }
-
-    return null;
+  /// Whether the walker is verified.
+  bool get isVerified {
+    return verificationStatus == 'verified';
   }
+
+  /// Whether the walker is eligible based on account state.
+  ///
+  /// This does not check booking conflicts or live GPS.
+  bool get isEligibleForAvailability {
+    return WalkerAdminHelpers.isEligibleForAvailability(
+      rawData,
+    );
+  }
+
+  /// Whether the application is awaiting admin review.
+  bool get isUnderReview {
+    return WalkerAdminHelpers.isApplicationUnderReview(
+      rawData,
+    );
+  }
+
+  /// Whether the application has been rejected.
+  bool get isRejected {
+    return WalkerAdminHelpers.isRejected(rawData);
+  }
+
+  /// Whether the account is suspended.
+  bool get isSuspended {
+    return WalkerAdminHelpers.isSuspended(rawData);
+  }
+
+  /// Combined location label.
+  String get locationLabel {
+    return WalkerAdminHelpers.locationLabel(rawData);
+  }
+
+  // ----------------------------------------------------------
+  // KYC HELPERS
+  // ----------------------------------------------------------
+
+  /// Gets a KYC document reference by key.
+  ///
+  /// Example keys:
+  /// aadhaar_front, aadhaar_back, pan_card.
+  String? documentReference(String documentKey) {
+    return WalkerAdminHelpers.documentReference(
+      kyc[documentKey],
+    );
+  }
+
+  /// Checks whether a KYC document has a reference.
+  ///
+  /// A reference does not guarantee that the remote file exists.
+  bool hasDocument(String documentKey) {
+    return WalkerAdminHelpers.hasDocumentReference(
+      kyc[documentKey],
+    );
+  }
+
+  // ----------------------------------------------------------
+  // INTERNAL
+  // ----------------------------------------------------------
 
   static String? _firstString(
     Map<String, dynamic> data,
     List<String> keys,
   ) {
-    for (final key in keys) {
-      final value = _stringValue(data[key]);
-
-      if (value != null) {
-        return value;
-      }
-    }
-
-    return null;
-  }
-
-  static DateTime? _dateTimeValue(dynamic value) {
-    if (value is Timestamp) {
-      return value.toDate();
-    }
-
-    if (value is DateTime) {
-      return value;
-    }
-
-    if (value is String && value.trim().isNotEmpty) {
-      return DateTime.tryParse(value.trim());
-    }
-
-    return null;
+    return WalkerAdminHelpers.firstString(
+      data,
+      keys,
+    );
   }
 }
