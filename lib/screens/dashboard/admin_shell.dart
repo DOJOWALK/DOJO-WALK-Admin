@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../services/auth_service.dart';
+
 import 'dashboard_screen.dart';
 import '../live/live_operations_screen.dart';
 import '../bookings/bookings_screen.dart';
 import '../zones/zones_screen.dart';
 import '../coupons/coupons_screen.dart';
-import '../walkers/screens/walker_verification_screen.dart';
+import '../../features/walkers/screens/walker_verification_screen.dart';
+
+const Color adminOrange = Color(0xFFFF7900);
+const Color adminBackground = Color(0xFFFFFAF5);
 
 class AdminShell extends StatefulWidget {
   const AdminShell({super.key});
@@ -18,448 +22,65 @@ class AdminShell extends StatefulWidget {
 
 class _AdminShellState extends State<AdminShell> {
   int _selectedIndex = 0;
-
-  final AuthService _authService = AuthService();
-
-  static const Color _orange = Color(0xFFFF6A00);
-  static const Color _background = Color(0xFFF7F7F7);
+  bool _sidebarExpanded = true;
 
   final List<_AdminMenuItem> _menuItems = const [
     _AdminMenuItem(
       title: 'Dashboard',
-      icon: Icons.dashboard_outlined,
+      subtitle: 'Overview and statistics',
+      icon: Icons.dashboard_rounded,
     ),
     _AdminMenuItem(
-      title: 'Live',
-      icon: Icons.location_on_outlined,
+      title: 'Live Operations',
+      subtitle: 'Monitor active walks',
+      icon: Icons.location_on_rounded,
     ),
     _AdminMenuItem(
       title: 'Bookings',
-      icon: Icons.calendar_month_outlined,
+      subtitle: 'Manage customer bookings',
+      icon: Icons.calendar_month_rounded,
     ),
     _AdminMenuItem(
       title: 'Walkers',
-      icon: Icons.directions_walk_outlined,
+      subtitle: 'Walker verification',
+      icon: Icons.verified_user_rounded,
     ),
     _AdminMenuItem(
       title: 'Customers',
-      icon: Icons.people_outline,
+      subtitle: 'Customer management',
+      icon: Icons.people_alt_rounded,
     ),
     _AdminMenuItem(
       title: 'Pets',
-      icon: Icons.pets_outlined,
+      subtitle: 'Registered dogs',
+      icon: Icons.pets_rounded,
     ),
     _AdminMenuItem(
       title: 'Zones',
-      icon: Icons.map_outlined,
+      subtitle: 'Service areas',
+      icon: Icons.map_rounded,
     ),
     _AdminMenuItem(
       title: 'Coupons',
-      icon: Icons.local_offer_outlined,
-    ),
-    _AdminMenuItem(
-      title: 'Payments',
-      icon: Icons.credit_card_outlined,
-    ),
-    _AdminMenuItem(
-      title: 'Earnings',
-      icon: Icons.account_balance_wallet_outlined,
+      subtitle: 'Offers and discounts',
+      icon: Icons.local_offer_rounded,
     ),
     _AdminMenuItem(
       title: 'Notifications',
-      icon: Icons.notifications_none_outlined,
+      subtitle: 'System notifications',
+      icon: Icons.notifications_active_rounded,
     ),
     _AdminMenuItem(
       title: 'Support',
-      icon: Icons.support_agent_outlined,
-    ),
-    _AdminMenuItem(
-      title: 'Analytics',
-      icon: Icons.analytics_outlined,
-    ),
-    _AdminMenuItem(
-      title: 'Reports',
-      icon: Icons.description_outlined,
-    ),
-    _AdminMenuItem(
-      title: 'Audit Logs',
-      icon: Icons.security_outlined,
-    ),
-    _AdminMenuItem(
-      title: 'Admin Users',
-      icon: Icons.admin_panel_settings_outlined,
+      subtitle: 'Customer and walker support',
+      icon: Icons.support_agent_rounded,
     ),
     _AdminMenuItem(
       title: 'Settings',
-      icon: Icons.settings_outlined,
+      subtitle: 'Admin preferences',
+      icon: Icons.settings_rounded,
     ),
   ];
-
-  Future<void> _logout() async {
-    await _authService.signOut();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth < 900) {
-          return _buildMobileLayout();
-        }
-
-        return _buildDesktopLayout();
-      },
-    );
-  }
-
-  // DESKTOP LAYOUT
-
-  Widget _buildDesktopLayout() {
-    return Scaffold(
-      backgroundColor: _background,
-      body: Row(
-        children: [
-          _buildSidebar(),
-          Expanded(
-            child: Column(
-              children: [
-                _buildTopBar(),
-                Expanded(
-                  child: _buildContent(),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // MOBILE LAYOUT
-
-  Widget _buildMobileLayout() {
-    return Scaffold(
-      backgroundColor: _background,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'DOJO WALK',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.notifications_none),
-          ),
-        ],
-      ),
-      drawer: Drawer(
-        child: SafeArea(
-          child: _buildDrawerContent(),
-        ),
-      ),
-      body: _buildContent(),
-      bottomNavigationBar: _buildMobileBottomBar(),
-    );
-  }
-
-  // DESKTOP SIDEBAR
-
-  Widget _buildSidebar() {
-    return Container(
-      width: 250,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          right: BorderSide(
-            color: Color(0xFFEAEAEA),
-          ),
-        ),
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 24),
-
-            Row(
-              children: [
-                const SizedBox(width: 20),
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: _orange,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Text(
-                    'D',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'DOJO WALK',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    Text(
-                      'ADMIN',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey,
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 30),
-
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                ),
-                itemCount: _menuItems.length,
-                itemBuilder: (context, index) {
-                  final item = _menuItems[index];
-                  final selected = _selectedIndex == index;
-
-                  return Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: 4,
-                    ),
-                    child: ListTile(
-                      selected: selected,
-                      selectedTileColor:
-                          _orange.withValues(alpha: 0.10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      leading: Icon(
-                        item.icon,
-                        color: selected
-                            ? _orange
-                            : Colors.grey.shade700,
-                      ),
-                      title: Text(
-                        item.title,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: selected
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                          color: selected
-                              ? _orange
-                              : Colors.grey.shade800,
-                        ),
-                      ),
-                      onTap: () {
-                        setState(() {
-                          _selectedIndex = index;
-                        });
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            const Divider(height: 1),
-
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
-              onTap: _logout,
-            ),
-
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // MOBILE DRAWER
-
-  Widget _buildDrawerContent() {
-    return Column(
-      children: [
-        const SizedBox(height: 24),
-
-        Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            color: _orange,
-            borderRadius: BorderRadius.circular(15),
-          ),
-          alignment: Alignment.center,
-          child: const Text(
-            'D',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        const Text(
-          'DOJO WALK',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-
-        const Text(
-          'ADMIN',
-          style: TextStyle(
-            fontSize: 10,
-            color: Colors.grey,
-            letterSpacing: 2,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-
-        const SizedBox(height: 24),
-
-        Expanded(
-          child: ListView.builder(
-            itemCount: _menuItems.length,
-            itemBuilder: (context, index) {
-              final item = _menuItems[index];
-              final selected = _selectedIndex == index;
-
-              return ListTile(
-                selected: selected,
-                selectedTileColor:
-                    _orange.withValues(alpha: 0.10),
-                leading: Icon(
-                  item.icon,
-                  color: selected
-                      ? _orange
-                      : Colors.grey.shade700,
-                ),
-                title: Text(
-                  item.title,
-                  style: TextStyle(
-                    fontWeight: selected
-                        ? FontWeight.w700
-                        : FontWeight.w500,
-                    color: selected
-                        ? _orange
-                        : Colors.grey.shade800,
-                  ),
-                ),
-                onTap: () {
-                  setState(() {
-                    _selectedIndex = index;
-                  });
-
-                  Navigator.pop(context);
-                },
-              );
-            },
-          ),
-        ),
-
-        const Divider(height: 1),
-
-        ListTile(
-          leading: const Icon(Icons.logout),
-          title: const Text('Logout'),
-          onTap: _logout,
-        ),
-
-        const SizedBox(height: 8),
-      ],
-    );
-  }
-
-  // TOP BAR
-
-  Widget _buildTopBar() {
-    return Container(
-      height: 72,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 28,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: Color(0xFFEAEAEA),
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Text(
-            _menuItems[_selectedIndex].title,
-            style: const TextStyle(
-              fontSize: 21,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-
-          const Spacer(),
-
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.notifications_none),
-          ),
-
-          const SizedBox(width: 12),
-
-          const CircleAvatar(
-            radius: 18,
-            backgroundColor: _orange,
-            child: Icon(
-              Icons.person,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
-
-          const SizedBox(width: 10),
-
-          Flexible(
-            child: Text(
-              FirebaseAuth.instance.currentUser?.email ??
-                  'Admin',
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // CONTENT ROUTER
 
   Widget _buildContent() {
     switch (_selectedIndex) {
@@ -473,7 +94,6 @@ class _AdminShellState extends State<AdminShell> {
         return const BookingsScreen();
 
       case 3:
-        // WALKER VERIFICATION SCREEN
         return const WalkerVerificationScreen();
 
       case 6:
@@ -483,63 +103,451 @@ class _AdminShellState extends State<AdminShell> {
         return const CouponsScreen();
 
       default:
-        return Container(
-          width: double.infinity,
-          color: _background,
-          padding: const EdgeInsets.all(24),
-          child: Center(
-            child: Text(
-              '${_menuItems[_selectedIndex].title} Screen',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
+        return _buildComingSoonScreen(
+          _menuItems[_selectedIndex].title,
+          _menuItems[_selectedIndex].icon,
         );
     }
   }
 
-  // MOBILE BOTTOM NAVIGATION
+  Widget _buildComingSoonScreen(String title, IconData icon) {
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 420),
+        margin: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.orange.shade100),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              height: 76,
+              width: 76,
+              decoration: BoxDecoration(
+                color: adminOrange.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: Icon(
+                icon,
+                size: 38,
+                color: adminOrange,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 23,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF252525),
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'This section is ready for the next development step.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.5,
+                color: Colors.black54,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-  Widget _buildMobileBottomBar() {
-    final items = [
-      _menuItems[0],
-      _menuItems[1],
-      _menuItems[2],
-      _menuItems[3],
-    ];
-
-    final selectedIndex =
-        _selectedIndex >= 0 && _selectedIndex <= 3
-            ? _selectedIndex
-            : 0;
-
-    return NavigationBar(
-      selectedIndex: selectedIndex,
-      onDestinationSelected: (index) {
-        setState(() {
-          _selectedIndex = index;
-        });
-      },
-      destinations: items.map((item) {
-        return NavigationDestination(
-          icon: Icon(item.icon),
-          selectedIcon: Icon(item.icon),
-          label: item.title,
+  Future<void> _logout() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text(
+            'Are you sure you want to log out of DOJO WALK Admin?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: adminOrange,
+              ),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Logout'),
+            ),
+          ],
         );
-      }).toList(),
+      },
+    );
+
+    if (shouldLogout != true || !mounted) return;
+
+    await AuthService().signOut();
+
+    if (!mounted) return;
+
+    // AuthGate should display the login screen after sign-out.
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isMobile = screenWidth < 760;
+
+    return Scaffold(
+      backgroundColor: adminBackground,
+      drawer: isMobile ? _buildSidebar(isDrawer: true) : null,
+      appBar: isMobile
+          ? AppBar(
+              backgroundColor: Colors.white,
+              surfaceTintColor: Colors.white,
+              title: const Text(
+                'DOJO WALK Admin',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Color(0xFF252525),
+                ),
+              ),
+              iconTheme: const IconThemeData(color: adminOrange),
+              elevation: 0,
+            )
+          : null,
+      body: Row(
+        children: [
+          if (!isMobile) _buildSidebar(),
+          Expanded(
+            child: Column(
+              children: [
+                if (!isMobile) _buildTopBar(),
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: KeyedSubtree(
+                      key: ValueKey<int>(_selectedIndex),
+                      child: _buildContent(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopBar() {
+    return Container(
+      height: 76,
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFEEEEEE)),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _menuItems[_selectedIndex].title,
+                  style: const TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF252525),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  _menuItems[_selectedIndex].subtitle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(
+            Icons.admin_panel_settings_rounded,
+            color: adminOrange,
+            size: 25,
+          ),
+          const SizedBox(width: 10),
+          const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'DOJO Admin',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+              Text(
+                'Administration',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.black54,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 18),
+          IconButton(
+            tooltip: 'Logout',
+            onPressed: _logout,
+            icon: const Icon(
+              Icons.logout_rounded,
+              color: adminOrange,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSidebar({bool isDrawer = false}) {
+    final sidebarWidth = _sidebarExpanded ? 252.0 : 82.0;
+
+    return Container(
+      width: isDrawer ? 280 : sidebarWidth,
+      color: const Color(0xFF202126),
+      child: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 22, 18, 24),
+              child: Row(
+                children: [
+                  Container(
+                    width: 43,
+                    height: 43,
+                    decoration: BoxDecoration(
+                      color: adminOrange,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(
+                      Icons.pets_rounded,
+                      color: Colors.white,
+                      size: 27,
+                    ),
+                  ),
+                  if (_sidebarExpanded || isDrawer) ...[
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'DOJO WALK',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          SizedBox(height: 3),
+                          Text(
+                            'ADMIN PANEL',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.white60,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  if (!isDrawer && _sidebarExpanded)
+                    IconButton(
+                      tooltip: 'Collapse sidebar',
+                      onPressed: () {
+                        setState(() {
+                          _sidebarExpanded = false;
+                        });
+                      },
+                      icon: const Icon(
+                        Icons.chevron_left_rounded,
+                        color: Colors.white70,
+                      ),
+                    )
+                  else if (!isDrawer && !_sidebarExpanded)
+                    const SizedBox.shrink(),
+                ],
+              ),
+            ),
+            if (!isDrawer && !_sidebarExpanded)
+              IconButton(
+                tooltip: 'Expand sidebar',
+                onPressed: () {
+                  setState(() {
+                    _sidebarExpanded = true;
+                  });
+                },
+                icon: const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.white70,
+                ),
+              ),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                itemCount: _menuItems.length,
+                itemBuilder: (context, index) {
+                  final item = _menuItems[index];
+                  final selected = index == _selectedIndex;
+                  final showTitle = _sidebarExpanded || isDrawer;
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 5),
+                    child: Tooltip(
+                      message: item.title,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          setState(() {
+                            _selectedIndex = index;
+                          });
+
+                          if (isDrawer) {
+                            Navigator.pop(context);
+                          }
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: showTitle ? 13 : 0,
+                            vertical: 13,
+                          ),
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? adminOrange.withValues(alpha: 0.18)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                            border: selected
+                                ? Border.all(
+                                    color: adminOrange.withValues(alpha: 0.5),
+                                  )
+                                : null,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: showTitle
+                                ? MainAxisAlignment.start
+                                : MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                item.icon,
+                                size: 21,
+                                color: selected
+                                    ? adminOrange
+                                    : Colors.white70,
+                              ),
+                              if (showTitle) ...[
+                                const SizedBox(width: 13),
+                                Expanded(
+                                  child: Text(
+                                    item.title,
+                                    style: TextStyle(
+                                      color: selected
+                                          ? Colors.white
+                                          : Colors.white70,
+                                      fontSize: 13,
+                                      fontWeight: selected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                                if (selected)
+                                  Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: const BoxDecoration(
+                                      color: adminOrange,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const Divider(
+              color: Colors.white12,
+              height: 1,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: _logout,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 13,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.logout_rounded,
+                        color: Colors.white70,
+                        size: 21,
+                      ),
+                      if (_sidebarExpanded || isDrawer) ...[
+                        const SizedBox(width: 13),
+                        const Text(
+                          'Logout',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class _AdminMenuItem {
   final String title;
+  final String subtitle;
   final IconData icon;
 
   const _AdminMenuItem({
     required this.title,
+    required this.subtitle,
     required this.icon,
   });
 }
