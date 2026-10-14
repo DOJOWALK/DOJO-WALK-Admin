@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
@@ -36,42 +37,48 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
 
   String _text(dynamic value, [String fallback = 'Not provided']) {
     if (value == null) return fallback;
+
+    if (value is Timestamp) return _date(value);
+
+    if (value is DateTime) return _date(value);
+
     final result = value.toString().trim();
+
     return result.isEmpty ? fallback : result;
   }
 
   String _date(dynamic value) {
+    DateTime? date;
+
     if (value is Timestamp) {
-      final date = value.toDate();
-      return '${date.day.toString().padLeft(2, '0')}/'
-          '${date.month.toString().padLeft(2, '0')}/'
-          '${date.year}';
+      date = value.toDate();
+    } else if (value is DateTime) {
+      date = value;
     }
 
-    if (value is DateTime) {
-      return '${value.day.toString().padLeft(2, '0')}/'
-          '${value.month.toString().padLeft(2, '0')}/'
-          '${value.year}';
-    }
+    if (date == null) return 'Not available';
 
-    return 'Not available';
+    return '${date.day.toString().padLeft(2, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/'
+        '${date.year}';
   }
 
   String _statusLabel(Map<String, dynamic> data) {
     final status = _text(data['status'], 'in_progress');
-    final verification = _text(
-      data['verificationStatus'],
-      'pending',
-    );
+    final verification =
+        _text(data['verificationStatus'], 'pending');
 
     if (status == 'suspended') return 'Suspended';
+
     if (status == 'rejected' || verification == 'rejected') {
       return 'Rejected';
     }
+
     if (status == 'correction_required' ||
         verification == 'correction_required') {
       return 'Correction Required';
     }
+
     if (status == 'under_review') return 'Under Review';
     if (status == 'in_progress') return 'In Progress';
     if (status == 'inactive') return 'Inactive';
@@ -97,12 +104,15 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     if (status.contains('Active') || status == 'Verified') {
       return walkerGreen;
     }
+
     if (status == 'Rejected' || status == 'Suspended') {
       return walkerRed;
     }
+
     if (status == 'Correction Required') {
       return const Color(0xFFB45309);
     }
+
     return walkerBlue;
   }
 
@@ -144,65 +154,66 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
   }) async {
     final controller = TextEditingController();
 
-    final result = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(title),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(description),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: controller,
-                  maxLines: 4,
-                  maxLength: 500,
-                  decoration: const InputDecoration(
-                    labelText: 'Reason',
-                    hintText: 'Enter the reason',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: walkerOrange,
-              ),
-              onPressed: () {
-                final reason = controller.text.trim();
-
-                if (reason.length < 3) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Please enter a reason of at least 3 characters.',
-                      ),
+    try {
+      return await showDialog<String>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: Text(title),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(description),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: controller,
+                    maxLines: 4,
+                    maxLength: 500,
+                    decoration: const InputDecoration(
+                      labelText: 'Reason',
+                      hintText: 'Enter the reason',
+                      border: OutlineInputBorder(),
                     ),
-                  );
-                  return;
-                }
-
-                Navigator.pop(dialogContext, reason);
-              },
-              child: Text(actionLabel),
+                  ),
+                ],
+              ),
             ),
-          ],
-        );
-      },
-    );
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: walkerOrange,
+                ),
+                onPressed: () {
+                  final reason = controller.text.trim();
 
-    controller.dispose();
-    return result;
+                  if (reason.length < 3) {
+                    ScaffoldMessenger.of(dialogContext).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Please enter a reason of at least 3 characters.',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
+                  Navigator.pop(dialogContext, reason);
+                },
+                child: Text(actionLabel),
+              ),
+            ],
+          );
+        },
+      );
+    } finally {
+      controller.dispose();
+    }
   }
 
   Future<bool> _confirm({
@@ -232,183 +243,6 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     );
 
     return result == true;
-  }
-
-  Future<void> _runAdminAction({
-    required String action,
-    required Map<String, dynamic> latest,
-    String? reason,
-  }) async {
-    if (_actionLoading) return;
-
-    final status = _text(latest['status'], 'in_progress');
-    final verification = _text(
-      latest['verificationStatus'],
-      'pending',
-    );
-    final approved = latest['isApproved'] == true;
-    final active = latest['isActive'] == true;
-    final submitted = _isSubmitted(latest);
-
-    Map<String, dynamic> changes = {};
-
-    switch (action) {
-      case 'approve':
-        if (!submitted ||
-            status == 'suspended' ||
-            status == 'rejected' ||
-            status == 'inactive' ||
-            status == 'left' ||
-            verification == 'rejected') {
-          _message(
-            'This application cannot be approved in its current state.',
-            error: true,
-          );
-          return;
-        }
-
-        if (verification == 'verified' && approved && active) {
-          _message('This walker is already active.');
-          return;
-        }
-
-        changes = {
-          'status': 'approved',
-          'verificationStatus': 'verified',
-          'isApproved': true,
-          'isActive': true,
-          'updatedAt': FieldValue.serverTimestamp(),
-        };
-        break;
-
-      case 'reject':
-        if (!submitted ||
-            verification == 'verified' ||
-            status == 'suspended') {
-          _message(
-            'This application cannot be rejected in its current state.',
-            error: true,
-          );
-          return;
-        }
-
-        changes = {
-          'status': 'rejected',
-          'verificationStatus': 'rejected',
-          'isApproved': false,
-          'isActive': false,
-          'updatedAt': FieldValue.serverTimestamp(),
-        };
-        break;
-
-      case 'suspend':
-        if (!approved ||
-            verification != 'verified' ||
-            !active ||
-            status != 'approved') {
-          _message(
-            'Only a verified, active walker can be suspended.',
-            error: true,
-          );
-          return;
-        }
-
-        changes = {
-          'status': 'suspended',
-          'isActive': false,
-          'updatedAt': FieldValue.serverTimestamp(),
-        };
-        break;
-
-      case 'reactivate':
-        if (!approved ||
-            verification != 'verified' ||
-            status != 'suspended') {
-          _message(
-            'Only a previously approved, verified, suspended walker can be reactivated.',
-            error: true,
-          );
-          return;
-        }
-
-        changes = {
-          'status': 'approved',
-          'verificationStatus': 'verified',
-          'isApproved': true,
-          'isActive': true,
-          'updatedAt': FieldValue.serverTimestamp(),
-        };
-        break;
-
-      case 'correction':
-        _message(
-          'Correction Required needs a Rules-approved correction field and '
-          'Partner resubmission flow. Those are not enabled in your current Rules.',
-          error: true,
-        );
-        return;
-
-      default:
-        _message('Unknown action.', error: true);
-        return;
-    }
-
-    final confirmed = await _confirm(
-      title: _actionTitle(action),
-      message: _actionMessage(action),
-      confirmLabel: _actionLabel(action),
-    );
-
-    if (!confirmed || !mounted) return;
-
-    setState(() => _actionLoading = true);
-
-    try {
-      // Re-read before writing so we do not rely only on stale widget data.
-      final snapshot = await _walkerRef.get();
-
-      if (!snapshot.exists) {
-        throw StateError('Walker record no longer exists.');
-      }
-
-      final current = snapshot.data()!;
-      final currentStatus = _text(current['status'], 'in_progress');
-      final currentVerification = _text(
-        current['verificationStatus'],
-        'pending',
-      );
-
-      // Check that the state has not changed since the UI was opened.
-      if (currentStatus != status ||
-          currentVerification != verification ||
-          (current['isApproved'] == true) != approved ||
-          (current['isActive'] == true) != active) {
-        throw StateError(
-          'Walker status changed. Refresh the page and try again.',
-        );
-      }
-
-      await _walkerRef.update(changes);
-
-      if (!mounted) return;
-      _message('${_actionTitle(action)} successful.');
-    } on FirebaseException catch (e) {
-      _message(
-        e.code == 'permission-denied'
-            ? 'Permission denied. Check Admin authentication and Firestore Rules.'
-            : 'Could not update walker: ${e.message ?? e.code}',
-        error: true,
-      );
-    } catch (e) {
-      _message(
-        'Action failed: ${e.toString().replaceFirst('Bad state: ', '')}',
-        error: true,
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _actionLoading = false);
-      }
-    }
   }
 
   String _actionTitle(String action) {
@@ -448,16 +282,295 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
   String _actionMessage(String action) {
     switch (action) {
       case 'approve':
-        return 'Approve this walker and mark the account active?';
+        return 'Approve this walker and activate the account?';
       case 'reject':
-        return 'Reject this walker application? The walker will not be active.';
+        return 'Reject this application? The account will remain inactive.';
       case 'suspend':
         return 'Suspend this active walker account?';
       case 'reactivate':
         return 'Reactivate this previously approved walker?';
+      case 'correction':
+        return 'Mark this application as requiring correction?';
       default:
         return 'Continue with this action?';
     }
+  }
+
+  Future<void> _runAdminAction({
+    required String action,
+    required Map<String, dynamic> latest,
+    String? reason,
+  }) async {
+    if (_actionLoading) return;
+
+    final adminUid = FirebaseAuth.instance.currentUser?.uid;
+
+    if (adminUid == null) {
+      _message('Admin login required.', error: true);
+      return;
+    }
+
+    final status = _text(latest['status'], 'in_progress');
+    final verification =
+        _text(latest['verificationStatus'], 'pending');
+    final approved = latest['isApproved'] == true;
+    final active = latest['isActive'] == true;
+    final submitted = _isSubmitted(latest);
+    final cleanReason = reason?.trim();
+
+    if (['reject', 'suspend', 'correction'].contains(action) &&
+        (cleanReason == null || cleanReason.length < 3)) {
+      _message(
+        'Please enter a valid reason before continuing.',
+        error: true,
+      );
+      return;
+    }
+
+    late String newStatus;
+    late String newVerification;
+    late bool newApproved;
+    late bool newActive;
+    late String auditAction;
+
+    switch (action) {
+      case 'approve':
+        if (!submitted ||
+            status == 'suspended' ||
+            status == 'rejected' ||
+            status == 'inactive' ||
+            status == 'left' ||
+            verification == 'rejected') {
+          _message(
+            'This application cannot be approved in its current state.',
+            error: true,
+          );
+          return;
+        }
+
+        if (verification == 'verified' && approved && active) {
+          _message('This walker is already active.');
+          return;
+        }
+
+        newStatus = 'approved';
+        newVerification = 'verified';
+        newApproved = true;
+        newActive = true;
+        auditAction = 'walker_approved';
+        break;
+
+      case 'reject':
+        if (!submitted ||
+            verification == 'verified' ||
+            status == 'suspended' ||
+            status == 'inactive' ||
+            status == 'left') {
+          _message(
+            'This application cannot be rejected in its current state.',
+            error: true,
+          );
+          return;
+        }
+
+        newStatus = 'rejected';
+        newVerification = 'rejected';
+        newApproved = false;
+        newActive = false;
+        auditAction = 'walker_rejected';
+        break;
+
+      case 'suspend':
+        if (!approved ||
+            verification != 'verified' ||
+            !active ||
+            status != 'approved') {
+          _message(
+            'Only a verified, active walker can be suspended.',
+            error: true,
+          );
+          return;
+        }
+
+        newStatus = 'suspended';
+        newVerification = 'verified';
+        newApproved = true;
+        newActive = false;
+        auditAction = 'walker_suspended';
+        break;
+
+      case 'reactivate':
+        if (!approved ||
+            verification != 'verified' ||
+            status != 'suspended') {
+          _message(
+            'Only a previously approved, verified, suspended walker '
+            'can be reactivated.',
+            error: true,
+          );
+          return;
+        }
+
+        newStatus = 'approved';
+        newVerification = 'verified';
+        newApproved = true;
+        newActive = true;
+        auditAction = 'walker_reactivated';
+        break;
+
+      case 'correction':
+        if (!submitted ||
+            status == 'suspended' ||
+            status == 'rejected' ||
+            status == 'inactive' ||
+            status == 'left' ||
+            (verification == 'verified' && approved)) {
+          _message(
+            'Correction cannot be requested in the current state.',
+            error: true,
+          );
+          return;
+        }
+
+        newStatus = 'correction_required';
+        newVerification = 'correction_required';
+        newApproved = false;
+        newActive = false;
+        auditAction = 'walker_correction_requested';
+        break;
+
+      default:
+        _message('Unknown action.', error: true);
+        return;
+    }
+
+    final confirmed = await _confirm(
+      title: _actionTitle(action),
+      message: _actionMessage(action),
+      confirmLabel: _actionLabel(action),
+    );
+
+    if (!confirmed || !mounted) return;
+
+    setState(() => _actionLoading = true);
+
+    try {
+      // Re-read the record before making a decision.
+      final snapshot = await _walkerRef.get();
+
+      if (!snapshot.exists) {
+        throw StateError('Walker record no longer exists.');
+      }
+
+      final current = snapshot.data()!;
+
+      if (_text(current['status'], 'in_progress') != status ||
+          _text(current['verificationStatus'], 'pending') !=
+              verification ||
+          (current['isApproved'] == true) != approved ||
+          (current['isActive'] == true) != active) {
+        throw StateError(
+          'Walker status changed. Refresh and try again.',
+        );
+      }
+
+      final now = FieldValue.serverTimestamp();
+      final batch = _firestore.batch();
+
+      final changes = <String, dynamic>{
+        'status': newStatus,
+        'verificationStatus': newVerification,
+        'isApproved': newApproved,
+        'isActive': newActive,
+        'updatedAt': now,
+        'decisionBy': adminUid,
+        'decisionAt': now,
+      };
+
+      if (cleanReason != null && cleanReason.isNotEmpty) {
+        changes['decisionReason'] = cleanReason;
+      }
+
+      batch.update(_walkerRef, changes);
+
+      final auditRef = _firestore.collection('audit_logs').doc();
+
+      final audit = <String, dynamic>{
+        'actorUid': adminUid,
+        'actorRole': 'super_admin',
+        'action': auditAction,
+        'targetType': 'walker',
+        'targetId': widget.uid,
+        'beforeStatus': status,
+        'afterStatus': newStatus,
+        'createdAt': now,
+      };
+
+      if (cleanReason != null && cleanReason.isNotEmpty) {
+        audit['reason'] = cleanReason;
+      }
+
+      batch.set(auditRef, audit);
+
+      // Walker update and audit entry commit together.
+      await batch.commit();
+
+      if (!mounted) return;
+
+      _message('${_actionTitle(action)} successful.');
+    } on FirebaseException catch (e) {
+      _message(
+        e.code == 'permission-denied'
+            ? 'Permission denied. Check Admin authentication and Firestore Rules.'
+            : 'Could not update walker: ${e.message ?? e.code}',
+        error: true,
+      );
+    } catch (e) {
+      _message(
+        'Action failed: ${e.toString().replaceFirst('Bad state: ', '')}',
+        error: true,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _actionLoading = false);
+      }
+    }
+  }
+
+  Future<void> _startReasonAction({
+    required String action,
+    required Map<String, dynamic> data,
+  }) async {
+    String title;
+    String description;
+
+    switch (action) {
+      case 'reject':
+        title = 'Reject Application';
+        description = 'Enter the reason for rejecting this application.';
+        break;
+      case 'suspend':
+        title = 'Suspend Walker';
+        description = 'Explain why this walker is being suspended.';
+        break;
+      default:
+        title = 'Request Correction';
+        description = 'Explain what information needs to be corrected.';
+    }
+
+    final reason = await _askReason(
+      title: title,
+      description: description,
+      actionLabel: 'Continue',
+    );
+
+    if (reason == null || !mounted) return;
+
+    await _runAdminAction(
+      action: action,
+      latest: data,
+      reason: reason,
+    );
   }
 
   Future<void> _openDocument({
@@ -470,27 +583,29 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     if (document is String) {
       if (document.startsWith('https://')) {
         url = document;
-      } else if (document.isNotEmpty) {
-        path = document;
+      } else if (document.trim().isNotEmpty) {
+        path = document.trim();
       }
     } else if (document is Map) {
-      final map = Map<String, dynamic>.from(document);
-      url = _text(
-        map['downloadUrl'] ?? map['url'],
-        '',
-      );
-      path = _text(
-        map['storagePath'] ?? map['path'],
-        '',
-      );
+      final map = _map(document);
 
-      if (url != null && url!.isEmpty) url = null;
-      if (path != null && path!.isEmpty) path = null;
+      final rawUrl = map['downloadUrl'] ?? map['url'];
+      final rawPath = map['storagePath'] ?? map['path'];
+
+      if (rawUrl is String && rawUrl.trim().isNotEmpty) {
+        url = rawUrl.trim();
+      }
+
+      if (rawPath is String && rawPath.trim().isNotEmpty) {
+        path = rawPath.trim();
+      }
     }
 
     if ((url == null || url.isEmpty) && path != null) {
       try {
-        url = await FirebaseStorage.instance.ref(path).getDownloadURL();
+        url = await FirebaseStorage.instance
+            .ref(path)
+            .getDownloadURL();
       } on FirebaseException catch (e) {
         _message(
           'Cannot access $title. Check Storage Rules (${e.code}).',
@@ -567,6 +682,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
             }
 
             final data = snapshot.data!.data()!;
+
             return _buildContent(data);
           },
         ),
@@ -606,6 +722,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
   Widget _buildContent(Map<String, dynamic> data) {
     final kyc = _map(data['kyc']);
     final documents = _map(kyc['documents']);
+
     final status = _statusLabel(data);
     final verified = _isVerified(data);
     final active = _isActive(data);
@@ -649,8 +766,8 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                   _info('Mobile', data['phone'] ?? data['phoneNumber']),
                   _info('Email', data['email']),
                   _info('Gender', data['gender']),
-                  _info('Date of Birth', _date(data['dateOfBirth'])),
-                  _info('Registration Date', _date(data['createdAt'])),
+                  _info('Date of Birth', data['dateOfBirth']),
+                  _info('Registration Date', data['createdAt']),
                 ]),
               ),
 
@@ -661,9 +778,8 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                 child: _responsiveGrid([
                   _info(
                     'House / Flat',
-                    data['currentAddress'] is Map
-                        ? _map(data['currentAddress'])['flatHouse']
-                        : _map(data['address'])['flatHouse'],
+                    _map(data['currentAddress'])['flatHouse'] ??
+                        _map(data['address'])['flatHouse'],
                   ),
                   _info(
                     'Building / Society',
@@ -708,7 +824,10 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                   ),
                   _info('Travel Mode', data['travelMode']),
                   _info('Services', _listText(data['services'])),
-                  _info('Availability', _availabilityText(data['availability'])),
+                  _info(
+                    'Availability',
+                    _availabilityText(data['availability']),
+                  ),
                 ]),
               ),
 
@@ -717,7 +836,10 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                 title: 'KYC Documents',
                 icon: Icons.verified_user_outlined,
                 trailing: _statusPill(
-                  _text(kyc['status'], _text(data['verificationStatus'], 'pending')),
+                  _text(
+                    kyc['status'],
+                    _text(data['verificationStatus'], 'pending'),
+                  ),
                   data['verificationStatus'] == 'verified'
                       ? walkerGreen
                       : const Color(0xFFB45309),
@@ -727,7 +849,9 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                   children: [
                     _documentRow(
                       'Selfie / Profile Photo',
-                      kyc['selfie'] ?? data['photoUrl'] ?? data['profileImage'],
+                      kyc['selfie'] ??
+                          data['photoUrl'] ??
+                          data['profileImage'],
                     ),
                     _documentRow(
                       'Aadhaar Front',
@@ -749,29 +873,19 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                       runSpacing: 10,
                       children: [
                         _outlineAction(
-                          'View Documents',
-                          Icons.visibility_outlined,
-                          () => _openDocument(
-                            title: 'Selfie / Profile Photo',
-                            document: kyc['selfie'] ??
-                                data['photoUrl'] ??
-                                data['profileImage'],
-                          ),
-                        ),
-                        _outlineAction(
                           'Request Correction',
                           Icons.edit_note,
-                          () => _runAdminAction(
+                          () => _startReasonAction(
                             action: 'correction',
-                            latest: data,
+                            data: data,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 10),
                     const Text(
-                      'Document replacement and correction status require '
-                      'Storage Rules and Partner onboarding integration.',
+                      'Document replacement needs separate secure '
+                      'Storage Rules and upload handling.',
                       style: TextStyle(
                         color: walkerMuted,
                         fontSize: 12,
@@ -789,7 +903,10 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                   _info('Completed Walks', data['completedWalks'] ?? 0),
                   _info('Complaints', data['complaintCount'] ?? 0),
                   _info('Rating', data['rating'] ?? 'Not rated'),
-                  _info('Payout Summary', data['totalPayout'] ?? 'Not available'),
+                  _info(
+                    'Payout Summary',
+                    data['totalPayout'] ?? 'Not available',
+                  ),
                 ]),
               ),
 
@@ -801,43 +918,38 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _responsiveGrid([
-                      _info(
-                        'Account Status',
-                        status,
-                      ),
+                      _info('Account Status', status),
                       _info(
                         'Suspected',
                         data['isSuspected'] == true ? 'Yes' : 'No',
                       ),
-                      _info(
-                        'Last Updated',
-                        _date(data['updatedAt']),
-                      ),
+                      _info('Last Updated', data['updatedAt']),
                     ]),
                     const SizedBox(height: 14),
                     const Text(
-                      'The suspected flag is an administrative review marker, '
-                      'not proof of wrongdoing.',
+                      'The suspected flag is an administrative review '
+                      'marker, not proof of wrongdoing.',
                       style: TextStyle(
                         fontSize: 12,
                         color: walkerMuted,
                       ),
                     ),
                     const SizedBox(height: 14),
-                    _outlineAction(
-                      'View Security Details',
-                      Icons.info_outline,
-                      () => _showSecurityDetails(data),
-                    ),
-                    const SizedBox(height: 8),
-                    _outlineAction(
-                      'Activity History',
-                      Icons.history,
-                      () => _message(
-                        'Audit history is not connected: current Rules '
-                        'allow admins to read audit_logs but deny client writes.',
-                        error: true,
-                      ),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        _outlineAction(
+                          'View Security Details',
+                          Icons.info_outline,
+                          () => _showSecurityDetails(data),
+                        ),
+                        _outlineAction(
+                          'Activity History',
+                          Icons.history,
+                          _openActivityHistory,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -897,12 +1009,12 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
 
     if (rejected) {
       actions.add(
-        _primaryAction(
+        _outlineAction(
           'Review Again',
           Icons.refresh,
           () => _message(
-            'Review Again needs an explicit application-resubmission '
-            'workflow. It will not automatically activate a rejected walker.',
+            'Review Again does not automatically reactivate a rejected walker. '
+            'A separate resubmission workflow is required.',
             error: true,
           ),
         ),
@@ -923,20 +1035,10 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
         _primaryAction(
           'Suspend',
           Icons.pause_circle_outline,
-          () async {
-            final reason = await _askReason(
-              title: 'Suspend Walker',
-              description: 'Enter why this walker is being suspended.',
-              actionLabel: 'Continue',
-            );
-            if (reason == null) return;
-
-            await _runAdminAction(
-              action: 'suspend',
-              latest: data,
-              reason: reason,
-            );
-          },
+          () => _startReasonAction(
+            action: 'suspend',
+            data: data,
+          ),
         ),
       );
     } else if (submitted) {
@@ -950,24 +1052,15 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
           ),
         ),
       );
+
       actions.add(
         _outlineAction(
           'Reject',
           Icons.close,
-          () async {
-            final reason = await _askReason(
-              title: 'Reject Application',
-              description: 'Enter the reason for rejection.',
-              actionLabel: 'Continue',
-            );
-            if (reason == null) return;
-
-            await _runAdminAction(
-              action: 'reject',
-              latest: data,
-              reason: reason,
-            );
-          },
+          () => _startReasonAction(
+            action: 'reject',
+            data: data,
+          ),
         ),
       );
     } else {
@@ -1035,14 +1128,12 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
           final narrow = constraints.maxWidth < 520;
 
           final profile = Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               CircleAvatar(
                 radius: 31,
                 backgroundColor: const Color(0xFFFFE7D1),
-                backgroundImage: photo.isNotEmpty
-                    ? NetworkImage(photo)
-                    : null,
+                backgroundImage:
+                    photo.isNotEmpty ? NetworkImage(photo) : null,
                 child: photo.isEmpty
                     ? const Icon(
                         Icons.person,
@@ -1148,11 +1239,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                   color: const Color(0xFFFFF0E2),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  icon,
-                  color: walkerOrange,
-                  size: 20,
-                ),
+                child: Icon(icon, color: walkerOrange, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1184,18 +1271,15 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                 ? 2
                 : 1;
 
+        final width = (constraints.maxWidth - (columns - 1) * 18) /
+            columns;
+
         return Wrap(
           spacing: 18,
           runSpacing: 20,
-          children: children.map((child) {
-            final width =
-                (constraints.maxWidth - (columns - 1) * 18) / columns;
-
-            return SizedBox(
-              width: width,
-              child: child,
-            );
-          }).toList(),
+          children: children
+              .map((child) => SizedBox(width: width, child: child))
+              .toList(),
         );
       },
     );
@@ -1229,10 +1313,10 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
   Widget _documentRow(String title, dynamic document) {
     final available = document != null &&
         (document is Map
-            ? (document['downloadUrl'] != null ||
-                document['url'] != null ||
-                document['storagePath'] != null ||
-                document['path'] != null)
+            ? (_map(document)['downloadUrl'] != null ||
+                _map(document)['url'] != null ||
+                _map(document)['storagePath'] != null ||
+                _map(document)['path'] != null)
             : document.toString().trim().isNotEmpty);
 
     return Padding(
@@ -1372,24 +1456,126 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
 
   String _listText(dynamic value) {
     if (value is List) return value.join(', ');
+
     if (value is Map) {
       return value.entries
           .where((entry) => entry.value == true)
           .map((entry) => entry.key.toString())
           .join(', ');
     }
+
     return _text(value);
   }
 
   String _availabilityText(dynamic value) {
     if (value is Map) {
       final map = Map<String, dynamic>.from(value);
+
       return map.entries
           .where((entry) => entry.value == true)
           .map((entry) => entry.key)
           .join(', ');
     }
+
     return _listText(value);
+  }
+
+  Future<void> _openActivityHistory() async {
+    if (_actionLoading) return;
+
+    try {
+      final snapshot = await _firestore
+          .collection('audit_logs')
+          .where('targetType', isEqualTo: 'walker')
+          .where('targetId', isEqualTo: widget.uid)
+          .limit(50)
+          .get();
+
+      if (!mounted) return;
+
+      final logs = snapshot.docs.toList()
+        ..sort((a, b) {
+          final aTime = a.data()['createdAt'];
+          final bTime = b.data()['createdAt'];
+
+          final aDate = aTime is Timestamp
+              ? aTime.toDate()
+              : DateTime.fromMillisecondsSinceEpoch(0);
+
+          final bDate = bTime is Timestamp
+              ? bTime.toDate()
+              : DateTime.fromMillisecondsSinceEpoch(0);
+
+          return bDate.compareTo(aDate);
+        });
+
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Walker Activity History'),
+          content: SizedBox(
+            width: 560,
+            child: logs.isEmpty
+                ? const Text('No activity records found.')
+                : ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: logs.length,
+                    separatorBuilder: (_, __) =>
+                        const Divider(height: 20),
+                    itemBuilder: (context, index) {
+                      final log = logs[index].data();
+                      final createdAt = log['createdAt'];
+
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const CircleAvatar(
+                          backgroundColor: Color(0xFFFFF0E2),
+                          child: Icon(
+                            Icons.history,
+                            color: walkerOrange,
+                          ),
+                        ),
+                        title: Text(
+                          _text(log['action'], 'Admin action')
+                              .replaceAll('_', ' '),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('By: ${_text(log['actorUid'])}'),
+                            if (log['beforeStatus'] != null ||
+                                log['afterStatus'] != null)
+                              Text(
+                                '${_text(log['beforeStatus'])} → '
+                                '${_text(log['afterStatus'])}',
+                              ),
+                            if (log['reason'] != null)
+                              Text('Reason: ${log['reason']}'),
+                            Text(
+                              createdAt is Timestamp
+                                  ? _date(createdAt)
+                                  : 'Date unavailable',
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } on FirebaseException catch (e) {
+      _message(
+        'Could not load activity history: ${e.message ?? e.code}',
+        error: true,
+      );
+    }
   }
 
   void _showSecurityDetails(Map<String, dynamic> data) {
@@ -1414,7 +1600,16 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                 const SizedBox(height: 14),
                 _info('Active', data['isActive']),
                 const SizedBox(height: 14),
-                _info('Suspected', data['isSuspected'] == true ? 'Yes' : 'No'),
+                _info(
+                  'Suspected',
+                  data['isSuspected'] == true ? 'Yes' : 'No',
+                ),
+                const SizedBox(height: 14),
+                _info('Decision Reason', data['decisionReason']),
+                const SizedBox(height: 14),
+                _info('Decision By', data['decisionBy']),
+                const SizedBox(height: 14),
+                _info('Decision Date', data['decisionAt']),
               ],
             ),
           ),
@@ -1440,17 +1635,15 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
       child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline,
-            color: walkerOrange,
-          ),
+          Icon(Icons.info_outline, color: walkerOrange),
           SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Walker details update live from Firestore. KYC access depends on '
-              'Firebase Storage Rules. Performance, audit history, editable '
-              'profile fields and correction reasons need their corresponding '
-              'data sources and secure write permissions.',
+              'Walker details update live from Firestore. Admin decisions '
+              'and their audit entries are written together. Document '
+              'replacement, editable profile fields, suspected-flag '
+              'management and Partner resubmission require separate '
+              'implementation and permissions.',
               style: TextStyle(
                 color: walkerText,
                 fontSize: 12,
