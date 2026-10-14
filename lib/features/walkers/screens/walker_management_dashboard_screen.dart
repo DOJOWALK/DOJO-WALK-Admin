@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
 import 'walker_details_screen.dart';
@@ -26,13 +25,12 @@ class _WalkerManagementDashboardScreenState
       TextEditingController();
 
   String _selectedTab = 'Available';
-  String? _selectedVerificationUid;
-  bool _processingVerification = false;
 
   static const List<String> _tabLabels = [
     'Available',
     'Running',
     'Verification',
+    'Rejected',
     'All Walkers',
   ];
 
@@ -40,18 +38,6 @@ class _WalkerManagementDashboardScreenState
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  Map<String, dynamic> _asMap(dynamic value) {
-    if (value is Map<String, dynamic>) {
-      return value;
-    }
-
-    if (value is Map) {
-      return Map<String, dynamic>.from(value);
-    }
-
-    return <String, dynamic>{};
   }
 
   String _value(dynamic value) {
@@ -87,17 +73,13 @@ class _WalkerManagementDashboardScreenState
   }
 
   String _name(Map<String, dynamic> data) {
-    return _firstValue([
+    final name = _firstValue([
       data['fullName'],
       data['name'],
       data['displayName'],
-    ]).isEmpty
-        ? 'Unnamed Walker'
-        : _firstValue([
-            data['fullName'],
-            data['name'],
-            data['displayName'],
-          ]);
+    ]);
+
+    return name.isEmpty ? 'Unnamed Walker' : name;
   }
 
   String _phone(Map<String, dynamic> data) {
@@ -108,38 +90,93 @@ class _WalkerManagementDashboardScreenState
     ]);
   }
 
-  String _status(Map<String, dynamic> data) {
+  String _normalizedStatus(Map<String, dynamic> data) {
     final status = _value(data['status']).toLowerCase();
-
     final verification =
         _value(data['verificationStatus']).toLowerCase();
 
-    if (status == 'suspended') {
-      return 'Suspended';
-    }
-
+    // Rejection has priority over any stale approval field.
     if (status == 'rejected' || verification == 'rejected') {
-      return 'Rejected';
+      return 'rejected';
     }
 
-    if (verification == 'verified' || data['isApproved'] == true) {
-      return data['isActive'] == true ? 'Active' : 'Verified';
+    if (status == 'suspended') {
+      return 'suspended';
     }
 
-    if (status == 'under_review' ||
-        verification == 'under_review') {
-      return 'Under Review';
+    if (status == 'left' || status == 'inactive') {
+      return status;
     }
 
-    if (status == 'pending' || verification == 'pending') {
-      return 'Pending';
+    if (verification == 'correction_required' ||
+        status == 'correction_required') {
+      return 'correction_required';
     }
 
-    if (status == 'approved') {
-      return 'Approved';
+    if (verification == 'under_review' ||
+        status == 'under_review') {
+      return 'under_review';
     }
 
-    return status.isEmpty ? 'Unknown' : status;
+    if (verification == 'pending' || status == 'pending') {
+      return 'pending';
+    }
+
+    if (verification == 'verified' ||
+        data['isApproved'] == true ||
+        status == 'approved') {
+      return data['isActive'] == true ? 'active' : 'verified';
+    }
+
+    return status.isEmpty ? 'unknown' : status;
+  }
+
+  String _status(Map<String, dynamic> data) {
+    switch (_normalizedStatus(data)) {
+      case 'active':
+        return 'Active';
+
+      case 'verified':
+        return 'Verified';
+
+      case 'approved':
+        return 'Approved';
+
+      case 'running':
+      case 'in_progress':
+      case 'active_walk':
+      case 'walking':
+      case 'walk_started':
+        return 'Running';
+
+      case 'pending':
+        return 'Pending';
+
+      case 'under_review':
+        return 'Under Review';
+
+      case 'correction_required':
+        return 'Correction Required';
+
+      case 'rejected':
+        return 'Rejected';
+
+      case 'suspended':
+        return 'Suspended';
+
+      case 'inactive':
+        return 'Inactive';
+
+      case 'left':
+        return 'Left';
+
+      default:
+        return 'Unknown';
+    }
+  }
+
+  bool _isRejected(Map<String, dynamic> data) {
+    return _normalizedStatus(data) == 'rejected';
   }
 
   bool _isVerified(Map<String, dynamic> data) {
@@ -149,20 +186,29 @@ class _WalkerManagementDashboardScreenState
   }
 
   bool _isApplication(Map<String, dynamic> data) {
-    final status = _value(data['status']).toLowerCase();
+    final status = _normalizedStatus(data);
 
-    final verification =
-        _value(data['verificationStatus']).toLowerCase();
+    if (data['applicationSubmitted'] != true) {
+      return false;
+    }
 
-    return data['applicationSubmitted'] == true &&
-        !_isVerified(data) &&
-        status != 'suspended' &&
-        (status == 'under_review' ||
-            status == 'pending' ||
-            status == 'rejected' ||
-            verification == 'pending' ||
-            verification == 'under_review' ||
-            verification == 'rejected');
+    // Rejected applications belong only in the Rejected tab.
+    if (status == 'rejected' ||
+        status == 'suspended' ||
+        status == 'inactive' ||
+        status == 'left') {
+      return false;
+    }
+
+    // Already-approved walkers should not appear in Verification.
+    if (_isVerified(data)) {
+      return false;
+    }
+
+    // Keep submitted applications that need review or correction.
+    return status == 'pending' ||
+        status == 'under_review' ||
+        status == 'correction_required';
   }
 
   bool _isRunningBooking(Map<String, dynamic> data) {
@@ -179,9 +225,14 @@ class _WalkerManagementDashboardScreenState
     String uid,
     Set<String> runningWalkerIds,
   ) {
+    final status = _normalizedStatus(data);
+
     return _isVerified(data) &&
         data['isActive'] == true &&
-        _value(data['status']).toLowerCase() != 'suspended' &&
+        status != 'rejected' &&
+        status != 'suspended' &&
+        status != 'inactive' &&
+        status != 'left' &&
         !runningWalkerIds.contains(uid);
   }
 
@@ -191,12 +242,9 @@ class _WalkerManagementDashboardScreenState
   ) {
     final query = _searchController.text.trim().toLowerCase();
 
-    if (query.isEmpty) {
-      return true;
-    }
+    if (query.isEmpty) return true;
 
-    // Search only by walker identity and contact details.
-    // Service area/location is intentionally excluded.
+    // Search identity and contact details only.
     final searchable = [
       _name(data),
       _phone(data),
@@ -221,161 +269,23 @@ class _WalkerManagementDashboardScreenState
     );
   }
 
-  void _showMessage(String message) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-  }
-
-  Future<void> _updateVerification({
-    required String uid,
-    required bool approve,
-  }) async {
-    if (_processingVerification) return;
-
-    final action = approve ? 'Verify' : 'Reject';
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text('$action Walker?'),
-          content: Text(
-            approve
-                ? 'क्या आप इस Walker के KYC documents verify करना चाहते हैं?'
-                : 'क्या आप इस Walker का application reject करना चाहते हैं?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(false);
-              },
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: approve ? wmGreen : wmRed,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.of(dialogContext).pop(true);
-              },
-              child: Text(action),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirmed != true || !mounted) return;
-
-    setState(() {
-      _processingVerification = true;
-    });
-
-    try {
-      final ref = FirebaseFirestore.instance
-          .collection('walkers')
-          .doc(uid);
-
-      final snapshot = await ref.get();
-
-      if (!snapshot.exists) {
-        _showMessage('Walker application नहीं मिला।');
-        return;
-      }
-
-      final data = snapshot.data() ?? <String, dynamic>{};
-
-      final status = _value(data['status']).toLowerCase();
-
-      final verification =
-          _value(data['verificationStatus']).toLowerCase();
-
-      if (data['applicationSubmitted'] != true) {
-        _showMessage('यह application submit नहीं हुआ है।');
-        return;
-      }
-
-      if (_isVerified(data)) {
-        _showMessage('यह Walker पहले से verified है।');
-        return;
-      }
-
-      if (status == 'suspended') {
-        _showMessage(
-          'Suspended Walker को इस स्क्रीन से verify नहीं किया जा सकता।',
-        );
-        return;
-      }
-
-      if (approve &&
-          status != 'under_review' &&
-          verification != 'under_review') {
-        _showMessage(
-          'Application Under Review स्थिति में नहीं है।',
-        );
-        return;
-      }
-
-      await ref.update({
-        'verificationStatus': approve ? 'verified' : 'rejected',
-        'status': approve ? 'approved' : 'rejected',
-        'isApproved': approve,
-        'isActive': false,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-
-      if (!mounted) return;
-
-      setState(() {
-        _selectedVerificationUid = null;
-      });
-
-      _showMessage(
-        approve
-            ? 'KYC verified. Walker अभी inactive रहेगा।'
-            : 'Walker application rejected.',
-      );
-    } on FirebaseException catch (error) {
-      _showMessage(
-        'Update नहीं हुआ: ${error.message ?? error.code}',
-      );
-    } catch (error) {
-      _showMessage('Update नहीं हुआ: $error');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _processingVerification = false;
-        });
-      }
-    }
-  }
-
   Widget _header() {
     return Row(
       children: [
         Container(
-          height: 44,
-          width: 44,
+          height: 46,
+          width: 46,
           decoration: BoxDecoration(
             color: wmOrange.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(13),
           ),
           child: const Icon(
             Icons.groups_outlined,
             color: wmOrange,
-            size: 25,
+            size: 26,
           ),
         ),
-        const SizedBox(width: 11),
+        const SizedBox(width: 12),
         const Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,11 +318,7 @@ class _WalkerManagementDashboardScreenState
       height: 46,
       child: TextField(
         controller: _searchController,
-        onChanged: (_) {
-          setState(() {
-            _selectedVerificationUid = null;
-          });
-        },
+        onChanged: (_) => setState(() {}),
         style: const TextStyle(
           fontSize: 13,
           color: wmText,
@@ -434,23 +340,29 @@ class _WalkerManagementDashboardScreenState
                   tooltip: 'Clear search',
                   onPressed: () {
                     _searchController.clear();
-
-                    setState(() {
-                      _selectedVerificationUid = null;
-                    });
+                    setState(() {});
                   },
-                  icon: const Icon(Icons.close, size: 18),
+                  icon: const Icon(
+                    Icons.close,
+                    size: 18,
+                  ),
                 ),
           filled: true,
           fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 8,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(11),
-            borderSide: const BorderSide(color: wmBorder),
+            borderSide: const BorderSide(
+              color: wmBorder,
+            ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(11),
-            borderSide: const BorderSide(color: wmBorder),
+            borderSide: const BorderSide(
+              color: wmBorder,
+            ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(11),
@@ -464,97 +376,6 @@ class _WalkerManagementDashboardScreenState
     );
   }
 
-  Widget _statistics({
-    required int available,
-    required int running,
-    required int verification,
-    required int total,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 13),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: wmBorder),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          _statItem(
-            'Available',
-            available,
-            Icons.check_circle_outline,
-            wmGreen,
-          ),
-          _statDivider(),
-          _statItem(
-            'Running',
-            running,
-            Icons.directions_walk,
-            wmOrange,
-          ),
-          _statDivider(),
-          _statItem(
-            'Verification',
-            verification,
-            Icons.fact_check_outlined,
-            const Color(0xFF1D4ED8),
-          ),
-          _statDivider(),
-          _statItem(
-            'All',
-            total,
-            Icons.groups_outlined,
-            wmText,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _statItem(
-    String title,
-    int count,
-    IconData icon,
-    Color color,
-  ) {
-    return Expanded(
-      child: Column(
-        children: [
-          Icon(icon, size: 17, color: color),
-          const SizedBox(height: 5),
-          Text(
-            '$count',
-            style: const TextStyle(
-              color: wmText,
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: wmMuted,
-              fontSize: 9,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _statDivider() {
-    return Container(
-      width: 1,
-      height: 47,
-      color: wmBorder,
-    );
-  }
-
   Widget _tabs() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -563,20 +384,19 @@ class _WalkerManagementDashboardScreenState
           final selected = _selectedTab == tab;
 
           return Padding(
-            padding: const EdgeInsets.only(right: 7),
+            padding: const EdgeInsets.only(right: 6),
             child: InkWell(
               borderRadius: BorderRadius.circular(9),
               onTap: () {
                 setState(() {
                   _selectedTab = tab;
-                  _selectedVerificationUid = null;
                 });
               },
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 130),
+                duration: const Duration(milliseconds: 140),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 13,
-                  vertical: 10,
+                  horizontal: 12,
+                  vertical: 11,
                 ),
                 decoration: BoxDecoration(
                   color: selected ? wmOrange : Colors.white,
@@ -628,6 +448,17 @@ class _WalkerManagementDashboardScreenState
         background = const Color(0xFFFEE2E2);
         break;
 
+      case 'Correction Required':
+        foreground = const Color(0xFF6D28D9);
+        background = const Color(0xFFEDE9FE);
+        break;
+
+      case 'Inactive':
+      case 'Left':
+        foreground = wmMuted;
+        background = const Color(0xFFF5F5F4);
+        break;
+
       default:
         foreground = const Color(0xFF92400E);
         background = const Color(0xFFFEF3C7);
@@ -644,6 +475,8 @@ class _WalkerManagementDashboardScreenState
       ),
       child: Text(
         status,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: foreground,
           fontSize: 9,
@@ -666,11 +499,6 @@ class _WalkerManagementDashboardScreenState
 
     final status = running ? 'Running' : _status(data);
 
-    final isVerification = _selectedTab == 'Verification';
-
-    final selected =
-        _selectedVerificationUid == document.id;
-
     final phone = _phone(data);
 
     final subtitle = phone.isEmpty
@@ -678,18 +506,9 @@ class _WalkerManagementDashboardScreenState
         : phone;
 
     return Material(
-      color: selected ? const Color(0xFFFFF1E5) : Colors.white,
+      color: Colors.white,
       child: InkWell(
-        onTap: () {
-          if (isVerification) {
-            setState(() {
-              _selectedVerificationUid =
-                  selected ? null : document.id;
-            });
-          } else {
-            _openDetails(document);
-          }
-        },
+        onTap: () => _openDetails(document),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 11,
@@ -699,9 +518,11 @@ class _WalkerManagementDashboardScreenState
             children: [
               CircleAvatar(
                 radius: 22,
-                backgroundColor: wmOrange.withValues(alpha: 0.12),
-                backgroundImage:
-                    photoUrl.isEmpty ? null : NetworkImage(photoUrl),
+                backgroundColor:
+                    wmOrange.withValues(alpha: 0.12),
+                backgroundImage: photoUrl.isEmpty
+                    ? null
+                    : NetworkImage(photoUrl),
                 child: photoUrl.isEmpty
                     ? const Icon(
                         Icons.person_outline,
@@ -749,403 +570,23 @@ class _WalkerManagementDashboardScreenState
                 ),
               ),
               const SizedBox(width: 6),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _statusBadge(status),
-                  const SizedBox(height: 6),
-                  Icon(
-                    isVerification
-                        ? selected
-                            ? Icons.expand_less
-                            : Icons.expand_more
-                        : Icons.chevron_right,
-                    size: 19,
-                    color: wmMuted,
-                  ),
-                ],
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    _statusBadge(status),
+                    const SizedBox(height: 6),
+                    const Icon(
+                      Icons.chevron_right,
+                      size: 19,
+                      color: wmMuted,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _infoRow(String label, String value) {
-    if (value.trim().isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 9),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 110,
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: wmMuted,
-                fontSize: 11,
-              ),
-            ),
-          ),
-          Expanded(
-            child: SelectableText(
-              value,
-              style: const TextStyle(
-                color: wmText,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _documentPreview(
-    String title,
-    String storagePath,
-  ) {
-    if (storagePath.trim().isEmpty) {
-      return Container(
-        width: 145,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: wmBorder),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.image_not_supported_outlined,
-              color: wmMuted,
-              size: 27,
-            ),
-            const SizedBox(height: 7),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: wmText,
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Document path missing',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: wmMuted,
-                fontSize: 9,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      width: 145,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: wmBorder),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            height: 110,
-            child: FutureBuilder<String>(
-              future: FirebaseStorage.instance
-                  .ref()
-                  .child(storagePath)
-                  .getDownloadURL(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      color: wmOrange,
-                      strokeWidth: 2,
-                    ),
-                  );
-                }
-
-                if (snapshot.hasError ||
-                    !snapshot.hasData ||
-                    snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(8),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.lock_outline,
-                            color: wmMuted,
-                            size: 25,
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            'Preview unavailable',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: wmMuted,
-                              fontSize: 9,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-
-                final imageUrl = snapshot.data!;
-
-                return InkWell(
-                  onTap: () {
-                    showDialog<void>(
-                      context: context,
-                      builder: (dialogContext) {
-                        return Dialog(
-                          backgroundColor: Colors.white,
-                          child: InteractiveViewer(
-                            child: Image.network(
-                              imageUrl,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) {
-                                return const Padding(
-                                  padding: EdgeInsets.all(24),
-                                  child: Text(
-                                    'Image could not be loaded.',
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) {
-                      return const Center(
-                        child: Icon(
-                          Icons.broken_image_outlined,
-                          color: wmMuted,
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: wmText,
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _verificationPanel(
-    QueryDocumentSnapshot<Map<String, dynamic>> document,
-  ) {
-    final data = document.data();
-
-    final currentAddress = _asMap(data['currentAddress']);
-    final kyc = _asMap(data['kyc']);
-    final selfie = _asMap(kyc['selfie']);
-    final documents = _asMap(kyc['documents']);
-
-    final aadhaarFront = _asMap(documents['aadhaar_front']);
-    final aadhaarBack = _asMap(documents['aadhaar_back']);
-    final panCard = _asMap(documents['pan_card']);
-
-    final address = [
-      currentAddress['houseNumber'],
-      currentAddress['street'],
-      currentAddress['landmark'],
-      currentAddress['city'],
-      currentAddress['state'],
-      currentAddress['pinCode'],
-    ].map(_value).where((part) => part.isNotEmpty).join(', ');
-
-    final status = _status(data);
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(8, 0, 8, 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: wmBackground,
-        border: Border.all(
-          color: wmOrange.withValues(alpha: 0.35),
-        ),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'KYC Application Review',
-                  style: TextStyle(
-                    color: wmText,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              _statusBadge(status),
-            ],
-          ),
-          const SizedBox(height: 13),
-          const Text(
-            'Personal Details',
-            style: TextStyle(
-              color: wmText,
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 9),
-          _infoRow('Full name', _name(data)),
-          _infoRow('Phone', _phone(data)),
-          _infoRow('Email', _value(data['email'])),
-          _infoRow('Gender', _value(data['gender'])),
-          _infoRow('Date of birth', _value(data['dateOfBirth'])),
-          _infoRow('Address', address),
-          _infoRow(
-            'Travel mode',
-            _value(data['travelMode']),
-          ),
-          const SizedBox(height: 5),
-          const Text(
-            'KYC Documents',
-            style: TextStyle(
-              color: wmText,
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 9,
-            runSpacing: 9,
-            children: [
-              _documentPreview(
-                'Selfie',
-                _value(selfie['storagePath']),
-              ),
-              _documentPreview(
-                'Aadhaar Front',
-                _value(aadhaarFront['storagePath']),
-              ),
-              _documentPreview(
-                'Aadhaar Back',
-                _value(aadhaarBack['storagePath']),
-              ),
-              _documentPreview(
-                'PAN Card',
-                _value(panCard['storagePath']),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
-          if (_processingVerification)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(8),
-                child: CircularProgressIndicator(
-                  color: wmOrange,
-                ),
-              ),
-            )
-          else
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      _updateVerification(
-                        uid: document.id,
-                        approve: false,
-                      );
-                    },
-                    icon: const Icon(
-                      Icons.close,
-                      size: 17,
-                    ),
-                    label: const Text('Reject'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: wmRed,
-                      side: const BorderSide(color: wmRed),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: status == 'Rejected'
-                        ? null
-                        : () {
-                            _updateVerification(
-                              uid: document.id,
-                              approve: true,
-                            );
-                          },
-                    icon: const Icon(
-                      Icons.verified_outlined,
-                      size: 17,
-                    ),
-                    label: const Text('Verify & Approve'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: wmGreen,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          const SizedBox(height: 8),
-          const Text(
-            'Verification के बाद Walker inactive रहेगा; activation अलग से करना होगा।',
-            style: TextStyle(
-              color: wmMuted,
-              fontSize: 10,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1198,7 +639,9 @@ class _WalkerManagementDashboardScreenState
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xFFFECACA)),
+        border: Border.all(
+          color: const Color(0xFFFECACA),
+        ),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -1256,7 +699,8 @@ class _WalkerManagementDashboardScreenState
         final walkers = walkerSnapshot.data?.docs ??
             <QueryDocumentSnapshot<Map<String, dynamic>>>[];
 
-        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        return StreamBuilder<
+            QuerySnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance
               .collection('bookings')
               .snapshots(),
@@ -1269,7 +713,8 @@ class _WalkerManagementDashboardScreenState
 
             for (final booking
                 in bookingSnapshot.data?.docs ??
-                    <QueryDocumentSnapshot<Map<String, dynamic>>>[]) {
+                    <QueryDocumentSnapshot<
+                        Map<String, dynamic>>>[]) {
               final data = booking.data();
 
               if (_isRunningBooking(data)) {
@@ -1280,20 +725,6 @@ class _WalkerManagementDashboardScreenState
                 }
               }
             }
-
-            final availableCount = walkers.where((walker) {
-              return _isAvailable(
-                walker.data(),
-                walker.id,
-                runningWalkerIds,
-              );
-            }).length;
-
-            final runningCount = runningWalkerIds.length;
-
-            final verificationCount = walkers
-                .where((walker) => _isApplication(walker.data()))
-                .length;
 
             final filteredWalkers = walkers.where((walker) {
               final data = walker.data();
@@ -1316,34 +747,32 @@ class _WalkerManagementDashboardScreenState
                 case 'Verification':
                   return _isApplication(data);
 
+                case 'Rejected':
+                  return _isRejected(data);
+
                 case 'All Walkers':
                   return true;
 
                 default:
-                  return true;
+                  return false;
               }
             }).toList();
 
             filteredWalkers.sort((a, b) {
               return _name(a.data())
                   .toLowerCase()
-                  .compareTo(_name(b.data()).toLowerCase());
+                  .compareTo(
+                    _name(b.data()).toLowerCase(),
+                  );
             });
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _statistics(
-                  available: availableCount,
-                  running: runningCount,
-                  verification: verificationCount,
-                  total: walkers.length,
-                ),
-                const SizedBox(height: 14),
                 _searchBox(),
                 const SizedBox(height: 12),
                 _tabs(),
-                const SizedBox(height: 12),
+                const SizedBox(height: 15),
                 Row(
                   children: [
                     Expanded(
@@ -1366,7 +795,7 @@ class _WalkerManagementDashboardScreenState
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 9),
                 if (filteredWalkers.isEmpty)
                   _emptyState()
                 else
@@ -1392,12 +821,6 @@ class _WalkerManagementDashboardScreenState
                             const Divider(
                               height: 1,
                               color: wmBorder,
-                            ),
-                          if (_selectedTab == 'Verification' &&
-                              _selectedVerificationUid ==
-                                  filteredWalkers[index].id)
-                            _verificationPanel(
-                              filteredWalkers[index],
                             ),
                         ],
                       ],
@@ -1432,17 +855,19 @@ class _WalkerManagementDashboardScreenState
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final maxWidth =
-                constraints.maxWidth > 1000 ? 1000.0 : 1000.0;
+            const maxWidth = 1000.0;
 
             return Align(
               alignment: Alignment.topCenter,
               child: SizedBox(
-                width: maxWidth,
+                width: constraints.maxWidth > maxWidth
+                    ? maxWidth
+                    : constraints.maxWidth,
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
                     children: [
                       _header(),
                       const SizedBox(height: 18),
