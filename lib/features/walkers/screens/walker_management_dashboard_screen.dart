@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../models/walker_admin_model.dart';
+import '../services/walker_admin_service.dart';
+import '../utils/walker_admin_helpers.dart';
 import '../widgets/walker_admin_widgets.dart';
 import 'walker_details_screen.dart';
 
@@ -17,6 +20,8 @@ class _WalkerManagementDashboardScreenState
   final TextEditingController _searchController =
       TextEditingController();
 
+  final WalkerAdminService _service = WalkerAdminService();
+
   static const Color _orange = Color(0xFFFF7900);
   static const Color _background = Color(0xFFFFFAF5);
   static const Color _text = Color(0xFF292524);
@@ -32,6 +37,13 @@ class _WalkerManagementDashboardScreenState
     'All Walkers',
   ];
 
+  static const Set<String> _runningBookingStatuses = {
+    'in_progress',
+    'active_walk',
+    'walking',
+    'walk_started',
+  };
+
   int _selectedTab = 0;
 
   @override
@@ -40,226 +52,74 @@ class _WalkerManagementDashboardScreenState
     super.dispose();
   }
 
-  String _stringValue(dynamic value) {
-    if (value == null) return '';
-
-    if (value is Timestamp) {
-      final date = value.toDate();
-
-      return '${date.day.toString().padLeft(2, '0')}/'
-          '${date.month.toString().padLeft(2, '0')}/'
-          '${date.year}';
-    }
-
-    final result = value.toString().trim();
-
-    if (result.isEmpty || result == 'null') {
-      return '';
-    }
-
-    return result;
-  }
-
-  String _firstValue(List<dynamic> values) {
-    for (final value in values) {
-      final result = _stringValue(value);
-
-      if (result.isNotEmpty) return result;
-    }
-
-    return '';
+  WalkerAdminModel _model(
+    QueryDocumentSnapshot<Map<String, dynamic>> document,
+  ) {
+    return WalkerAdminModel.fromFirestore(document);
   }
 
   String _name(Map<String, dynamic> data) {
-    final name = _firstValue([
-      data['fullName'],
-      data['name'],
-      data['displayName'],
-    ]);
-
-    return name.isEmpty ? 'Unnamed Walker' : name;
+    return WalkerAdminModel.fromMap(
+      uid: '',
+      data: data,
+    ).name.trim().isEmpty
+        ? 'Unnamed Walker'
+        : WalkerAdminModel.fromMap(
+            uid: '',
+            data: data,
+          ).name;
   }
 
   String _phone(Map<String, dynamic> data) {
-    return _firstValue([
-      data['phone'],
-      data['phoneNumber'],
-      data['mobile'],
-    ]);
+    return WalkerAdminHelpers.phoneNumber(data);
   }
 
   String _location(Map<String, dynamic> data) {
-    final parts = [
-      data['area'],
-      data['city'],
-      data['state'],
-    ]
-        .map(_stringValue)
-        .where((value) => value.isNotEmpty)
-        .toSet()
-        .toList();
-
-    return parts.join(', ');
+    return WalkerAdminHelpers.locationLabel(data);
   }
 
-  String _normalizedStatus(Map<String, dynamic> data) {
-    final status = _stringValue(data['status']).toLowerCase();
-    final verification =
-        _stringValue(data['verificationStatus']).toLowerCase();
-
-    if (status == 'rejected' || verification == 'rejected') {
-      return 'rejected';
-    }
-
-    if (status == 'suspended') return 'suspended';
-
-    if (status == 'left' || status == 'inactive') {
-      return status;
-    }
-
-    if (status == 'correction_required' ||
-        verification == 'correction_required') {
-      return 'correction_required';
-    }
-
-    if (status == 'under_review' ||
-        verification == 'under_review') {
-      return 'under_review';
-    }
-
-    if (status == 'pending' || verification == 'pending') {
-      return 'pending';
-    }
-
-    if (verification == 'verified' ||
-        data['isApproved'] == true ||
-        status == 'approved') {
-      return data['isActive'] == true ? 'active' : 'verified';
-    }
-
-    return status.isEmpty ? 'unknown' : status;
+  String _photo(Map<String, dynamic> data) {
+    return WalkerAdminHelpers.photoUrl(data);
   }
 
-  String _displayStatus(Map<String, dynamic> data) {
-    switch (_normalizedStatus(data)) {
-      case 'active':
-        return 'Active';
-      case 'verified':
-        return 'Verified';
-      case 'approved':
-        return 'Approved';
-      case 'rejected':
-        return 'Rejected';
-      case 'suspended':
-        return 'Suspended';
-      case 'inactive':
-        return 'Inactive';
-      case 'left':
-        return 'Left';
-      case 'pending':
-        return 'Pending';
-      case 'under_review':
-        return 'Under Review';
-      case 'correction_required':
-        return 'Correction Required';
-      default:
-        return 'Unknown';
-    }
-  }
-
-  bool _isRejected(Map<String, dynamic> data) {
-    return _normalizedStatus(data) == 'rejected';
-  }
-
-  bool _isVerified(Map<String, dynamic> data) {
-    final verification =
-        _stringValue(data['verificationStatus']).toLowerCase();
-
-    return verification == 'verified' ||
-        data['isApproved'] == true;
-  }
-
-  bool _isApplication(Map<String, dynamic> data) {
-    if (data['applicationSubmitted'] != true) {
-      return false;
-    }
-
-    final status = _normalizedStatus(data);
-
-    if ({
-      'rejected',
-      'suspended',
-      'inactive',
-      'left',
-    }.contains(status)) {
-      return false;
-    }
-
-    if (_isVerified(data)) return false;
-
-    return {
-      'pending',
-      'under_review',
-      'correction_required',
-    }.contains(status);
-  }
-
-  bool _isRunningBooking(Map<String, dynamic> data) {
-    return {
-      'in_progress',
-      'active_walk',
-      'walking',
-      'walk_started',
-    }.contains(
-      _stringValue(data['status']).toLowerCase(),
-    );
-  }
-
-  bool _isAvailable(
+  bool _isRunningBooking(
     Map<String, dynamic> data,
-    String uid,
-    Set<String> runningWalkerIds,
   ) {
-    final status = _normalizedStatus(data);
+    final status = WalkerAdminHelpers.normalizeStatus(
+      data['status'],
+    );
 
-    return _isVerified(data) &&
-        data['isActive'] == true &&
-        !{
-          'rejected',
-          'suspended',
-          'inactive',
-          'left',
-        }.contains(status) &&
-        !runningWalkerIds.contains(uid);
+    return _runningBookingStatuses.contains(status);
   }
 
   bool _matchesSearch(
-    Map<String, dynamic> data,
-    String uid,
+    WalkerAdminModel walker,
   ) {
     final query = _searchController.text.trim().toLowerCase();
 
     if (query.isEmpty) return true;
 
     final searchable = [
-      _name(data),
-      _phone(data),
-      _stringValue(data['email']),
-      _stringValue(data['walkerId']),
-      uid,
+      walker.name,
+      walker.phoneNumber,
+      walker.email,
+      walker.uid,
+      walker.area,
+      walker.city,
+      walker.state,
     ].join(' ').toLowerCase();
 
     return searchable.contains(query);
   }
 
   void _openDetails(
-    QueryDocumentSnapshot<Map<String, dynamic>> walker,
+    QueryDocumentSnapshot<Map<String, dynamic>> document,
   ) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => WalkerDetailsScreen(
-          uid: walker.id,
-          walkerData: walker.data(),
+          uid: document.id,
+          walkerData: document.data(),
         ),
       ),
     );
@@ -403,7 +263,7 @@ class _WalkerManagementDashboardScreenState
     );
   }
 
-  Widget _errorState(Object error) {
+  Widget _errorState() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -414,28 +274,28 @@ class _WalkerManagementDashboardScreenState
         ),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Column(
+      child: const Column(
         children: [
-          const Icon(
+          Icon(
             Icons.error_outline,
             color: _red,
             size: 30,
           ),
-          const SizedBox(height: 9),
-          const Text(
+          SizedBox(height: 9),
+          Text(
             'Walker data load नहीं हुआ',
             style: TextStyle(
               color: _text,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
-            error.toString(),
+            'Connection और Admin permissions जाँचें।',
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               color: _muted,
-              fontSize: 10,
+              fontSize: 11,
             ),
           ),
         ],
@@ -448,42 +308,42 @@ class _WalkerManagementDashboardScreenState
         walkers,
     required Set<String> runningWalkerIds,
   }) {
-    if (walkers.isEmpty) return _emptyState();
+    if (walkers.isEmpty) {
+      return _emptyState();
+    }
 
     return Column(
-      children: walkers.map((walker) {
-        final data = walker.data();
-        final running = runningWalkerIds.contains(walker.id);
+      children: walkers.map((document) {
+        final walker = _model(document);
+        final running = runningWalkerIds.contains(document.id);
 
         return WalkerAdminCard(
-          name: _name(data),
-          status: running ? 'running' : _displayStatus(data),
-          phone: _phone(data).isEmpty ? null : _phone(data),
-          location: _location(data).isEmpty
+          name: walker.name.trim().isEmpty
+              ? 'Unnamed Walker'
+              : walker.name,
+          status: running ? 'running' : walker.displayStatus,
+          phone: walker.phoneNumber.trim().isEmpty
               ? null
-              : _location(data),
-          photoUrl: _firstValue([
-            data['photoUrl'],
-            data['profilePhotoUrl'],
-          ]),
-          isActive: data['isActive'] is bool
-              ? data['isActive'] as bool
-              : null,
+              : walker.phoneNumber,
+          location: _location(document.data()).trim().isEmpty
+              ? null
+              : _location(document.data()),
+          photoUrl: _photo(document.data()),
+          isActive: walker.isActive,
           isRunning: running,
-          onTap: () => _openDetails(walker),
+          onTap: () => _openDetails(document),
         );
       }).toList(),
     );
   }
 
   Widget _content() {
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance
-          .collection('walkers')
-          .snapshots(),
+    return StreamBuilder<
+        QuerySnapshot<Map<String, dynamic>>>(
+      stream: _service.watchWalkers(),
       builder: (context, walkerSnapshot) {
         if (walkerSnapshot.hasError) {
-          return _errorState(walkerSnapshot.error!);
+          return _errorState();
         }
 
         if (walkerSnapshot.connectionState ==
@@ -502,13 +362,12 @@ class _WalkerManagementDashboardScreenState
         final walkers = walkerSnapshot.data?.docs ??
             <QueryDocumentSnapshot<Map<String, dynamic>>>[];
 
-        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: FirebaseFirestore.instance
-              .collection('bookings')
-              .snapshots(),
+        return StreamBuilder<
+            QuerySnapshot<Map<String, dynamic>>>(
+          stream: _service.watchBookings(),
           builder: (context, bookingSnapshot) {
             if (bookingSnapshot.hasError) {
-              return _errorState(bookingSnapshot.error!);
+              return _errorState();
             }
 
             if (bookingSnapshot.connectionState ==
@@ -526,44 +385,45 @@ class _WalkerManagementDashboardScreenState
 
             final runningWalkerIds = <String>{};
 
-            for (final booking in bookingSnapshot.data?.docs ??
-                <QueryDocumentSnapshot<Map<String, dynamic>>>[]) {
+            final bookings = bookingSnapshot.data?.docs ??
+                <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+
+            for (final booking in bookings) {
               final data = booking.data();
 
-              if (_isRunningBooking(data)) {
-                final walkerId = _stringValue(data['walkerId']);
+              if (!_isRunningBooking(data)) continue;
 
-                if (walkerId.isNotEmpty) {
-                  runningWalkerIds.add(walkerId);
-                }
+              final walkerId = WalkerAdminHelpers.firstString([
+                data['walkerId'],
+              ]);
+
+              if (walkerId.isNotEmpty) {
+                runningWalkerIds.add(walkerId);
               }
             }
 
             final selectedTab = _tabs[_selectedTab];
 
-            final filteredWalkers = walkers.where((walker) {
-              final data = walker.data();
+            final filteredWalkers = walkers.where((document) {
+              final walker = _model(document);
 
-              if (!_matchesSearch(data, walker.id)) {
+              if (!_matchesSearch(walker)) {
                 return false;
               }
 
               switch (selectedTab) {
                 case 'Available':
-                  return _isAvailable(
-                    data,
-                    walker.id,
-                    runningWalkerIds,
-                  );
+                  return walker.isEligibleForAvailability &&
+                      !runningWalkerIds.contains(document.id);
 
                 case 'Running':
-                  return runningWalkerIds.contains(walker.id);
+                  return runningWalkerIds.contains(document.id);
 
                 case 'Verification':
-                  return _isApplication(data);
+                  return walker.isUnderReview;
 
                 case 'Rejected':
-                  return _isRejected(data);
+                  return walker.isRejected;
 
                 case 'All Walkers':
                   return true;
