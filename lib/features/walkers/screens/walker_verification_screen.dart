@@ -1,6 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+
+import 'walker_details_screen.dart';
+
+const Color walkerVerificationOrange = Color(0xFFFF7900);
+const Color walkerVerificationBackground = Color(0xFFFFFAF5);
+const Color walkerVerificationText = Color(0xFF252525);
 
 class WalkerVerificationScreen extends StatefulWidget {
   const WalkerVerificationScreen({super.key});
@@ -12,277 +17,208 @@ class WalkerVerificationScreen extends StatefulWidget {
 
 class _WalkerVerificationScreenState
     extends State<WalkerVerificationScreen> {
-  static const Color orange = Color(0xFFFF7900);
-  static const Color background = Color(0xFFFFFAF5);
-
   String _filter = 'all';
   String _search = '';
 
-  Future<void> _updateStatus({
-    required String uid,
-    required String status,
-    String? reason,
-  }) async {
-    if (status != 'approved' && status != 'rejected') {
-      return;
-    }
-
-    try {
-      final walkerRef =
-          FirebaseFirestore.instance.collection('walkers').doc(uid);
-
-      final isApproved = status == 'approved';
-
-      await walkerRef.update({
-        'verificationStatus': isApproved ? 'verified' : 'rejected',
-        'status': status,
-        'isApproved': isApproved,
-        'isActive': false,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isApproved
-                ? 'Verification approved. Walker activation is still pending.'
-                : 'Walker application rejected.',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } on FirebaseException catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Update failed (${e.code}): ${e.message ?? 'Please try again.'}',
-          ),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Update failed: $e')),
-      );
-    }
-  }
-
-  Future<void> _reject(String uid) async {
-    final controller = TextEditingController();
-
-    final reason = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Reject Walker Application'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLines: 3,
-          decoration: const InputDecoration(
-            labelText: 'Reason for rejection',
-            hintText: 'Explain what needs correction',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
-            onPressed: () {
-              final value = controller.text.trim();
-              if (value.isNotEmpty) {
-                Navigator.pop(dialogContext, value);
-              }
-            },
-            child: const Text('Reject'),
-          ),
-        ],
-      ),
-    );
-
-    controller.dispose();
-
-    if (reason == null || reason.trim().isEmpty) return;
-
-    // The current Firestore Rules do not allow rejectionReason.
-    // This version therefore does not save the reason to Firestore.
-    await _updateStatus(
-      uid: uid,
-      status: 'rejected',
-    );
-  }
-
-  Future<void> _showDocument({
-    required String title,
-    required String storagePath,
-  }) async {
-    if (storagePath.trim().isEmpty) {
-      _showMessage('Document path is missing.');
-      return;
-    }
-
-    try {
-      final reference =
-          FirebaseStorage.instance.ref().child(storagePath);
-
-      final url = await reference.getDownloadURL();
-
-      if (!mounted) return;
-
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) => Dialog(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () =>
-                          Navigator.pop(dialogContext),
-                      icon: const Icon(Icons.close),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxHeight: 500,
-                    maxWidth: 600,
-                  ),
-                  child: InteractiveViewer(
-                    minScale: 0.8,
-                    maxScale: 5,
-                    child: Image.network(
-                      url,
-                      fit: BoxFit.contain,
-                      loadingBuilder: (context, child, progress) {
-                        if (progress == null) return child;
-
-                        return const SizedBox(
-                          height: 250,
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: orange,
-                            ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Padding(
-                          padding: EdgeInsets.all(24),
-                          child: Text(
-                            'Image could not be displayed.',
-                            textAlign: TextAlign.center,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Handle identity documents confidentially.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    } on FirebaseException catch (e) {
-      if (!mounted) return;
-
-      _showMessage(
-        'Cannot open document (${e.code}). Check Storage Rules and file path.',
-      );
-    } catch (e) {
-      if (!mounted) return;
-      _showMessage('Cannot open document: $e');
-    }
-  }
-
-  void _showMessage(String message) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-  }
+  static const List<_VerificationFilter> _filters = [
+    _VerificationFilter(
+      value: 'all',
+      label: 'All',
+    ),
+    _VerificationFilter(
+      value: 'pending',
+      label: 'Pending',
+    ),
+    _VerificationFilter(
+      value: 'under_review',
+      label: 'Under Review',
+    ),
+    _VerificationFilter(
+      value: 'approved',
+      label: 'Approved',
+    ),
+    _VerificationFilter(
+      value: 'rejected',
+      label: 'Rejected',
+    ),
+  ];
 
   String _getStatus(Map<String, dynamic> data) {
-    final verification =
-        (data['verificationStatus'] ?? '').toString().toLowerCase();
+    final verificationStatus = (data['verificationStatus'] ?? '')
+        .toString()
+        .trim()
+        .toLowerCase();
 
-    final status = (data['status'] ?? '').toString().toLowerCase();
+    final status = (data['status'] ?? '')
+        .toString()
+        .trim()
+        .toLowerCase();
 
-    if (verification == 'rejected' || status == 'rejected') {
+    if (verificationStatus == 'rejected' ||
+        status == 'rejected') {
       return 'rejected';
     }
 
-    if (verification == 'verified' ||
-        verification == 'approved' ||
+    if (verificationStatus == 'verified' ||
+        verificationStatus == 'approved' ||
         status == 'approved') {
       return 'approved';
     }
 
-    if (status == 'under_review' ||
-        verification == 'under_review') {
+    if (verificationStatus == 'under_review' ||
+        status == 'under_review') {
       return 'under_review';
     }
 
     return 'pending';
   }
 
+  bool _isApplication(Map<String, dynamic> data) {
+    // आवेदन की स्थिति वास्तविक Walker document से पढ़ी जाती है।
+    // ऐसे Walker जिनका आवेदन submit नहीं हुआ है, उन्हें
+    // Verification Applications में नहीं दिखाया जाएगा।
+    final applicationSubmitted = data['applicationSubmitted'];
+
+    if (applicationSubmitted == true) {
+      return true;
+    }
+
+    // पुराने documents में applicationSubmitted न होने पर
+    // status fields के आधार पर आवेदन पहचानें।
+    final status = (data['status'] ?? '')
+        .toString()
+        .trim()
+        .toLowerCase();
+
+    final verificationStatus = (data['verificationStatus'] ?? '')
+        .toString()
+        .trim()
+        .toLowerCase();
+
+    return status == 'pending' ||
+        status == 'under_review' ||
+        status == 'approved' ||
+        status == 'rejected' ||
+        verificationStatus == 'pending' ||
+        verificationStatus == 'under_review' ||
+        verificationStatus == 'verified' ||
+        verificationStatus == 'approved' ||
+        verificationStatus == 'rejected';
+  }
+
+  bool _matchesSearch(
+    String uid,
+    Map<String, dynamic> data,
+  ) {
+    if (_search.isEmpty) return true;
+
+    final name = (data['name'] ?? data['fullName'] ?? '')
+        .toString()
+        .toLowerCase();
+
+    final phone = (data['phoneNumber'] ?? data['phone'] ?? '')
+        .toString()
+        .toLowerCase();
+
+    final email = (data['email'] ?? '')
+        .toString()
+        .toLowerCase();
+
+    final walkerId = (data['walkerId'] ?? '')
+        .toString()
+        .toLowerCase();
+
+    return name.contains(_search) ||
+        phone.contains(_search) ||
+        email.contains(_search) ||
+        walkerId.contains(_search) ||
+        uid.toLowerCase().contains(_search);
+  }
+
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> _filterApplications(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> documents,
+  ) {
+    return documents.where((document) {
+      final data = document.data();
+
+      if (!_isApplication(data)) return false;
+
+      final status = _getStatus(data);
+
+      final matchesStatus =
+          _filter == 'all' || status == _filter;
+
+      final matchesSearch = _matchesSearch(
+        document.id,
+        data,
+      );
+
+      return matchesStatus && matchesSearch;
+    }).toList();
+  }
+
+  Future<void> _openWalkerDetails(
+    QueryDocumentSnapshot<Map<String, dynamic>> document,
+  ) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => WalkerDetailsScreen(
+          uid: document.id,
+          walkerData: document.data(),
+        ),
+      ),
+    );
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'approved':
+        return Colors.green;
+
+      case 'rejected':
+        return Colors.red;
+
+      case 'under_review':
+        return Colors.blue;
+
+      default:
+        return Colors.orange;
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'approved':
+        return 'VERIFIED';
+
+      case 'rejected':
+        return 'REJECTED';
+
+      case 'under_review':
+        return 'UNDER REVIEW';
+
+      default:
+        return 'PENDING';
+    }
+  }
+
   Widget _statusBadge(String status) {
-    final Color color = status == 'approved'
-        ? Colors.green
-        : status == 'rejected'
-            ? Colors.red
-            : status == 'under_review'
-                ? Colors.blue
-                : Colors.orange;
+    final color = _statusColor(status);
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 6,
+        horizontal: 9,
+        vertical: 5,
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: color.withValues(alpha: 0.25),
+        ),
       ),
       child: Text(
-        status.replaceAll('_', ' ').toUpperCase(),
+        _statusLabel(status),
         style: TextStyle(
           color: color,
           fontSize: 10,
@@ -292,306 +228,485 @@ class _WalkerVerificationScreenState
     );
   }
 
-  Widget _documentButton({
-    required String title,
-    required Map<String, dynamic>? document,
-  }) {
-    final path = (document?['storagePath'] ?? '').toString();
-    final available = path.trim().isNotEmpty;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEAEAEA)),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.description_outlined,
-            color: orange,
-            size: 28,
+  Widget _searchField() {
+    return TextField(
+      onChanged: (value) {
+        setState(() {
+          _search = value.trim().toLowerCase();
+        });
+      },
+      decoration: InputDecoration(
+        hintText: 'Search name, phone, email or Walker ID',
+        prefixIcon: const Icon(
+          Icons.search_rounded,
+          color: walkerVerificationOrange,
+        ),
+        suffixIcon: _search.isEmpty
+            ? null
+            : IconButton(
+                tooltip: 'Clear search',
+                onPressed: () {
+                  setState(() {
+                    _search = '';
+                  });
+                },
+                icon: const Icon(Icons.close_rounded),
+              ),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Color(0xFFE9E9E9),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Color(0xFFE9E9E9),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: walkerVerificationOrange,
+            width: 1.5,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _filterBar() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: _filters.map((filter) {
+          final selected = _filter == filter.value;
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(22),
+              onTap: () {
+                setState(() {
+                  _filter = filter.value;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 9,
+                ),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? walkerVerificationOrange
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: selected
+                        ? walkerVerificationOrange
+                        : const Color(0xFFE5E5E5),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  available
-                      ? 'Status: ${(document?['status'] ?? 'submitted').toString()}'
-                      : 'Document not uploaded',
+                child: Text(
+                  filter.label,
                   style: TextStyle(
                     fontSize: 12,
-                    color: available ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.w700,
+                    color: selected
+                        ? Colors.white
+                        : walkerVerificationText,
                   ),
                 ),
-              ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _countSummary(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> documents,
+  ) {
+    var pending = 0;
+    var underReview = 0;
+    var approved = 0;
+    var rejected = 0;
+
+    for (final document in documents) {
+      final data = document.data();
+
+      if (!_isApplication(data)) continue;
+
+      switch (_getStatus(data)) {
+        case 'pending':
+          pending++;
+          break;
+
+        case 'under_review':
+          underReview++;
+          break;
+
+        case 'approved':
+          approved++;
+          break;
+
+        case 'rejected':
+          rejected++;
+          break;
+      }
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          child: _summaryItem(
+            'Pending',
+            pending,
+            Colors.orange,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _summaryItem(
+            'Review',
+            underReview,
+            Colors.blue,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _summaryItem(
+            'Verified',
+            approved,
+            Colors.green,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _summaryItem(
+            'Rejected',
+            rejected,
+            Colors.red,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _summaryItem(
+    String label,
+    int count,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 11,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(
+          color: const Color(0xFFECECEC),
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            '$count',
+            style: TextStyle(
+              fontSize: 19,
+              fontWeight: FontWeight.w800,
+              color: color,
             ),
           ),
-          OutlinedButton(
-            onPressed: available
-                ? () => _showDocument(
-                      title: title,
-                      storagePath: path,
-                    )
-                : null,
-            child: const Text('View'),
+          const SizedBox(height: 3),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 10,
+              color: Colors.black54,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _detailsButton(
-    String uid,
-    Map<String, dynamic> data,
+  Widget _walkerCard(
+    QueryDocumentSnapshot<Map<String, dynamic>> document,
   ) {
-    return OutlinedButton.icon(
-      onPressed: () {
-        final kyc = data['kyc'] is Map
-            ? Map<String, dynamic>.from(data['kyc'] as Map)
-            : <String, dynamic>{};
+    final data = document.data();
 
-        final documents = kyc['documents'] is Map
-            ? Map<String, dynamic>.from(
-                kyc['documents'] as Map,
-              )
-            : <String, dynamic>{};
+    final name = (data['name'] ??
+            data['fullName'] ??
+            'Unnamed Walker')
+        .toString();
 
-        Map<String, dynamic>? getDocument(String key) {
-          final value = documents[key];
+    final phone = (data['phoneNumber'] ??
+            data['phone'] ??
+            'Phone not provided')
+        .toString();
 
-          if (value is Map) {
-            return Map<String, dynamic>.from(value);
-          }
+    final walkerId = (data['walkerId'] ?? '').toString();
 
-          return null;
-        }
+    final status = _getStatus(data);
 
-        final aadhaarFront = getDocument('aadhaar_front');
-        final aadhaarBack = getDocument('aadhaar_back');
-        final panCard = getDocument('pan_card');
+    final photoUrl = (data['photoUrl'] ??
+            data['profilePhotoUrl'] ??
+            '')
+        .toString();
 
-        showDialog<void>(
-          context: context,
-          builder: (dialogContext) => Dialog(
-            child: SizedBox(
-              width: 600,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+    final area = (data['area'] ??
+            data['workArea'] ??
+            data['city'] ??
+            '')
+        .toString();
+
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(13),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(13),
+        onTap: () => _openWalkerDetails(document),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 13,
+            vertical: 12,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(
+              color: const Color(0xFFEAEAEA),
+            ),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 23,
+                backgroundColor: const Color(0xFFFFF0E5),
+                backgroundImage: photoUrl.startsWith('http')
+                    ? NetworkImage(photoUrl)
+                    : null,
+                child: photoUrl.startsWith('http')
+                    ? null
+                    : const Icon(
+                        Icons.person_rounded,
+                        color: walkerVerificationOrange,
+                        size: 25,
+                      ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            'Walker Application Details',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () =>
-                              Navigator.pop(dialogContext),
-                          icon: const Icon(Icons.close),
-                        ),
-                      ],
-                    ),
-                    const Divider(height: 24),
-                    _infoRow(
-                      'Name',
-                      (data['name'] ??
-                              data['fullName'] ??
-                              'Not provided')
-                          .toString(),
-                    ),
-                    _infoRow(
-                      'Phone',
-                      (data['phoneNumber'] ??
-                              data['phone'] ??
-                              'Not provided')
-                          .toString(),
-                    ),
-                    _infoRow('Walker UID', uid),
-                    _infoRow(
-                      'Status',
-                      _getStatus(data),
-                    ),
-                    _infoRow(
-                      'Walker ID',
-                      (data['walkerId'] ?? 'Not assigned').toString(),
-                    ),
-                    _infoRow(
-                      'Email',
-                      (data['email'] ?? 'Not provided').toString(),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'KYC DOCUMENTS',
-                      style: TextStyle(
-                        fontSize: 15,
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 14,
                         fontWeight: FontWeight.w800,
+                        color: walkerVerificationText,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    _documentButton(
-                      title: 'Aadhaar Card — Front',
-                      document: aadhaarFront,
-                    ),
-                    _documentButton(
-                      title: 'Aadhaar Card — Back',
-                      document: aadhaarBack,
-                    ),
-                    _documentButton(
-                      title: 'PAN Card',
-                      document: panCard,
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Approval does not activate the Walker account.',
-                      style: TextStyle(
+                    const SizedBox(height: 4),
+                    Text(
+                      phone,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
                         fontSize: 12,
-                        color: Colors.grey,
+                        color: Colors.black54,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () =>
-                            Navigator.pop(dialogContext),
-                        child: const Text('Close'),
+                    if (area.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        area,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.black45,
+                        ),
                       ),
-                    ),
+                    ],
+                    if (walkerId.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        'ID: $walkerId',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.black45,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
-            ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _statusBadge(status),
+                  const SizedBox(height: 8),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    size: 20,
+                    color: Colors.black45,
+                  ),
+                ],
+              ),
+            ],
           ),
-        );
-      },
-      icon: const Icon(Icons.visibility_outlined),
-      label: const Text('View Details & KYC'),
+        ),
+      ),
     );
   }
 
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
+  Widget _emptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 66,
+              height: 66,
+              decoration: BoxDecoration(
+                color: walkerVerificationOrange.withValues(
+                  alpha: 0.10,
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.fact_check_outlined,
+                size: 32,
+                color: walkerVerificationOrange,
               ),
             ),
-          ),
-          Expanded(
-            child: SelectableText(value),
-          ),
-        ],
+            const SizedBox(height: 16),
+            const Text(
+              'No applications found',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: walkerVerificationText,
+              ),
+            ),
+            const SizedBox(height: 7),
+            const Text(
+              'Try another status filter or search term.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 14),
+            OutlinedButton(
+              onPressed: () {
+                setState(() {
+                  _filter = 'all';
+                  _search = '';
+                });
+              },
+              child: const Text('Reset Filters'),
+            ),
+          ],
+        ),
       ),
-    );
-  }
-
-  Widget _filterDropdown() {
-    return DropdownButtonFormField<String>(
-      value: _filter,
-      decoration: const InputDecoration(
-        labelText: 'Application status',
-        border: OutlineInputBorder(),
-        filled: true,
-        fillColor: Colors.white,
-      ),
-      items: const [
-        DropdownMenuItem(
-          value: 'all',
-          child: Text('All Applications'),
-        ),
-        DropdownMenuItem(
-          value: 'pending',
-          child: Text('Pending'),
-        ),
-        DropdownMenuItem(
-          value: 'under_review',
-          child: Text('Under Review'),
-        ),
-        DropdownMenuItem(
-          value: 'approved',
-          child: Text('Approved'),
-        ),
-        DropdownMenuItem(
-          value: 'rejected',
-          child: Text('Rejected'),
-        ),
-      ],
-      onChanged: (value) {
-        if (value != null) {
-          setState(() => _filter = value);
-        }
-      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: background,
+      backgroundColor: walkerVerificationBackground,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(
+                18,
+                18,
+                18,
+                12,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Walker Verification',
+                    'Verification Applications',
                     style: TextStyle(
-                      fontSize: 25,
+                      fontSize: 23,
                       fontWeight: FontWeight.w800,
+                      color: walkerVerificationText,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Review walker applications and identity documents.',
-                    style: TextStyle(color: Colors.grey.shade700),
-                  ),
-                  const SizedBox(height: 18),
-                  _filterDropdown(),
-                  const SizedBox(height: 12),
-                  TextField(
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.search),
-                      hintText: 'Search name, phone or Walker UID',
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.white,
+                  const SizedBox(height: 5),
+                  const Text(
+                    'Review applications and open a Walker profile.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.black54,
                     ),
-                    onChanged: (value) {
-                      setState(() => _search = value.trim().toLowerCase());
+                  ),
+                  const SizedBox(height: 15),
+                  _searchField(),
+                  const SizedBox(height: 13),
+                  _filterBar(),
+                  const SizedBox(height: 13),
+                  StreamBuilder<
+                      QuerySnapshot<Map<String, dynamic>>>(
+                    stream: FirebaseFirestore.instance
+                        .collection('walkers')
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return const SizedBox.shrink();
+                      }
+
+                      if (!snapshot.hasData) {
+                        return const SizedBox(
+                          height: 68,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: walkerVerificationOrange,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        );
+                      }
+
+                      return _countSummary(
+                        snapshot.data!.docs,
+                      );
                     },
                   ),
                 ],
               ),
+            ),
+            const Divider(
+              height: 1,
+              color: Color(0xFFEAEAEA),
             ),
             Expanded(
               child: StreamBuilder<
@@ -601,169 +716,52 @@ class _WalkerVerificationScreenState
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
-                    return const Center(
+                    return Center(
                       child: Padding(
-                        padding: EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(24),
                         child: Text(
-                          'Unable to load applications. Check Admin access and Firestore Rules.',
+                          'Unable to load applications.\n'
+                          'Check Admin permissions and Firestore Rules.\n\n'
+                          '${snapshot.error}',
                           textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            height: 1.5,
+                          ),
                         ),
                       ),
                     );
                   }
 
                   if (snapshot.connectionState ==
-                      ConnectionState.waiting) {
+                          ConnectionState.waiting &&
+                      !snapshot.hasData) {
                     return const Center(
                       child: CircularProgressIndicator(
-                        color: orange,
+                        color: walkerVerificationOrange,
                       ),
                     );
                   }
 
                   final documents = snapshot.data?.docs ?? [];
+                  final applications = _filterApplications(documents);
 
-                  final filtered = documents.where((doc) {
-                    final data = doc.data();
-                    final status = _getStatus(data);
-
-                    final name = (data['name'] ??
-                            data['fullName'] ??
-                            '')
-                        .toString()
-                        .toLowerCase();
-
-                    final phone = (data['phoneNumber'] ??
-                            data['phone'] ??
-                            '')
-                        .toString()
-                        .toLowerCase();
-
-                    final searchMatches = _search.isEmpty ||
-                        name.contains(_search) ||
-                        phone.contains(_search) ||
-                        doc.id.toLowerCase().contains(_search);
-
-                    final statusMatches =
-                        _filter == 'all' || status == _filter;
-
-                    return searchMatches && statusMatches;
-                  }).toList();
-
-                  if (filtered.isEmpty) {
-                    return const Center(
-                      child: Text('No applications found.'),
-                    );
+                  if (applications.isEmpty) {
+                    return _emptyState();
                   }
 
-                  return ListView.builder(
+                  return ListView.separated(
                     padding: const EdgeInsets.fromLTRB(
                       16,
-                      0,
+                      14,
                       16,
                       24,
                     ),
-                    itemCount: filtered.length,
+                    itemCount: applications.length,
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(height: 9),
                     itemBuilder: (context, index) {
-                      final doc = filtered[index];
-                      final data = doc.data();
-
-                      final name = (data['name'] ??
-                              data['fullName'] ??
-                              'Unnamed Walker')
-                          .toString();
-
-                      final phone = (data['phoneNumber'] ??
-                              data['phone'] ??
-                              'Phone not provided')
-                          .toString();
-
-                      final status = _getStatus(data);
-
-                      return Card(
-                        color: Colors.white,
-                        margin: const EdgeInsets.only(bottom: 14),
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          side: const BorderSide(
-                            color: Color(0xFFECECEC),
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const CircleAvatar(
-                                    backgroundColor: Color(0xFFFFF0E5),
-                                    child: Icon(
-                                      Icons.directions_walk,
-                                      color: orange,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          name,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(phone),
-                                      ],
-                                    ),
-                                  ),
-                                  _statusBadge(status),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              SelectableText(
-                                'Walker UID: ${doc.id}',
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                              const SizedBox(height: 14),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  _detailsButton(doc.id, data),
-                                  if (status != 'approved')
-                                    FilledButton.icon(
-                                      style: FilledButton.styleFrom(
-                                        backgroundColor: orange,
-                                      ),
-                                      onPressed: () => _updateStatus(
-                                        uid: doc.id,
-                                        status: 'approved',
-                                      ),
-                                      icon: const Icon(Icons.check),
-                                      label: const Text('Approve'),
-                                    ),
-                                  if (status != 'rejected')
-                                    OutlinedButton.icon(
-                                      onPressed: () => _reject(doc.id),
-                                      icon: const Icon(
-                                        Icons.close,
-                                        color: Colors.red,
-                                      ),
-                                      label: const Text('Reject'),
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+                      return _walkerCard(applications[index]);
                     },
                   );
                 },
@@ -774,4 +772,14 @@ class _WalkerVerificationScreenState
       ),
     );
   }
+}
+
+class _VerificationFilter {
+  final String value;
+  final String label;
+
+  const _VerificationFilter({
+    required this.value,
+    required this.label,
+  });
 }
