@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+
+import '../widgets/kyc_document_viewer_dialog.dart';
 
 const Color walkerOrange = Color(0xFFFF7900);
 const Color walkerBackground = Color(0xFFFFFAF5);
@@ -455,65 +456,62 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     setState(() => _actionLoading = true);
 
     try {
-      // Re-read the record before making a decision.
-      final snapshot = await _walkerRef.get();
-
-      if (!snapshot.exists) {
-        throw StateError('Walker record no longer exists.');
-      }
-
-      final current = snapshot.data()!;
-
-      if (_text(current['status'], 'in_progress') != status ||
-          _text(current['verificationStatus'], 'pending') !=
-              verification ||
-          (current['isApproved'] == true) != approved ||
-          (current['isActive'] == true) != active) {
-        throw StateError(
-          'Walker status changed. Refresh and try again.',
-        );
-      }
-
       final now = FieldValue.serverTimestamp();
-      final batch = _firestore.batch();
 
-      final changes = <String, dynamic>{
-        'status': newStatus,
-        'verificationStatus': newVerification,
-        'isApproved': newApproved,
-        'isActive': newActive,
-        'updatedAt': now,
-        'decisionBy': adminUid,
-        'decisionAt': now,
-      };
+      // Walker update aur audit log ek hi transaction mein.
+      await _firestore.runTransaction<void>((transaction) async {
+        final snapshot = await transaction.get(_walkerRef);
 
-      if (cleanReason != null && cleanReason.isNotEmpty) {
-        changes['decisionReason'] = cleanReason;
-      }
+        if (!snapshot.exists) {
+          throw StateError('Walker record no longer exists.');
+        }
 
-      batch.update(_walkerRef, changes);
+        final current = snapshot.data()!;
 
-      final auditRef = _firestore.collection('audit_logs').doc();
+        if (_text(current['status'], 'in_progress') != status ||
+            _text(current['verificationStatus'], 'pending') !=
+                verification ||
+            (current['isApproved'] == true) != approved ||
+            (current['isActive'] == true) != active) {
+          throw StateError(
+            'Walker status changed. Refresh and try again.',
+          );
+        }
 
-      final audit = <String, dynamic>{
-        'actorUid': adminUid,
-        'actorRole': 'super_admin',
-        'action': auditAction,
-        'targetType': 'walker',
-        'targetId': widget.uid,
-        'beforeStatus': status,
-        'afterStatus': newStatus,
-        'createdAt': now,
-      };
+        final changes = <String, dynamic>{
+          'status': newStatus,
+          'verificationStatus': newVerification,
+          'isApproved': newApproved,
+          'isActive': newActive,
+          'updatedAt': now,
+          'decisionBy': adminUid,
+          'decisionAt': now,
+        };
 
-      if (cleanReason != null && cleanReason.isNotEmpty) {
-        audit['reason'] = cleanReason;
-      }
+        if (cleanReason != null && cleanReason.isNotEmpty) {
+          changes['decisionReason'] = cleanReason;
+        }
 
-      batch.set(auditRef, audit);
+        final auditRef = _firestore.collection('audit_logs').doc();
 
-      // Walker update and audit entry commit together.
-      await batch.commit();
+        final audit = <String, dynamic>{
+          'actorUid': adminUid,
+          'actorRole': 'super_admin',
+          'action': auditAction,
+          'targetType': 'walker',
+          'targetId': widget.uid,
+          'beforeStatus': status,
+          'afterStatus': newStatus,
+          'createdAt': now,
+        };
+
+        if (cleanReason != null && cleanReason.isNotEmpty) {
+          audit['reason'] = cleanReason;
+        }
+
+        transaction.update(_walkerRef, changes);
+        transaction.set(auditRef, audit);
+      });
 
       if (!mounted) return;
 
@@ -573,79 +571,57 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     );
   }
 
+  /// KYC document viewer:
+  /// PDF, image ya Firebase Storage reference viewer dialog ko pass hota hai.
   Future<void> _openDocument({
     required String title,
     required dynamic document,
   }) async {
-    String? url;
-    String? path;
+    if (_actionLoading) return;
+
+    if (document == null) {
+      _message('$title is not available.', error: true);
+      return;
+    }
+
+    final documentMap = _map(document);
+
+    bool hasReference = false;
 
     if (document is String) {
-      if (document.startsWith('https://')) {
-        url = document;
-      } else if (document.trim().isNotEmpty) {
-        path = document.trim();
-      }
+      hasReference = document.trim().isNotEmpty;
     } else if (document is Map) {
-      final map = _map(document);
+      final rawUrl =
+          documentMap['downloadUrl'] ?? documentMap['url'];
+      final rawPath =
+          documentMap['storagePath'] ?? documentMap['path'];
 
-      final rawUrl = map['downloadUrl'] ?? map['url'];
-      final rawPath = map['storagePath'] ?? map['path'];
-
-      if (rawUrl is String && rawUrl.trim().isNotEmpty) {
-        url = rawUrl.trim();
-      }
-
-      if (rawPath is String && rawPath.trim().isNotEmpty) {
-        path = rawPath.trim();
-      }
+      hasReference =
+          (rawUrl is String && rawUrl.trim().isNotEmpty) ||
+          (rawPath is String && rawPath.trim().isNotEmpty);
     }
 
-    if ((url == null || url.isEmpty) && path != null) {
-      try {
-        url = await FirebaseStorage.instance
-            .ref(path)
-            .getDownloadURL();
-      } on FirebaseException catch (e) {
-        _message(
-          'Cannot access $title. Check Storage Rules (${e.code}).',
-          error: true,
-        );
-        return;
-      }
-    }
-
-    if (url == null || url.isEmpty) {
+    if (!hasReference) {
       _message('$title is not available.', error: true);
       return;
     }
 
     if (!mounted) return;
 
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(title),
-        content: SizedBox(
-          width: 600,
-          child: SingleChildScrollView(
-            child: SelectableText(
-              url!,
-              style: const TextStyle(
-                color: walkerBlue,
-                decoration: TextDecoration.underline,
-              ),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
+    try {
+      await showKycDocumentViewerDialog(
+        context: context,
+        title: title,
+        document: document,
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      _message(
+        'Could not open $title: $e',
+        error: true,
+      );
+    }
   }
 
   Map<String, dynamic> _map(dynamic value) {
@@ -753,10 +729,9 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                 suspended: suspended,
               ),
               const SizedBox(height: 22),
-
               _buildProfileCard(data, status),
-
               const SizedBox(height: 16),
+
               _sectionCard(
                 title: 'Personal Details',
                 icon: Icons.person_outline,
@@ -772,6 +747,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
               ),
 
               const SizedBox(height: 16),
+
               _sectionCard(
                 title: 'Current Address',
                 icon: Icons.location_on_outlined,
@@ -808,6 +784,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
               ),
 
               const SizedBox(height: 16),
+
               _sectionCard(
                 title: 'Work Location',
                 icon: Icons.map_outlined,
@@ -832,6 +809,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
               ),
 
               const SizedBox(height: 16),
+
               _sectionCard(
                 title: 'KYC Documents',
                 icon: Icons.verified_user_outlined,
@@ -896,6 +874,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
               ),
 
               const SizedBox(height: 16),
+
               _sectionCard(
                 title: 'Performance Snapshot',
                 icon: Icons.insights_outlined,
@@ -911,6 +890,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
               ),
 
               const SizedBox(height: 16),
+
               _sectionCard(
                 title: 'Account Security',
                 icon: Icons.security_outlined,
@@ -1271,8 +1251,8 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                 ? 2
                 : 1;
 
-        final width = (constraints.maxWidth - (columns - 1) * 18) /
-            columns;
+        final width =
+            (constraints.maxWidth - (columns - 1) * 18) / columns;
 
         return Wrap(
           spacing: 18,
