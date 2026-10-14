@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../utils/walker_admin_helpers.dart';
+
 const Color walkerAdminOrange = Color(0xFFFF7900);
 const Color walkerAdminBackground = Color(0xFFFFFAF5);
 const Color walkerAdminText = Color(0xFF292524);
 const Color walkerAdminMuted = Color(0xFF78716C);
 const Color walkerAdminBorder = Color(0xFFE7E5E4);
 
-/// ===========================================================
-/// WALKER MANAGEMENT TABS
-/// ===========================================================
+const Color _walkerAdminGreen = Color(0xFF15803D);
+const Color _walkerAdminBlue = Color(0xFF2563EB);
+const Color _walkerAdminRed = Color(0xFFDC2626);
+const Color _walkerAdminAmber = Color(0xFFB45309);
+
+// ===========================================================
+// WALKER MANAGEMENT TABS
+// ===========================================================
 
 class WalkerAdminTabs extends StatelessWidget {
   const WalkerAdminTabs({
@@ -24,42 +31,53 @@ class WalkerAdminTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (tabs.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final safeIndex = selectedIndex.clamp(0, tabs.length - 1);
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: List.generate(tabs.length, (index) {
-          final selected = index == selectedIndex;
+          final selected = index == safeIndex;
 
           return Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(24),
-              onTap: () => onChanged(index),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 11,
-                ),
-                decoration: BoxDecoration(
-                  color: selected
-                      ? walkerAdminOrange
-                      : Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
+            child: Semantics(
+              button: true,
+              selected: selected,
+              label: tabs[index],
+              child: InkWell(
+                borderRadius: BorderRadius.circular(24),
+                onTap: () => onChanged(index),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 11,
+                  ),
+                  decoration: BoxDecoration(
                     color: selected
                         ? walkerAdminOrange
-                        : walkerAdminBorder,
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: selected
+                          ? walkerAdminOrange
+                          : walkerAdminBorder,
+                    ),
                   ),
-                ),
-                child: Text(
-                  tabs[index],
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: selected
-                        ? Colors.white
-                        : walkerAdminText,
+                  child: Text(
+                    tabs[index],
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: selected
+                          ? Colors.white
+                          : walkerAdminText,
+                    ),
                   ),
                 ),
               ),
@@ -71,9 +89,9 @@ class WalkerAdminTabs extends StatelessWidget {
   }
 }
 
-/// ===========================================================
-/// WALKER CARD
-/// ===========================================================
+// ===========================================================
+// WALKER CARD
+// ===========================================================
 
 class WalkerAdminCard extends StatelessWidget {
   const WalkerAdminCard({
@@ -98,48 +116,55 @@ class WalkerAdminCard extends StatelessWidget {
   final VoidCallback onTap;
 
   Color get _statusColor {
-    switch (status.toLowerCase()) {
+    if (isRunning) {
+      return _walkerAdminBlue;
+    }
+
+    switch (WalkerAdminHelpers.normalizeStatus(status)) {
       case 'approved':
       case 'verified':
       case 'available':
-        return const Color(0xFF15803D);
+      case 'active':
+        return _walkerAdminGreen;
 
       case 'running':
       case 'walking':
       case 'active_walk':
-        return const Color(0xFF2563EB);
+      case 'walk_started':
+      case 'in_progress':
+      case 'walker_assigned':
+      case 'walker_arriving':
+        return _walkerAdminBlue;
 
       case 'rejected':
       case 'suspended':
       case 'inactive':
-        return const Color(0xFFDC2626);
+      case 'left':
+      case 'cancelled':
+        return _walkerAdminRed;
 
       case 'correction_required':
-        return const Color(0xFFB45309);
+        return _walkerAdminAmber;
 
       default:
-        return const Color(0xFF78716C);
+        return walkerAdminMuted;
     }
   }
 
   String get _displayStatus {
-    if (isRunning) return 'Running';
+    if (isRunning) {
+      return 'Running';
+    }
 
-    return status
-        .replaceAll('_', ' ')
-        .split(' ')
-        .map(
-          (word) => word.isEmpty
-              ? word
-              : '${word[0].toUpperCase()}${word.substring(1)}',
-        )
-        .join(' ');
+    return WalkerAdminHelpers.displayStatus(status);
   }
 
   @override
   Widget build(BuildContext context) {
-    final safeName =
-        name.trim().isEmpty ? 'Walker' : name.trim();
+    final safeName = name.trim().isEmpty ? 'Walker' : name.trim();
+
+    final safePhone = phone?.trim();
+    final safeLocation = location?.trim();
 
     return Card(
       elevation: 0,
@@ -153,7 +178,7 @@ class WalkerAdminCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -168,26 +193,28 @@ class WalkerAdminCard extends StatelessWidget {
                   children: [
                     Text(
                       safeName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: walkerAdminText,
                       ),
                     ),
-                    if (phone != null &&
-                        phone!.trim().isNotEmpty) ...[
+                    if (safePhone != null &&
+                        safePhone.isNotEmpty) ...[
                       const SizedBox(height: 5),
                       _CardDetail(
                         icon: Icons.phone_outlined,
-                        text: phone!,
+                        text: safePhone,
                       ),
                     ],
-                    if (location != null &&
-                        location!.trim().isNotEmpty) ...[
+                    if (safeLocation != null &&
+                        safeLocation.isNotEmpty) ...[
                       const SizedBox(height: 5),
                       _CardDetail(
                         icon: Icons.location_on_outlined,
-                        text: location!,
+                        text: safeLocation,
                       ),
                     ],
                     const SizedBox(height: 10),
@@ -204,18 +231,21 @@ class WalkerAdminCard extends StatelessWidget {
                           _StatusBadge(
                             text: isActive! ? 'Active' : 'Inactive',
                             color: isActive!
-                                ? const Color(0xFF15803D)
-                                : const Color(0xFF78716C),
+                                ? _walkerAdminGreen
+                                : walkerAdminMuted,
                           ),
                       ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 4),
-              const Icon(
-                Icons.chevron_right,
-                color: walkerAdminMuted,
+              const SizedBox(width: 2),
+              const Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(
+                  Icons.chevron_right,
+                  color: walkerAdminMuted,
+                ),
               ),
             ],
           ),
@@ -225,9 +255,9 @@ class WalkerAdminCard extends StatelessWidget {
   }
 }
 
-/// ===========================================================
-/// WALKER AVATAR
-/// ===========================================================
+// ===========================================================
+// WALKER AVATAR
+// ===========================================================
 
 class _WalkerAvatar extends StatelessWidget {
   const _WalkerAvatar({
@@ -241,31 +271,74 @@ class _WalkerAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = photoUrl?.trim() ?? '';
+    final initial = name.trim().isEmpty
+        ? 'W'
+        : name.trim().substring(0, 1).toUpperCase();
 
     return CircleAvatar(
       radius: 27,
       backgroundColor: const Color(0xFFFFE8D2),
-      backgroundImage: url.isNotEmpty ? NetworkImage(url) : null,
-      onBackgroundImageError: url.isNotEmpty
-          ? (_, __) {}
-          : null,
-      child: url.isEmpty
-          ? Text(
-              name.isEmpty ? 'W' : name[0].toUpperCase(),
-              style: const TextStyle(
-                color: walkerAdminOrange,
-                fontWeight: FontWeight.bold,
-                fontSize: 19,
-              ),
-            )
-          : null,
+      child: ClipOval(
+        child: SizedBox(
+          width: 54,
+          height: 54,
+          child: url.isNotEmpty &&
+                  WalkerAdminHelpers.isHttpUrl(url)
+              ? Image.network(
+                  url,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return _AvatarInitial(initial: initial);
+                  },
+                  loadingBuilder: (context, child, progress) {
+                    if (progress == null) {
+                      return child;
+                    }
+
+                    return const Center(
+                      child: SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: walkerAdminOrange,
+                        ),
+                      ),
+                    );
+                  },
+                )
+              : _AvatarInitial(initial: initial),
+        ),
+      ),
     );
   }
 }
 
-/// ===========================================================
-/// DETAILS SECTION CONTAINER
-/// ===========================================================
+class _AvatarInitial extends StatelessWidget {
+  const _AvatarInitial({
+    required this.initial,
+  });
+
+  final String initial;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        initial,
+        style: const TextStyle(
+          color: walkerAdminOrange,
+          fontWeight: FontWeight.bold,
+          fontSize: 19,
+        ),
+      ),
+    );
+  }
+}
+
+// ===========================================================
+// DETAILS SECTION CONTAINER
+// ===========================================================
 
 class WalkerAdminSection extends StatelessWidget {
   const WalkerAdminSection({
@@ -326,9 +399,9 @@ class WalkerAdminSection extends StatelessWidget {
   }
 }
 
-/// ===========================================================
-/// DETAILS INFORMATION ROW
-/// ===========================================================
+// ===========================================================
+// DETAILS INFORMATION ROW
+// ===========================================================
 
 class WalkerAdminInfoRow extends StatelessWidget {
   const WalkerAdminInfoRow({
@@ -344,55 +417,99 @@ class WalkerAdminInfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayValue = value?.trim();
+    final displayValue =
+        value == null || value!.trim().isEmpty
+            ? 'Not provided'
+            : value!.trim();
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (icon != null) ...[
-            Icon(
-              icon,
-              size: 18,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 420;
+
+          final labelWidget = Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
               color: walkerAdminMuted,
             ),
-            const SizedBox(width: 10),
-          ],
-          Expanded(
-            flex: 2,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                color: walkerAdminMuted,
-              ),
+          );
+
+          final valueWidget = Text(
+            displayValue,
+            textAlign: compact ? TextAlign.start : TextAlign.end,
+            softWrap: true,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: walkerAdminText,
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 3,
-            child: Text(
-              displayValue == null || displayValue.isEmpty
-                  ? 'Not provided'
-                  : displayValue,
-              textAlign: TextAlign.end,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: walkerAdminText,
+          );
+
+          if (compact) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (icon != null) ...[
+                      Icon(
+                        icon,
+                        size: 18,
+                        color: walkerAdminMuted,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    Expanded(child: labelWidget),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: icon == null ? 0 : 26,
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: valueWidget,
+                  ),
+                ),
+              ],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: 18,
+                  color: walkerAdminMuted,
+                ),
+                const SizedBox(width: 10),
+              ],
+              Expanded(
+                flex: 2,
+                child: labelWidget,
               ),
-            ),
-          ),
-        ],
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 3,
+                child: valueWidget,
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 }
 
-/// ===========================================================
-/// KYC DOCUMENT LIST ITEM
-/// ===========================================================
+// ===========================================================
+// KYC DOCUMENT LIST ITEM
+// ===========================================================
 
 class WalkerAdminKycDocumentTile extends StatelessWidget {
   const WalkerAdminKycDocumentTile({
@@ -419,6 +536,7 @@ class WalkerAdminKycDocumentTile extends StatelessWidget {
         border: Border.all(color: walkerAdminBorder),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(10),
@@ -438,6 +556,7 @@ class WalkerAdminKycDocumentTile extends StatelessWidget {
               children: [
                 Text(
                   title,
+                  softWrap: true,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -450,6 +569,7 @@ class WalkerAdminKycDocumentTile extends StatelessWidget {
                       (isAvailable
                           ? 'Document submitted'
                           : 'Document not available'),
+                  softWrap: true,
                   style: const TextStyle(
                     fontSize: 12,
                     color: walkerAdminMuted,
@@ -463,7 +583,9 @@ class WalkerAdminKycDocumentTile extends StatelessWidget {
             onPressed: isAvailable ? onView : null,
             style: OutlinedButton.styleFrom(
               foregroundColor: walkerAdminOrange,
-              side: const BorderSide(color: walkerAdminOrange),
+              side: const BorderSide(
+                color: walkerAdminOrange,
+              ),
               padding: const EdgeInsets.symmetric(
                 horizontal: 12,
                 vertical: 8,
@@ -477,9 +599,9 @@ class WalkerAdminKycDocumentTile extends StatelessWidget {
   }
 }
 
-/// ===========================================================
-/// STATUS BADGE
-/// ===========================================================
+// ===========================================================
+// STATUS BADGE
+// ===========================================================
 
 class _StatusBadge extends StatelessWidget {
   const _StatusBadge({
@@ -503,6 +625,7 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         text,
+        softWrap: true,
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
@@ -513,9 +636,9 @@ class _StatusBadge extends StatelessWidget {
   }
 }
 
-/// ===========================================================
-/// SMALL CARD DETAIL
-/// ===========================================================
+// ===========================================================
+// SMALL CARD DETAIL
+// ===========================================================
 
 class _CardDetail extends StatelessWidget {
   const _CardDetail({
@@ -529,6 +652,7 @@ class _CardDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(
           icon,
