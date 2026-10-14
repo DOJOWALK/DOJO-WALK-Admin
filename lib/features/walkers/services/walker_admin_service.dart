@@ -1,11 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../models/walker_admin_model.dart';
+import '../utils/walker_admin_helpers.dart';
+
+/// Supported administrative actions for a walker.
+enum WalkerAdminAction {
+  approve,
+  reject,
+  suspend,
+  reactivate,
+  requestCorrection,
+}
+
 /// Shared Firestore service for DOJO WALK Admin Walker Management.
 ///
-/// Used by:
-/// - walker_manager_screen.dart
-/// - walker_details_screen.dart
+/// Responsibilities:
+/// - Read walker data.
+/// - Read related booking and audit data.
+/// - Validate administrative actions.
+/// - Update walker state and write audit logs atomically.
+///
+/// Firestore Security Rules must independently enforce admin permissions.
 class WalkerAdminService {
   WalkerAdminService({
     FirebaseFirestore? firestore,
@@ -19,271 +35,385 @@ class WalkerAdminService {
   CollectionReference<Map<String, dynamic>> get _walkers =>
       _firestore.collection('walkers');
 
+  CollectionReference<Map<String, dynamic>> get _bookings =>
+      _firestore.collection('bookings');
+
   CollectionReference<Map<String, dynamic>> get _auditLogs =>
       _firestore.collection('audit_logs');
 
-  /// Returns the currently signed-in admin UID.
-  String _requireAdminUid() {
-    final uid = _auth.currentUser?.uid;
+  CollectionReference<Map<String, dynamic>> get _adminUsers =>
+      _firestore.collection('admin_users');
 
-    if (uid == null || uid.isEmpty) {
-      throw StateError('Admin login is required.');
-    }
+  // ----------------------------------------------------------
+  // READ: WALKERS
+  // ----------------------------------------------------------
 
-    return uid;
-  }
-
-  /// Reads a walker document.
-  Future<Map<String, dynamic>?> getWalker(String walkerId) async {
-    _validateId(walkerId);
-
-    final snapshot = await _walkers.doc(walkerId).get();
-
-    if (!snapshot.exists) {
-      return null;
-    }
-
-    return snapshot.data();
-  }
-
-  /// Approves and activates a verified walker.
+  /// Streams all walker documents.
   ///
-  /// This follows the current Firestore decision rules:
-  /// approved => verified, approved, active.
-  Future<void> approveWalker({
-    required String walkerId,
-    String? reason,
-  }) {
-    return _applyDecision(
-      walkerId: walkerId,
-      action: 'walker_approved',
-      reason: reason,
-      newStatus: 'approved',
-      verificationStatus: 'verified',
-      isApproved: true,
-      isActive: true,
-    );
-  }
-
-  /// Rejects a walker application.
-  Future<void> rejectWalker({
-    required String walkerId,
-    required String reason,
-  }) {
-    _requireReason(reason);
-
-    return _applyDecision(
-      walkerId: walkerId,
-      action: 'walker_rejected',
-      reason: reason,
-      newStatus: 'rejected',
-      verificationStatus: 'rejected',
-      isApproved: false,
-      isActive: false,
-    );
-  }
-
-  /// Requests corrections from a walker.
-  Future<void> requestCorrection({
-    required String walkerId,
-    required String reason,
-  }) {
-    _requireReason(reason);
-
-    return _applyDecision(
-      walkerId: walkerId,
-      action: 'walker_correction_requested',
-      reason: reason,
-      newStatus: 'correction_required',
-      verificationStatus: 'correction_required',
-      isApproved: false,
-      isActive: false,
-    );
-  }
-
-  /// Suspends an already verified walker.
-  Future<void> suspendWalker({
-    required String walkerId,
-    required String reason,
-  }) {
-    _requireReason(reason);
-
-    return _applyDecision(
-      walkerId: walkerId,
-      action: 'walker_suspended',
-      reason: reason,
-      newStatus: 'suspended',
-      verificationStatus: 'verified',
-      isApproved: true,
-      isActive: false,
-    );
-  }
-
-  /// Reactivates a previously suspended, verified walker.
-  Future<void> reactivateWalker({
-    required String walkerId,
-    String? reason,
-  }) {
-    return _applyDecision(
-      walkerId: walkerId,
-      action: 'walker_reactivated',
-      reason: reason,
-      newStatus: 'approved',
-      verificationStatus: 'verified',
-      isApproved: true,
-      isActive: true,
-    );
-  }
-
-  /// Applies a walker decision and writes its audit log atomically.
-  Future<void> _applyDecision({
-    required String walkerId,
-    required String action,
-    required String newStatus,
-    required String verificationStatus,
-    required bool isApproved,
-    required bool isActive,
-    String? reason,
-  }) async {
-    _validateId(walkerId);
-
-    final adminUid = _requireAdminUid();
-
-    final walkerRef = _walkers.doc(walkerId);
-    final auditRef = _auditLogs.doc();
-
-    await _firestore.runTransaction<void>((transaction) async {
-      final walkerSnapshot = await transaction.get(walkerRef);
-
-      if (!walkerSnapshot.exists) {
-        throw StateError('Walker not found.');
-      }
-
-      final walkerData = walkerSnapshot.data() ?? <String, dynamic>{};
-      final beforeStatus = _statusOf(walkerData);
-
-      _validateTransition(
-        action: action,
-        currentStatus: beforeStatus,
-        currentData: walkerData,
-      );
-
-      final walkerUpdate = <String, dynamic>{
-        'status': newStatus,
-        'verificationStatus': verificationStatus,
-        'isApproved': isApproved,
-        'isActive': isActive,
-        'updatedAt': FieldValue.serverTimestamp(),
-        'decisionBy': adminUid,
-        'decisionAt': FieldValue.serverTimestamp(),
-      };
-
-      final cleanReason = reason?.trim();
-
-      if (cleanReason != null && cleanReason.isNotEmpty) {
-        walkerUpdate['decisionReason'] = cleanReason;
-      }
-
-      transaction.update(walkerRef, walkerUpdate);
-
-      final auditData = <String, dynamic>{
-        'actorUid': adminUid,
-        'actorRole': 'super_admin',
-        'action': action,
-        'targetType': 'walker',
-        'targetId': walkerId,
-        'beforeStatus': beforeStatus,
-        'afterStatus': newStatus,
-        'createdAt': FieldValue.serverTimestamp(),
-        'metadata': <String, dynamic>{
-          'verificationStatus': verificationStatus,
-          'isApproved': isApproved,
-          'isActive': isActive,
-        },
-      };
-
-      if (cleanReason != null && cleanReason.isNotEmpty) {
-        auditData['reason'] = cleanReason;
-      }
-
-      transaction.set(auditRef, auditData);
+  /// Filtering and search can be performed by the UI.
+  Stream<List<WalkerAdminModel>> watchWalkers() {
+    return _walkers.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map(WalkerAdminModel.fromFirestore)
+          .toList(growable: false);
     });
   }
 
-  /// Prevents decisions that do not match the current walker state.
-  void _validateTransition({
-    required String action,
-    required String currentStatus,
-    required Map<String, dynamic> currentData,
+  /// Streams one walker's document.
+  Stream<WalkerAdminModel?> watchWalker(String uid) {
+    return _walkers.doc(uid).snapshots().map((snapshot) {
+      if (!snapshot.exists) return null;
+
+      return WalkerAdminModel.fromFirestore(snapshot);
+    });
+  }
+
+  /// Fetches one walker once.
+  Future<WalkerAdminModel?> getWalker(String uid) async {
+    final snapshot = await _walkers.doc(uid).get();
+
+    if (!snapshot.exists) return null;
+
+    return WalkerAdminModel.fromFirestore(snapshot);
+  }
+
+  // ----------------------------------------------------------
+  // READ: BOOKINGS
+  // ----------------------------------------------------------
+
+  /// Streams bookings used by the running-walker dashboard.
+  ///
+  /// The UI must still validate booking status and walkerId.
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchBookings() {
+    return _bookings.snapshots();
+  }
+
+  /// Streams bookings for a particular walker.
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchWalkerBookings(
+    String walkerId,
+  ) {
+    return _bookings
+        .where('walkerId', isEqualTo: walkerId)
+        .snapshots();
+  }
+
+  // ----------------------------------------------------------
+  // READ: AUDIT HISTORY
+  // ----------------------------------------------------------
+
+  /// Streams audit logs associated with a walker.
+  ///
+  /// Sorts the returned documents locally by createdAt.
+  /// This avoids requiring an orderBy index for this query.
+  ///
+  /// Note: limit applies before local sorting, so this is not
+  /// guaranteed to return the latest records across all history.
+  Stream<List<Map<String, dynamic>>> watchWalkerAuditLogs(
+    String walkerId, {
+    int limit = 50,
+  }) {
+    final safeLimit = limit.clamp(1, 200);
+
+    return _auditLogs
+        .where('targetType', isEqualTo: 'walker')
+        .where('targetId', isEqualTo: walkerId)
+        .limit(safeLimit)
+        .snapshots()
+        .map((snapshot) {
+      final records = snapshot.docs.map((doc) {
+        return <String, dynamic>{
+          'id': doc.id,
+          ...doc.data(),
+        };
+      }).toList();
+
+      records.sort((a, b) {
+        final aDate = WalkerAdminHelpers.toDateTime(
+          a['createdAt'],
+        );
+
+        final bDate = WalkerAdminHelpers.toDateTime(
+          b['createdAt'],
+        );
+
+        if (aDate == null && bDate == null) return 0;
+        if (aDate == null) return 1;
+        if (bDate == null) return -1;
+
+        return bDate.compareTo(aDate);
+      });
+
+      return records;
+    });
+  }
+
+  // ----------------------------------------------------------
+  // ADMIN ACTIONS
+  // ----------------------------------------------------------
+
+  /// Executes an administrative action.
+  ///
+  /// Walker state and its audit record are written in the same
+  /// Firestore transaction so they cannot be partially committed.
+  ///
+  /// A reason is required for rejection, suspension and correction.
+  Future<void> runAdminAction({
+    required String walkerId,
+    required WalkerAdminAction action,
+    String? reason,
+  }) async {
+    final admin = _auth.currentUser;
+
+    if (admin == null) {
+      throw const WalkerAdminServiceException(
+        'Please sign in again before performing this action.',
+      );
+    }
+
+    final normalizedReason = reason?.trim() ?? '';
+
+    if (_requiresReason(action) && normalizedReason.isEmpty) {
+      throw const WalkerAdminServiceException(
+        'A reason is required for this action.',
+      );
+    }
+
+    final walkerRef = _walkers.doc(walkerId);
+    final adminRef = _adminUsers.doc(admin.uid);
+    final auditRef = _auditLogs.doc();
+
+    await _firestore.runTransaction<void>((transaction) async {
+      // Read all documents before writing.
+      final adminSnapshot = await transaction.get(adminRef);
+      final walkerSnapshot = await transaction.get(walkerRef);
+
+      if (!adminSnapshot.exists) {
+        throw const WalkerAdminServiceException(
+          'Admin access could not be verified.',
+        );
+      }
+
+      final adminData = adminSnapshot.data();
+
+      if (adminData == null ||
+          adminData['isActive'] != true ||
+          adminData['role'] != 'super_admin') {
+        throw const WalkerAdminServiceException(
+          'You do not have permission to perform this action.',
+        );
+      }
+
+      if (!walkerSnapshot.exists) {
+        throw const WalkerAdminServiceException(
+          'This walker account no longer exists.',
+        );
+      }
+
+      final before = walkerSnapshot.data();
+
+      if (before == null) {
+        throw const WalkerAdminServiceException(
+          'Walker information could not be loaded.',
+        );
+      }
+
+      final currentStatus =
+          WalkerAdminHelpers.normalizeStatus(before['status']);
+
+      final currentVerification = WalkerAdminHelpers.normalizeStatus(
+        before['verificationStatus'],
+      );
+
+      final currentlyApproved = before['isApproved'] == true;
+      final currentlyActive = before['isActive'] == true;
+
+      final changes = _buildChanges(
+        action: action,
+        status: currentStatus,
+        verificationStatus: currentVerification,
+        isApproved: currentlyApproved,
+        isActive: currentlyActive,
+        applicationSubmitted: before['applicationSubmitted'] == true,
+        reason: normalizedReason,
+        adminUid: admin.uid,
+      );
+
+      final timestamp = FieldValue.serverTimestamp();
+
+      changes['updatedAt'] = timestamp;
+      changes['decisionBy'] = admin.uid;
+      changes['decisionAt'] = timestamp;
+
+      if (normalizedReason.isNotEmpty) {
+        changes['decisionReason'] = normalizedReason;
+      }
+
+      final auditRecord = <String, dynamic>{
+        'actorUid': admin.uid,
+        'actorRole': 'super_admin',
+        'action': _actionName(action),
+        'targetType': 'walker',
+        'targetId': walkerId,
+        'beforeStatus': currentStatus,
+        'afterStatus': changes['status'],
+        'beforeVerificationStatus': currentVerification,
+        'afterVerificationStatus': changes['verificationStatus'],
+        'beforeIsApproved': currentlyApproved,
+        'afterIsApproved': changes['isApproved'],
+        'beforeIsActive': currentlyActive,
+        'afterIsActive': changes['isActive'],
+        'createdAt': timestamp,
+      };
+
+      if (normalizedReason.isNotEmpty) {
+        auditRecord['reason'] = normalizedReason;
+      }
+
+      transaction.update(walkerRef, changes);
+      transaction.set(auditRef, auditRecord);
+    });
+  }
+
+  // ----------------------------------------------------------
+  // STATE TRANSITIONS
+  // ----------------------------------------------------------
+
+  Map<String, dynamic> _buildChanges({
+    required WalkerAdminAction action,
+    required String status,
+    required String verificationStatus,
+    required bool isApproved,
+    required bool isActive,
+    required bool applicationSubmitted,
+    required String reason,
+    required String adminUid,
   }) {
     switch (action) {
-      case 'walker_approved':
-        if (currentStatus == 'rejected' ||
-            currentStatus == 'suspended' ||
-            currentStatus == 'inactive' ||
-            currentStatus == 'left') {
-          throw StateError(
-            'This walker cannot be approved from the current status.',
+      case WalkerAdminAction.approve:
+        if (!applicationSubmitted ||
+            _isTerminalStatus(status) ||
+            verificationStatus == 'rejected' ||
+            status == 'correction_required') {
+          throw const WalkerAdminServiceException(
+            'This application is not eligible for approval.',
           );
         }
-        break;
 
-      case 'walker_rejected':
-      case 'walker_correction_requested':
-        if (currentStatus == 'rejected' ||
-            currentStatus == 'suspended' ||
-            currentStatus == 'inactive' ||
-            currentStatus == 'left') {
-          throw StateError(
-            'This decision is not allowed from the current status.',
+        return {
+          'status': 'approved',
+          'verificationStatus': 'verified',
+          'isApproved': true,
+          'isActive': true,
+        };
+
+      case WalkerAdminAction.reject:
+        if (!applicationSubmitted ||
+            verificationStatus == 'verified' ||
+            isApproved ||
+            _isTerminalStatus(status)) {
+          throw const WalkerAdminServiceException(
+            'This application is not eligible for rejection.',
           );
         }
-        break;
 
-      case 'walker_suspended':
-        if (currentStatus != 'approved' ||
-            currentData['verificationStatus'] != 'verified' ||
-            currentData['isApproved'] != true) {
-          throw StateError(
-            'Only an approved, verified walker can be suspended.',
+        return {
+          'status': 'rejected',
+          'verificationStatus': 'rejected',
+          'isApproved': false,
+          'isActive': false,
+        };
+
+      case WalkerAdminAction.suspend:
+        if (status != 'approved' ||
+            verificationStatus != 'verified' ||
+            !isApproved ||
+            !isActive) {
+          throw const WalkerAdminServiceException(
+            'Only an active, approved walker can be suspended.',
           );
         }
-        break;
 
-      case 'walker_reactivated':
-        if (currentStatus != 'suspended' ||
-            currentData['verificationStatus'] != 'verified' ||
-            currentData['isApproved'] != true) {
-          throw StateError(
-            'Only a suspended, verified walker can be reactivated.',
+        return {
+          'status': 'suspended',
+          'verificationStatus': 'verified',
+          'isApproved': true,
+          'isActive': false,
+        };
+
+      case WalkerAdminAction.reactivate:
+        if (status != 'suspended' ||
+            verificationStatus != 'verified' ||
+            !isApproved) {
+          throw const WalkerAdminServiceException(
+            'This walker is not eligible for reactivation.',
           );
         }
-        break;
 
-      default:
-        throw ArgumentError('Unsupported walker action: $action');
+        return {
+          'status': 'approved',
+          'verificationStatus': 'verified',
+          'isApproved': true,
+          'isActive': true,
+        };
+
+      case WalkerAdminAction.requestCorrection:
+        if (!applicationSubmitted ||
+            _isTerminalStatus(status) ||
+            verificationStatus == 'verified' ||
+            isApproved) {
+          throw const WalkerAdminServiceException(
+            'This application is not eligible for correction.',
+          );
+        }
+
+        return {
+          'status': 'correction_required',
+          'verificationStatus': 'correction_required',
+          'isApproved': false,
+          'isActive': false,
+        };
     }
   }
 
-  String _statusOf(Map<String, dynamic> data) {
-    final status = data['status'];
-
-    if (status is String && status.trim().isNotEmpty) {
-      return status.trim().toLowerCase();
-    }
-
-    return 'pending';
+  bool _isTerminalStatus(String status) {
+    return status == 'rejected' ||
+        status == 'suspended' ||
+        status == 'inactive' ||
+        status == 'left';
   }
 
-  void _validateId(String walkerId) {
-    if (walkerId.trim().isEmpty) {
-      throw ArgumentError('Walker ID cannot be empty.');
-    }
+  bool _requiresReason(WalkerAdminAction action) {
+    return action == WalkerAdminAction.reject ||
+        action == WalkerAdminAction.suspend ||
+        action == WalkerAdminAction.requestCorrection;
   }
 
-  void _requireReason(String reason) {
-    if (reason.trim().isEmpty) {
-      throw ArgumentError('A reason is required for this action.');
+  String _actionName(WalkerAdminAction action) {
+    switch (action) {
+      case WalkerAdminAction.approve:
+        return 'walker_approved';
+
+      case WalkerAdminAction.reject:
+        return 'walker_rejected';
+
+      case WalkerAdminAction.suspend:
+        return 'walker_suspended';
+
+      case WalkerAdminAction.reactivate:
+        return 'walker_reactivated';
+
+      case WalkerAdminAction.requestCorrection:
+        return 'walker_correction_requested';
     }
   }
+}
+
+/// Safe, user-displayable service exception.
+class WalkerAdminServiceException implements Exception {
+  final String message;
+
+  const WalkerAdminServiceException(this.message);
+
+  @override
+  String toString() => message;
 }
