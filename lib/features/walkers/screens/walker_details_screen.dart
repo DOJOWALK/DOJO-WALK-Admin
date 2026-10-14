@@ -2,13 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
-const Color wdOrange = Color(0xFFFF7900);
-const Color wdBackground = Color(0xFFFFFAF5);
-const Color wdText = Color(0xFF292929);
-const Color wdMuted = Color(0xFF777777);
-const Color wdBorder = Color(0xFFEAE2DA);
-const Color wdGreen = Color(0xFF16834A);
-const Color wdRed = Color(0xFFC62828);
+const Color walkerOrange = Color(0xFFFF7900);
+const Color walkerBackground = Color(0xFFFFFAF5);
+const Color walkerText = Color(0xFF292524);
+const Color walkerMuted = Color(0xFF78716C);
+const Color walkerBorder = Color(0xFFE7E5E4);
+const Color walkerGreen = Color(0xFF15803D);
+const Color walkerRed = Color(0xFFB91C1C);
+const Color walkerBlue = Color(0xFF1D4ED8);
 
 class WalkerDetailsScreen extends StatefulWidget {
   final String uid;
@@ -21,682 +22,1120 @@ class WalkerDetailsScreen extends StatefulWidget {
   });
 
   @override
-  State<WalkerDetailsScreen> createState() => _WalkerDetailsScreenState();
+  State<WalkerDetailsScreen> createState() =>
+      _WalkerDetailsScreenState();
 }
 
 class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
-  bool _actionLoading = false;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   DocumentReference<Map<String, dynamic>> get _walkerRef =>
-      FirebaseFirestore.instance.collection('walkers').doc(widget.uid);
+      _firestore.collection('walkers').doc(widget.uid);
 
-  Map<String, dynamic> _map(dynamic value) {
-    if (value is Map<String, dynamic>) return value;
-    if (value is Map) return Map<String, dynamic>.from(value);
-    return <String, dynamic>{};
+  bool _actionLoading = false;
+
+  String _text(dynamic value, [String fallback = 'Not provided']) {
+    if (value == null) return fallback;
+    final result = value.toString().trim();
+    return result.isEmpty ? fallback : result;
   }
 
-  String _string(dynamic value) {
-    if (value == null) return '';
+  String _date(dynamic value) {
     if (value is Timestamp) {
       final date = value.toDate();
       return '${date.day.toString().padLeft(2, '0')}/'
           '${date.month.toString().padLeft(2, '0')}/'
           '${date.year}';
     }
+
     if (value is DateTime) {
       return '${value.day.toString().padLeft(2, '0')}/'
           '${value.month.toString().padLeft(2, '0')}/'
           '${value.year}';
     }
-    if (value is List) {
-      return value.map((e) => e.toString()).where((e) => e.isNotEmpty).join(', ');
-    }
-    return value.toString().trim();
+
+    return 'Not available';
   }
 
-  String _first(List<dynamic> values, {String fallback = 'Not provided'}) {
-    for (final value in values) {
-      final result = _string(value);
-      if (result.isNotEmpty && result != 'null') return result;
-    }
-    return fallback;
-  }
-
-  Map<String, dynamic> get _currentData => widget.walkerData;
-
-  Map<String, dynamic> get _currentAddress =>
-      _map(_currentData['currentAddress']);
-
-  Map<String, dynamic> get _kyc => _map(_currentData['kyc']);
-
-  Map<String, dynamic> get _documents => _map(_kyc['documents']);
-
-  String get _name => _first([
-        _currentData['fullName'],
-        _currentData['name'],
-        _currentData['displayName'],
-      ], fallback: 'Walker');
-
-  String get _phone => _first([
-        _currentData['phone'],
-        _currentData['phoneNumber'],
-        _currentData['mobile'],
-      ]);
-
-  String get _email => _first([_currentData['email']]);
-
-  String get _status {
-    final status = _string(_currentData['status']).toLowerCase();
-    final verification =
-        _string(_currentData['verificationStatus']).toLowerCase();
+  String _statusLabel(Map<String, dynamic> data) {
+    final status = _text(data['status'], 'in_progress');
+    final verification = _text(
+      data['verificationStatus'],
+      'pending',
+    );
 
     if (status == 'suspended') return 'Suspended';
-    if (verification == 'rejected' || status == 'rejected') return 'Rejected';
-    if (verification == 'verified' ||
-        _currentData['isApproved'] == true) {
-      if (_currentData['isActive'] == true || status == 'active') {
-        return 'Active';
-      }
-      return 'Verified';
+    if (status == 'rejected' || verification == 'rejected') {
+      return 'Rejected';
+    }
+    if (status == 'correction_required' ||
+        verification == 'correction_required') {
+      return 'Correction Required';
     }
     if (status == 'under_review') return 'Under Review';
     if (status == 'in_progress') return 'In Progress';
-    if (verification == 'pending' || status == 'pending') return 'Pending';
-    return status.isEmpty ? 'Unknown' : _titleCase(status);
-  }
+    if (status == 'inactive') return 'Inactive';
+    if (status == 'left') return 'Left';
 
-  String _titleCase(String value) {
-    return value
-        .split('_')
-        .map((part) => part.isEmpty
-            ? part
-            : '${part[0].toUpperCase()}${part.substring(1)}')
-        .join(' ');
-  }
-
-  bool get _isVerified {
-    return _string(_currentData['verificationStatus']).toLowerCase() ==
-            'verified' ||
-        _currentData['isApproved'] == true;
-  }
-
-  bool get _isSuspended =>
-      _string(_currentData['status']).toLowerCase() == 'suspended';
-
-  bool get _isActive =>
-      _currentData['isActive'] == true ||
-      _string(_currentData['status']).toLowerCase() == 'active';
-
-  bool get _isSubmitted => _currentData['applicationSubmitted'] == true;
-
-  Color get _statusColor {
-    switch (_status) {
-      case 'Active':
-      case 'Verified':
-        return wdGreen;
-      case 'Rejected':
-      case 'Suspended':
-        return wdRed;
-      case 'Under Review':
-      case 'Pending':
-        return wdOrange;
-      default:
-        return wdMuted;
+    if (status == 'approved' &&
+        data['isApproved'] == true &&
+        data['isActive'] == true &&
+        verification == 'verified') {
+      return 'Verified • Active';
     }
+
+    if (status == 'approved' &&
+        data['isApproved'] == true &&
+        verification == 'verified') {
+      return 'Verified • Inactive';
+    }
+
+    return status.replaceAll('_', ' ');
   }
 
-  Future<void> _performAction(_WalkerAction action) async {
-    if (_actionLoading) return;
+  Color _statusColor(String status) {
+    if (status.contains('Active') || status == 'Verified') {
+      return walkerGreen;
+    }
+    if (status == 'Rejected' || status == 'Suspended') {
+      return walkerRed;
+    }
+    if (status == 'Correction Required') {
+      return const Color(0xFFB45309);
+    }
+    return walkerBlue;
+  }
 
-    final confirmation = await showDialog<bool>(
+  bool _isVerified(Map<String, dynamic> data) {
+    return data['verificationStatus'] == 'verified' &&
+        data['isApproved'] == true;
+  }
+
+  bool _isActive(Map<String, dynamic> data) {
+    return data['isActive'] == true;
+  }
+
+  bool _isSubmitted(Map<String, dynamic> data) {
+    return data['applicationSubmitted'] == true ||
+        data['status'] == 'under_review' ||
+        data['status'] == 'approved' ||
+        data['status'] == 'rejected' ||
+        data['status'] == 'correction_required' ||
+        data['status'] == 'suspended';
+  }
+
+  void _message(String message, {bool error = false}) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: error ? walkerRed : walkerGreen,
+        ),
+      );
+  }
+
+  Future<String?> _askReason({
+    required String title,
+    required String description,
+    required String actionLabel,
+  }) async {
+    final controller = TextEditingController();
+
+    final result = await showDialog<String>(
       context: context,
       builder: (dialogContext) {
-        final isReject = action == _WalkerAction.reject;
-        final isSuspend = action == _WalkerAction.suspend;
-        final title = switch (action) {
-          _WalkerAction.verify => 'Approve Walker?',
-          _WalkerAction.reject => 'Reject Application?',
-          _WalkerAction.suspend => 'Suspend Walker?',
-          _WalkerAction.reactivate => 'Reactivate Walker?',
-        };
-        final message = switch (action) {
-          _WalkerAction.verify =>
-            'Confirm that you have reviewed the submitted details and KYC documents.',
-          _WalkerAction.reject =>
-            'The application will be marked as rejected.',
-          _WalkerAction.suspend =>
-            'The walker will be made inactive.',
-          _WalkerAction.reactivate =>
-            'The verified walker will be activated again.',
-        };
-
         return AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          title: Text(
-            title,
-            style: const TextStyle(
-              color: wdText,
-              fontWeight: FontWeight.w800,
+          title: Text(title),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(description),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  maxLines: 4,
+                  maxLength: 500,
+                  decoration: const InputDecoration(
+                    labelText: 'Reason',
+                    hintText: 'Enter the reason',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
             ),
           ),
-          content: Text(message),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: wdMuted),
-              ),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
-                backgroundColor: isReject || isSuspend ? wdRed : wdOrange,
-                foregroundColor: Colors.white,
+                backgroundColor: walkerOrange,
               ),
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(
-                isReject
-                    ? 'Reject'
-                    : isSuspend
-                        ? 'Suspend'
-                        : action == _WalkerAction.verify
-                            ? 'Approve'
-                            : 'Reactivate',
-              ),
+              onPressed: () {
+                final reason = controller.text.trim();
+
+                if (reason.length < 3) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Please enter a reason of at least 3 characters.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+
+                Navigator.pop(dialogContext, reason);
+              },
+              child: Text(actionLabel),
             ),
           ],
         );
       },
     );
 
-    if (confirmation != true || !mounted) return;
+    controller.dispose();
+    return result;
+  }
+
+  Future<bool> _confirm({
+    required String title,
+    required String message,
+    required String confirmLabel,
+  }) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: walkerOrange,
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(confirmLabel),
+          ),
+        ],
+      ),
+    );
+
+    return result == true;
+  }
+
+  Future<void> _runAdminAction({
+    required String action,
+    required Map<String, dynamic> latest,
+    String? reason,
+  }) async {
+    if (_actionLoading) return;
+
+    final status = _text(latest['status'], 'in_progress');
+    final verification = _text(
+      latest['verificationStatus'],
+      'pending',
+    );
+    final approved = latest['isApproved'] == true;
+    final active = latest['isActive'] == true;
+    final submitted = _isSubmitted(latest);
+
+    Map<String, dynamic> changes = {};
+
+    switch (action) {
+      case 'approve':
+        if (!submitted ||
+            status == 'suspended' ||
+            status == 'rejected' ||
+            status == 'inactive' ||
+            status == 'left' ||
+            verification == 'rejected') {
+          _message(
+            'This application cannot be approved in its current state.',
+            error: true,
+          );
+          return;
+        }
+
+        if (verification == 'verified' && approved && active) {
+          _message('This walker is already active.');
+          return;
+        }
+
+        changes = {
+          'status': 'approved',
+          'verificationStatus': 'verified',
+          'isApproved': true,
+          'isActive': true,
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+        break;
+
+      case 'reject':
+        if (!submitted ||
+            verification == 'verified' ||
+            status == 'suspended') {
+          _message(
+            'This application cannot be rejected in its current state.',
+            error: true,
+          );
+          return;
+        }
+
+        changes = {
+          'status': 'rejected',
+          'verificationStatus': 'rejected',
+          'isApproved': false,
+          'isActive': false,
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+        break;
+
+      case 'suspend':
+        if (!approved ||
+            verification != 'verified' ||
+            !active ||
+            status != 'approved') {
+          _message(
+            'Only a verified, active walker can be suspended.',
+            error: true,
+          );
+          return;
+        }
+
+        changes = {
+          'status': 'suspended',
+          'isActive': false,
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+        break;
+
+      case 'reactivate':
+        if (!approved ||
+            verification != 'verified' ||
+            status != 'suspended') {
+          _message(
+            'Only a previously approved, verified, suspended walker can be reactivated.',
+            error: true,
+          );
+          return;
+        }
+
+        changes = {
+          'status': 'approved',
+          'verificationStatus': 'verified',
+          'isApproved': true,
+          'isActive': true,
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+        break;
+
+      case 'correction':
+        _message(
+          'Correction Required needs a Rules-approved correction field and '
+          'Partner resubmission flow. Those are not enabled in your current Rules.',
+          error: true,
+        );
+        return;
+
+      default:
+        _message('Unknown action.', error: true);
+        return;
+    }
+
+    final confirmed = await _confirm(
+      title: _actionTitle(action),
+      message: _actionMessage(action),
+      confirmLabel: _actionLabel(action),
+    );
+
+    if (!confirmed || !mounted) return;
 
     setState(() => _actionLoading = true);
 
     try {
-      // Always read the latest document before changing its status.
+      // Re-read before writing so we do not rely only on stale widget data.
       final snapshot = await _walkerRef.get();
 
       if (!snapshot.exists) {
-        throw Exception('Walker record not found.');
+        throw StateError('Walker record no longer exists.');
       }
 
-      final latest = snapshot.data()!;
-
-      final latestStatus =
-          _string(latest['status']).toLowerCase();
-      final latestVerification =
-          _string(latest['verificationStatus']).toLowerCase();
-
-      if (action == _WalkerAction.verify) {
-        if (latest['applicationSubmitted'] != true ||
-            latestStatus != 'under_review' ||
-            latestVerification == 'verified' ||
-            latestStatus == 'suspended') {
-          throw Exception(
-            'This application is no longer awaiting verification. Refresh and check its latest status.',
-          );
-        }
-      }
-
-      if (action == _WalkerAction.reject) {
-        if (latest['applicationSubmitted'] != true ||
-            latestVerification == 'verified' ||
-            latestStatus == 'suspended') {
-          throw Exception(
-            'This application cannot be rejected in its current state.',
-          );
-        }
-      }
-
-      if (action == _WalkerAction.suspend) {
-        if (latest['isApproved'] != true &&
-            latestVerification != 'verified') {
-          throw Exception('Only a verified walker can be suspended.');
-        }
-      }
-
-      if (action == _WalkerAction.reactivate) {
-        if (latest['isApproved'] != true ||
-            latestVerification != 'verified' ||
-            latestStatus != 'suspended') {
-          throw Exception(
-            'Only a verified, suspended walker can be reactivated.',
-          );
-        }
-      }
-
-      final Map<String, dynamic> updates;
-
-      switch (action) {
-        case _WalkerAction.verify:
-          updates = {
-            'verificationStatus': 'verified',
-            'status': 'approved',
-            'isApproved': true,
-            'isActive': false,
-            'updatedAt': FieldValue.serverTimestamp(),
-          };
-          break;
-
-        case _WalkerAction.reject:
-          updates = {
-            'verificationStatus': 'rejected',
-            'status': 'rejected',
-            'isApproved': false,
-            'isActive': false,
-            'updatedAt': FieldValue.serverTimestamp(),
-          };
-          break;
-
-        case _WalkerAction.suspend:
-          updates = {
-            'status': 'suspended',
-            'isActive': false,
-            'updatedAt': FieldValue.serverTimestamp(),
-          };
-          break;
-
-        case _WalkerAction.reactivate:
-          updates = {
-            'verificationStatus': 'verified',
-            'status': 'active',
-            'isApproved': true,
-            'isActive': true,
-            'updatedAt': FieldValue.serverTimestamp(),
-          };
-          break;
-      }
-
-      await _walkerRef.update(updates);
-
-      if (!mounted) return;
-
-      setState(() {
-        widget.walkerData.addAll(updates);
-        if (action == _WalkerAction.verify) {
-          widget.walkerData['status'] = 'approved';
-          widget.walkerData['verificationStatus'] = 'verified';
-          widget.walkerData['isApproved'] = true;
-          widget.walkerData['isActive'] = false;
-        } else if (action == _WalkerAction.reject) {
-          widget.walkerData['status'] = 'rejected';
-          widget.walkerData['verificationStatus'] = 'rejected';
-          widget.walkerData['isApproved'] = false;
-          widget.walkerData['isActive'] = false;
-        } else if (action == _WalkerAction.suspend) {
-          widget.walkerData['status'] = 'suspended';
-          widget.walkerData['isActive'] = false;
-        } else {
-          widget.walkerData['status'] = 'active';
-          widget.walkerData['verificationStatus'] = 'verified';
-          widget.walkerData['isApproved'] = true;
-          widget.walkerData['isActive'] = true;
-        }
-      });
-
-      _showMessage(
-        switch (action) {
-          _WalkerAction.verify => 'Walker approved successfully.',
-          _WalkerAction.reject => 'Application rejected.',
-          _WalkerAction.suspend => 'Walker suspended.',
-          _WalkerAction.reactivate => 'Walker reactivated.',
-        },
+      final current = snapshot.data()!;
+      final currentStatus = _text(current['status'], 'in_progress');
+      final currentVerification = _text(
+        current['verificationStatus'],
+        'pending',
       );
-    } catch (error) {
-      if (mounted) {
-        _showMessage(
-          'Action failed: ${error.toString().replaceFirst('Exception: ', '')}',
-          isError: true,
+
+      // Check that the state has not changed since the UI was opened.
+      if (currentStatus != status ||
+          currentVerification != verification ||
+          (current['isApproved'] == true) != approved ||
+          (current['isActive'] == true) != active) {
+        throw StateError(
+          'Walker status changed. Refresh the page and try again.',
         );
       }
+
+      await _walkerRef.update(changes);
+
+      if (!mounted) return;
+      _message('${_actionTitle(action)} successful.');
+    } on FirebaseException catch (e) {
+      _message(
+        e.code == 'permission-denied'
+            ? 'Permission denied. Check Admin authentication and Firestore Rules.'
+            : 'Could not update walker: ${e.message ?? e.code}',
+        error: true,
+      );
+    } catch (e) {
+      _message(
+        'Action failed: ${e.toString().replaceFirst('Bad state: ', '')}',
+        error: true,
+      );
     } finally {
-      if (mounted) setState(() => _actionLoading = false);
+      if (mounted) {
+        setState(() => _actionLoading = false);
+      }
     }
   }
 
-  void _showMessage(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? wdRed : wdGreen,
-        behavior: SnackBarBehavior.floating,
+  String _actionTitle(String action) {
+    switch (action) {
+      case 'approve':
+        return 'Verify & Approve';
+      case 'reject':
+        return 'Reject Application';
+      case 'suspend':
+        return 'Suspend Walker';
+      case 'reactivate':
+        return 'Reactivate Walker';
+      case 'correction':
+        return 'Request Correction';
+      default:
+        return 'Update Walker';
+    }
+  }
+
+  String _actionLabel(String action) {
+    switch (action) {
+      case 'approve':
+        return 'Approve';
+      case 'reject':
+        return 'Reject';
+      case 'suspend':
+        return 'Suspend';
+      case 'reactivate':
+        return 'Reactivate';
+      case 'correction':
+        return 'Request Correction';
+      default:
+        return 'Continue';
+    }
+  }
+
+  String _actionMessage(String action) {
+    switch (action) {
+      case 'approve':
+        return 'Approve this walker and mark the account active?';
+      case 'reject':
+        return 'Reject this walker application? The walker will not be active.';
+      case 'suspend':
+        return 'Suspend this active walker account?';
+      case 'reactivate':
+        return 'Reactivate this previously approved walker?';
+      default:
+        return 'Continue with this action?';
+    }
+  }
+
+  Future<void> _openDocument({
+    required String title,
+    required dynamic document,
+  }) async {
+    String? url;
+    String? path;
+
+    if (document is String) {
+      if (document.startsWith('https://')) {
+        url = document;
+      } else if (document.isNotEmpty) {
+        path = document;
+      }
+    } else if (document is Map) {
+      final map = Map<String, dynamic>.from(document);
+      url = _text(
+        map['downloadUrl'] ?? map['url'],
+        '',
+      );
+      path = _text(
+        map['storagePath'] ?? map['path'],
+        '',
+      );
+
+      if (url != null && url!.isEmpty) url = null;
+      if (path != null && path!.isEmpty) path = null;
+    }
+
+    if ((url == null || url.isEmpty) && path != null) {
+      try {
+        url = await FirebaseStorage.instance.ref(path).getDownloadURL();
+      } on FirebaseException catch (e) {
+        _message(
+          'Cannot access $title. Check Storage Rules (${e.code}).',
+          error: true,
+        );
+        return;
+      }
+    }
+
+    if (url == null || url.isEmpty) {
+      _message('$title is not available.', error: true);
+      return;
+    }
+
+    if (!mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: SizedBox(
+          width: 600,
+          child: SingleChildScrollView(
+            child: SelectableText(
+              url!,
+              style: const TextStyle(
+                color: walkerBlue,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
+  }
+
+  Map<String, dynamic> _map(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) return Map<String, dynamic>.from(value);
+    return {};
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: wdBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Walker Details',
-          style: TextStyle(
-            color: wdText,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        iconTheme: const IconThemeData(color: wdText),
-      ),
+      backgroundColor: walkerBackground,
       body: SafeArea(
+        child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: _walkerRef.snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return _errorView(
+                'Could not load walker details.\n${snapshot.error}',
+              );
+            }
+
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                !snapshot.hasData) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: walkerOrange,
+                ),
+              );
+            }
+
+            if (!snapshot.hasData || !snapshot.data!.exists) {
+              return _errorView('Walker record not found.');
+            }
+
+            final data = snapshot.data!.data()!;
+            return _buildContent(data);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _errorView(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-                children: [
-                  _buildBasicCard(),
-                  const SizedBox(height: 14),
-                  _buildPersonalSection(),
-                  const SizedBox(height: 14),
-                  _buildWorkSection(),
-                  const SizedBox(height: 14),
-                  _buildAddressSection(),
-                  const SizedBox(height: 14),
-                  _buildKycSection(),
-                ],
-              ),
+            const Icon(
+              Icons.warning_amber_rounded,
+              color: walkerRed,
+              size: 42,
             ),
-            _buildBottomActions(),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: walkerText),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: () => setState(() {}),
+              child: const Text('Retry'),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildBasicCard() {
-    final photoUrl = _first([
-      _currentData['photoUrl'],
-      _currentData['profilePhotoUrl'],
-      _currentData['selfieUrl'],
-      _map(_kyc['selfie'])['downloadUrl'],
-      _map(_kyc['selfie'])['url'],
-    ], fallback: '');
+  Widget _buildContent(Map<String, dynamic> data) {
+    final kyc = _map(data['kyc']);
+    final documents = _map(kyc['documents']);
+    final status = _statusLabel(data);
+    final verified = _isVerified(data);
+    final active = _isActive(data);
+    final submitted = _isSubmitted(data);
+    final rejected = data['status'] == 'rejected';
+    final suspended = data['status'] == 'suspended';
+
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final wide = screenWidth >= 900;
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(wide ? 28 : 16),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildBreadcrumb(),
+              const SizedBox(height: 18),
+              _buildPageHeader(
+                data: data,
+                status: status,
+                submitted: submitted,
+                verified: verified,
+                active: active,
+                rejected: rejected,
+                suspended: suspended,
+              ),
+              const SizedBox(height: 22),
+
+              _buildProfileCard(data, status),
+
+              const SizedBox(height: 16),
+              _sectionCard(
+                title: 'Personal Details',
+                icon: Icons.person_outline,
+                child: _responsiveGrid([
+                  _info('Full Name', data['fullName'] ?? data['name']),
+                  _info('Walker ID', data['walkerId'] ?? widget.uid),
+                  _info('Mobile', data['phone'] ?? data['phoneNumber']),
+                  _info('Email', data['email']),
+                  _info('Gender', data['gender']),
+                  _info('Date of Birth', _date(data['dateOfBirth'])),
+                  _info('Registration Date', _date(data['createdAt'])),
+                ]),
+              ),
+
+              const SizedBox(height: 16),
+              _sectionCard(
+                title: 'Current Address',
+                icon: Icons.location_on_outlined,
+                child: _responsiveGrid([
+                  _info(
+                    'House / Flat',
+                    data['currentAddress'] is Map
+                        ? _map(data['currentAddress'])['flatHouse']
+                        : _map(data['address'])['flatHouse'],
+                  ),
+                  _info(
+                    'Building / Society',
+                    _map(data['currentAddress'])['buildingSociety'] ??
+                        _map(data['address'])['buildingSociety'],
+                  ),
+                  _info(
+                    'Area / Locality',
+                    data['area'] ??
+                        _map(data['currentAddress'])['area'] ??
+                        _map(data['address'])['area'],
+                  ),
+                  _info(
+                    'Landmark',
+                    _map(data['currentAddress'])['landmark'] ??
+                        _map(data['address'])['landmark'],
+                  ),
+                  _info('City', data['city']),
+                  _info('State', data['state']),
+                  _info(
+                    'PIN Code',
+                    _map(data['currentAddress'])['pincode'] ??
+                        _map(data['address'])['pincode'],
+                  ),
+                ]),
+              ),
+
+              const SizedBox(height: 16),
+              _sectionCard(
+                title: 'Work Location',
+                icon: Icons.map_outlined,
+                child: _responsiveGrid([
+                  _info('State', data['state']),
+                  _info('City', data['city']),
+                  _info(
+                    'Area / Zone',
+                    data['zoneName'] ??
+                        data['area'] ??
+                        (data['zoneNames'] is List
+                            ? (data['zoneNames'] as List).join(', ')
+                            : null),
+                  ),
+                  _info('Travel Mode', data['travelMode']),
+                  _info('Services', _listText(data['services'])),
+                  _info('Availability', _availabilityText(data['availability'])),
+                ]),
+              ),
+
+              const SizedBox(height: 16),
+              _sectionCard(
+                title: 'KYC Documents',
+                icon: Icons.verified_user_outlined,
+                trailing: _statusPill(
+                  _text(kyc['status'], _text(data['verificationStatus'], 'pending')),
+                  data['verificationStatus'] == 'verified'
+                      ? walkerGreen
+                      : const Color(0xFFB45309),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _documentRow(
+                      'Selfie / Profile Photo',
+                      kyc['selfie'] ?? data['photoUrl'] ?? data['profileImage'],
+                    ),
+                    _documentRow(
+                      'Aadhaar Front',
+                      documents['aadhaar_front'] ??
+                          documents['aadhaarFront'],
+                    ),
+                    _documentRow(
+                      'Aadhaar Back',
+                      documents['aadhaar_back'] ??
+                          documents['aadhaarBack'],
+                    ),
+                    _documentRow(
+                      'PAN Card',
+                      documents['pan_card'] ?? documents['panCard'],
+                    ),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        _outlineAction(
+                          'View Documents',
+                          Icons.visibility_outlined,
+                          () => _openDocument(
+                            title: 'Selfie / Profile Photo',
+                            document: kyc['selfie'] ??
+                                data['photoUrl'] ??
+                                data['profileImage'],
+                          ),
+                        ),
+                        _outlineAction(
+                          'Request Correction',
+                          Icons.edit_note,
+                          () => _runAdminAction(
+                            action: 'correction',
+                            latest: data,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Document replacement and correction status require '
+                      'Storage Rules and Partner onboarding integration.',
+                      style: TextStyle(
+                        color: walkerMuted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+              _sectionCard(
+                title: 'Performance Snapshot',
+                icon: Icons.insights_outlined,
+                child: _responsiveGrid([
+                  _info('Completed Walks', data['completedWalks'] ?? 0),
+                  _info('Complaints', data['complaintCount'] ?? 0),
+                  _info('Rating', data['rating'] ?? 'Not rated'),
+                  _info('Payout Summary', data['totalPayout'] ?? 'Not available'),
+                ]),
+              ),
+
+              const SizedBox(height: 16),
+              _sectionCard(
+                title: 'Account Security',
+                icon: Icons.security_outlined,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _responsiveGrid([
+                      _info(
+                        'Account Status',
+                        status,
+                      ),
+                      _info(
+                        'Suspected',
+                        data['isSuspected'] == true ? 'Yes' : 'No',
+                      ),
+                      _info(
+                        'Last Updated',
+                        _date(data['updatedAt']),
+                      ),
+                    ]),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'The suspected flag is an administrative review marker, '
+                      'not proof of wrongdoing.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: walkerMuted,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    _outlineAction(
+                      'View Security Details',
+                      Icons.info_outline,
+                      () => _showSecurityDetails(data),
+                    ),
+                    const SizedBox(height: 8),
+                    _outlineAction(
+                      'Activity History',
+                      Icons.history,
+                      () => _message(
+                        'Audit history is not connected: current Rules '
+                        'allow admins to read audit_logs but deny client writes.',
+                        error: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              _buildFooterNote(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBreadcrumb() {
+    return const Wrap(
+      spacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(
+          'DOJO WALK ADMIN',
+          style: TextStyle(
+            color: walkerOrange,
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.1,
+          ),
+        ),
+        Icon(
+          Icons.chevron_right,
+          size: 15,
+          color: walkerMuted,
+        ),
+        Text(
+          'WALKER MANAGER',
+          style: TextStyle(
+            color: walkerMuted,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPageHeader({
+    required Map<String, dynamic> data,
+    required String status,
+    required bool submitted,
+    required bool verified,
+    required bool active,
+    required bool rejected,
+    required bool suspended,
+  }) {
+    final actions = <Widget>[];
+
+    if (rejected) {
+      actions.add(
+        _primaryAction(
+          'Review Again',
+          Icons.refresh,
+          () => _message(
+            'Review Again needs an explicit application-resubmission '
+            'workflow. It will not automatically activate a rejected walker.',
+            error: true,
+          ),
+        ),
+      );
+    } else if (suspended) {
+      actions.add(
+        _primaryAction(
+          'Reactivate',
+          Icons.play_arrow,
+          () => _runAdminAction(
+            action: 'reactivate',
+            latest: data,
+          ),
+        ),
+      );
+    } else if (verified && active) {
+      actions.add(
+        _primaryAction(
+          'Suspend',
+          Icons.pause_circle_outline,
+          () async {
+            final reason = await _askReason(
+              title: 'Suspend Walker',
+              description: 'Enter why this walker is being suspended.',
+              actionLabel: 'Continue',
+            );
+            if (reason == null) return;
+
+            await _runAdminAction(
+              action: 'suspend',
+              latest: data,
+              reason: reason,
+            );
+          },
+        ),
+      );
+    } else if (submitted) {
+      actions.add(
+        _primaryAction(
+          'Verify & Approve',
+          Icons.verified_outlined,
+          () => _runAdminAction(
+            action: 'approve',
+            latest: data,
+          ),
+        ),
+      );
+      actions.add(
+        _outlineAction(
+          'Reject',
+          Icons.close,
+          () async {
+            final reason = await _askReason(
+              title: 'Reject Application',
+              description: 'Enter the reason for rejection.',
+              actionLabel: 'Continue',
+            );
+            if (reason == null) return;
+
+            await _runAdminAction(
+              action: 'reject',
+              latest: data,
+              reason: reason,
+            );
+          },
+        ),
+      );
+    } else {
+      actions.add(
+        _disabledAction(
+          'Application Not Submitted',
+          Icons.hourglass_empty,
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Walker Details',
+          style: TextStyle(
+            fontSize: 28,
+            color: walkerText,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 5),
+        const Text(
+          'Profile, verification & security',
+          style: TextStyle(
+            color: walkerMuted,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: actions,
+        ),
+        if (_actionLoading) ...[
+          const SizedBox(height: 12),
+          const LinearProgressIndicator(color: walkerOrange),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildProfileCard(
+    Map<String, dynamic> data,
+    String status,
+  ) {
+    final name = _text(data['fullName'] ?? data['name'], 'Walker');
+    final photo = _text(
+      data['photoUrl'] ?? data['profileImage'],
+      '',
+    );
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: wdBorder),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: walkerBorder),
       ),
-      child: Column(
-        children: [
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final narrow = constraints.maxWidth < 520;
+
+          final profile = Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               CircleAvatar(
                 radius: 31,
-                backgroundColor: const Color(0xFFFFE6D1),
-                backgroundImage: photoUrl.isNotEmpty
-                    ? NetworkImage(photoUrl)
+                backgroundColor: const Color(0xFFFFE7D1),
+                backgroundImage: photo.isNotEmpty
+                    ? NetworkImage(photo)
                     : null,
-                child: photoUrl.isEmpty
+                child: photo.isEmpty
                     ? const Icon(
-                        Icons.person_rounded,
-                        size: 34,
-                        color: wdOrange,
+                        Icons.person,
+                        size: 32,
+                        color: walkerOrange,
                       )
                     : null,
               ),
-              const SizedBox(width: 13),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _name,
+                      name,
                       style: const TextStyle(
                         fontSize: 19,
-                        color: wdText,
                         fontWeight: FontWeight.w800,
+                        color: walkerText,
                       ),
-                    ),
-                    const SizedBox(height: 5),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.phone_rounded,
-                          size: 16,
-                          color: wdOrange,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: SelectableText(
-                            _phone,
-                            style: const TextStyle(
-                              color: wdText,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Walker ID: ${widget.uid}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      'Walker ID: ${_text(data['walkerId'], widget.uid)}',
                       style: const TextStyle(
-                        fontSize: 11,
-                        color: wdMuted,
+                        color: walkerMuted,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Registered: ${_date(data['createdAt'])}',
+                      style: const TextStyle(
+                        color: walkerMuted,
+                        fontSize: 12,
                       ),
                     ),
                   ],
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 16),
-          const Divider(height: 1, color: wdBorder),
-          const SizedBox(height: 13),
-          Row(
+          );
+
+          final badges = Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              const Text(
-                'Verification Status',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: wdMuted,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 11,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: _statusColor.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Text(
-                  _status,
-                  style: TextStyle(
-                    color: _statusColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
+              _statusPill(status, _statusColor(status)),
+              if (data['isSuspected'] == true)
+                _statusPill('Suspected • Review', walkerRed),
+              _statusPill(
+                _isActive(data) ? 'Account Active' : 'Account Inactive',
+                _isActive(data) ? walkerGreen : walkerMuted,
               ),
             ],
-          ),
-          if (!_isSubmitted) ...[
-            const SizedBox(height: 12),
-            const Row(
+          );
+
+          if (narrow) {
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.info_outline, color: wdOrange, size: 18),
-                SizedBox(width: 7),
-                Expanded(
-                  child: Text(
-                    'This application has not been submitted for review.',
-                    style: TextStyle(
-                      color: wdMuted,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
+                profile,
+                const SizedBox(height: 16),
+                badges,
               ],
-            ),
-          ],
-        ],
+            );
+          }
+
+          return Row(
+            children: [
+              Expanded(child: profile),
+              const SizedBox(width: 18),
+              Flexible(child: badges),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildPersonalSection() {
-    return _section(
-      title: 'Personal Information',
-      icon: Icons.person_outline_rounded,
-      children: [
-        _infoRow('Full Name', _name),
-        _infoRow('Mobile Number', _phone),
-        _infoRow('Email', _email),
-        _infoRow(
-          'Date of Birth',
-          _first([
-            _currentData['dateOfBirth'],
-            _currentData['dob'],
-          ]),
-        ),
-        _infoRow('Gender', _first([_currentData['gender']])),
-      ],
-    );
-  }
-
-  Widget _buildWorkSection() {
-    final zones = _currentData['zoneNames'];
-    final zoneText = zones is List
-        ? _first([zones])
-        : _first([
-            _currentData['zoneName'],
-            _currentData['zone'],
-          ]);
-
-    return _section(
-      title: 'Work Location',
-      icon: Icons.location_on_outlined,
-      children: [
-        _infoRow('State', _first([_currentData['state']])),
-        _infoRow('City', _first([_currentData['city']])),
-        _infoRow('Area', _first([_currentData['area']])),
-        _infoRow('Zone', zoneText),
-        _infoRow(
-          'Travel Mode',
-          _first([
-            _currentData['travelMode'],
-            _currentData['vehicleType'],
-          ]),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAddressSection() {
-    return _section(
-      title: 'Residential Address',
-      icon: Icons.home_outlined,
-      children: [
-        _infoRow(
-          'House / Flat',
-          _first([
-            _currentAddress['houseNumber'],
-            _currentAddress['houseFlat'],
-            _currentAddress['flatHouse'],
-          ]),
-        ),
-        _infoRow(
-          'Street / Locality',
-          _first([
-            _currentAddress['street'],
-            _currentAddress['area'],
-            _currentAddress['residentialArea'],
-          ]),
-        ),
-        _infoRow(
-          'Landmark',
-          _first([_currentAddress['landmark']]),
-        ),
-        _infoRow(
-          'City',
-          _first([
-            _currentAddress['city'],
-            _currentAddress['residentialCity'],
-          ]),
-        ),
-        _infoRow(
-          'State',
-          _first([
-            _currentAddress['state'],
-            _currentAddress['residentialState'],
-          ]),
-        ),
-        _infoRow(
-          'PIN Code',
-          _first([
-            _currentAddress['pinCode'],
-            _currentAddress['pincode'],
-          ]),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildKycSection() {
-    final selfie = _map(_kyc['selfie']);
-
-    final aadhaarFront = _map(_documents['aadhaar_front']);
-    final aadhaarBack = _map(_documents['aadhaar_back']);
-    final panCard = _map(_documents['pan_card']);
-
-    return _section(
-      title: 'KYC Documents',
-      icon: Icons.verified_user_outlined,
-      children: [
-        _documentTile(
-          title: 'Selfie',
-          document: selfie,
-          fallbackPaths: const [],
-        ),
-        _documentTile(
-          title: 'Aadhaar Card — Front',
-          document: aadhaarFront,
-          fallbackPaths: const [],
-        ),
-        _documentTile(
-          title: 'Aadhaar Card — Back',
-          document: aadhaarBack,
-          fallbackPaths: const [],
-        ),
-        _documentTile(
-          title: 'PAN Card',
-          document: panCard,
-          fallbackPaths: const [],
-        ),
-      ],
-    );
-  }
-
-  Widget _section({
+  Widget _sectionCard({
     required String title,
     required IconData icon,
-    required List<Widget> children,
+    required Widget child,
+    Widget? trailing,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: wdBorder),
+        border: Border.all(color: walkerBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -704,461 +1143,323 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
           Row(
             children: [
               Container(
-                width: 36,
-                height: 36,
+                padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF0E3),
-                  borderRadius: BorderRadius.circular(11),
+                  color: const Color(0xFFFFF0E2),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: wdOrange, size: 20),
+                child: Icon(
+                  icon,
+                  color: walkerOrange,
+                  size: 20,
+                ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   title,
                   style: const TextStyle(
+                    color: walkerText,
                     fontSize: 16,
-                    color: wdText,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
+              if (trailing != null) trailing,
             ],
           ),
-          const SizedBox(height: 14),
-          ...children,
+          const SizedBox(height: 20),
+          child,
         ],
       ),
     );
   }
 
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 13),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: wdMuted,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          SelectableText(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-              color: wdText,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _responsiveGrid(List<Widget> children) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 800
+            ? 3
+            : constraints.maxWidth >= 480
+                ? 2
+                : 1;
 
-  Widget _documentTile({
-    required String title,
-    required Map<String, dynamic> document,
-    required List<String> fallbackPaths,
-  }) {
-    final path = _first([
-      document['storagePath'],
-      document['path'],
-      ...fallbackPaths,
-    ], fallback: '');
+        return Wrap(
+          spacing: 18,
+          runSpacing: 20,
+          children: children.map((child) {
+            final width =
+                (constraints.maxWidth - (columns - 1) * 18) / columns;
 
-    final url = _first([
-      document['downloadUrl'],
-      document['url'],
-    ], fallback: '');
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(11),
-      decoration: BoxDecoration(
-        color: wdBackground,
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: wdBorder),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(11),
-            ),
-            child: Icon(
-              title == 'Selfie'
-                  ? Icons.face_retouching_natural
-                  : Icons.badge_outlined,
-              color: wdOrange,
-            ),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: wdText,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  url.isNotEmpty
-                      ? 'Document URL available'
-                      : path.isNotEmpty
-                          ? 'Secure storage file'
-                          : 'Document not uploaded',
-                  style: const TextStyle(
-                    color: wdMuted,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          OutlinedButton(
-            onPressed: url.isEmpty && path.isEmpty
-                ? null
-                : () => _showDocument(
-                      title: title,
-                      url: url,
-                      path: path,
-                    ),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: wdOrange,
-              side: const BorderSide(color: wdOrange),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-            ),
-            child: const Text('View'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _showDocument({
-    required String title,
-    required String url,
-    required String path,
-  }) async {
-    if (!mounted) return;
-
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return Dialog(
-          backgroundColor: Colors.white,
-          insetPadding: const EdgeInsets.all(16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          color: wdText,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      icon: const Icon(Icons.close),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxHeight: 500,
-                    minHeight: 150,
-                  ),
-                  child: FutureBuilder<String>(
-                    future: url.isNotEmpty
-                        ? Future<String>.value(url)
-                        : FirebaseStorage.instance
-                            .ref()
-                            .child(path)
-                            .getDownloadURL(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(30),
-                            child: CircularProgressIndicator(
-                              color: wdOrange,
-                            ),
-                          ),
-                        );
-                      }
-
-                      if (snapshot.hasError ||
-                          !snapshot.hasData ||
-                          snapshot.data!.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.all(24),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.lock_outline,
-                                size: 38,
-                                color: wdRed,
-                              ),
-                              SizedBox(height: 10),
-                              Text(
-                                'Document could not be loaded. Check Admin Storage permissions.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: wdMuted),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-
-                      return InteractiveViewer(
-                        minScale: 0.8,
-                        maxScale: 4,
-                        child: Image.network(
-                          snapshot.data!,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => const Center(
-                            child: Text(
-                              'Unable to display this document.',
-                              style: TextStyle(color: wdMuted),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
+            return SizedBox(
+              width: width,
+              child: child,
+            );
+          }).toList(),
         );
       },
     );
   }
 
-  Widget _buildBottomActions() {
-    final buttons = <Widget>[];
+  Widget _info(String label, dynamic value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: walkerMuted,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 6),
+        SelectableText(
+          _text(value),
+          style: const TextStyle(
+            color: walkerText,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
 
-    if (!_isSubmitted) {
-      buttons.add(
-        _actionButton(
-          label: 'Application Not Submitted',
-          icon: Icons.info_outline,
-          color: wdMuted,
-          enabled: false,
-          onPressed: null,
-        ),
-      );
-    } else if (!_isVerified &&
-        !_isSuspended &&
-        _status != 'Rejected') {
-      buttons.add(
-        _actionButton(
-          label: 'Verify & Approve',
-          icon: Icons.verified_outlined,
-          color: wdGreen,
-          onPressed: () => _performAction(_WalkerAction.verify),
-        ),
-      );
-      buttons.add(
-        _actionButton(
-          label: 'Reject Application',
-          icon: Icons.close_rounded,
-          color: wdRed,
-          outlined: true,
-          onPressed: () => _performAction(_WalkerAction.reject),
-        ),
-      );
-    } else if (_status == 'Rejected') {
-      buttons.add(
-        _actionButton(
-          label: 'Approve Application',
-          icon: Icons.verified_outlined,
-          color: wdGreen,
-          onPressed: () => _performAction(_WalkerAction.verify),
-        ),
-      );
-      buttons.add(
-        _actionButton(
-          label: 'Rejected',
-          icon: Icons.block,
-          color: wdRed,
-          enabled: false,
-          onPressed: null,
-        ),
-      );
-    } else if (_isSuspended) {
-      buttons.add(
-        _actionButton(
-          label: 'Reactivate Walker',
-          icon: Icons.play_circle_outline,
-          color: wdGreen,
-          onPressed: () => _performAction(_WalkerAction.reactivate),
-        ),
-      );
-    } else if (_isVerified && _isActive) {
-      buttons.add(
-        _actionButton(
-          label: 'Suspend Walker',
-          icon: Icons.pause_circle_outline,
-          color: wdRed,
-          outlined: true,
-          onPressed: () => _performAction(_WalkerAction.suspend),
-        ),
-      );
-    } else if (_isVerified) {
-      buttons.add(
-        _actionButton(
-          label: 'Reactivate Walker',
-          icon: Icons.play_circle_outline,
-          color: wdGreen,
-          onPressed: () => _performAction(_WalkerAction.reactivate),
-        ),
-      );
-    }
+  Widget _documentRow(String title, dynamic document) {
+    final available = document != null &&
+        (document is Map
+            ? (document['downloadUrl'] != null ||
+                document['url'] != null ||
+                document['storagePath'] != null ||
+                document['path'] != null)
+            : document.toString().trim().isNotEmpty);
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: wdBorder)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(
+          color: walkerBackground,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: walkerBorder),
+        ),
+        child: Row(
           children: [
-            if (_actionLoading)
-              const Padding(
-                padding: EdgeInsets.only(bottom: 10),
-                child: LinearProgressIndicator(
-                  color: wdOrange,
-                  minHeight: 3,
-                ),
+            const Icon(
+              Icons.description_outlined,
+              color: walkerOrange,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: walkerText,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    available ? 'Document available' : 'Not uploaded',
+                    style: TextStyle(
+                      color: available ? walkerGreen : walkerMuted,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ),
-            if (buttons.isEmpty)
-              const Text(
-                'No action is available for this status.',
-                style: TextStyle(color: wdMuted, fontSize: 12),
-              )
-            else
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final stacked = constraints.maxWidth < 390 ||
-                      buttons.length > 2;
-
-                  if (stacked) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: buttons
-                          .map(
-                            (button) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: button,
-                            ),
-                          )
-                          .toList(),
-                    );
-                  }
-
-                  return Row(
-                    children: [
-                      for (int i = 0; i < buttons.length; i++) ...[
-                        if (i > 0) const SizedBox(width: 10),
-                        Expanded(child: buttons[i]),
-                      ],
-                    ],
-                  );
-                },
+            ),
+            IconButton(
+              tooltip: 'View document',
+              onPressed: available
+                  ? () => _openDocument(
+                        title: title,
+                        document: document,
+                      )
+                  : null,
+              icon: const Icon(
+                Icons.visibility_outlined,
+                color: walkerOrange,
               ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _actionButton({
-    required String label,
-    required IconData icon,
-    required Color color,
-    required VoidCallback? onPressed,
-    bool outlined = false,
-    bool enabled = true,
-  }) {
-    return SizedBox(
-      height: 48,
-      child: outlined
-          ? OutlinedButton.icon(
-              onPressed: _actionLoading || !enabled ? null : onPressed,
-              icon: Icon(icon, size: 18),
-              label: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: color,
-                side: BorderSide(color: color),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            )
-          : FilledButton.icon(
-              onPressed: _actionLoading || !enabled ? null : onPressed,
-              icon: Icon(icon, size: 18),
-              label: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              style: FilledButton.styleFrom(
-                backgroundColor: color,
-                foregroundColor: Colors.white,
-                disabledBackgroundColor: const Color(0xFFE5E1DD),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
+  Widget _statusPill(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 11,
+        vertical: 7,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(
+          color: color.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
     );
   }
-}
 
-enum _WalkerAction {
-  verify,
-  reject,
-  suspend,
-  reactivate,
+  Widget _primaryAction(
+    String label,
+    IconData icon,
+    VoidCallback onPressed,
+  ) {
+    return FilledButton.icon(
+      style: FilledButton.styleFrom(
+        backgroundColor: walkerOrange,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(11),
+        ),
+      ),
+      onPressed: _actionLoading ? null : onPressed,
+      icon: Icon(icon, size: 18),
+      label: Text(label),
+    );
+  }
+
+  Widget _outlineAction(
+    String label,
+    IconData icon,
+    VoidCallback onPressed,
+  ) {
+    return OutlinedButton.icon(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: walkerOrange,
+        side: const BorderSide(color: walkerOrange),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 13,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(11),
+        ),
+      ),
+      onPressed: _actionLoading ? null : onPressed,
+      icon: Icon(icon, size: 17),
+      label: Text(label),
+    );
+  }
+
+  Widget _disabledAction(String label, IconData icon) {
+    return OutlinedButton.icon(
+      onPressed: null,
+      icon: Icon(icon, size: 18),
+      label: Text(label),
+    );
+  }
+
+  String _listText(dynamic value) {
+    if (value is List) return value.join(', ');
+    if (value is Map) {
+      return value.entries
+          .where((entry) => entry.value == true)
+          .map((entry) => entry.key.toString())
+          .join(', ');
+    }
+    return _text(value);
+  }
+
+  String _availabilityText(dynamic value) {
+    if (value is Map) {
+      final map = Map<String, dynamic>.from(value);
+      return map.entries
+          .where((entry) => entry.value == true)
+          .map((entry) => entry.key)
+          .join(', ');
+    }
+    return _listText(value);
+  }
+
+  void _showSecurityDetails(Map<String, dynamic> data) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Account Security'),
+        content: SizedBox(
+          width: 500,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _info('UID', widget.uid),
+                const SizedBox(height: 14),
+                _info('Status', data['status']),
+                const SizedBox(height: 14),
+                _info('Verification', data['verificationStatus']),
+                const SizedBox(height: 14),
+                _info('Approved', data['isApproved']),
+                const SizedBox(height: 14),
+                _info('Active', data['isActive']),
+                const SizedBox(height: 14),
+                _info('Suspected', data['isSuspected'] == true ? 'Yes' : 'No'),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooterNote() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF0E2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline,
+            color: walkerOrange,
+          ),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Walker details update live from Firestore. KYC access depends on '
+              'Firebase Storage Rules. Performance, audit history, editable '
+              'profile fields and correction reasons need their corresponding '
+              'data sources and secure write permissions.',
+              style: TextStyle(
+                color: walkerText,
+                fontSize: 12,
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
