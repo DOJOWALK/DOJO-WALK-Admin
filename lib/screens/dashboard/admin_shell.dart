@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../services/auth_service.dart';
 
@@ -8,10 +7,12 @@ import '../live/live_operations_screen.dart';
 import '../bookings/bookings_screen.dart';
 import '../zones/zones_screen.dart';
 import '../coupons/coupons_screen.dart';
-import '../../features/walkers/screens/walker_verification_screen.dart';
+
+import '../../features/walkers/screens/walker_management_dashboard_screen.dart';
 
 const Color adminOrange = Color(0xFFFF7900);
 const Color adminBackground = Color(0xFFFFFAF5);
+const Color adminText = Color(0xFF252525);
 
 class AdminShell extends StatefulWidget {
   const AdminShell({super.key});
@@ -41,9 +42,9 @@ class _AdminShellState extends State<AdminShell> {
       icon: Icons.calendar_month_rounded,
     ),
     _AdminMenuItem(
-      title: 'Walkers',
-      subtitle: 'Walker verification',
-      icon: Icons.verified_user_rounded,
+      title: 'Walker Management',
+      subtitle: 'Manage walkers and verification',
+      icon: Icons.groups_rounded,
     ),
     _AdminMenuItem(
       title: 'Customers',
@@ -94,7 +95,7 @@ class _AdminShellState extends State<AdminShell> {
         return const BookingsScreen();
 
       case 3:
-        return const WalkerVerificationScreen();
+        return const WalkerManagementDashboardScreen();
 
       case 6:
         return const ZonesScreen();
@@ -119,7 +120,9 @@ class _AdminShellState extends State<AdminShell> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.orange.shade100),
+          border: Border.all(
+            color: const Color(0xFFFFE0C2),
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -140,10 +143,11 @@ class _AdminShellState extends State<AdminShell> {
             const SizedBox(height: 20),
             Text(
               title,
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 23,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF252525),
+                color: adminText,
               ),
             ),
             const SizedBox(height: 10),
@@ -167,20 +171,35 @@ class _AdminShellState extends State<AdminShell> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Logout'),
+          backgroundColor: Colors.white,
+          title: const Text(
+            'Logout',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: adminText,
+            ),
+          ),
           content: const Text(
             'Are you sure you want to log out of DOJO WALK Admin?',
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.pop(dialogContext, false);
+              },
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: adminText),
+              ),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: adminOrange,
+                foregroundColor: Colors.white,
               ),
-              onPressed: () => Navigator.pop(dialogContext, true),
+              onPressed: () {
+                Navigator.pop(dialogContext, true);
+              },
               child: const Text('Logout'),
             ),
           ],
@@ -190,9 +209,17 @@ class _AdminShellState extends State<AdminShell> {
 
     if (shouldLogout != true || !mounted) return;
 
-    await AuthService().signOut();
+    try {
+      await AuthService().signOut();
+    } catch (error) {
+      if (!mounted) return;
 
-    if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to log out. Please try again.'),
+        ),
+      );
+    }
 
     // AuthGate should display the login screen after sign-out.
   }
@@ -214,10 +241,12 @@ class _AdminShellState extends State<AdminShell> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
-                  color: Color(0xFF252525),
+                  color: adminText,
                 ),
               ),
-              iconTheme: const IconThemeData(color: adminOrange),
+              iconTheme: const IconThemeData(
+                color: adminOrange,
+              ),
               elevation: 0,
             )
           : null,
@@ -246,13 +275,17 @@ class _AdminShellState extends State<AdminShell> {
   }
 
   Widget _buildTopBar() {
+    final item = _menuItems[_selectedIndex];
+
     return Container(
       height: 76,
       padding: const EdgeInsets.symmetric(horizontal: 28),
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(
-          bottom: BorderSide(color: Color(0xFFEEEEEE)),
+          bottom: BorderSide(
+            color: Color(0xFFEEEEEE),
+          ),
         ),
       ),
       child: Row(
@@ -263,16 +296,16 @@ class _AdminShellState extends State<AdminShell> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _menuItems[_selectedIndex].title,
+                  item.title,
                   style: const TextStyle(
                     fontSize: 21,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF252525),
+                    color: adminText,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  _menuItems[_selectedIndex].subtitle,
+                  item.subtitle,
                   style: const TextStyle(
                     fontSize: 12,
                     color: Colors.black54,
@@ -387,9 +420,7 @@ class _AdminShellState extends State<AdminShell> {
                         Icons.chevron_left_rounded,
                         color: Colors.white70,
                       ),
-                    )
-                  else if (!isDrawer && !_sidebarExpanded)
-                    const SizedBox.shrink(),
+                    ),
                 ],
               ),
             ),
@@ -446,7 +477,9 @@ class _AdminShellState extends State<AdminShell> {
                             borderRadius: BorderRadius.circular(12),
                             border: selected
                                 ? Border.all(
-                                    color: adminOrange.withValues(alpha: 0.5),
+                                    color: adminOrange.withValues(
+                                      alpha: 0.5,
+                                    ),
                                   )
                                 : null,
                           ),
