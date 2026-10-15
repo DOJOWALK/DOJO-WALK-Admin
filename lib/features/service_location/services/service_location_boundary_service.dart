@@ -1,21 +1,31 @@
-/// DOJO WALK Admin
-///
-/// Firestore persistence for service-location boundaries.
-///
-/// Verified boundaries must not be overwritten by ordinary draft saves.
-/// Reviewer authorization must also be enforced by Firestore Security Rules
-/// or a trusted backend.
-
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/service_location_boundary.dart';
+
+/// ===========================================================
+/// DOJO WALK ADMIN
+/// Service Location Boundary Service
+///
+/// Collection:
+/// service_location_boundaries
+///
+/// Security:
+/// - Active super_admin access is enforced by Firestore Rules.
+/// - The authenticated admin's UID is used as reviewer ID.
+/// - Verified boundaries cannot be edited, rejected or deleted.
+/// - Existing boundary location/type cannot be changed.
+/// ===========================================================
 
 class ServiceLocationBoundaryService {
   ServiceLocationBoundaryService({
     FirebaseFirestore? firestore,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+    FirebaseAuth? auth,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
 
   static const String collectionName =
       'service_location_boundaries';
@@ -23,272 +33,458 @@ class ServiceLocationBoundaryService {
   CollectionReference<Map<String, dynamic>> get _collection =>
       _firestore.collection(collectionName);
 
-  /// Saves a new draft or updates an existing unverified draft.
-  ///
-  /// A verified boundary cannot be overwritten through this method.
-  Future<String> saveDraft(
-    ServiceLocationBoundary boundary,
-  ) async {
-    final errors = boundary.validate();
+  // =========================================================
+  // AUTHENTICATION
+  // =========================================================
 
-    if (errors.isNotEmpty) {
-      throw ArgumentError(
-        'Boundary validation failed: ${errors.join(' ')}',
-      );
-    }
+  String get _currentUid {
+    final user = _auth.currentUser;
 
-    if (boundary.isVerified) {
+    if (user == null) {
       throw StateError(
-        'A verified boundary cannot be saved as a draft.',
+        'आपको पहले Admin के रूप में लॉगिन करना होगा।',
       );
     }
 
-    final now = Timestamp.now();
-
-    final data = boundary.toMap()
-      ..['verificationStatus'] =
-          BoundaryVerificationStatus.pending.name
-      ..['verifiedBy'] = null
-      ..['verifiedAt'] = null
-      ..['updatedAt'] = now;
-
-    if (boundary.id.trim().isEmpty) {
-      data['createdAt'] = now;
-
-      final reference = await _collection.add(data);
-      return reference.id;
-    }
-
-    final reference = _collection.doc(boundary.id);
-    final existing = await reference.get();
-
-    if (existing.exists) {
-      final existingData = existing.data();
-
-      if (existingData == null) {
-        throw StateError('Existing boundary data is missing.');
-      }
-
-      final existingBoundary = ServiceLocationBoundary.fromMap(
-        existing.id,
-        existingData,
-      );
-
-      if (existingBoundary.isVerified) {
-        throw StateError(
-          'Verified boundaries cannot be overwritten as drafts.',
-        );
-      }
-
-      if (existingBoundary.locationId != boundary.locationId ||
-          existingBoundary.locationType != boundary.locationType) {
-        throw StateError(
-          'A boundary cannot be moved to another location.',
-        );
-      }
-
-      data.remove('createdAt');
-      await reference.update(data);
-    } else {
-      data['createdAt'] = now;
-      await reference.set(data);
-    }
-
-    return reference.id;
+    return user.uid;
   }
+
+  // =========================================================
+  // DOCUMENT HELPERS
+  // =========================================================
 
   Future<ServiceLocationBoundary?> getById(
     String boundaryId,
   ) async {
-    final snapshot = await _collection.doc(boundaryId).get();
+    final id = boundaryId.trim();
 
-    if (!snapshot.exists) return null;
+    if (id.isEmpty) {
+      return null;
+    }
+
+    final snapshot = await _collection.doc(id).get();
+
+    if (!snapshot.exists) {
+      return null;
+    }
 
     final data = snapshot.data();
-    if (data == null) return null;
 
-    return ServiceLocationBoundary.fromMap(snapshot.id, data);
+    if (data == null) {
+      return null;
+    }
+
+    return ServiceLocationBoundary.fromMap(
+      snapshot.id,
+      data,
+    );
   }
 
-  /// Watches boundaries for a location.
-  ///
-  /// Pass locationType to avoid mixing different location categories
-  /// that happen to share an ID.
   Stream<List<ServiceLocationBoundary>> watchForLocation(
     String locationId, {
     String? locationType,
   }) {
-    Query<Map<String, dynamic>> query = _collection.where(
-      'locationId',
-      isEqualTo: locationId,
-    );
+    final id = locationId.trim();
 
-    if (locationType != null) {
-      query = query.where(
-        'locationType',
-        isEqualTo: locationType,
+    if (id.isEmpty) {
+      return Stream.value(
+        <ServiceLocationBoundary>[],
       );
     }
 
-    return query.snapshots().map((snapshot) {
-      final boundaries = snapshot.docs.map((document) {
-        return ServiceLocationBoundary.fromMap(
-          document.id,
-          document.data(),
-        );
+    return _collection
+        .where('locationId', isEqualTo: id)
+        .snapshots()
+        .map((snapshot) {
+      final boundaries = snapshot.docs
+          .map(
+            (document) => ServiceLocationBoundary.fromMap(
+              document.id,
+              document.data(),
+            ),
+          )
+          .where((boundary) {
+        if (locationType == null ||
+            locationType.trim().isEmpty) {
+          return true;
+        }
+
+        return boundary.locationType == locationType.trim();
       }).toList();
 
-      boundaries.sort(
-        (a, b) => b.updatedAt.compareTo(a.updatedAt),
-      );
+      boundaries.sort((a, b) {
+        final aTime = a.updatedAt;
+        final bTime = b.updatedAt;
 
-      return List.unmodifiable(boundaries);
+        if (aTime == null && bTime == null) return 0;
+        if (aTime == null) return 1;
+        if (bTime == null) return -1;
+
+        return bTime.compareTo(aTime);
+      });
+
+      return boundaries;
     });
   }
+
+  // =========================================================
+  // SAVE DRAFT
+  //
+  // New boundaries must begin as pending.
+  // Verified boundaries cannot be edited.
+  // =========================================================
+
+  Future<String> saveDraft(
+    ServiceLocationBoundary boundary,
+  ) async {
+    _currentUid;
+
+    final errors = boundary.validate();
+
+    if (errors.isNotEmpty) {
+      throw ArgumentError(
+        'Boundary में गलत डेटा है: ${errors.join(', ')}',
+      );
+    }
+
+    if (boundary.isVerified) {
+      throw StateError(
+        'Verified Boundary को Draft के रूप में सेव नहीं किया जा सकता।',
+      );
+    }
+
+    final locationId = boundary.locationId.trim();
+    final locationType = boundary.locationType.trim();
+
+    if (locationId.isEmpty || locationType.isEmpty) {
+      throw ArgumentError(
+        'Location ID और Location Type जरूरी हैं।',
+      );
+    }
+
+    final documentRef = boundary.id.trim().isEmpty
+        ? _collection.doc()
+        : _collection.doc(boundary.id.trim());
+
+    await _firestore.runTransaction((transaction) async {
+      final existingSnapshot =
+          await transaction.get(documentRef);
+
+      final now = FieldValue.serverTimestamp();
+
+      if (existingSnapshot.exists) {
+        final existingData = existingSnapshot.data();
+
+        if (existingData == null) {
+          throw StateError(
+            'मौजूदा Boundary का डेटा उपलब्ध नहीं है।',
+          );
+        }
+
+        final existingStatus =
+            existingData['verificationStatus'];
+
+        if (existingStatus == 'verified') {
+          throw StateError(
+            'Verified Boundary को बदला नहीं जा सकता।',
+          );
+        }
+
+        if (existingData['locationId'] != locationId ||
+            existingData['locationType'] != locationType) {
+          throw StateError(
+            'मौजूदा Boundary का Location ID या Type नहीं बदला जा सकता।',
+          );
+        }
+
+        transaction.update(
+          documentRef,
+          {
+            'points': boundary.points,
+            'sourceType': boundary.sourceType.name,
+            'sourceName': boundary.sourceName.trim(),
+            'sourceReference':
+                boundary.sourceReference.trim(),
+            'verificationStatus': 'pending',
+            'verifiedBy': null,
+            'verifiedAt': null,
+            'verificationNotes': '',
+            'updatedAt': now,
+          },
+        );
+      } else {
+        transaction.set(
+          documentRef,
+          {
+            'locationId': locationId,
+            'locationType': locationType,
+            'points': boundary.points,
+            'sourceType': boundary.sourceType.name,
+            'sourceName': boundary.sourceName.trim(),
+            'sourceReference':
+                boundary.sourceReference.trim(),
+            'verificationStatus': 'pending',
+            'verifiedBy': null,
+            'verifiedAt': null,
+            'verificationNotes': '',
+            'createdAt': now,
+            'updatedAt': now,
+          },
+        );
+      }
+    });
+
+    return documentRef.id;
+  }
+
+  // =========================================================
+  // REQUEST VERIFICATION
+  //
+  // Only non-verified boundaries can be submitted.
+  // =========================================================
 
   Future<void> requestVerification(
     String boundaryId,
   ) async {
-    final reference = _collection.doc(boundaryId);
-    final snapshot = await reference.get();
+    _currentUid;
 
-    if (!snapshot.exists) {
-      throw StateError('Boundary not found.');
-    }
+    final id = boundaryId.trim();
 
-    final data = snapshot.data();
-    if (data == null) {
-      throw StateError('Boundary data is missing.');
-    }
-
-    final boundary = ServiceLocationBoundary.fromMap(
-      snapshot.id,
-      data,
-    );
-
-    if (boundary.isVerified) {
-      throw StateError('Boundary is already verified.');
-    }
-
-    final errors = boundary.validate();
-
-    if (errors.isNotEmpty) {
+    if (id.isEmpty) {
       throw ArgumentError(
-        'Boundary cannot be submitted: ${errors.join(' ')}',
+        'Boundary ID जरूरी है।',
       );
     }
 
-    await reference.update({
-      'verificationStatus':
-          BoundaryVerificationStatus.pending.name,
-      'verifiedBy': null,
-      'verifiedAt': null,
-      'updatedAt': Timestamp.now(),
+    final documentRef = _collection.doc(id);
+
+    await _firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(documentRef);
+
+      if (!snapshot.exists) {
+        throw StateError(
+          'Boundary नहीं मिली।',
+        );
+      }
+
+      final data = snapshot.data()!;
+
+      if (data['verificationStatus'] == 'verified') {
+        throw StateError(
+          'यह Boundary पहले से Verified है।',
+        );
+      }
+
+      final boundary =
+          ServiceLocationBoundary.fromMap(id, data);
+
+      final errors = boundary.validate();
+
+      if (errors.isNotEmpty) {
+        throw StateError(
+          'Verification से पहले Boundary ठीक करें: '
+          '${errors.join(', ')}',
+        );
+      }
+
+      transaction.update(
+        documentRef,
+        {
+          'verificationStatus': 'pending',
+          'verifiedBy': null,
+          'verifiedAt': null,
+          'verificationNotes': '',
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+      );
     });
   }
+
+  // =========================================================
+  // MARK VERIFIED
+  //
+  // Reviewer ID is always the authenticated user's UID.
+  // Firestore Rules must also check:
+  // verifiedBy == request.auth.uid
+  // =========================================================
 
   Future<void> markVerified({
     required String boundaryId,
-    required String reviewerId,
+    String? reviewerId,
     required String verificationNotes,
   }) async {
-    if (reviewerId.trim().isEmpty) {
-      throw ArgumentError('Reviewer ID is required.');
-    }
+    final uid = _currentUid;
+    final id = boundaryId.trim();
+    final notes = verificationNotes.trim();
 
-    if (verificationNotes.trim().isEmpty) {
-      throw ArgumentError('Verification notes are required.');
-    }
-
-    final reference = _collection.doc(boundaryId);
-    final snapshot = await reference.get();
-
-    if (!snapshot.exists) {
-      throw StateError('Boundary not found.');
-    }
-
-    final data = snapshot.data();
-    if (data == null) {
-      throw StateError('Boundary data is missing.');
-    }
-
-    final boundary = ServiceLocationBoundary.fromMap(
-      snapshot.id,
-      data,
-    );
-
-    final errors = boundary.validate();
-
-    if (errors.isNotEmpty) {
+    if (id.isEmpty) {
       throw ArgumentError(
-        'Boundary cannot be verified: ${errors.join(' ')}',
+        'Boundary ID जरूरी है।',
       );
     }
 
-    final now = Timestamp.now();
+    if (notes.isEmpty) {
+      throw ArgumentError(
+        'Verification Notes देना जरूरी है।',
+      );
+    }
 
-    await reference.update({
-      'verificationStatus':
-          BoundaryVerificationStatus.verified.name,
-      'verifiedBy': reviewerId,
-      'verifiedAt': now,
-      'verificationNotes': verificationNotes.trim(),
-      'updatedAt': now,
+    // Reject a caller-supplied identity that differs
+    // from the authenticated Firebase user.
+    if (reviewerId != null &&
+        reviewerId.trim() != uid) {
+      throw StateError(
+        'Reviewer ID लॉगिन किए हुए Admin से मेल नहीं खाती।',
+      );
+    }
+
+    final documentRef = _collection.doc(id);
+
+    await _firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(documentRef);
+
+      if (!snapshot.exists) {
+        throw StateError(
+          'Boundary नहीं मिली।',
+        );
+      }
+
+      final data = snapshot.data()!;
+
+      if (data['verificationStatus'] == 'verified') {
+        throw StateError(
+          'यह Boundary पहले से Verified है।',
+        );
+      }
+
+      final boundary =
+          ServiceLocationBoundary.fromMap(id, data);
+
+      final errors = boundary.validate();
+
+      if (errors.isNotEmpty) {
+        throw StateError(
+          'Boundary Verify नहीं की जा सकती: '
+          '${errors.join(', ')}',
+        );
+      }
+
+      transaction.update(
+        documentRef,
+        {
+          'verificationStatus': 'verified',
+          'verifiedBy': uid,
+          'verifiedAt': FieldValue.serverTimestamp(),
+          'verificationNotes': notes,
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+      );
     });
   }
+
+  // =========================================================
+  // REJECT BOUNDARY
+  //
+  // A verified boundary cannot be rejected.
+  // =========================================================
 
   Future<void> rejectBoundary({
     required String boundaryId,
-    required String reviewerId,
+    String? reviewerId,
     required String reason,
   }) async {
-    if (reviewerId.trim().isEmpty) {
-      throw ArgumentError('Reviewer ID is required.');
-    }
+    final uid = _currentUid;
+    final id = boundaryId.trim();
+    final rejectionReason = reason.trim();
 
-    if (reason.trim().isEmpty) {
-      throw ArgumentError('Rejection reason is required.');
-    }
-
-    final reference = _collection.doc(boundaryId);
-    final snapshot = await reference.get();
-
-    if (!snapshot.exists) {
-      throw StateError('Boundary not found.');
-    }
-
-    await reference.update({
-      'verificationStatus':
-          BoundaryVerificationStatus.rejected.name,
-      'verifiedBy': reviewerId,
-      'verifiedAt': null,
-      'verificationNotes': reason.trim(),
-      'updatedAt': Timestamp.now(),
-    });
-  }
-
-  Future<void> deleteDraft(String boundaryId) async {
-    final reference = _collection.doc(boundaryId);
-    final snapshot = await reference.get();
-
-    if (!snapshot.exists) return;
-
-    final data = snapshot.data();
-    if (data == null) {
-      throw StateError('Boundary data is missing.');
-    }
-
-    final boundary = ServiceLocationBoundary.fromMap(
-      snapshot.id,
-      data,
-    );
-
-    if (boundary.isVerified) {
-      throw StateError(
-        'Verified boundaries cannot be deleted as drafts.',
+    if (id.isEmpty) {
+      throw ArgumentError(
+        'Boundary ID जरूरी है।',
       );
     }
 
-    await reference.delete();
+    if (rejectionReason.isEmpty) {
+      throw ArgumentError(
+        'Reject करने का कारण देना जरूरी है।',
+      );
+    }
+
+    if (reviewerId != null &&
+        reviewerId.trim() != uid) {
+      throw StateError(
+        'Reviewer ID लॉगिन किए हुए Admin से मेल नहीं खाती।',
+      );
+    }
+
+    final documentRef = _collection.doc(id);
+
+    await _firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(documentRef);
+
+      if (!snapshot.exists) {
+        throw StateError(
+          'Boundary नहीं मिली।',
+        );
+      }
+
+      final data = snapshot.data()!;
+
+      if (data['verificationStatus'] == 'verified') {
+        throw StateError(
+          'Verified Boundary को Reject नहीं किया जा सकता।',
+        );
+      }
+
+      transaction.update(
+        documentRef,
+        {
+          'verificationStatus': 'rejected',
+          'verifiedBy': uid,
+          'verifiedAt': null,
+          'verificationNotes': rejectionReason,
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+      );
+    });
+  }
+
+  // =========================================================
+  // DELETE DRAFT
+  //
+  // Only non-verified boundaries may be deleted.
+  // =========================================================
+
+  Future<void> deleteDraft(
+    String boundaryId,
+  ) async {
+    _currentUid;
+
+    final id = boundaryId.trim();
+
+    if (id.isEmpty) {
+      throw ArgumentError(
+        'Boundary ID जरूरी है।',
+      );
+    }
+
+    final documentRef = _collection.doc(id);
+
+    await _firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(documentRef);
+
+      if (!snapshot.exists) {
+        return;
+      }
+
+      final data = snapshot.data()!;
+
+      if (data['verificationStatus'] == 'verified') {
+        throw StateError(
+          'Verified Boundary को डिलीट नहीं किया जा सकता।',
+        );
+      }
+
+      transaction.delete(documentRef);
+    });
   }
 }
