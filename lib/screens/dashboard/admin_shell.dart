@@ -5,7 +5,6 @@ import '../../services/auth_service.dart';
 import 'dashboard_screen.dart';
 import '../live/live_operations_screen.dart';
 import '../bookings/bookings_screen.dart';
-import '../zones/zones_screen.dart';
 import '../coupons/coupons_screen.dart';
 
 import '../../features/walkers/screens/walker_management_dashboard_screen.dart';
@@ -58,11 +57,6 @@ class _AdminShellState extends State<AdminShell> {
       icon: Icons.pets_rounded,
     ),
     _AdminMenuItem(
-      title: 'Zones',
-      subtitle: 'Legacy service zones',
-      icon: Icons.map_rounded,
-    ),
-    _AdminMenuItem(
       title: 'Coupons',
       subtitle: 'Offers and discounts',
       icon: Icons.local_offer_rounded,
@@ -84,7 +78,7 @@ class _AdminShellState extends State<AdminShell> {
     ),
     _AdminMenuItem(
       title: 'Service Locations',
-      subtitle: 'Manage cities, areas and localities',
+      subtitle: 'Manage countries, states, cities and areas',
       icon: Icons.location_city_rounded,
     ),
   ];
@@ -104,12 +98,9 @@ class _AdminShellState extends State<AdminShell> {
         return const WalkerManagementDashboardScreen();
 
       case 6:
-        return const ZonesScreen();
-
-      case 7:
         return const CouponsScreen();
 
-      case 11:
+      case 10:
         return const ServiceLocationScreen();
 
       default:
