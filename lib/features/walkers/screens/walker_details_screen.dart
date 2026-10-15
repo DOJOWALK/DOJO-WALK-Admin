@@ -43,9 +43,10 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     String fallback = 'Not provided',
   ]) {
     return WalkerAdminHelpers.firstDisplayValue(
-      [value],
-      fallback: fallback,
-    );
+          {'value': value},
+          ['value'],
+        ) ??
+        fallback;
   }
 
   void _message(
@@ -65,11 +66,11 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
   }
 
   String _statusLabel(WalkerAdminModel walker) {
-    final status = WalkerAdminHelpers.normalizeStatus(
-      walker.status,
-    );
+    final status =
+        WalkerAdminHelpers.normalizeStatus(walker.status);
 
-    final verification = WalkerAdminHelpers.normalizeStatus(
+    final verification =
+        WalkerAdminHelpers.normalizeStatus(
       walker.verificationStatus,
     );
 
@@ -114,9 +115,8 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
   }
 
   bool _isSubmitted(WalkerAdminModel walker) {
-    final status = WalkerAdminHelpers.normalizeStatus(
-      walker.status,
-    );
+    final status =
+        WalkerAdminHelpers.normalizeStatus(walker.status);
 
     return walker.applicationSubmitted ||
         status == 'under_review' ||
@@ -124,6 +124,50 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
         status == 'rejected' ||
         status == 'correction_required' ||
         status == 'suspended';
+  }
+
+  bool _canApprove(WalkerAdminModel walker) {
+    final status =
+        WalkerAdminHelpers.normalizeStatus(walker.status);
+    final verification =
+        WalkerAdminHelpers.normalizeStatus(
+      walker.verificationStatus,
+    );
+
+    return _isSubmitted(walker) &&
+        !walker.isVerified &&
+        !walker.isApproved &&
+        status != 'approved' &&
+        status != 'rejected' &&
+        status != 'suspended' &&
+        status != 'inactive' &&
+        status != 'left' &&
+        status != 'correction_required' &&
+        verification != 'verified' &&
+        verification != 'rejected';
+  }
+
+  bool _canReject(WalkerAdminModel walker) {
+    return _canApprove(walker);
+  }
+
+  bool _canSuspend(WalkerAdminModel walker) {
+    return walker.isApproved &&
+        walker.isVerified &&
+        walker.isActive &&
+        WalkerAdminHelpers.normalizeStatus(walker.status) ==
+            'approved';
+  }
+
+  bool _canReactivate(WalkerAdminModel walker) {
+    return WalkerAdminHelpers.normalizeStatus(walker.status) ==
+            'suspended' &&
+        walker.isApproved &&
+        walker.isVerified;
+  }
+
+  bool _canRequestCorrection(WalkerAdminModel walker) {
+    return _canApprove(walker);
   }
 
   Future<String?> _askReason({
@@ -175,7 +219,8 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                   final reason = controller.text.trim();
 
                   if (reason.length < 3) {
-                    ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    ScaffoldMessenger.of(dialogContext)
+                        .showSnackBar(
                       const SnackBar(
                         content: Text(
                           'Please enter a reason of at least 3 characters.',
@@ -211,18 +256,16 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
           content: Text(message),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext, false);
-              },
+              onPressed: () =>
+                  Navigator.pop(dialogContext, false),
               child: const Text('Cancel'),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: walkerOrange,
               ),
-              onPressed: () {
-                Navigator.pop(dialogContext, true);
-              },
+              onPressed: () =>
+                  Navigator.pop(dialogContext, true),
               child: Text(confirmLabel),
             ),
           ],
@@ -333,8 +376,6 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
         reason: cleanReason,
       );
 
-      if (!mounted) return;
-
       _message('${_actionTitle(action)} successful.');
     } on WalkerAdminServiceException catch (e) {
       _message(e.message, error: true);
@@ -366,15 +407,18 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     switch (action) {
       case 'reject':
         title = 'Reject Application';
-        description = 'Enter the reason for rejecting this application.';
+        description =
+            'Enter the reason for rejecting this application.';
         break;
       case 'suspend':
         title = 'Suspend Walker';
-        description = 'Explain why this walker is being suspended.';
+        description =
+            'Explain why this walker is being suspended.';
         break;
       default:
         title = 'Request Correction';
-        description = 'Explain what information needs to be corrected.';
+        description =
+            'Explain what information needs to be corrected.';
     }
 
     final reason = await _askReason(
@@ -450,7 +494,8 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
               );
             }
 
-            if (snapshot.connectionState == ConnectionState.waiting &&
+            if (snapshot.connectionState ==
+                    ConnectionState.waiting &&
                 !snapshot.hasData) {
               return const Center(
                 child: CircularProgressIndicator(
@@ -503,21 +548,20 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
 
   Widget _buildContent(WalkerAdminModel walker) {
     final data = walker.rawData;
-
     final status = _statusLabel(walker);
-    final verified = walker.isVerified;
     final active = walker.isActive;
     final submitted = _isSubmitted(walker);
 
-    final normalizedStatus = WalkerAdminHelpers.normalizeStatus(
-      walker.status,
+    final normalizedStatus =
+        WalkerAdminHelpers.normalizeStatus(walker.status);
+
+    final verificationStatus =
+        WalkerAdminHelpers.normalizeStatus(
+      walker.verificationStatus,
     );
 
     final rejected = normalizedStatus == 'rejected' ||
-        WalkerAdminHelpers.normalizeStatus(
-              walker.verificationStatus,
-            ) ==
-            'rejected';
+        verificationStatus == 'rejected';
 
     final suspended = normalizedStatus == 'suspended';
 
@@ -535,16 +579,14 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
               _buildBreadcrumb(),
               const SizedBox(height: 18),
               _buildPageHeader(
+                walker: walker,
                 submitted: submitted,
-                verified: verified,
-                active: active,
                 rejected: rejected,
                 suspended: suspended,
               ),
               const SizedBox(height: 22),
               _buildProfileCard(data, status, active),
               const SizedBox(height: 16),
-
               WalkerDetailsSections(
                 walker: walker,
                 onOpenDocument: (title, document) {
@@ -554,9 +596,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                   );
                 },
               ),
-
               const SizedBox(height: 16),
-
               _sectionCard(
                 title: 'Account Review',
                 icon: Icons.shield_outlined,
@@ -564,23 +604,17 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _responsiveGrid([
-                      _info(
-                        'Account Status',
-                        status,
-                      ),
+                      _info('Account Status', status),
                       _info(
                         'Suspected',
                         data['isSuspected'] == true ? 'Yes' : 'No',
                       ),
-                      _info(
-                        'Last Updated',
-                        data['updatedAt'],
-                      ),
+                      _info('Last Updated', data['updatedAt']),
                     ]),
                     const SizedBox(height: 14),
                     const Text(
-                      'The suspected flag is an administrative review '
-                      'marker, not proof of wrongdoing.',
+                      'The suspected flag is an administrative review marker, '
+                      'not proof of wrongdoing.',
                       style: TextStyle(
                         fontSize: 12,
                         color: walkerMuted,
@@ -606,7 +640,6 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 24),
               _buildFooterNote(),
             ],
@@ -649,9 +682,8 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
   }
 
   Widget _buildPageHeader({
+    required WalkerAdminModel walker,
     required bool submitted,
-    required bool verified,
-    required bool active,
     required bool rejected,
     required bool suspended,
   }) {
@@ -665,14 +697,23 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
         ),
       );
     } else if (suspended) {
-      actions.add(
-        _primaryAction(
-          'Reactivate',
-          Icons.play_arrow,
-          () => _runAdminAction(action: 'reactivate'),
-        ),
-      );
-    } else if (verified && active) {
+      if (_canReactivate(walker)) {
+        actions.add(
+          _primaryAction(
+            'Reactivate',
+            Icons.play_arrow,
+            () => _runAdminAction(action: 'reactivate'),
+          ),
+        );
+      } else {
+        actions.add(
+          _disabledAction(
+            'Reactivation Unavailable',
+            Icons.block_outlined,
+          ),
+        );
+      }
+    } else if (_canSuspend(walker)) {
       actions.add(
         _primaryAction(
           'Suspend',
@@ -680,7 +721,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
           () => _startReasonAction(action: 'suspend'),
         ),
       );
-    } else if (submitted) {
+    } else if (_canApprove(walker)) {
       actions.add(
         _primaryAction(
           'Verify & Approve',
@@ -696,11 +737,28 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
           () => _startReasonAction(action: 'reject'),
         ),
       );
-    } else {
+
+      if (_canRequestCorrection(walker)) {
+        actions.add(
+          _outlineAction(
+            'Request Correction',
+            Icons.edit_note_outlined,
+            () => _startReasonAction(action: 'correction'),
+          ),
+        );
+      }
+    } else if (!submitted) {
       actions.add(
         _disabledAction(
           'Application Not Submitted',
           Icons.hourglass_empty,
+        ),
+      );
+    } else {
+      actions.add(
+        _disabledAction(
+          'No Actions Available',
+          Icons.lock_outline,
         ),
       );
     }
@@ -743,18 +801,11 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     String status,
     bool active,
   ) {
-    final name = _text(
-      data['fullName'] ?? data['name'],
-      'Walker',
-    );
+    final name = WalkerAdminHelpers.walkerName(data);
 
-    final photo = _text(
-      data['photoUrl'] ?? data['profileImage'],
-      '',
-    );
+    final photo = WalkerAdminHelpers.photoUrl(data) ?? '';
 
-    final hasPhoto = photo.startsWith('https://') ||
-        photo.startsWith('http://');
+    final hasPhoto = WalkerAdminHelpers.isHttpUrl(photo);
 
     return Container(
       width: double.infinity,
@@ -934,13 +985,10 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
   }
 
   Widget _info(String label, dynamic value) {
-    String displayValue;
-
-    if (value is Timestamp || value is DateTime) {
-      displayValue = WalkerAdminHelpers.formatDateTime(value);
-    } else {
-      displayValue = _text(value);
-    }
+    final displayValue =
+        value is Timestamp || value is DateTime
+            ? WalkerAdminHelpers.formatDateTime(value)
+            : _text(value);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -966,10 +1014,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     );
   }
 
-  Widget _statusPill(
-    String label,
-    Color color,
-  ) {
+  Widget _statusPill(String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 11,
