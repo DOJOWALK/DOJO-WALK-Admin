@@ -9,6 +9,7 @@ import '../zones/zones_screen.dart';
 import '../coupons/coupons_screen.dart';
 
 import '../../features/walkers/screens/walker_management_dashboard_screen.dart';
+import '../../features/service_location/screens/service_location_screen.dart';
 
 const Color adminOrange = Color(0xFFFF7900);
 const Color adminBackground = Color(0xFFFFFAF5);
@@ -58,7 +59,7 @@ class _AdminShellState extends State<AdminShell> {
     ),
     _AdminMenuItem(
       title: 'Zones',
-      subtitle: 'Service areas',
+      subtitle: 'Legacy service zones',
       icon: Icons.map_rounded,
     ),
     _AdminMenuItem(
@@ -81,6 +82,11 @@ class _AdminShellState extends State<AdminShell> {
       subtitle: 'Admin preferences',
       icon: Icons.settings_rounded,
     ),
+    _AdminMenuItem(
+      title: 'Service Locations',
+      subtitle: 'Manage cities, areas and localities',
+      icon: Icons.location_city_rounded,
+    ),
   ];
 
   Widget _buildContent() {
@@ -102,6 +108,9 @@ class _AdminShellState extends State<AdminShell> {
 
       case 7:
         return const CouponsScreen();
+
+      case 11:
+        return const ServiceLocationScreen();
 
       default:
         return _buildComingSoonScreen(
