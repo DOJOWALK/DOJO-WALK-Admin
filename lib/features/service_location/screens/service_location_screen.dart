@@ -5,12 +5,19 @@
 /// Features:
 /// - Countries, States, Cities, Areas, Localities and Import History.
 /// - Search across location lists.
-/// - Google Maps boundary editor for Cities and Areas.
-/// - Save unverified boundary drafts to Firestore.
-/// - View verified boundaries without allowing ordinary draft edits.
-/// - Preserve the existing ServiceLocationService workflow.
+/// - Manage City and Area geographic boundaries.
+/// - Save pending boundary drafts.
+/// - Verify or reject a boundary with reviewer notes.
+/// - Verified boundaries are read-only.
+/// - Prefer verified boundaries when multiple records exist.
+/// - Legacy Zones are not modified.
 ///
-/// Legacy Zones are not modified.
+/// IMPORTANT:
+/// The existing ServiceLocationService activation workflow still
+/// uses legacy boundary fields. A verified record in
+/// service_location_boundaries does not automatically update
+/// those legacy fields. Do not treat this screen alone as the
+/// complete activation-security implementation.
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -34,8 +41,10 @@ class ServiceLocationScreen extends StatefulWidget {
       _ServiceLocationScreenState();
 }
 
-class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
-  final ServiceLocationService _service = ServiceLocationService();
+class _ServiceLocationScreenState
+    extends State<ServiceLocationScreen> {
+  final ServiceLocationService _service =
+      ServiceLocationService();
 
   final ServiceLocationBoundaryService _boundaryService =
       ServiceLocationBoundaryService();
@@ -88,7 +97,9 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
   }
 
   bool _matches(String value) {
-    return value.toLowerCase().contains(_search.toLowerCase());
+    return value.toLowerCase().contains(
+          _search.toLowerCase(),
+        );
   }
 
   @override
@@ -130,16 +141,21 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
       body: Column(
         children: [
           _buildHeader(),
-
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            padding: const EdgeInsets.fromLTRB(
+              16,
+              12,
+              16,
+              12,
+            ),
             child: TextField(
               controller: _searchController,
               onChanged: (value) {
                 setState(() => _search = value.trim());
               },
               decoration: InputDecoration(
-                hintText: 'Search location name, ID or PIN code...',
+                hintText:
+                    'Search location name, ID or PIN code...',
                 prefixIcon: const Icon(
                   Icons.search,
                   color: _locationOrange,
@@ -162,27 +178,28 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
               ),
             ),
           ),
-
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+            ),
             child: SizedBox(
               width: double.infinity,
               height: isMobile ? 180 : 220,
               child: _buildMapPreview(),
             ),
           ),
-
           const SizedBox(height: 8),
-
           _buildTabs(),
-
           const Divider(height: 1),
-
           Expanded(child: _buildSelectedList()),
         ],
       ),
     );
   }
+
+  // ============================================================
+  // HEADER
+  // ============================================================
 
   Widget _buildHeader() {
     return Container(
@@ -213,8 +230,17 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
           ),
           SizedBox(height: 6),
           Text(
-            'Service locations remain inactive until their '
-            'required boundaries and parent locations are verified.',
+            'Draft → Review → Verified → Activation',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: _locationOrange,
+            ),
+          ),
+          SizedBox(height: 6),
+          Text(
+            'Boundary verification और service activation अलग-अलग '
+            'चरण हैं। सक्रिय करने से पहले parent location और '
+            'activation rules भी जाँचें।',
             style: TextStyle(
               fontSize: 12,
               color: Colors.black54,
@@ -235,43 +261,40 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
           color: _locationOrange.withValues(alpha: 0.25),
         ),
       ),
-      child: Stack(
-        children: [
-          const Positioned.fill(
-            child: ColoredBox(
-              color: Color(0xFFF1F3F0),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.map_outlined,
-                      size: 34,
-                      color: _locationOrange,
-                    ),
-                    SizedBox(height: 6),
-                    Text(
-                      'Geographic Boundaries',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Select Manage Boundary on a City or Area card.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ],
+      child: const ColoredBox(
+        color: Color(0xFFF1F3F0),
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.map_outlined,
+                  size: 34,
+                  color: _locationOrange,
                 ),
-              ),
+                SizedBox(height: 6),
+                Text(
+                  'Geographic Boundaries',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'City या Area पर Manage Boundary चुनें।',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -286,12 +309,14 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
         ),
         scrollDirection: Axis.horizontal,
         itemCount: _tabNames.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, __) =>
+            const SizedBox(width: 8),
         itemBuilder: (context, index) {
           return ChoiceChip(
             label: Text(_tabNames[index]),
             selected: _selectedTab == index,
-            selectedColor: _locationOrange.withValues(alpha: 0.18),
+            selectedColor:
+                _locationOrange.withValues(alpha: 0.18),
             onSelected: (_) {
               setState(() => _selectedTab = index);
             },
@@ -381,7 +406,8 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
 
             return _locationCard(
               title: item.name,
-              subtitle: 'ID: ${item.id} · Code: ${item.code}',
+              subtitle:
+                  'ID: ${item.id} · Code: ${item.code}',
               active: item.isActive,
               icon: Icons.public,
               onToggle: (value) async {
@@ -439,8 +465,8 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
                   final items = snapshot.data!
                       .where(
                         (item) => _matches(
-                          '${item.id} ${item.name} ${country.id} '
-                          '${country.name}',
+                          '${item.id} ${item.name} '
+                          '${country.id} ${country.name}',
                         ),
                       )
                       .toList();
@@ -450,14 +476,16 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
                   }
 
                   return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
                     children: [
                       _sectionTitle(country.name),
                       for (final item in items)
                         _locationCard(
                           title: item.name,
                           subtitle:
-                              'ID: ${item.id} · Country: ${country.name}',
+                              'ID: ${item.id} · '
+                              'Country: ${country.name}',
                           active: item.isActive,
                           icon: Icons.map_outlined,
                           onToggle: (value) async {
@@ -553,9 +581,9 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
                                     title: item.name,
                                     subtitle:
                                         'ID: ${item.id}\n'
-                                        'Boundary points: '
-                                        '${item.boundary.length} · '
-                                        'Legacy verification field: '
+                                        'Legacy boundary points: '
+                                        '${item.boundary.length}\n'
+                                        'Legacy verified: '
                                         '${item.boundaryVerified ? "Yes" : "No"}',
                                     active: item.isServiceActive,
                                     icon: Icons.location_city,
@@ -636,7 +664,8 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
                   }
 
                   return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
                     children: [
                       _sectionTitle(city.name),
                       for (final item in areas)
@@ -644,13 +673,15 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
                           title: item.name,
                           subtitle:
                               'ID: ${item.id}\n'
-                              'City/District: ${city.name} · '
-                              'Boundary points: ${item.boundary.length} · '
-                              'Legacy verification field: '
+                              'City/District: ${city.name}\n'
+                              'Legacy boundary points: '
+                              '${item.boundary.length} · '
+                              'Legacy verified: '
                               '${item.boundaryVerified ? "Yes" : "No"}',
                           active: item.isServiceActive,
                           icon: Icons.grid_view,
-                          onManageBoundary: () => _manageBoundary(
+                          onManageBoundary: () =>
+                              _manageBoundary(
                             locationId: item.id,
                             locationName: item.name,
                             locationType: 'area',
@@ -749,7 +780,7 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
                                         'ID: ${item.id}\n'
                                         '${city.name} · ${area.name}'
                                         '${item.pincode.isEmpty ? "" : " · PIN ${item.pincode}"}\n'
-                                        'Legacy boundary field: '
+                                        'Legacy boundary: '
                                         '${item.boundaryVerified ? "Verified" : "Not verified"}',
                                     active: item.isServiceActive,
                                     icon: Icons.place_outlined,
@@ -860,8 +891,15 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
 
       if (!mounted) return;
 
-      // Prefer the most recently updated record.
-      final existing = boundaries.isEmpty ? null : boundaries.first;
+      // Prefer a verified boundary so a newer pending draft
+      // does not hide an existing verified record.
+      final verified = boundaries
+          .where((boundary) => boundary.isVerified)
+          .toList();
+
+      final existing = verified.isNotEmpty
+          ? verified.first
+          : (boundaries.isNotEmpty ? boundaries.first : null);
 
       final initialPoints = existing == null
           ? <LatLng>[]
@@ -916,7 +954,7 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
     try {
       await showDialog<void>(
         context: context,
-        barrierDismissible: !isSaving,
+        barrierDismissible: true,
         builder: (dialogContext) {
           return StatefulBuilder(
             builder: (context, setDialogState) {
@@ -924,23 +962,24 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
                 List<GeoPoint> points,
               ) async {
                 if (isVerified) {
+                  _showMessage(
+                    'Verified Boundary read-only है।',
+                  );
                   return;
                 }
 
                 if (isSaving) return;
 
-                final sourceName = sourceNameController.text.trim();
+                final sourceName =
+                    sourceNameController.text.trim();
+
                 final sourceReference =
                     sourceReferenceController.text.trim();
 
                 if (sourceName.isEmpty ||
                     sourceReference.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Source name और source reference भरें।',
-                      ),
-                    ),
+                  _showMessage(
+                    'Source name और source reference भरें।',
                   );
                   return;
                 }
@@ -966,14 +1005,17 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
                         notesController.text.trim().isEmpty
                             ? null
                             : notesController.text.trim(),
-                    createdAt: existingBoundary?.createdAt ?? now,
+                    createdAt:
+                        existingBoundary?.createdAt ?? now,
                     updatedAt: now,
                   );
 
                   final errors = draft.validate();
 
                   if (errors.isNotEmpty) {
-                    throw ArgumentError(errors.join('\n'));
+                    throw ArgumentError(
+                      errors.join('\n'),
+                    );
                   }
 
                   await _boundaryService.saveDraft(draft);
@@ -983,7 +1025,7 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
                   Navigator.of(dialogContext).pop();
 
                   _showMessage(
-                    'Boundary draft saved. It is not verified or activated.',
+                    'Draft saved. Boundary अभी Verified नहीं है।',
                   );
                 } catch (error) {
                   if (dialogContext.mounted) {
@@ -995,15 +1037,14 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
               }
 
               return AlertDialog(
-                title: Text(
-                  'Manage Boundary · $locationName',
-                ),
+                title: Text('Manage Boundary · $locationName'),
                 content: SizedBox(
                   width: 900,
                   child: SingleChildScrollView(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      crossAxisAlignment:
+                          CrossAxisAlignment.stretch,
                       children: [
                         Text(
                           'Location type: $locationType',
@@ -1012,23 +1053,16 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: isVerified
-                                ? Colors.green.withValues(alpha: 0.08)
-                                : _locationOrange.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            isVerified
-                                ? 'Verified boundary: read-only. सामान्य draft save से इसे बदला नहीं जा सकता।'
-                                : 'Pending boundary: map पर क्लिक करके polygon बनाएं। Save करने से boundary verified नहीं होगी।',
-                          ),
+
+                        _boundaryStatusBanner(
+                          existingBoundary,
                         ),
+
                         const SizedBox(height: 12),
+
                         if (!isVerified) ...[
-                          DropdownButtonFormField<BoundarySourceType>(
+                          DropdownButtonFormField<
+                              BoundarySourceType>(
                             value: sourceType,
                             decoration: const InputDecoration(
                               labelText: 'Boundary source type',
@@ -1038,7 +1072,9 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
                                 .map(
                                   (type) => DropdownMenuItem(
                                     value: type,
-                                    child: Text(_sourceTypeLabel(type)),
+                                    child: Text(
+                                      _sourceTypeLabel(type),
+                                    ),
                                   ),
                                 )
                                 .toList(),
@@ -1081,6 +1117,7 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
                           ),
                           const SizedBox(height: 12),
                         ],
+
                         ServiceBoundaryEditor(
                           initialPoints: currentPoints,
                           initialCenter:
@@ -1088,17 +1125,171 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
                           initialZoom: 12,
                           readOnly: isVerified,
                           onBoundaryChanged: (points) {
-                            currentPoints = List<LatLng>.of(points);
+                            currentPoints =
+                                List<LatLng>.of(points);
                           },
                           onSaveRequested: isVerified
                               ? null
                               : saveBoundary,
                         ),
+
+                        if (existingBoundary != null) ...[
+                          const SizedBox(height: 16),
+                          _boundaryDetails(existingBoundary),
+                        ],
                       ],
                     ),
                   ),
                 ),
                 actions: [
+                  if (existingBoundary != null &&
+                      !existingBoundary.isVerified &&
+                      existingBoundary.id.isNotEmpty) ...[
+                    TextButton.icon(
+                      onPressed: isSaving
+                          ? null
+                          : () async {
+                              // Refresh the persisted record before
+                              // starting a review action.
+                              try {
+                                final latest =
+                                    await _boundaryService.getById(
+                                  existingBoundary.id,
+                                );
+
+                                if (latest == null) {
+                                  throw StateError(
+                                    'Boundary नहीं मिली।',
+                                  );
+                                }
+
+                                if (latest.isVerified) {
+                                  throw StateError(
+                                    'यह Boundary पहले से Verified है।',
+                                  );
+                                }
+
+                                if (!dialogContext.mounted) {
+                                  return;
+                                }
+
+                                final notes =
+                                    await _askForReviewNotes(
+                                  approve: false,
+                                  initialText:
+                                      latest.verificationNotes ?? '',
+                                );
+
+                                if (notes == null ||
+                                    notes.trim().isEmpty) {
+                                  return;
+                                }
+
+                                await _boundaryService
+                                    .rejectBoundary(
+                                  boundaryId: latest.id,
+                                  reason: notes,
+                                );
+
+                                if (!dialogContext.mounted) {
+                                  return;
+                                }
+
+                                Navigator.of(dialogContext).pop();
+
+                                _showMessage(
+                                  'Boundary Reject कर दी गई।',
+                                );
+                              } catch (error) {
+                                await _showError(error);
+                              }
+                            },
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.red,
+                      ),
+                      label: const Text(
+                        'Reject',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                    FilledButton.icon(
+                      onPressed: isSaving
+                          ? null
+                          : () async {
+                              try {
+                                // Always review the persisted version,
+                                // not unsaved map changes.
+                                final latest =
+                                    await _boundaryService.getById(
+                                  existingBoundary.id,
+                                );
+
+                                if (latest == null) {
+                                  throw StateError(
+                                    'Boundary नहीं मिली।',
+                                  );
+                                }
+
+                                if (latest.isVerified) {
+                                  throw StateError(
+                                    'यह Boundary पहले से Verified है।',
+                                  );
+                                }
+
+                                final validationErrors =
+                                    latest.validate();
+
+                                if (validationErrors.isNotEmpty) {
+                                  throw StateError(
+                                    'Boundary Verify करने से पहले '
+                                    'इसे ठीक करें:\n'
+                                    '${validationErrors.join('\n')}',
+                                  );
+                                }
+
+                                if (!dialogContext.mounted) {
+                                  return;
+                                }
+
+                                final notes =
+                                    await _askForReviewNotes(
+                                  approve: true,
+                                  initialText:
+                                      latest.verificationNotes ?? '',
+                                );
+
+                                if (notes == null ||
+                                    notes.trim().isEmpty) {
+                                  return;
+                                }
+
+                                await _boundaryService.markVerified(
+                                  boundaryId: latest.id,
+                                  verificationNotes: notes,
+                                );
+
+                                if (!dialogContext.mounted) {
+                                  return;
+                                }
+
+                                Navigator.of(dialogContext).pop();
+
+                                _showMessage(
+                                  'Boundary Verified हो गई। '
+                                  'Service activation अलग से जाँची जाएगी।',
+                                );
+                              } catch (error) {
+                                await _showError(error);
+                              }
+                            },
+                      icon: const Icon(Icons.verified_outlined),
+                      label: const Text('Verify'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.green,
+                      ),
+                    ),
+                  ],
                   TextButton(
                     onPressed: isSaving
                         ? null
@@ -1115,6 +1306,217 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
       sourceNameController.dispose();
       sourceReferenceController.dispose();
       notesController.dispose();
+    }
+  }
+
+  // ============================================================
+  // BOUNDARY STATUS / REVIEW
+  // ============================================================
+
+  Widget _boundaryStatusBanner(
+    ServiceLocationBoundary? boundary,
+  ) {
+    if (boundary == null) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.blue.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Text(
+          'नई Boundary: polygon बनाएँ और source details भरें। '
+          'Draft सेव करने के बाद उसकी समीक्षा की जा सकती है।',
+        ),
+      );
+    }
+
+    final status = boundary.verificationStatus;
+
+    final Color statusColor;
+    final String statusLabel;
+    final IconData statusIcon;
+
+    switch (status) {
+      case BoundaryVerificationStatus.notAvailable:
+        statusColor = Colors.grey;
+        statusLabel = 'Not available';
+        statusIcon = Icons.help_outline;
+      case BoundaryVerificationStatus.pending:
+        statusColor = Colors.orange;
+        statusLabel = 'Pending review';
+        statusIcon = Icons.hourglass_top;
+      case BoundaryVerificationStatus.verified:
+        statusColor = Colors.green;
+        statusLabel = 'Verified';
+        statusIcon = Icons.verified;
+      case BoundaryVerificationStatus.rejected:
+        statusColor = Colors.red;
+        statusLabel = 'Rejected';
+        statusIcon = Icons.cancel_outlined;
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: statusColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: statusColor.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(statusIcon, color: statusColor),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  statusLabel,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text('Boundary ID: ${boundary.id}'),
+          Text('Vertices: ${boundary.points.length}'),
+          Text('Source: ${boundary.sourceName}'),
+          if (boundary.verificationNotes != null &&
+              boundary.verificationNotes!.trim().isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Review notes: ${boundary.verificationNotes}',
+            ),
+          ],
+          if (boundary.verifiedBy != null)
+            Text('Reviewer UID: ${boundary.verifiedBy}'),
+          if (boundary.verifiedAt != null)
+            Text(
+              'Reviewed: ${boundary.verifiedAt!.toLocal()}',
+            ),
+          if (boundary.isVerified) ...[
+            const SizedBox(height: 8),
+            const Text(
+              'Verified Boundary read-only है। सामान्य Draft '
+              'सेव द्वारा इसे बदला नहीं जा सकता।',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _boundaryDetails(
+    ServiceLocationBoundary boundary,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Boundary review information',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 6),
+          Text('Source type: ${_sourceTypeLabel(boundary.sourceType)}'),
+          Text('Source name: ${boundary.sourceName}'),
+          Text('Source reference: ${boundary.sourceReference}'),
+          Text('Status: ${boundary.verificationStatus.name}'),
+          if (boundary.verificationNotes != null &&
+              boundary.verificationNotes!.isNotEmpty)
+            Text('Notes: ${boundary.verificationNotes}'),
+        ],
+      ),
+    );
+  }
+
+  Future<String?> _askForReviewNotes({
+    required bool approve,
+    String initialText = '',
+  }) async {
+    final controller = TextEditingController(
+      text: initialText,
+    );
+
+    try {
+      return await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(
+            approve ? 'Verify Boundary' : 'Reject Boundary',
+          ),
+          content: SizedBox(
+            width: 480,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  approve
+                      ? 'Source और polygon की जाँच के बाद verification notes लिखें।'
+                      : 'Boundary Reject करने का स्पष्ट कारण लिखें।',
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    labelText: approve
+                        ? 'Verification notes *'
+                        : 'Rejection reason *',
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor:
+                    approve ? Colors.green : Colors.red,
+              ),
+              onPressed: () {
+                final notes = controller.text.trim();
+
+                if (notes.isEmpty) {
+                  ScaffoldMessenger.of(dialogContext)
+                      .showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'कृपया टिप्पणी या कारण लिखें।',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+
+                Navigator.pop(dialogContext, notes);
+              },
+              child: Text(approve ? 'Verify' : 'Reject'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      controller.dispose();
     }
   }
 
@@ -1206,6 +1608,10 @@ class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
       ),
     );
   }
+
+  // ============================================================
+  // ADD LOCATION
+  // ============================================================
 
   Future<void> _showAddLocationDialog() async {
     await showDialog<void>(
