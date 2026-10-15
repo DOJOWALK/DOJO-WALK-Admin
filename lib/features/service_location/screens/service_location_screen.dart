@@ -53,7 +53,7 @@ class _ServiceLocationScreenState
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Action could not be completed'),
-        content: Text(error.toString()),
+        content: SelectableText(error.toString()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -70,6 +70,8 @@ class _ServiceLocationScreenState
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+
     return Scaffold(
       backgroundColor: _locationBackground,
       appBar: AppBar(
@@ -81,6 +83,20 @@ class _ServiceLocationScreenState
         foregroundColor: Colors.black87,
         elevation: 0,
         actions: [
+          TextButton.icon(
+            onPressed: _showAddLocationDialog,
+            icon: const Icon(
+              Icons.add_location_alt,
+              color: _locationOrange,
+            ),
+            label: const Text(
+              'Add Location',
+              style: TextStyle(
+                color: _locationOrange,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           IconButton(
             tooltip: 'Refresh',
             onPressed: () => setState(() {}),
@@ -91,17 +107,21 @@ class _ServiceLocationScreenState
       body: Column(
         children: [
           _buildHeader(),
-          _buildTabs(),
+
+          // Search bar comes before the map.
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             child: TextField(
               controller: _searchController,
-              onChanged: (value) => setState(() {
-                _search = value.trim();
-              }),
+              onChanged: (value) {
+                setState(() => _search = value.trim());
+              },
               decoration: InputDecoration(
-                hintText: 'Search locations...',
-                prefixIcon: const Icon(Icons.search),
+                hintText: 'Search location name, ID or PIN code...',
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: _locationOrange,
+                ),
                 suffixIcon: _search.isEmpty
                     ? null
                     : IconButton(
@@ -120,15 +140,26 @@ class _ServiceLocationScreenState
               ),
             ),
           ),
+
+          // Medium-height responsive map preview.
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SizedBox(
+              width: double.infinity,
+              height: isMobile ? 210 : 260,
+              child: _buildMapPreview(),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // Tabs appear below the map on a single scrollable row.
+          _buildTabs(),
+
+          const Divider(height: 1),
+
           Expanded(child: _buildSelectedList()),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: _locationOrange,
-        foregroundColor: Colors.white,
-        onPressed: _showAddLocationDialog,
-        icon: const Icon(Icons.add_location_alt),
-        label: const Text('Add Location'),
       ),
     );
   }
@@ -140,28 +171,155 @@ class _ServiceLocationScreenState
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _locationOrange.withValues(alpha: 0.2)),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _locationOrange.withValues(alpha: 0.20),
+        ),
       ),
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Location Hierarchy',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          SizedBox(height: 8),
+          SizedBox(height: 6),
           Text(
             'Country → State → City/District → '
             'Area/Sub-district → Locality/Village',
           ),
-          SizedBox(height: 8),
+          SizedBox(height: 6),
           Text(
-            'New records remain inactive until their required '
-            'parent locations and boundaries are verified.',
-            style: TextStyle(fontSize: 12, color: Colors.black54),
+            'New service locations remain inactive until '
+            'the required parent locations and boundaries '
+            'are verified.',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.black54,
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMapPreview() {
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _locationOrange.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Stack(
+        children: [
+          const Positioned.fill(
+            child: ColoredBox(
+              color: Color(0xFFF1F3F0),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.map_outlined,
+                      size: 42,
+                      color: _locationOrange,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Geographic Boundaries',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      'Map integration pending',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Column(
+              children: [
+                _mapControl(
+                  icon: Icons.add,
+                  tooltip: 'Zoom in',
+                  onPressed: () => _showMessage(
+                    'Zoom will work after map integration.',
+                  ),
+                ),
+                const SizedBox(height: 5),
+                _mapControl(
+                  icon: Icons.remove,
+                  tooltip: 'Zoom out',
+                  onPressed: () => _showMessage(
+                    'Zoom will work after map integration.',
+                  ),
+                ),
+                const SizedBox(height: 5),
+                _mapControl(
+                  icon: Icons.fit_screen,
+                  tooltip: 'Fit boundary',
+                  onPressed: () => _showMessage(
+                    'A verified boundary is required.',
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Positioned(
+            left: 8,
+            bottom: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 6,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'Boundary: Not loaded',
+                style: TextStyle(fontSize: 11),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _mapControl({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(8),
+      child: IconButton(
+        tooltip: tooltip,
+        onPressed: onPressed,
+        icon: Icon(icon, size: 20),
+        visualDensity: VisualDensity.compact,
       ),
     );
   }
@@ -170,7 +328,10 @@ class _ServiceLocationScreenState
     return SizedBox(
       height: 54,
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 7,
+        ),
         scrollDirection: Axis.horizontal,
         itemCount: _tabNames.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
@@ -181,9 +342,9 @@ class _ServiceLocationScreenState
             label: Text(_tabNames[index]),
             selected: selected,
             selectedColor: _locationOrange.withValues(alpha: 0.18),
-            onSelected: (_) => setState(() {
-              _selectedTab = index;
-            }),
+            onSelected: (_) {
+              setState(() => _selectedTab = index);
+            },
           );
         },
       ),
@@ -220,7 +381,10 @@ class _ServiceLocationScreenState
               color: _locationOrange,
             ),
             const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),
@@ -232,27 +396,38 @@ class _ServiceLocationScreenState
       stream: _service.watchCountries(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return _emptyState('Unable to load countries: ${snapshot.error}');
+          return _emptyState(
+            'Unable to load countries: ${snapshot.error}',
+          );
         }
+
         if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         }
 
         final items = snapshot.data!
-            .where((item) => _matches('${item.name} ${item.code}'))
+            .where(
+              (item) => _matches(
+                '${item.id} ${item.name} ${item.code}',
+              ),
+            )
             .toList();
 
-        if (items.isEmpty) return _emptyState('No countries found.');
+        if (items.isEmpty) {
+          return _emptyState('No countries found.');
+        }
 
         return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           itemCount: items.length,
           itemBuilder: (context, index) {
             final item = items[index];
 
             return _locationCard(
               title: item.name,
-              subtitle: 'Code: ${item.code}',
+              subtitle: 'ID: ${item.id} · Code: ${item.code}',
               active: item.isActive,
               icon: Icons.public,
               onToggle: (value) async {
@@ -275,51 +450,60 @@ class _ServiceLocationScreenState
   Widget _buildStates() {
     return StreamBuilder<List<ServiceCountry>>(
       stream: _service.watchCountries(),
-      builder: (context, countriesSnapshot) {
-        if (!countriesSnapshot.hasData) {
-          if (countriesSnapshot.hasError) {
-            return _emptyState('${countriesSnapshot.error}');
-          }
-          return const Center(child: CircularProgressIndicator());
+      builder: (context, countrySnapshot) {
+        if (countrySnapshot.hasError) {
+          return _emptyState('${countrySnapshot.error}');
         }
 
-        final countries = countriesSnapshot.data!;
-        final streams = countries
-            .map((country) => _service.watchStates(country.id))
-            .toList();
+        if (!countrySnapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
 
-        if (streams.isEmpty) return _emptyState('Add a country first.');
+        final countries = countrySnapshot.data!;
+
+        if (countries.isEmpty) {
+          return _emptyState('Add a country first.');
+        }
 
         return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
             for (final country in countries)
               StreamBuilder<List<ServiceState>>(
                 stream: _service.watchStates(country.id),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData) return const SizedBox.shrink();
+                  if (snapshot.hasError) {
+                    return const SizedBox.shrink();
+                  }
+
+                  if (!snapshot.hasData) {
+                    return const SizedBox.shrink();
+                  }
 
                   final items = snapshot.data!
-                      .where((item) => _matches('${item.name} ${country.name}'))
+                      .where(
+                        (item) => _matches(
+                          '${item.id} ${item.name} ${country.id} '
+                          '${country.name}',
+                        ),
+                      )
                       .toList();
+
+                  if (items.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
-                        child: Text(
-                          country.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: _locationOrange,
-                          ),
-                        ),
-                      ),
+                      _sectionTitle(country.name),
                       for (final item in items)
                         _locationCard(
                           title: item.name,
-                          subtitle: 'Country: ${country.name}',
+                          subtitle:
+                              'ID: ${item.id} · Country: ${country.name}',
                           active: item.isActive,
                           icon: Icons.map_outlined,
                           onToggle: (value) async {
@@ -347,17 +531,20 @@ class _ServiceLocationScreenState
     return StreamBuilder<List<ServiceCountry>>(
       stream: _service.watchCountries(),
       builder: (context, countrySnapshot) {
+        if (countrySnapshot.hasError) {
+          return _emptyState('${countrySnapshot.error}');
+        }
+
         if (!countrySnapshot.hasData) {
-          if (countrySnapshot.hasError) {
-            return _emptyState('${countrySnapshot.error}');
-          }
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         }
 
         final countries = countrySnapshot.data!;
 
         return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
             for (final country in countries)
               StreamBuilder<List<ServiceState>>(
@@ -368,7 +555,6 @@ class _ServiceLocationScreenState
                   }
 
                   return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       for (final state in stateSnapshot.data!)
                         StreamBuilder<List<ServiceCity>>(
@@ -382,9 +568,13 @@ class _ServiceLocationScreenState
                             }
 
                             final cities = citySnapshot.data!
-                                .where((item) => _matches(
-                                      '${item.name} ${state.name} ${country.name}',
-                                    ))
+                                .where(
+                                  (item) => _matches(
+                                    '${item.id} ${item.name} '
+                                    '${state.id} ${state.name} '
+                                    '${country.id} ${country.name}',
+                                  ),
+                                )
                                 .toList();
 
                             if (cities.isEmpty) {
@@ -392,31 +582,27 @@ class _ServiceLocationScreenState
                             }
 
                             return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    4, 12, 4, 4,
-                                  ),
-                                  child: Text(
-                                    '${state.name} · ${country.name}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: _locationOrange,
-                                    ),
-                                  ),
+                                _sectionTitle(
+                                  '${state.name} · ${country.name}',
                                 ),
                                 for (final item in cities)
                                   _locationCard(
                                     title: item.name,
                                     subtitle:
-                                        'Boundary points: ${item.boundary.length} · '
-                                        'Verified: ${item.boundaryVerified ? "Yes" : "No"}',
+                                        'ID: ${item.id}\n'
+                                        'Boundary points: '
+                                        '${item.boundary.length} · '
+                                        'Verified: '
+                                        '${item.boundaryVerified ? "Yes" : "No"}',
                                     active: item.isServiceActive,
                                     icon: Icons.location_city,
                                     onToggle: (value) async {
                                       try {
-                                        await _service.setCityServiceStatus(
+                                        await _service
+                                            .setCityServiceStatus(
                                           cityId: item.id,
                                           isActive: value,
                                         );
@@ -443,49 +629,55 @@ class _ServiceLocationScreenState
     return StreamBuilder<List<ServiceCity>>(
       stream: _service.watchCities(),
       builder: (context, citySnapshot) {
+        if (citySnapshot.hasError) {
+          return _emptyState('${citySnapshot.error}');
+        }
+
         if (!citySnapshot.hasData) {
-          if (citySnapshot.hasError) {
-            return _emptyState('${citySnapshot.error}');
-          }
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         }
 
         final cities = citySnapshot.data!;
 
         return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
             for (final city in cities)
               StreamBuilder<List<ServiceArea>>(
                 stream: _service.watchAreas(city.id),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData) return const SizedBox.shrink();
+                  if (!snapshot.hasData) {
+                    return const SizedBox.shrink();
+                  }
 
                   final areas = snapshot.data!
-                      .where((item) => _matches('${item.name} ${city.name}'))
+                      .where(
+                        (item) => _matches(
+                          '${item.id} ${item.name} '
+                          '${city.id} ${city.name}',
+                        ),
+                      )
                       .toList();
 
-                  if (areas.isEmpty) return const SizedBox.shrink();
+                  if (areas.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
-                        child: Text(
-                          city.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: _locationOrange,
-                          ),
-                        ),
-                      ),
+                      _sectionTitle(city.name),
                       for (final item in areas)
                         _locationCard(
                           title: item.name,
                           subtitle:
+                              'ID: ${item.id}\n'
                               'City/District: ${city.name} · '
-                              'Boundary points: ${item.boundary.length}',
+                              'Boundary points: ${item.boundary.length} · '
+                              'Verified: '
+                              '${item.boundaryVerified ? "Yes" : "No"}',
                           active: item.isServiceActive,
                           icon: Icons.grid_view,
                           onToggle: (value) async {
@@ -513,15 +705,18 @@ class _ServiceLocationScreenState
     return StreamBuilder<List<ServiceCity>>(
       stream: _service.watchCities(),
       builder: (context, citySnapshot) {
+        if (citySnapshot.hasError) {
+          return _emptyState('${citySnapshot.error}');
+        }
+
         if (!citySnapshot.hasData) {
-          if (citySnapshot.hasError) {
-            return _emptyState('${citySnapshot.error}');
-          }
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         }
 
         return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
             for (final city in citySnapshot.data!)
               StreamBuilder<List<ServiceArea>>(
@@ -545,25 +740,42 @@ class _ServiceLocationScreenState
                             }
 
                             final items = snapshot.data!
-                                .where((item) => _matches(
-                                      '${item.name} ${item.pincode} '
-                                      '${area.name} ${city.name}',
-                                    ))
+                                .where(
+                                  (item) => _matches(
+                                    '${item.id} ${item.name} '
+                                    '${item.pincode} ${item.areaId} '
+                                    '${area.name} ${item.cityId} '
+                                    '${city.name}',
+                                  ),
+                                )
                                 .toList();
 
+                            if (items.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+
                             return Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
                               children: [
+                                _sectionTitle(
+                                  '${city.name} · ${area.name}',
+                                ),
                                 for (final item in items)
                                   _locationCard(
                                     title: item.name,
                                     subtitle:
+                                        'ID: ${item.id}\n'
                                         '${city.name} · ${area.name}'
-                                        '${item.pincode.isEmpty ? "" : " · PIN ${item.pincode}"}',
+                                        '${item.pincode.isEmpty ? "" : " · PIN ${item.pincode}"}\n'
+                                        'Boundary: '
+                                        '${item.boundaryVerified ? "Verified" : "Not verified"}',
                                     active: item.isServiceActive,
                                     icon: Icons.place_outlined,
                                     onToggle: (value) async {
                                       try {
-                                        await _service.setLocalityServiceStatus(
+                                        await _service
+                                            .setLocalityServiceStatus(
                                           localityId: item.id,
                                           isActive: value,
                                         );
@@ -591,22 +803,32 @@ class _ServiceLocationScreenState
       stream: _service.watchImports(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return _emptyState('Unable to load import history.');
+          return _emptyState(
+            'Unable to load import history: ${snapshot.error}',
+          );
         }
+
         if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         }
 
         final items = snapshot.data!
-            .where((item) => _matches(
-                  '${item.fileName} ${item.source} ${item.status}',
-                ))
+            .where(
+              (item) => _matches(
+                '${item.id} ${item.fileName} ${item.source} '
+                '${item.status} ${item.verificationStatus}',
+              ),
+            )
             .toList();
 
-        if (items.isEmpty) return _emptyState('No import records found.');
+        if (items.isEmpty) {
+          return _emptyState('No import records found.');
+        }
 
         return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           itemCount: items.length,
           itemBuilder: (context, index) {
             final item = items[index];
@@ -620,6 +842,7 @@ class _ServiceLocationScreenState
                 ),
                 title: Text(item.fileName),
                 subtitle: Text(
+                  'ID: ${item.id}\n'
                   'Source: ${item.source}\n'
                   'Status: ${item.status}\n'
                   'Verification: ${item.verificationStatus}',
@@ -630,6 +853,22 @@ class _ServiceLocationScreenState
           },
         );
       },
+    );
+  }
+
+  Widget _sectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: _locationOrange,
+          ),
+        ),
+      ),
     );
   }
 
@@ -646,7 +885,9 @@ class _ServiceLocationScreenState
       margin: const EdgeInsets.symmetric(vertical: 5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: Colors.grey.withValues(alpha: 0.15)),
+        side: BorderSide(
+          color: Colors.grey.withValues(alpha: 0.15),
+        ),
       ),
       child: ListTile(
         leading: CircleAvatar(
@@ -676,6 +917,7 @@ class _ServiceLocationScreenState
         service: _service,
         onSaved: (tab) {
           if (!mounted) return;
+
           setState(() => _selectedTab = tab);
           _showMessage('Location saved successfully.');
         },
@@ -694,7 +936,8 @@ class _AddLocationDialog extends StatefulWidget {
   final ValueChanged<int> onSaved;
 
   @override
-  State<_AddLocationDialog> createState() => _AddLocationDialogState();
+  State<_AddLocationDialog> createState() =>
+      _AddLocationDialogState();
 }
 
 class _AddLocationDialogState extends State<_AddLocationDialog> {
@@ -705,10 +948,12 @@ class _AddLocationDialogState extends State<_AddLocationDialog> {
   final _pincodeController = TextEditingController();
 
   int _level = 0;
+
   String? _countryId;
   String? _stateId;
   String? _cityId;
   String? _areaId;
+
   bool _saving = false;
 
   @override
@@ -741,7 +986,6 @@ class _AddLocationDialogState extends State<_AddLocationDialog> {
 
     try {
       final name = _nameController.text.trim();
-      var savedTab = _level;
 
       switch (_level) {
         case 0:
@@ -779,7 +1023,9 @@ class _AddLocationDialogState extends State<_AddLocationDialog> {
           final city = await widget.service.getCity(_cityId!);
 
           if (city == null) {
-            throw StateError('Selected city/district no longer exists.');
+            throw StateError(
+              'Selected city/district no longer exists.',
+            );
           }
 
           await widget.service.saveArea(
@@ -797,7 +1043,9 @@ class _AddLocationDialogState extends State<_AddLocationDialog> {
           final city = await widget.service.getCity(_cityId!);
 
           if (city == null) {
-            throw StateError('Selected city/district no longer exists.');
+            throw StateError(
+              'Selected city/district no longer exists.',
+            );
           }
 
           await widget.service.saveLocality(
@@ -817,25 +1065,27 @@ class _AddLocationDialogState extends State<_AddLocationDialog> {
       if (!mounted) return;
 
       Navigator.of(context).pop();
-      widget.onSaved(savedTab);
+      widget.onSaved(_level);
     } catch (error) {
       if (!mounted) return;
 
       await showDialog<void>(
         context: context,
-        builder: (context) => AlertDialog(
+        builder: (dialogContext) => AlertDialog(
           title: const Text('Unable to save location'),
-          content: Text(error.toString()),
+          content: SelectableText(error.toString()),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('OK'),
             ),
           ],
         ),
       );
     } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) {
+        setState(() => _saving = false);
+      }
     }
   }
 
@@ -857,8 +1107,9 @@ class _AddLocationDialogState extends State<_AddLocationDialog> {
           ),
         ),
         items: items,
-        onChanged: onChanged,
-        validator: (value) => value == null ? 'Please select $label' : null,
+        onChanged: _saving ? null : onChanged,
+        validator: (value) =>
+            value == null ? 'Please select $label' : null,
       ),
     );
   }
@@ -899,6 +1150,7 @@ class _AddLocationDialogState extends State<_AddLocationDialog> {
                       ? null
                       : (value) {
                           if (value == null) return;
+
                           setState(() {
                             _level = value;
                             _countryId = null;
@@ -911,6 +1163,7 @@ class _AddLocationDialogState extends State<_AddLocationDialog> {
                           });
                         },
                 ),
+
                 const SizedBox(height: 12),
 
                 if (_level >= 1)
@@ -924,7 +1177,7 @@ class _AddLocationDialogState extends State<_AddLocationDialog> {
                         value: _countryId,
                         items: countries
                             .map(
-                              (country) => DropdownMenuItem(
+                              (country) => DropdownMenuItem<String>(
                                 value: country.id,
                                 child: Text(
                                   '${country.name} (${country.code})',
@@ -955,7 +1208,7 @@ class _AddLocationDialogState extends State<_AddLocationDialog> {
                         value: _stateId,
                         items: states
                             .map(
-                              (state) => DropdownMenuItem(
+                              (state) => DropdownMenuItem<String>(
                                 value: state.id,
                                 child: Text(state.name),
                               ),
@@ -972,7 +1225,9 @@ class _AddLocationDialogState extends State<_AddLocationDialog> {
                     },
                   ),
 
-                if (_level >= 3 && _countryId != null && _stateId != null)
+                if (_level >= 3 &&
+                    _countryId != null &&
+                    _stateId != null)
                   StreamBuilder<List<ServiceCity>>(
                     stream: widget.service.watchCities(
                       countryId: _countryId,
@@ -986,7 +1241,7 @@ class _AddLocationDialogState extends State<_AddLocationDialog> {
                         value: _cityId,
                         items: cities
                             .map(
-                              (city) => DropdownMenuItem(
+                              (city) => DropdownMenuItem<String>(
                                 value: city.id,
                                 child: Text(city.name),
                               ),
@@ -1013,7 +1268,7 @@ class _AddLocationDialogState extends State<_AddLocationDialog> {
                         value: _areaId,
                         items: areas
                             .map(
-                              (area) => DropdownMenuItem(
+                              (area) => DropdownMenuItem<String>(
                                 value: area.id,
                                 child: Text(area.name),
                               ),
@@ -1073,6 +1328,7 @@ class _AddLocationDialogState extends State<_AddLocationDialog> {
                 ],
 
                 const SizedBox(height: 12),
+
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
@@ -1083,7 +1339,8 @@ class _AddLocationDialogState extends State<_AddLocationDialog> {
                   child: const Text(
                     'This location will be saved as inactive. '
                     'City, Area and Locality require a verified '
-                    'geographic boundary before activation.',
+                    'geographic boundary before activation. '
+                    'This form does not verify geographic boundaries.',
                     style: TextStyle(fontSize: 12),
                   ),
                 ),
