@@ -250,4 +250,206 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                   StreamBuilder<List<ServiceCountry>>(
                     stream: widget.service.watchCountries(),
                     builder: (context, snapshot) {
-                     
+                      final countries = snapshot.data ?? [];
+
+                      return _dropdown<String>(
+                        label: 'Country',
+                        value: _countryId,
+                        items: countries
+                            .map(
+                              (country) => DropdownMenuItem<String>(
+                                value: country.id,
+                                child: Text(
+                                  '${country.name} (${country.code})',
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _countryId = value;
+                            _stateId = null;
+                            _cityId = null;
+                            _areaId = null;
+                          });
+                        },
+                      );
+                    },
+                  ),
+
+                if (_level >= 2 && _countryId != null)
+                  StreamBuilder<List<ServiceState>>(
+                    stream: widget.service.watchStates(_countryId!),
+                    builder: (context, snapshot) {
+                      final states = snapshot.data ?? [];
+
+                      return _dropdown<String>(
+                        label: 'State',
+                        value: _stateId,
+                        items: states
+                            .map(
+                              (state) => DropdownMenuItem<String>(
+                                value: state.id,
+                                child: Text(state.name),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _stateId = value;
+                            _cityId = null;
+                            _areaId = null;
+                          });
+                        },
+                      );
+                    },
+                  ),
+
+                if (_level >= 3 &&
+                    _countryId != null &&
+                    _stateId != null)
+                  StreamBuilder<List<ServiceCity>>(
+                    stream: widget.service.watchCities(
+                      countryId: _countryId,
+                      stateId: _stateId,
+                    ),
+                    builder: (context, snapshot) {
+                      final cities = snapshot.data ?? [];
+
+                      return _dropdown<String>(
+                        label: 'City / District',
+                        value: _cityId,
+                        items: cities
+                            .map(
+                              (city) => DropdownMenuItem<String>(
+                                value: city.id,
+                                child: Text(city.name),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _cityId = value;
+                            _areaId = null;
+                          });
+                        },
+                      );
+                    },
+                  ),
+
+                if (_level >= 4 && _cityId != null)
+                  StreamBuilder<List<ServiceArea>>(
+                    stream: widget.service.watchAreas(_cityId!),
+                    builder: (context, snapshot) {
+                      final areas = snapshot.data ?? [];
+
+                      return _dropdown<String>(
+                        label: 'Area / Sub-district',
+                        value: _areaId,
+                        items: areas
+                            .map(
+                              (area) => DropdownMenuItem<String>(
+                                value: area.id,
+                                child: Text(area.name),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() => _areaId = value);
+                        },
+                      );
+                    },
+                  ),
+
+                const SizedBox(height: 12),
+
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: '$_levelName name',
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Enter $_levelName name';
+                    }
+                    return null;
+                  },
+                ),
+
+                if (_level == 0) ...[
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _codeController,
+                    textCapitalization: TextCapitalization.characters,
+                    decoration: const InputDecoration(
+                      labelText: 'Country code (e.g. IN)',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Enter country code';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+
+                if (_level == 4) ...[
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _pincodeController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'PIN code (optional)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 12),
+
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'This location will be saved as inactive. '
+                    'City, Area and Locality require a verified '
+                    'geographic boundary before activation. '
+                    'This form does not verify geographic boundaries.',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton.icon(
+          onPressed: _saving ? null : _save,
+          icon: _saving
+              ? const SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.save),
+          label: Text(_saving ? 'Saving...' : 'Save Location'),
+          style: FilledButton.styleFrom(
+            backgroundColor: _dialogOrange,
+            foregroundColor: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+}
