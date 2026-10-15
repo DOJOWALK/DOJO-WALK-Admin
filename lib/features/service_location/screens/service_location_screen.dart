@@ -534,7 +534,7 @@ class _ServiceLocationScreenState
           children: [
             for (final country in countries)
               StreamBuilder<List<ServiceState>>(
-                stream: _service.watchStates(country.id),
+                stream: _service.watchStates(countryId: country.id),
                 builder: (context, stateSnapshot) {
                   if (stateSnapshot.hasError ||
                       !stateSnapshot.hasData) {
