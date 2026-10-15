@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../models/walker_admin_model.dart';
@@ -52,57 +51,38 @@ class _WalkerManagementDashboardScreenState
     super.dispose();
   }
 
-  WalkerAdminModel _model(
-    QueryDocumentSnapshot<Map<String, dynamic>> document,
-  ) {
-    return WalkerAdminModel.fromFirestore(document);
+  String _name(WalkerAdminModel walker) {
+    final name = walker.name.trim();
+    return name.isEmpty ? 'Unnamed Walker' : name;
   }
 
-  String _name(Map<String, dynamic> data) {
-    return WalkerAdminModel.fromMap(
-      uid: '',
-      data: data,
-    ).name.trim().isEmpty
-        ? 'Unnamed Walker'
-        : WalkerAdminModel.fromMap(
-            uid: '',
-            data: data,
-          ).name;
+  String _phone(WalkerAdminModel walker) {
+    final phone = walker.phoneNumber?.trim() ?? '';
+    return phone;
   }
 
-  String _phone(Map<String, dynamic> data) {
-    return WalkerAdminHelpers.phoneNumber(data);
+  String _location(WalkerAdminModel walker) {
+    return WalkerAdminHelpers.locationLabel(walker.rawData).trim();
   }
 
-  String _location(Map<String, dynamic> data) {
-    return WalkerAdminHelpers.locationLabel(data);
+  String _photo(WalkerAdminModel walker) {
+    return WalkerAdminHelpers.photoUrl(walker.rawData) ?? '';
   }
 
-  String _photo(Map<String, dynamic> data) {
-    return WalkerAdminHelpers.photoUrl(data);
-  }
-
-  bool _isRunningBooking(
-    Map<String, dynamic> data,
-  ) {
-    final status = WalkerAdminHelpers.normalizeStatus(
-      data['status'],
-    );
-
+  bool _isRunningBooking(Map<String, dynamic> data) {
+    final status = WalkerAdminHelpers.normalizeStatus(data['status']);
     return _runningBookingStatuses.contains(status);
   }
 
-  bool _matchesSearch(
-    WalkerAdminModel walker,
-  ) {
+  bool _matchesSearch(WalkerAdminModel walker) {
     final query = _searchController.text.trim().toLowerCase();
 
     if (query.isEmpty) return true;
 
     final searchable = [
       walker.name,
-      walker.phoneNumber,
-      walker.email,
+      walker.phoneNumber ?? '',
+      walker.email ?? '',
       walker.uid,
       walker.area,
       walker.city,
@@ -112,14 +92,12 @@ class _WalkerManagementDashboardScreenState
     return searchable.contains(query);
   }
 
-  void _openDetails(
-    QueryDocumentSnapshot<Map<String, dynamic>> document,
-  ) {
+  void _openDetails(WalkerAdminModel walker) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => WalkerDetailsScreen(
-          uid: document.id,
-          walkerData: document.data(),
+          uid: walker.uid,
+          walkerData: walker.rawData,
         ),
       ),
     );
@@ -199,9 +177,7 @@ class _WalkerManagementDashboardScreenState
               ),
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 12,
-        ),
+        contentPadding: const EdgeInsets.symmetric(vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: _border),
@@ -304,8 +280,7 @@ class _WalkerManagementDashboardScreenState
   }
 
   Widget _walkerList({
-    required List<QueryDocumentSnapshot<Map<String, dynamic>>>
-        walkers,
+    required List<WalkerAdminModel> walkers,
     required Set<String> runningWalkerIds,
   }) {
     if (walkers.isEmpty) {
@@ -313,57 +288,46 @@ class _WalkerManagementDashboardScreenState
     }
 
     return Column(
-      children: walkers.map((document) {
-        final walker = _model(document);
-        final running = runningWalkerIds.contains(document.id);
+      children: walkers.map((walker) {
+        final running = runningWalkerIds.contains(walker.uid);
+        final phone = _phone(walker);
+        final location = _location(walker);
 
         return WalkerAdminCard(
-          name: walker.name.trim().isEmpty
-              ? 'Unnamed Walker'
-              : walker.name,
+          name: _name(walker),
           status: running ? 'running' : walker.displayStatus,
-          phone: walker.phoneNumber.trim().isEmpty
-              ? null
-              : walker.phoneNumber,
-          location: _location(document.data()).trim().isEmpty
-              ? null
-              : _location(document.data()),
-          photoUrl: _photo(document.data()),
+          phone: phone.isEmpty ? null : phone,
+          location: location.isEmpty ? null : location,
+          photoUrl: _photo(walker),
           isActive: walker.isActive,
           isRunning: running,
-          onTap: () => _openDetails(document),
+          onTap: () => _openDetails(walker),
         );
       }).toList(),
     );
   }
 
   Widget _content() {
-    return StreamBuilder<
-        QuerySnapshot<Map<String, dynamic>>>(
+    return StreamBuilder<List<WalkerAdminModel>>(
       stream: _service.watchWalkers(),
       builder: (context, walkerSnapshot) {
         if (walkerSnapshot.hasError) {
           return _errorState();
         }
 
-        if (walkerSnapshot.connectionState ==
-                ConnectionState.waiting &&
+        if (walkerSnapshot.connectionState == ConnectionState.waiting &&
             !walkerSnapshot.hasData) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(30),
-              child: CircularProgressIndicator(
-                color: _orange,
-              ),
+              child: CircularProgressIndicator(color: _orange),
             ),
           );
         }
 
-        final walkers = walkerSnapshot.data?.docs ??
-            <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+        final walkers = walkerSnapshot.data ?? <WalkerAdminModel>[];
 
-        return StreamBuilder<
-            QuerySnapshot<Map<String, dynamic>>>(
+        return StreamBuilder(
           stream: _service.watchBookings(),
           builder: (context, bookingSnapshot) {
             if (bookingSnapshot.hasError) {
@@ -376,37 +340,32 @@ class _WalkerManagementDashboardScreenState
               return const Center(
                 child: Padding(
                   padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator(
-                    color: _orange,
-                  ),
+                  child: CircularProgressIndicator(color: _orange),
                 ),
               );
             }
 
             final runningWalkerIds = <String>{};
-
-            final bookings = bookingSnapshot.data?.docs ??
-                <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+            final bookings = bookingSnapshot.data?.docs ?? [];
 
             for (final booking in bookings) {
               final data = booking.data();
 
               if (!_isRunningBooking(data)) continue;
 
-              final walkerId = WalkerAdminHelpers.firstString([
-                data['walkerId'],
-              ]);
+              final walkerId = WalkerAdminHelpers.firstString(
+                data,
+                ['walkerId'],
+              );
 
-              if (walkerId.isNotEmpty) {
-                runningWalkerIds.add(walkerId);
+              if (walkerId != null && walkerId.trim().isNotEmpty) {
+                runningWalkerIds.add(walkerId.trim());
               }
             }
 
             final selectedTab = _tabs[_selectedTab];
 
-            final filteredWalkers = walkers.where((document) {
-              final walker = _model(document);
-
+            final filteredWalkers = walkers.where((walker) {
               if (!_matchesSearch(walker)) {
                 return false;
               }
@@ -414,10 +373,10 @@ class _WalkerManagementDashboardScreenState
               switch (selectedTab) {
                 case 'Available':
                   return walker.isEligibleForAvailability &&
-                      !runningWalkerIds.contains(document.id);
+                      !runningWalkerIds.contains(walker.uid);
 
                 case 'Running':
-                  return runningWalkerIds.contains(document.id);
+                  return runningWalkerIds.contains(walker.uid);
 
                 case 'Verification':
                   return walker.isUnderReview;
@@ -433,11 +392,11 @@ class _WalkerManagementDashboardScreenState
               }
             }).toList();
 
-            filteredWalkers.sort((a, b) {
-              return _name(a.data())
+            filteredWalkers.sort(
+              (a, b) => _name(a)
                   .toLowerCase()
-                  .compareTo(_name(b.data()).toLowerCase());
-            });
+                  .compareTo(_name(b).toLowerCase()),
+            );
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
