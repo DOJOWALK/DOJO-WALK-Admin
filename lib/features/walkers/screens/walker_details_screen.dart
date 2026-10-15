@@ -5,6 +5,9 @@ import '../models/walker_admin_model.dart';
 import '../services/walker_admin_service.dart';
 import '../utils/walker_admin_helpers.dart';
 import '../widgets/kyc_document_viewer_dialog.dart';
+import '../widgets/walker_activity_history_dialog.dart';
+import '../widgets/walker_details_sections.dart';
+import '../widgets/walker_security_dialog.dart';
 
 const Color walkerOrange = Color(0xFFFF7900);
 const Color walkerBackground = Color(0xFFFFFAF5);
@@ -45,21 +48,6 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     );
   }
 
-  String _date(dynamic value) {
-    return WalkerAdminHelpers.formatDate(value);
-  }
-
-  String _dateTime(dynamic value) {
-    return WalkerAdminHelpers.formatDateTime(value);
-  }
-
-  WalkerAdminModel _model(Map<String, dynamic> data) {
-    return WalkerAdminModel.fromMap(
-      uid: widget.uid,
-      data: data,
-    );
-  }
-
   void _message(
     String message, {
     bool error = false,
@@ -76,31 +64,37 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
       );
   }
 
-  String _statusLabel(Map<String, dynamic> data) {
-    final status = _text(data['status'], 'pending');
-    final verification =
-        _text(data['verificationStatus'], 'pending');
+  String _statusLabel(WalkerAdminModel walker) {
+    final status = WalkerAdminHelpers.normalizeStatus(
+      walker.status,
+    );
+
+    final verification = WalkerAdminHelpers.normalizeStatus(
+      walker.verificationStatus,
+    );
 
     if (status == 'approved' &&
-        data['isApproved'] == true &&
+        walker.isApproved &&
         verification == 'verified') {
-      return data['isActive'] == true
+      return walker.isActive
           ? 'Verified • Active'
           : 'Verified • Inactive';
     }
 
-    if (verification == 'rejected' || status == 'rejected') {
+    if (status == 'rejected' || verification == 'rejected') {
       return 'Rejected';
     }
 
-    if (status == 'suspended') return 'Suspended';
+    if (status == 'suspended') {
+      return 'Suspended';
+    }
 
     if (status == 'correction_required' ||
         verification == 'correction_required') {
       return 'Correction Required';
     }
 
-    return WalkerAdminHelpers.displayStatus(status);
+    return walker.displayStatus;
   }
 
   Color _statusColor(String status) {
@@ -119,12 +113,12 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     return walkerBlue;
   }
 
-  bool _isSubmitted(Map<String, dynamic> data) {
+  bool _isSubmitted(WalkerAdminModel walker) {
     final status = WalkerAdminHelpers.normalizeStatus(
-      data['status'],
+      walker.status,
     );
 
-    return data['applicationSubmitted'] == true ||
+    return walker.applicationSubmitted ||
         status == 'under_review' ||
         status == 'approved' ||
         status == 'rejected' ||
@@ -366,8 +360,8 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
   Future<void> _startReasonAction({
     required String action,
   }) async {
-    String title;
-    String description;
+    late String title;
+    late String description;
 
     switch (action) {
       case 'reject':
@@ -424,8 +418,22 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     }
   }
 
-  Map<String, dynamic> _map(dynamic value) {
-    return WalkerAdminHelpers.asMap(value);
+  Future<void> _openActivityHistory() async {
+    if (_actionLoading) return;
+
+    await showWalkerActivityHistoryDialog(
+      context: context,
+      walkerId: widget.uid,
+      service: _service,
+    );
+  }
+
+  void _showSecurityDetails(Map<String, dynamic> data) {
+    showWalkerSecurityDialog(
+      context: context,
+      walkerId: widget.uid,
+      walkerData: data,
+    );
   }
 
   @override
@@ -433,7 +441,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     return Scaffold(
       backgroundColor: walkerBackground,
       body: SafeArea(
-        child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        child: StreamBuilder<WalkerAdminModel?>(
           stream: _service.watchWalker(widget.uid),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
@@ -451,17 +459,13 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
               );
             }
 
-            if (!snapshot.hasData || !snapshot.data!.exists) {
+            final walker = snapshot.data;
+
+            if (walker == null) {
               return _errorView('Walker record not found.');
             }
 
-            final data = snapshot.data!.data();
-
-            if (data == null) {
-              return _errorView('Walker record is empty.');
-            }
-
-            return _buildContent(data);
+            return _buildContent(walker);
           },
         ),
       ),
@@ -497,22 +501,21 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     );
   }
 
-  Widget _buildContent(Map<String, dynamic> data) {
-    final walker = _model(data);
-    final kyc = _map(data['kyc']);
-    final documents = _map(kyc['documents']);
+  Widget _buildContent(WalkerAdminModel walker) {
+    final data = walker.rawData;
 
-    final status = _statusLabel(data);
+    final status = _statusLabel(walker);
     final verified = walker.isVerified;
     final active = walker.isActive;
-    final submitted = _isSubmitted(data);
+    final submitted = _isSubmitted(walker);
 
-    final normalizedStatus =
-        WalkerAdminHelpers.normalizeStatus(data['status']);
+    final normalizedStatus = WalkerAdminHelpers.normalizeStatus(
+      walker.status,
+    );
 
     final rejected = normalizedStatus == 'rejected' ||
         WalkerAdminHelpers.normalizeStatus(
-              data['verificationStatus'],
+              walker.verificationStatus,
             ) ==
             'rejected';
 
@@ -532,7 +535,6 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
               _buildBreadcrumb(),
               const SizedBox(height: 18),
               _buildPageHeader(
-                data: data,
                 submitted: submitted,
                 verified: verified,
                 active: active,
@@ -540,182 +542,40 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                 suspended: suspended,
               ),
               const SizedBox(height: 22),
-              _buildProfileCard(data, status),
+              _buildProfileCard(data, status, active),
               const SizedBox(height: 16),
 
-              _sectionCard(
-                title: 'Personal Details',
-                icon: Icons.person_outline,
-                child: _responsiveGrid([
-                  _info('Full Name', data['fullName'] ?? data['name']),
-                  _info('Walker ID', data['walkerId'] ?? widget.uid),
-                  _info('Mobile', data['phone'] ?? data['phoneNumber']),
-                  _info('Email', data['email']),
-                  _info('Gender', data['gender']),
-                  _info('Date of Birth', data['dateOfBirth']),
-                  _info('Registration Date', data['createdAt']),
-                ]),
+              WalkerDetailsSections(
+                walker: walker,
+                onOpenDocument: (title, document) {
+                  _openDocument(
+                    title: title,
+                    document: document,
+                  );
+                },
               ),
 
               const SizedBox(height: 16),
 
               _sectionCard(
-                title: 'Current Address',
-                icon: Icons.location_on_outlined,
-                child: _responsiveGrid([
-                  _info(
-                    'House / Flat',
-                    _map(data['currentAddress'])['flatHouse'] ??
-                        _map(data['address'])['flatHouse'],
-                  ),
-                  _info(
-                    'Building / Society',
-                    _map(data['currentAddress'])['buildingSociety'] ??
-                        _map(data['address'])['buildingSociety'],
-                  ),
-                  _info(
-                    'Area / Locality',
-                    data['area'] ??
-                        _map(data['currentAddress'])['area'] ??
-                        _map(data['address'])['area'],
-                  ),
-                  _info(
-                    'Landmark',
-                    _map(data['currentAddress'])['landmark'] ??
-                        _map(data['address'])['landmark'],
-                  ),
-                  _info('City', data['city']),
-                  _info('State', data['state']),
-                  _info(
-                    'PIN Code',
-                    _map(data['currentAddress'])['pincode'] ??
-                        _map(data['address'])['pincode'],
-                  ),
-                ]),
-              ),
-
-              const SizedBox(height: 16),
-
-              _sectionCard(
-                title: 'Work Location',
-                icon: Icons.map_outlined,
-                child: _responsiveGrid([
-                  _info('State', data['state']),
-                  _info('City', data['city']),
-                  _info(
-                    'Area / Zone',
-                    data['zoneName'] ??
-                        data['area'] ??
-                        (data['zoneNames'] is List
-                            ? (data['zoneNames'] as List).join(', ')
-                            : null),
-                  ),
-                  _info('Travel Mode', data['travelMode']),
-                  _info('Services', _listText(data['services'])),
-                  _info(
-                    'Availability',
-                    _availabilityText(data['availability']),
-                  ),
-                ]),
-              ),
-
-              const SizedBox(height: 16),
-
-              _sectionCard(
-                title: 'KYC Documents',
-                icon: Icons.verified_user_outlined,
-                trailing: _statusPill(
-                  WalkerAdminHelpers.displayStatus(
-                    kyc['status'] ?? data['verificationStatus'],
-                  ),
-                  WalkerAdminHelpers.normalizeStatus(
-                            data['verificationStatus'],
-                          ) ==
-                          'verified'
-                      ? walkerGreen
-                      : const Color(0xFFB45309),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _documentRow(
-                      'Selfie / Profile Photo',
-                      kyc['selfie'] ??
-                          data['photoUrl'] ??
-                          data['profileImage'],
-                    ),
-                    _documentRow(
-                      'Aadhaar Front',
-                      documents['aadhaar_front'] ??
-                          documents['aadhaarFront'],
-                    ),
-                    _documentRow(
-                      'Aadhaar Back',
-                      documents['aadhaar_back'] ??
-                          documents['aadhaarBack'],
-                    ),
-                    _documentRow(
-                      'PAN Card',
-                      documents['pan_card'] ?? documents['panCard'],
-                    ),
-                    const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: [
-                        _outlineAction(
-                          'Request Correction',
-                          Icons.edit_note,
-                          () => _startReasonAction(
-                            action: 'correction',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Document replacement requires separate secure '
-                      'Storage Rules and upload handling.',
-                      style: TextStyle(
-                        color: walkerMuted,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              _sectionCard(
-                title: 'Performance Snapshot',
-                icon: Icons.insights_outlined,
-                child: _responsiveGrid([
-                  _info('Completed Walks', data['completedWalks'] ?? 0),
-                  _info('Complaints', data['complaintCount'] ?? 0),
-                  _info('Rating', data['rating'] ?? 'Not rated'),
-                  _info(
-                    'Payout Summary',
-                    data['totalPayout'] ?? 'Not available',
-                  ),
-                ]),
-              ),
-
-              const SizedBox(height: 16),
-
-              _sectionCard(
-                title: 'Account Security',
-                icon: Icons.security_outlined,
+                title: 'Account Review',
+                icon: Icons.shield_outlined,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _responsiveGrid([
-                      _info('Account Status', status),
+                      _info(
+                        'Account Status',
+                        status,
+                      ),
                       _info(
                         'Suspected',
                         data['isSuspected'] == true ? 'Yes' : 'No',
                       ),
-                      _info('Last Updated', data['updatedAt']),
+                      _info(
+                        'Last Updated',
+                        data['updatedAt'],
+                      ),
                     ]),
                     const SizedBox(height: 14),
                     const Text(
@@ -733,7 +593,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                       children: [
                         _outlineAction(
                           'View Security Details',
-                          Icons.info_outline,
+                          Icons.security_outlined,
                           () => _showSecurityDetails(data),
                         ),
                         _outlineAction(
@@ -789,7 +649,6 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
   }
 
   Widget _buildPageHeader({
-    required Map<String, dynamic> data,
     required bool submitted,
     required bool verified,
     required bool active,
@@ -882,6 +741,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
   Widget _buildProfileCard(
     Map<String, dynamic> data,
     String status,
+    bool active,
   ) {
     final name = _text(
       data['fullName'] ?? data['name'],
@@ -892,6 +752,9 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
       data['photoUrl'] ?? data['profileImage'],
       '',
     );
+
+    final hasPhoto = photo.startsWith('https://') ||
+        photo.startsWith('http://');
 
     return Container(
       width: double.infinity,
@@ -910,12 +773,9 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
               CircleAvatar(
                 radius: 31,
                 backgroundColor: const Color(0xFFFFE7D1),
-                backgroundImage: photo.startsWith('https://') ||
-                        photo.startsWith('http://')
-                    ? NetworkImage(photo)
-                    : null,
-                child: photo.startsWith('https://') ||
-                        photo.startsWith('http://')
+                backgroundImage:
+                    hasPhoto ? NetworkImage(photo) : null,
+                child: hasPhoto
                     ? null
                     : const Icon(
                         Icons.person,
@@ -946,7 +806,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Registered: ${_date(data['createdAt'])}',
+                      'Registered: ${WalkerAdminHelpers.formatDate(data['createdAt'])}',
                       style: const TextStyle(
                         color: walkerMuted,
                         fontSize: 12,
@@ -999,7 +859,6 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     required String title,
     required IconData icon,
     required Widget child,
-    Widget? trailing,
   }) {
     return Container(
       width: double.infinity,
@@ -1020,7 +879,11 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                   color: const Color(0xFFFFF0E2),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: walkerOrange, size: 20),
+                child: Icon(
+                  icon,
+                  color: walkerOrange,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1033,7 +896,6 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
                   ),
                 ),
               ),
-              if (trailing != null) trailing,
             ],
           ),
           const SizedBox(height: 20),
@@ -1072,6 +934,14 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
   }
 
   Widget _info(String label, dynamic value) {
+    String displayValue;
+
+    if (value is Timestamp || value is DateTime) {
+      displayValue = WalkerAdminHelpers.formatDateTime(value);
+    } else {
+      displayValue = _text(value);
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1085,9 +955,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
         ),
         const SizedBox(height: 6),
         SelectableText(
-          value is Timestamp || value is DateTime
-              ? _dateTime(value)
-              : _text(value),
+          displayValue,
           style: const TextStyle(
             color: walkerText,
             fontSize: 14,
@@ -1095,70 +963,6 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _documentRow(
-    String title,
-    dynamic document,
-  ) {
-    final available =
-        WalkerAdminHelpers.hasDocumentReference(document);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Container(
-        padding: const EdgeInsets.all(13),
-        decoration: BoxDecoration(
-          color: walkerBackground,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: walkerBorder),
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.description_outlined,
-              color: walkerOrange,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: walkerText,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    available ? 'Document available' : 'Not uploaded',
-                    style: TextStyle(
-                      color: available ? walkerGreen : walkerMuted,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              tooltip: 'View document',
-              onPressed: available
-                  ? () => _openDocument(
-                        title: title,
-                        document: document,
-                      )
-                  : null,
-              icon: const Icon(
-                Icons.visibility_outlined,
-                color: walkerOrange,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -1246,216 +1050,6 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     );
   }
 
-  String _listText(dynamic value) {
-    if (value is List) {
-      return value.join(', ');
-    }
-
-    if (value is Map) {
-      return value.entries
-          .where((entry) => entry.value == true)
-          .map((entry) => entry.key.toString())
-          .join(', ');
-    }
-
-    return _text(value);
-  }
-
-  String _availabilityText(dynamic value) {
-    if (value is Map) {
-      final map = Map<String, dynamic>.from(value);
-
-      return map.entries
-          .where((entry) => entry.value == true)
-          .map((entry) => entry.key)
-          .join(', ');
-    }
-
-    return _listText(value);
-  }
-
-  Future<void> _openActivityHistory() async {
-    if (_actionLoading) return;
-
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Walker Activity History'),
-          content: SizedBox(
-            width: 560,
-            height: 460,
-            child: StreamBuilder<
-                QuerySnapshot<Map<String, dynamic>>>(
-              stream: _service.watchWalkerAuditLogs(
-                widget.uid,
-                limit: 50,
-              ),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return const Center(
-                    child: Text(
-                      'Could not load activity history. Check access permissions.',
-                    ),
-                  );
-                }
-
-                if (snapshot.connectionState ==
-                        ConnectionState.waiting &&
-                    !snapshot.hasData) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      color: walkerOrange,
-                    ),
-                  );
-                }
-
-                final logs =
-                    snapshot.data?.docs.toList() ?? [];
-
-                if (logs.isEmpty) {
-                  return const Center(
-                    child: Text('No activity records found.'),
-                  );
-                }
-
-                logs.sort((a, b) {
-                  final aDate = WalkerAdminHelpers.toDateTime(
-                        a.data()['createdAt'],
-                      ) ??
-                      DateTime.fromMillisecondsSinceEpoch(0);
-
-                  final bDate = WalkerAdminHelpers.toDateTime(
-                        b.data()['createdAt'],
-                      ) ??
-                      DateTime.fromMillisecondsSinceEpoch(0);
-
-                  return bDate.compareTo(aDate);
-                });
-
-                return ListView.separated(
-                  itemCount: logs.length,
-                  separatorBuilder: (_, __) =>
-                      const Divider(height: 20),
-                  itemBuilder: (context, index) {
-                    final log = logs[index].data();
-
-                    final action = _text(
-                      log['action'],
-                      'Admin action',
-                    ).replaceAll('_', ' ');
-
-                    final beforeStatus = log['beforeStatus'];
-                    final afterStatus = log['afterStatus'];
-                    final reason = log['reason'];
-
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const CircleAvatar(
-                        backgroundColor: Color(0xFFFFF0E2),
-                        child: Icon(
-                          Icons.history,
-                          color: walkerOrange,
-                        ),
-                      ),
-                      title: Text(action),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'By: ${_text(log['actorUid'])}',
-                          ),
-                          if (beforeStatus != null ||
-                              afterStatus != null)
-                            Text(
-                              '${_text(beforeStatus)} → '
-                              '${_text(afterStatus)}',
-                            ),
-                          if (reason != null &&
-                              reason.toString().trim().isNotEmpty)
-                            Text('Reason: $reason'),
-                          Text(
-                            _dateTime(log['createdAt']),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-              },
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showSecurityDetails(
-    Map<String, dynamic> data,
-  ) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Account Security'),
-          content: SizedBox(
-            width: 500,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _info('UID', widget.uid),
-                  const SizedBox(height: 14),
-                  _info('Status', data['status']),
-                  const SizedBox(height: 14),
-                  _info(
-                    'Verification',
-                    data['verificationStatus'],
-                  ),
-                  const SizedBox(height: 14),
-                  _info('Approved', data['isApproved']),
-                  const SizedBox(height: 14),
-                  _info('Active', data['isActive']),
-                  const SizedBox(height: 14),
-                  _info(
-                    'Suspected',
-                    data['isSuspected'] == true ? 'Yes' : 'No',
-                  ),
-                  const SizedBox(height: 14),
-                  _info(
-                    'Decision Reason',
-                    data['decisionReason'],
-                  ),
-                  const SizedBox(height: 14),
-                  _info('Decision By', data['decisionBy']),
-                  const SizedBox(height: 14),
-                  _info('Decision Date', data['decisionAt']),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-              },
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Widget _buildFooterNote() {
     return Container(
       width: double.infinity,
@@ -1476,9 +1070,9 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
             child: Text(
               'Walker details update live from Firestore. Admin actions '
               'and audit entries are handled by WalkerAdminService. '
-              'Document replacement, editable profile fields, '
-              'suspected-flag management and Partner resubmission '
-              'require separate implementation and permissions.',
+              'Document replacement, editable profile fields and '
+              'suspected-flag management require separate implementation '
+              'and permissions.',
               style: TextStyle(
                 color: walkerText,
                 fontSize: 12,
