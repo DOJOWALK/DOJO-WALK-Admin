@@ -155,7 +155,8 @@ class WalkerDetailsSections extends StatelessWidget {
       return '';
     }
 
-    return WalkerAdminHelpers.documentReference(document);
+    // documentReference() can return null.
+    return WalkerAdminHelpers.documentReference(document) ?? '';
   }
 
   bool _hasDocument(String key) {
@@ -426,12 +427,16 @@ class WalkerDetailsSections extends StatelessWidget {
               ),
               _info(
                 label: 'Phone Number',
-                value: walker.phoneNumber,
+                value: walker.phoneNumber?.trim().isNotEmpty == true
+                    ? walker.phoneNumber!.trim()
+                    : 'Not provided',
                 icon: Icons.phone_outlined,
               ),
               _info(
                 label: 'Email',
-                value: walker.email,
+                value: walker.email?.trim().isNotEmpty == true
+                    ? walker.email!.trim()
+                    : 'Not provided',
                 icon: Icons.email_outlined,
               ),
               _info(
