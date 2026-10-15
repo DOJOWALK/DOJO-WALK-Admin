@@ -41,13 +41,82 @@ class ServiceLocationService {
     }
   }
 
+  String _normalizeName(String name) {
+    return name
+        .trim()
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .toLowerCase();
+  }
+
+  /// Checks whether the normalized name already exists
+  /// under the selected parent.
+  ///
+  /// Existing document IDs are preserved.
+  /// The current document is excluded during updates.
+  ///
+  /// Note: This query-based check does not by itself guarantee
+  /// uniqueness when concurrent requests save the same name.
+  Future<void> _ensureUniqueName({
+    required CollectionReference<Map<String, dynamic>>
+        collection,
+    required String name,
+    required String label,
+    required List<String> parentFields,
+    required List<String> parentIds,
+    String? excludeId,
+  }) async {
+    _validateName(name, label);
+
+    if (parentFields.length != parentIds.length) {
+      throw StateError(
+        'Invalid parent configuration for $label.',
+      );
+    }
+
+    Query<Map<String, dynamic>> query = collection;
+
+    for (var i = 0; i < parentFields.length; i++) {
+      final parentId = parentIds[i].trim();
+
+      if (parentId.isEmpty) {
+        throw ArgumentError(
+          'A valid parent must be selected for $label.',
+        );
+      }
+
+      query = query.where(
+        parentFields[i],
+        isEqualTo: parentId,
+      );
+    }
+
+    final snapshot = await query.get();
+    final normalizedName = _normalizeName(name);
+
+    for (final document in snapshot.docs) {
+      if (excludeId != null &&
+          excludeId.isNotEmpty &&
+          document.id == excludeId) {
+        continue;
+      }
+
+      final existingName =
+          document.data()['name']?.toString() ?? '';
+
+      if (_normalizeName(existingName) == normalizedName) {
+        throw StateError(
+          '$label "$name" already exists under the selected parent.',
+        );
+      }
+    }
+  }
+
   void _validateBoundary({
     required List<GeoPoint> boundary,
     required bool boundaryVerified,
     required String boundarySource,
     required bool isServiceActive,
   }) {
-    // Coordinates are checked even when service is inactive.
     for (final point in boundary) {
       if (!point.latitude.isFinite ||
           !point.longitude.isFinite ||
@@ -185,7 +254,8 @@ class ServiceLocationService {
   Future<void> _ensureNoActiveChildren({
     required String parentId,
     required String parentLabel,
-    required List<CollectionReference<Map<String, dynamic>>> collections,
+    required List<CollectionReference<Map<String, dynamic>>>
+        collections,
     required List<String> parentFields,
     required List<String> statusFields,
   }) async {
@@ -228,6 +298,15 @@ class ServiceLocationService {
     _validateName(country.code, 'Country code');
 
     final isNew = country.id.trim().isEmpty;
+
+    await _ensureUniqueName(
+      collection: _countries,
+      name: country.name,
+      label: 'Country',
+      parentFields: const [],
+      parentIds: const [],
+      excludeId: isNew ? null : country.id,
+    );
 
     if (!isNew) {
       await _requireExistingForUpdate(
@@ -332,6 +411,15 @@ class ServiceLocationService {
     }
 
     final isNew = state.id.trim().isEmpty;
+
+    await _ensureUniqueName(
+      collection: _states,
+      name: state.name,
+      label: 'State',
+      parentFields: const ['countryId'],
+      parentIds: [state.countryId],
+      excludeId: isNew ? null : state.id,
+    );
 
     if (!isNew) {
       await _requireExistingForUpdate(
@@ -492,6 +580,15 @@ class ServiceLocationService {
 
     final isNew = city.id.trim().isEmpty;
 
+    await _ensureUniqueName(
+      collection: _cities,
+      name: city.name,
+      label: 'City/District',
+      parentFields: const ['stateId'],
+      parentIds: [city.stateId],
+      excludeId: isNew ? null : city.id,
+    );
+
     if (!isNew) {
       await _requireExistingForUpdate(
         _cities,
@@ -595,6 +692,15 @@ class ServiceLocationService {
     );
 
     final isNew = area.id.trim().isEmpty;
+
+    await _ensureUniqueName(
+      collection: _areas,
+      name: area.name,
+      label: 'Area/Sub-district',
+      parentFields: const ['cityId'],
+      parentIds: [area.cityId],
+      excludeId: isNew ? null : area.id,
+    );
 
     if (!isNew) {
       await _requireExistingForUpdate(
@@ -723,6 +829,15 @@ class ServiceLocationService {
     );
 
     final isNew = locality.id.trim().isEmpty;
+
+    await _ensureUniqueName(
+      collection: _localities,
+      name: locality.name,
+      label: 'Locality/Village',
+      parentFields: const ['areaId'],
+      parentIds: [locality.areaId],
+      excludeId: isNew ? null : locality.id,
+    );
 
     if (!isNew) {
       await _requireExistingForUpdate(
