@@ -2,7 +2,8 @@
 /// India States and Union Territories Reference Data.
 ///
 /// Source data: User-provided LGD state/UT list.
-/// Keep LGD codes as strings to preserve leading zeros in legacy codes.
+/// LGD codes are stored as integers.
+/// Census codes are stored as strings to preserve leading zeros.
 
 class IndiaState {
   final int lgdCode;
