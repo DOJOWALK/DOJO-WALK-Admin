@@ -1,8 +1,27 @@
-import 'package:flutter/material.dart';
+/// DOJO WALK Admin
+///
+/// Service Locations management screen.
+///
+/// Features:
+/// - Countries, States, Cities, Areas, Localities and Import History.
+/// - Search across location lists.
+/// - Google Maps boundary editor for Cities and Areas.
+/// - Save unverified boundary drafts to Firestore.
+/// - View verified boundaries without allowing ordinary draft edits.
+/// - Preserve the existing ServiceLocationService workflow.
+///
+/// Legacy Zones are not modified.
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+import '../models/service_location_boundary.dart';
 import '../models/service_location_models.dart';
+import '../services/service_location_boundary_service.dart';
 import '../services/service_location_service.dart';
 import '../widgets/add_location_dialog.dart';
+import '../widgets/service_boundary_editor.dart';
 
 const Color _locationOrange = Color(0xFFFF7900);
 const Color _locationBackground = Color(0xFFFFFAF5);
@@ -15,9 +34,11 @@ class ServiceLocationScreen extends StatefulWidget {
       _ServiceLocationScreenState();
 }
 
-class _ServiceLocationScreenState
-    extends State<ServiceLocationScreen> {
+class _ServiceLocationScreenState extends State<ServiceLocationScreen> {
   final ServiceLocationService _service = ServiceLocationService();
+
+  final ServiceLocationBoundaryService _boundaryService =
+      ServiceLocationBoundaryService();
 
   final TextEditingController _searchController =
       TextEditingController();
@@ -110,7 +131,6 @@ class _ServiceLocationScreenState
         children: [
           _buildHeader(),
 
-          // Search bar above the map.
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             child: TextField(
@@ -143,12 +163,11 @@ class _ServiceLocationScreenState
             ),
           ),
 
-          // Map preview: mobile 320 px, desktop 400 px.
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SizedBox(
               width: double.infinity,
-              height: isMobile ? 320 : 400,
+              height: isMobile ? 180 : 220,
               child: _buildMapPreview(),
             ),
           ),
@@ -194,9 +213,8 @@ class _ServiceLocationScreenState
           ),
           SizedBox(height: 6),
           Text(
-            'New service locations remain inactive until '
-            'the required parent locations and boundaries '
-            'are verified.',
+            'Service locations remain inactive until their '
+            'required boundaries and parent locations are verified.',
             style: TextStyle(
               fontSize: 12,
               color: Colors.black54,
@@ -228,20 +246,21 @@ class _ServiceLocationScreenState
                   children: [
                     Icon(
                       Icons.map_outlined,
-                      size: 42,
+                      size: 34,
                       color: _locationOrange,
                     ),
-                    SizedBox(height: 8),
+                    SizedBox(height: 6),
                     Text(
                       'Geographic Boundaries',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 5),
+                    SizedBox(height: 4),
                     Text(
-                      'Map integration pending',
+                      'Select Manage Boundary on a City or Area card.',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.black54,
@@ -252,73 +271,7 @@ class _ServiceLocationScreenState
               ),
             ),
           ),
-          Positioned(
-            top: 8,
-            right: 8,
-            child: Column(
-              children: [
-                _mapControl(
-                  icon: Icons.add,
-                  tooltip: 'Zoom in',
-                  onPressed: () => _showMessage(
-                    'Zoom will work after map integration.',
-                  ),
-                ),
-                const SizedBox(height: 5),
-                _mapControl(
-                  icon: Icons.remove,
-                  tooltip: 'Zoom out',
-                  onPressed: () => _showMessage(
-                    'Zoom will work after map integration.',
-                  ),
-                ),
-                const SizedBox(height: 5),
-                _mapControl(
-                  icon: Icons.fit_screen,
-                  tooltip: 'Fit boundary',
-                  onPressed: () => _showMessage(
-                    'A verified boundary is required.',
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            left: 8,
-            bottom: 8,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 6,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'Boundary: Not loaded',
-                style: TextStyle(fontSize: 11),
-              ),
-            ),
-          ),
         ],
-      ),
-    );
-  }
-
-  Widget _mapControl({
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback onPressed,
-  }) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(8),
-      child: IconButton(
-        tooltip: tooltip,
-        onPressed: onPressed,
-        icon: Icon(icon, size: 20),
-        visualDensity: VisualDensity.compact,
       ),
     );
   }
@@ -335,11 +288,9 @@ class _ServiceLocationScreenState
         itemCount: _tabNames.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final selected = _selectedTab == index;
-
           return ChoiceChip(
             label: Text(_tabNames[index]),
-            selected: selected,
+            selected: _selectedTab == index,
             selectedColor: _locationOrange.withValues(alpha: 0.18),
             onSelected: (_) {
               setState(() => _selectedTab = index);
@@ -389,6 +340,10 @@ class _ServiceLocationScreenState
       ),
     );
   }
+
+  // ============================================================
+  // COUNTRIES
+  // ============================================================
 
   Widget _buildCountries() {
     return StreamBuilder<List<ServiceCountry>>(
@@ -445,6 +400,10 @@ class _ServiceLocationScreenState
       },
     );
   }
+
+  // ============================================================
+  // STATES
+  // ============================================================
 
   Widget _buildStates() {
     return StreamBuilder<List<ServiceCountry>>(
@@ -522,6 +481,10 @@ class _ServiceLocationScreenState
     );
   }
 
+  // ============================================================
+  // CITIES
+  // ============================================================
+
   Widget _buildCities() {
     return StreamBuilder<List<ServiceCountry>>(
       stream: _service.watchCountries(),
@@ -592,10 +555,16 @@ class _ServiceLocationScreenState
                                         'ID: ${item.id}\n'
                                         'Boundary points: '
                                         '${item.boundary.length} · '
-                                        'Verified: '
+                                        'Legacy verification field: '
                                         '${item.boundaryVerified ? "Yes" : "No"}',
                                     active: item.isServiceActive,
                                     icon: Icons.location_city,
+                                    onManageBoundary: () =>
+                                        _manageBoundary(
+                                      locationId: item.id,
+                                      locationName: item.name,
+                                      locationType: 'city',
+                                    ),
                                     onToggle: (value) async {
                                       try {
                                         await _service
@@ -621,6 +590,10 @@ class _ServiceLocationScreenState
       },
     );
   }
+
+  // ============================================================
+  // AREAS
+  // ============================================================
 
   Widget _buildAreas() {
     return StreamBuilder<List<ServiceCity>>(
@@ -673,10 +646,15 @@ class _ServiceLocationScreenState
                               'ID: ${item.id}\n'
                               'City/District: ${city.name} · '
                               'Boundary points: ${item.boundary.length} · '
-                              'Verified: '
+                              'Legacy verification field: '
                               '${item.boundaryVerified ? "Yes" : "No"}',
                           active: item.isServiceActive,
                           icon: Icons.grid_view,
+                          onManageBoundary: () => _manageBoundary(
+                            locationId: item.id,
+                            locationName: item.name,
+                            locationType: 'area',
+                          ),
                           onToggle: (value) async {
                             try {
                               await _service.setAreaServiceStatus(
@@ -697,6 +675,10 @@ class _ServiceLocationScreenState
       },
     );
   }
+
+  // ============================================================
+  // LOCALITIES
+  // ============================================================
 
   Widget _buildLocalities() {
     return StreamBuilder<List<ServiceCity>>(
@@ -767,7 +749,7 @@ class _ServiceLocationScreenState
                                         'ID: ${item.id}\n'
                                         '${city.name} · ${area.name}'
                                         '${item.pincode.isEmpty ? "" : " · PIN ${item.pincode}"}\n'
-                                        'Boundary: '
+                                        'Legacy boundary field: '
                                         '${item.boundaryVerified ? "Verified" : "Not verified"}',
                                     active: item.isServiceActive,
                                     icon: Icons.place_outlined,
@@ -796,6 +778,10 @@ class _ServiceLocationScreenState
       },
     );
   }
+
+  // ============================================================
+  // IMPORT HISTORY
+  // ============================================================
 
   Widget _buildImports() {
     return StreamBuilder<List<ServiceLocationImport>>(
@@ -855,6 +841,300 @@ class _ServiceLocationScreenState
     );
   }
 
+  // ============================================================
+  // BOUNDARY MANAGEMENT
+  // ============================================================
+
+  Future<void> _manageBoundary({
+    required String locationId,
+    required String locationName,
+    required String locationType,
+  }) async {
+    try {
+      final boundaries = await _boundaryService
+          .watchForLocation(
+            locationId,
+            locationType: locationType,
+          )
+          .first;
+
+      if (!mounted) return;
+
+      // Prefer the most recently updated record.
+      final existing = boundaries.isEmpty ? null : boundaries.first;
+
+      final initialPoints = existing == null
+          ? <LatLng>[]
+          : existing.points
+              .map(
+                (point) => LatLng(
+                  point.latitude,
+                  point.longitude,
+                ),
+              )
+              .toList();
+
+      await _showBoundaryEditor(
+        locationId: locationId,
+        locationName: locationName,
+        locationType: locationType,
+        existingBoundary: existing,
+        initialPoints: initialPoints,
+      );
+    } catch (error) {
+      await _showError(error);
+    }
+  }
+
+  Future<void> _showBoundaryEditor({
+    required String locationId,
+    required String locationName,
+    required String locationType,
+    required ServiceLocationBoundary? existingBoundary,
+    required List<LatLng> initialPoints,
+  }) async {
+    final sourceNameController = TextEditingController(
+      text: existingBoundary?.sourceName ?? '',
+    );
+
+    final sourceReferenceController = TextEditingController(
+      text: existingBoundary?.sourceReference ?? '',
+    );
+
+    final notesController = TextEditingController(
+      text: existingBoundary?.verificationNotes ?? '',
+    );
+
+    var sourceType = existingBoundary?.sourceType ??
+        BoundarySourceType.manuallyDrawn;
+
+    var currentPoints = List<LatLng>.of(initialPoints);
+    var isSaving = false;
+
+    final isVerified = existingBoundary?.isVerified ?? false;
+
+    try {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: !isSaving,
+        builder: (dialogContext) {
+          return StatefulBuilder(
+            builder: (context, setDialogState) {
+              Future<void> saveBoundary(
+                List<GeoPoint> points,
+              ) async {
+                if (isVerified) {
+                  return;
+                }
+
+                if (isSaving) return;
+
+                final sourceName = sourceNameController.text.trim();
+                final sourceReference =
+                    sourceReferenceController.text.trim();
+
+                if (sourceName.isEmpty ||
+                    sourceReference.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Source name और source reference भरें।',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+
+                setDialogState(() => isSaving = true);
+
+                try {
+                  final now = DateTime.now();
+
+                  final draft = ServiceLocationBoundary(
+                    id: existingBoundary?.id ?? '',
+                    locationId: locationId,
+                    locationType: locationType,
+                    points: List<GeoPoint>.of(points),
+                    sourceType: sourceType,
+                    sourceName: sourceName,
+                    sourceReference: sourceReference,
+                    verificationStatus:
+                        BoundaryVerificationStatus.pending,
+                    verifiedBy: null,
+                    verifiedAt: null,
+                    verificationNotes:
+                        notesController.text.trim().isEmpty
+                            ? null
+                            : notesController.text.trim(),
+                    createdAt: existingBoundary?.createdAt ?? now,
+                    updatedAt: now,
+                  );
+
+                  final errors = draft.validate();
+
+                  if (errors.isNotEmpty) {
+                    throw ArgumentError(errors.join('\n'));
+                  }
+
+                  await _boundaryService.saveDraft(draft);
+
+                  if (!dialogContext.mounted) return;
+
+                  Navigator.of(dialogContext).pop();
+
+                  _showMessage(
+                    'Boundary draft saved. It is not verified or activated.',
+                  );
+                } catch (error) {
+                  if (dialogContext.mounted) {
+                    setDialogState(() => isSaving = false);
+                  }
+
+                  await _showError(error);
+                }
+              }
+
+              return AlertDialog(
+                title: Text(
+                  'Manage Boundary · $locationName',
+                ),
+                content: SizedBox(
+                  width: 900,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Location type: $locationType',
+                          style: const TextStyle(
+                            color: Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: isVerified
+                                ? Colors.green.withValues(alpha: 0.08)
+                                : _locationOrange.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            isVerified
+                                ? 'Verified boundary: read-only. सामान्य draft save से इसे बदला नहीं जा सकता।'
+                                : 'Pending boundary: map पर क्लिक करके polygon बनाएं। Save करने से boundary verified नहीं होगी।',
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        if (!isVerified) ...[
+                          DropdownButtonFormField<BoundarySourceType>(
+                            value: sourceType,
+                            decoration: const InputDecoration(
+                              labelText: 'Boundary source type',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: BoundarySourceType.values
+                                .map(
+                                  (type) => DropdownMenuItem(
+                                    value: type,
+                                    child: Text(_sourceTypeLabel(type)),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) {
+                              if (value == null) return;
+
+                              setDialogState(() {
+                                sourceType = value;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: sourceNameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Source name *',
+                              hintText:
+                                  'Example: Official government GIS',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: sourceReferenceController,
+                            decoration: const InputDecoration(
+                              labelText: 'Source reference *',
+                              hintText:
+                                  'Official URL, document ID or dataset reference',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: notesController,
+                            maxLines: 2,
+                            decoration: const InputDecoration(
+                              labelText: 'Notes (optional)',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        ServiceBoundaryEditor(
+                          initialPoints: currentPoints,
+                          initialCenter:
+                              const LatLng(28.4744, 77.5040),
+                          initialZoom: 12,
+                          readOnly: isVerified,
+                          onBoundaryChanged: (points) {
+                            currentPoints = List<LatLng>.of(points);
+                          },
+                          onSaveRequested: isVerified
+                              ? null
+                              : saveBoundary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: isSaving
+                        ? null
+                        : () => Navigator.of(dialogContext).pop(),
+                    child: const Text('Close'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      sourceNameController.dispose();
+      sourceReferenceController.dispose();
+      notesController.dispose();
+    }
+  }
+
+  String _sourceTypeLabel(BoundarySourceType type) {
+    switch (type) {
+      case BoundarySourceType.governmentGis:
+        return 'Government GIS';
+      case BoundarySourceType.governmentCadastralMap:
+        return 'Government cadastral map';
+      case BoundarySourceType.importedGeoJson:
+        return 'Imported GeoJSON';
+      case BoundarySourceType.manuallyDrawn:
+        return 'Manually drawn';
+    }
+  }
+
+  // ============================================================
+  // SHARED WIDGETS
+  // ============================================================
+
   Widget _sectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
@@ -877,6 +1157,7 @@ class _ServiceLocationScreenState
     required bool active,
     required IconData icon,
     required ValueChanged<bool> onToggle,
+    VoidCallback? onManageBoundary,
   }) {
     return Card(
       color: Colors.white,
@@ -900,10 +1181,27 @@ class _ServiceLocationScreenState
         ),
         subtitle: Text(subtitle),
         isThreeLine: subtitle.contains('\n'),
-        trailing: Switch(
-          value: active,
-          activeThumbColor: _locationOrange,
-          onChanged: onToggle,
+        trailing: SizedBox(
+          width: onManageBoundary == null ? 58 : 190,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (onManageBoundary != null)
+                IconButton(
+                  tooltip: 'Manage Boundary',
+                  onPressed: onManageBoundary,
+                  icon: const Icon(
+                    Icons.edit_location_alt_outlined,
+                    color: _locationOrange,
+                  ),
+                ),
+              Switch(
+                value: active,
+                activeThumbColor: _locationOrange,
+                onChanged: onToggle,
+              ),
+            ],
+          ),
         ),
       ),
     );
