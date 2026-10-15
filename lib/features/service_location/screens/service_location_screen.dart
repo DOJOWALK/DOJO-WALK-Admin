@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/service_location_models.dart';
 import '../services/service_location_service.dart';
+import '../widgets/add_location_dialog.dart';
 
 const Color _locationOrange = Color(0xFFFF7900);
 const Color _locationBackground = Color(0xFFFFFAF5);
@@ -17,6 +18,7 @@ class ServiceLocationScreen extends StatefulWidget {
 class _ServiceLocationScreenState
     extends State<ServiceLocationScreen> {
   final ServiceLocationService _service = ServiceLocationService();
+
   final TextEditingController _searchController =
       TextEditingController();
 
@@ -108,7 +110,7 @@ class _ServiceLocationScreenState
         children: [
           _buildHeader(),
 
-          // Search bar comes before the map.
+          // Search bar above the map.
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             child: TextField(
@@ -141,19 +143,18 @@ class _ServiceLocationScreenState
             ),
           ),
 
-          // Medium-height responsive map preview.
+          // Map preview: mobile 320 px, desktop 400 px.
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SizedBox(
               width: double.infinity,
-              height: isMobile ? 210 : 260,
+              height: isMobile ? 320 : 400,
               child: _buildMapPreview(),
             ),
           ),
 
           const SizedBox(height: 8),
 
-          // Tabs appear below the map on a single scrollable row.
           _buildTabs(),
 
           const Divider(height: 1),
@@ -251,7 +252,6 @@ class _ServiceLocationScreenState
               ),
             ),
           ),
-
           Positioned(
             top: 8,
             right: 8,
@@ -283,7 +283,6 @@ class _ServiceLocationScreenState
               ],
             ),
           ),
-
           Positioned(
             left: 8,
             bottom: 8,
@@ -474,11 +473,7 @@ class _ServiceLocationScreenState
               StreamBuilder<List<ServiceState>>(
                 stream: _service.watchStates(country.id),
                 builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return const SizedBox.shrink();
-                  }
-
-                  if (!snapshot.hasData) {
+                  if (snapshot.hasError || !snapshot.hasData) {
                     return const SizedBox.shrink();
                   }
 
@@ -550,7 +545,8 @@ class _ServiceLocationScreenState
               StreamBuilder<List<ServiceState>>(
                 stream: _service.watchStates(country.id),
                 builder: (context, stateSnapshot) {
-                  if (!stateSnapshot.hasData) {
+                  if (stateSnapshot.hasError ||
+                      !stateSnapshot.hasData) {
                     return const SizedBox.shrink();
                   }
 
@@ -563,7 +559,8 @@ class _ServiceLocationScreenState
                             stateId: state.id,
                           ),
                           builder: (context, citySnapshot) {
-                            if (!citySnapshot.hasData) {
+                            if (citySnapshot.hasError ||
+                                !citySnapshot.hasData) {
                               return const SizedBox.shrink();
                             }
 
@@ -648,7 +645,7 @@ class _ServiceLocationScreenState
               StreamBuilder<List<ServiceArea>>(
                 stream: _service.watchAreas(city.id),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
+                  if (snapshot.hasError || !snapshot.hasData) {
                     return const SizedBox.shrink();
                   }
 
@@ -722,7 +719,8 @@ class _ServiceLocationScreenState
               StreamBuilder<List<ServiceArea>>(
                 stream: _service.watchAreas(city.id),
                 builder: (context, areaSnapshot) {
-                  if (!areaSnapshot.hasData) {
+                  if (areaSnapshot.hasError ||
+                      !areaSnapshot.hasData) {
                     return const SizedBox.shrink();
                   }
 
@@ -735,7 +733,8 @@ class _ServiceLocationScreenState
                             areaId: area.id,
                           ),
                           builder: (context, snapshot) {
-                            if (!snapshot.hasData) {
+                            if (snapshot.hasError ||
+                                !snapshot.hasData) {
                               return const SizedBox.shrink();
                             }
 
@@ -891,7 +890,8 @@ class _ServiceLocationScreenState
       ),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: _locationOrange.withValues(alpha: 0.12),
+          backgroundColor:
+              _locationOrange.withValues(alpha: 0.12),
           child: Icon(icon, color: _locationOrange),
         ),
         title: Text(
@@ -913,7 +913,7 @@ class _ServiceLocationScreenState
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _AddLocationDialog(
+      builder: (_) => AddLocationDialog(
         service: _service,
         onSaved: (tab) {
           if (!mounted) return;
@@ -922,454 +922,6 @@ class _ServiceLocationScreenState
           _showMessage('Location saved successfully.');
         },
       ),
-    );
-  }
-}
-
-class _AddLocationDialog extends StatefulWidget {
-  const _AddLocationDialog({
-    required this.service,
-    required this.onSaved,
-  });
-
-  final ServiceLocationService service;
-  final ValueChanged<int> onSaved;
-
-  @override
-  State<_AddLocationDialog> createState() =>
-      _AddLocationDialogState();
-}
-
-class _AddLocationDialogState extends State<_AddLocationDialog> {
-  final _formKey = GlobalKey<FormState>();
-
-  final _nameController = TextEditingController();
-  final _codeController = TextEditingController();
-  final _pincodeController = TextEditingController();
-
-  int _level = 0;
-
-  String? _countryId;
-  String? _stateId;
-  String? _cityId;
-  String? _areaId;
-
-  bool _saving = false;
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _codeController.dispose();
-    _pincodeController.dispose();
-    super.dispose();
-  }
-
-  String get _levelName {
-    switch (_level) {
-      case 0:
-        return 'Country';
-      case 1:
-        return 'State';
-      case 2:
-        return 'City / District';
-      case 3:
-        return 'Area / Sub-district';
-      default:
-        return 'Locality / Village';
-    }
-  }
-
-  Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _saving = true);
-
-    try {
-      final name = _nameController.text.trim();
-
-      switch (_level) {
-        case 0:
-          await widget.service.saveCountry(
-            ServiceCountry(
-              name: name,
-              code: _codeController.text.trim().toUpperCase(),
-              isActive: false,
-            ),
-          );
-          break;
-
-        case 1:
-          await widget.service.saveState(
-            ServiceState(
-              countryId: _countryId!,
-              name: name,
-              isActive: false,
-            ),
-          );
-          break;
-
-        case 2:
-          await widget.service.saveCity(
-            ServiceCity(
-              countryId: _countryId!,
-              stateId: _stateId!,
-              name: name,
-              isServiceActive: false,
-            ),
-          );
-          break;
-
-        case 3:
-          final city = await widget.service.getCity(_cityId!);
-
-          if (city == null) {
-            throw StateError(
-              'Selected city/district no longer exists.',
-            );
-          }
-
-          await widget.service.saveArea(
-            ServiceArea(
-              countryId: city.countryId,
-              stateId: city.stateId,
-              cityId: city.id,
-              name: name,
-              isServiceActive: false,
-            ),
-          );
-          break;
-
-        case 4:
-          final city = await widget.service.getCity(_cityId!);
-
-          if (city == null) {
-            throw StateError(
-              'Selected city/district no longer exists.',
-            );
-          }
-
-          await widget.service.saveLocality(
-            ServiceLocality(
-              countryId: city.countryId,
-              stateId: city.stateId,
-              cityId: city.id,
-              areaId: _areaId!,
-              name: name,
-              pincode: _pincodeController.text.trim(),
-              isServiceActive: false,
-            ),
-          );
-          break;
-      }
-
-      if (!mounted) return;
-
-      Navigator.of(context).pop();
-      widget.onSaved(_level);
-    } catch (error) {
-      if (!mounted) return;
-
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Unable to save location'),
-          content: SelectableText(error.toString()),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _saving = false);
-      }
-    }
-  }
-
-  Widget _dropdown<T>({
-    required String label,
-    required T? value,
-    required List<DropdownMenuItem<T>> items,
-    required ValueChanged<T?> onChanged,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: DropdownButtonFormField<T>(
-        value: value,
-        isExpanded: true,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        items: items,
-        onChanged: _saving ? null : onChanged,
-        validator: (value) =>
-            value == null ? 'Please select $label' : null,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Add Location'),
-      content: SizedBox(
-        width: 480,
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<int>(
-                  value: _level,
-                  isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Location type',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: List.generate(
-                    5,
-                    (index) => DropdownMenuItem(
-                      value: index,
-                      child: Text([
-                        'Country',
-                        'State',
-                        'City / District',
-                        'Area / Sub-district',
-                        'Locality / Village',
-                      ][index]),
-                    ),
-                  ),
-                  onChanged: _saving
-                      ? null
-                      : (value) {
-                          if (value == null) return;
-
-                          setState(() {
-                            _level = value;
-                            _countryId = null;
-                            _stateId = null;
-                            _cityId = null;
-                            _areaId = null;
-                            _nameController.clear();
-                            _codeController.clear();
-                            _pincodeController.clear();
-                          });
-                        },
-                ),
-
-                const SizedBox(height: 12),
-
-                if (_level >= 1)
-                  StreamBuilder<List<ServiceCountry>>(
-                    stream: widget.service.watchCountries(),
-                    builder: (context, snapshot) {
-                      final countries = snapshot.data ?? [];
-
-                      return _dropdown<String>(
-                        label: 'Country',
-                        value: _countryId,
-                        items: countries
-                            .map(
-                              (country) => DropdownMenuItem<String>(
-                                value: country.id,
-                                child: Text(
-                                  '${country.name} (${country.code})',
-                                ),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _countryId = value;
-                            _stateId = null;
-                            _cityId = null;
-                            _areaId = null;
-                          });
-                        },
-                      );
-                    },
-                  ),
-
-                if (_level >= 2 && _countryId != null)
-                  StreamBuilder<List<ServiceState>>(
-                    stream: widget.service.watchStates(_countryId!),
-                    builder: (context, snapshot) {
-                      final states = snapshot.data ?? [];
-
-                      return _dropdown<String>(
-                        label: 'State',
-                        value: _stateId,
-                        items: states
-                            .map(
-                              (state) => DropdownMenuItem<String>(
-                                value: state.id,
-                                child: Text(state.name),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _stateId = value;
-                            _cityId = null;
-                            _areaId = null;
-                          });
-                        },
-                      );
-                    },
-                  ),
-
-                if (_level >= 3 &&
-                    _countryId != null &&
-                    _stateId != null)
-                  StreamBuilder<List<ServiceCity>>(
-                    stream: widget.service.watchCities(
-                      countryId: _countryId,
-                      stateId: _stateId,
-                    ),
-                    builder: (context, snapshot) {
-                      final cities = snapshot.data ?? [];
-
-                      return _dropdown<String>(
-                        label: 'City / District',
-                        value: _cityId,
-                        items: cities
-                            .map(
-                              (city) => DropdownMenuItem<String>(
-                                value: city.id,
-                                child: Text(city.name),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _cityId = value;
-                            _areaId = null;
-                          });
-                        },
-                      );
-                    },
-                  ),
-
-                if (_level >= 4 && _cityId != null)
-                  StreamBuilder<List<ServiceArea>>(
-                    stream: widget.service.watchAreas(_cityId!),
-                    builder: (context, snapshot) {
-                      final areas = snapshot.data ?? [];
-
-                      return _dropdown<String>(
-                        label: 'Area / Sub-district',
-                        value: _areaId,
-                        items: areas
-                            .map(
-                              (area) => DropdownMenuItem<String>(
-                                value: area.id,
-                                child: Text(area.name),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() => _areaId = value);
-                        },
-                      );
-                    },
-                  ),
-
-                const SizedBox(height: 12),
-
-                TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: '$_levelName name',
-                    border: const OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Enter $_levelName name';
-                    }
-                    return null;
-                  },
-                ),
-
-                if (_level == 0) ...[
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _codeController,
-                    textCapitalization: TextCapitalization.characters,
-                    decoration: const InputDecoration(
-                      labelText: 'Country code (e.g. IN)',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Enter country code';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-
-                if (_level == 4) ...[
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _pincodeController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'PIN code (optional)',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ],
-
-                const SizedBox(height: 12),
-
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    'This location will be saved as inactive. '
-                    'City, Area and Locality require a verified '
-                    'geographic boundary before activation. '
-                    'This form does not verify geographic boundaries.',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _saving ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        FilledButton.icon(
-          onPressed: _saving ? null : _save,
-          icon: _saving
-              ? const SizedBox(
-                  height: 16,
-                  width: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.save),
-          label: Text(_saving ? 'Saving...' : 'Save Location'),
-          style: FilledButton.styleFrom(
-            backgroundColor: _locationOrange,
-            foregroundColor: Colors.white,
-          ),
-        ),
-      ],
     );
   }
 }
