@@ -148,13 +148,6 @@ class ServiceLocationService {
 
   // ==========================================================
   // UNIQUE NAME SAVE
-  //
-  // Name indexes are scoped to their parent hierarchy.
-  // Example:
-  // - State: unique inside a country.
-  // - City: unique inside a state.
-  // - Area: unique inside a city.
-  // - Locality: unique inside an area.
   // ==========================================================
 
   Future<void> _saveUniqueNamedDocument({
@@ -227,7 +220,7 @@ class ServiceLocationService {
         );
       }
 
-      // All transaction reads are completed before writes.
+      // Complete all transaction reads before writing.
 
       if (oldIndex != null &&
           oldIndexSnapshot != null &&
@@ -769,6 +762,31 @@ class ServiceLocationService {
   }
 
   // ==========================================================
+  // SINGLE CITY LOOKUP
+  // ==========================================================
+
+  Future<ServiceCity?> getCity(String cityId) async {
+    final id = _required(cityId, 'City ID');
+
+    final snapshot = await _cities.doc(id).get();
+
+    if (!snapshot.exists) {
+      return null;
+    }
+
+    final data = snapshot.data();
+
+    if (data == null) {
+      return null;
+    }
+
+    return ServiceCity.fromMap(
+      snapshot.id,
+      data,
+    );
+  }
+
+  // ==========================================================
   // CITIES / DISTRICTS
   // ==========================================================
 
@@ -1254,8 +1272,6 @@ class ServiceLocationService {
     }
 
     // A locality polygon is optional.
-    // If optional legacy points are supplied, reject malformed
-    // coordinate data instead of requiring a polygon.
     if (locality.boundary.isNotEmpty) {
       final validPoints = _readPoints(locality.boundary);
 
@@ -1341,7 +1357,7 @@ class ServiceLocationService {
       await _requireActiveArea(areaId, cityId);
     }
 
-    // No locality polygon requirement here.
+    // No locality polygon requirement.
     await _localities.doc(id).update({
       'isServiceActive': isActive,
       'updatedAt': FieldValue.serverTimestamp(),
