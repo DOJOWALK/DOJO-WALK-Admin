@@ -2,16 +2,9 @@
 ///
 /// Firestore persistence for service-location boundaries.
 ///
-/// Responsibilities:
-/// - Save boundary drafts.
-/// - Load a boundary by ID.
-/// - Stream boundaries for a location.
-/// - Update verification status.
-/// - Prevent activation of unverified boundaries.
-///
-/// Important:
-/// This service does not determine whether a boundary matches
-/// an official government map. That requires a separate review.
+/// Verified boundaries must not be overwritten by ordinary draft saves.
+/// Reviewer authorization must also be enforced by Firestore Security Rules
+/// or a trusted backend.
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -30,10 +23,9 @@ class ServiceLocationBoundaryService {
   CollectionReference<Map<String, dynamic>> get _collection =>
       _firestore.collection(collectionName);
 
-  /// Save a new boundary or update an existing boundary draft.
+  /// Saves a new draft or updates an existing unverified draft.
   ///
-  /// New boundaries must start as pending verification.
-  /// Saving a draft must never automatically verify it.
+  /// A verified boundary cannot be overwritten through this method.
   Future<String> saveDraft(
     ServiceLocationBoundary boundary,
   ) async {
@@ -47,19 +39,18 @@ class ServiceLocationBoundaryService {
 
     if (boundary.isVerified) {
       throw StateError(
-        'A verified boundary cannot be saved as a draft. '
-        'Save a pending draft and use the verification workflow.',
+        'A verified boundary cannot be saved as a draft.',
       );
     }
+
+    final now = Timestamp.now();
 
     final data = boundary.toMap()
       ..['verificationStatus'] =
           BoundaryVerificationStatus.pending.name
       ..['verifiedBy'] = null
-      ..['verifiedAt'] = null;
-
-    final now = Timestamp.now();
-    data['updatedAt'] = now;
+      ..['verifiedAt'] = null
+      ..['updatedAt'] = now;
 
     if (boundary.id.trim().isEmpty) {
       data['createdAt'] = now;
@@ -69,13 +60,34 @@ class ServiceLocationBoundaryService {
     }
 
     final reference = _collection.doc(boundary.id);
-
     final existing = await reference.get();
 
     if (existing.exists) {
-      // Preserve original creation time when editing.
-      data.remove('createdAt');
+      final existingData = existing.data();
 
+      if (existingData == null) {
+        throw StateError('Existing boundary data is missing.');
+      }
+
+      final existingBoundary = ServiceLocationBoundary.fromMap(
+        existing.id,
+        existingData,
+      );
+
+      if (existingBoundary.isVerified) {
+        throw StateError(
+          'Verified boundaries cannot be overwritten as drafts.',
+        );
+      }
+
+      if (existingBoundary.locationId != boundary.locationId ||
+          existingBoundary.locationType != boundary.locationType) {
+        throw StateError(
+          'A boundary cannot be moved to another location.',
+        );
+      }
+
+      data.remove('createdAt');
       await reference.update(data);
     } else {
       data['createdAt'] = now;
@@ -85,36 +97,40 @@ class ServiceLocationBoundaryService {
     return reference.id;
   }
 
-  /// Fetch a single boundary.
   Future<ServiceLocationBoundary?> getById(
     String boundaryId,
   ) async {
     final snapshot = await _collection.doc(boundaryId).get();
 
-    if (!snapshot.exists) {
-      return null;
-    }
+    if (!snapshot.exists) return null;
 
     final data = snapshot.data();
+    if (data == null) return null;
 
-    if (data == null) {
-      return null;
-    }
-
-    return ServiceLocationBoundary.fromMap(
-      snapshot.id,
-      data,
-    );
+    return ServiceLocationBoundary.fromMap(snapshot.id, data);
   }
 
-  /// Watch all boundaries associated with a location.
+  /// Watches boundaries for a location.
+  ///
+  /// Pass locationType to avoid mixing different location categories
+  /// that happen to share an ID.
   Stream<List<ServiceLocationBoundary>> watchForLocation(
-    String locationId,
-  ) {
-    return _collection
-        .where('locationId', isEqualTo: locationId)
-        .snapshots()
-        .map((snapshot) {
+    String locationId, {
+    String? locationType,
+  }) {
+    Query<Map<String, dynamic>> query = _collection.where(
+      'locationId',
+      isEqualTo: locationId,
+    );
+
+    if (locationType != null) {
+      query = query.where(
+        'locationType',
+        isEqualTo: locationType,
+      );
+    }
+
+    return query.snapshots().map((snapshot) {
       final boundaries = snapshot.docs.map((document) {
         return ServiceLocationBoundary.fromMap(
           document.id,
@@ -130,9 +146,6 @@ class ServiceLocationBoundaryService {
     });
   }
 
-  /// Request verification by setting the status to pending.
-  ///
-  /// This does not verify the boundary itself.
   Future<void> requestVerification(
     String boundaryId,
   ) async {
@@ -144,7 +157,6 @@ class ServiceLocationBoundaryService {
     }
 
     final data = snapshot.data();
-
     if (data == null) {
       throw StateError('Boundary data is missing.');
     }
@@ -153,6 +165,10 @@ class ServiceLocationBoundaryService {
       snapshot.id,
       data,
     );
+
+    if (boundary.isVerified) {
+      throw StateError('Boundary is already verified.');
+    }
 
     final errors = boundary.validate();
 
@@ -171,12 +187,6 @@ class ServiceLocationBoundaryService {
     });
   }
 
-  /// Mark a boundary as verified after an authorized reviewer
-  /// has checked the real-world geometry and its source.
-  ///
-  /// IMPORTANT:
-  /// Enforce reviewer permissions in Firestore Security Rules
-  /// or a trusted backend. Client-side checks alone are not enough.
   Future<void> markVerified({
     required String boundaryId,
     required String reviewerId,
@@ -187,9 +197,7 @@ class ServiceLocationBoundaryService {
     }
 
     if (verificationNotes.trim().isEmpty) {
-      throw ArgumentError(
-        'Verification notes are required.',
-      );
+      throw ArgumentError('Verification notes are required.');
     }
 
     final reference = _collection.doc(boundaryId);
@@ -200,7 +208,6 @@ class ServiceLocationBoundaryService {
     }
 
     final data = snapshot.data();
-
     if (data == null) {
       throw StateError('Boundary data is missing.');
     }
@@ -210,8 +217,6 @@ class ServiceLocationBoundaryService {
       data,
     );
 
-    // Check the geometry and source fields before allowing
-    // a reviewer to mark the record verified.
     final errors = boundary.validate();
 
     if (errors.isNotEmpty) {
@@ -220,17 +225,18 @@ class ServiceLocationBoundaryService {
       );
     }
 
+    final now = Timestamp.now();
+
     await reference.update({
       'verificationStatus':
           BoundaryVerificationStatus.verified.name,
       'verifiedBy': reviewerId,
-      'verifiedAt': Timestamp.now(),
+      'verifiedAt': now,
       'verificationNotes': verificationNotes.trim(),
-      'updatedAt': Timestamp.now(),
+      'updatedAt': now,
     });
   }
 
-  /// Reject a boundary and retain the reason for audit.
   Future<void> rejectBoundary({
     required String boundaryId,
     required String reviewerId,
@@ -261,19 +267,13 @@ class ServiceLocationBoundaryService {
     });
   }
 
-  /// Delete a draft only.
-  ///
-  /// Verified boundaries must not be deleted through this method.
   Future<void> deleteDraft(String boundaryId) async {
     final reference = _collection.doc(boundaryId);
     final snapshot = await reference.get();
 
-    if (!snapshot.exists) {
-      return;
-    }
+    if (!snapshot.exists) return;
 
     final data = snapshot.data();
-
     if (data == null) {
       throw StateError('Boundary data is missing.');
     }
