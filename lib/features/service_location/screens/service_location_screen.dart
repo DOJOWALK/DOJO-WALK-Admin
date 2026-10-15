@@ -730,7 +730,7 @@ class _ServiceLocationScreenState
           children: [
             for (final city in citySnapshot.data!)
               StreamBuilder<List<ServiceArea>>(
-                stream: _service.watchAreas(city.id),
+                stream: _service.watchAreas(cityId: city.id),
                 builder: (context, areaSnapshot) {
                   if (areaSnapshot.hasError ||
                       !areaSnapshot.hasData) {
