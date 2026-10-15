@@ -243,7 +243,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     }
 
     return StreamBuilder<List<ServiceState>>(
-      stream: widget.service.watchStates(_countryId!),
+      stream: widget.service.watchStates(countryId: _countryId!),
       builder: (context, snapshot) {
         final states = snapshot.data ?? [];
 
