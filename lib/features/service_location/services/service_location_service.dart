@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
 
 import '../models/service_location_models.dart';
 
@@ -31,6 +34,9 @@ class ServiceLocationService {
   CollectionReference<Map<String, dynamic>> get _imports =>
       _db.collection('service_location_imports');
 
+  CollectionReference<Map<String, dynamic>> get _nameIndexes =>
+      _db.collection('service_location_name_indexes');
+
   // =========================================================
   // COMMON VALIDATION
   // =========================================================
@@ -42,73 +48,163 @@ class ServiceLocationService {
   }
 
   String _normalizeName(String name) {
-    return name
-        .trim()
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .toLowerCase();
+    return name.trim().replaceAll(RegExp(r'\s+'), ' ').toLowerCase();
   }
 
-  /// Checks whether the normalized name already exists
-  /// under the selected parent.
+  String _makeNameIndexId({
+    required String collectionPath,
+    required List<String> parentIds,
+    required String name,
+  }) {
+    final normalizedName = _normalizeName(name);
+
+    final key = jsonEncode([
+      collectionPath,
+      ...parentIds,
+      normalizedName,
+    ]);
+
+    return sha256.convert(utf8.encode(key)).toString();
+  }
+
+  /// Atomically reserves a normalized name and saves its document.
   ///
+  /// All transaction reads happen before any transaction writes.
   /// Existing document IDs are preserved.
-  /// The current document is excluded during updates.
   ///
-  /// Note: This query-based check does not by itself guarantee
-  /// uniqueness when concurrent requests save the same name.
-  Future<void> _ensureUniqueName({
-    required CollectionReference<Map<String, dynamic>>
-        collection,
+  /// Uniqueness scope:
+  /// - Country: global.
+  /// - State: within country.
+  /// - City: within state.
+  /// - Area: within city.
+  /// - Locality: within area.
+  Future<String> _saveUniqueNamedDocument({
+    required CollectionReference<Map<String, dynamic>> collection,
+    required String documentId,
     required String name,
     required String label,
     required List<String> parentFields,
     required List<String> parentIds,
-    String? excludeId,
+    required Map<String, dynamic> data,
+    required bool includeCreatedAt,
   }) async {
     _validateName(name, label);
 
     if (parentFields.length != parentIds.length) {
-      throw StateError(
-        'Invalid parent configuration for $label.',
+      throw StateError('Invalid parent configuration for $label.');
+    }
+
+    for (final parentId in parentIds) {
+      if (parentId.trim().isEmpty) {
+        throw ArgumentError('A valid parent must be selected for $label.');
+      }
+    }
+
+    final isNew = documentId.trim().isEmpty;
+    final targetRef =
+        isNew ? collection.doc() : collection.doc(documentId);
+
+    final newIndexId = _makeNameIndexId(
+      collectionPath: collection.path,
+      parentIds: parentIds,
+      name: name,
+    );
+
+    final newIndexRef = _nameIndexes.doc(newIndexId);
+
+    return _db.runTransaction<String>((transaction) async {
+      // READ 1: existing target document.
+      final targetSnapshot = await transaction.get(targetRef);
+
+      if (!isNew && !targetSnapshot.exists) {
+        throw StateError('Selected $label does not exist.');
+      }
+
+      // READ 2: index for the requested name.
+      final newIndexSnapshot = await transaction.get(newIndexRef);
+
+      // Determine the old index for an update.
+      DocumentReference<Map<String, dynamic>>? oldIndexRef;
+      DocumentSnapshot<Map<String, dynamic>>? oldIndexSnapshot;
+
+      if (!isNew) {
+        final oldData = targetSnapshot.data() ?? <String, dynamic>{};
+        final oldName = oldData['name']?.toString() ?? '';
+
+        final oldParentIds = <String>[];
+
+        for (final field in parentFields) {
+          oldParentIds.add(oldData[field]?.toString() ?? '');
+        }
+
+        if (oldName.trim().isNotEmpty &&
+            oldParentIds.every((id) => id.trim().isNotEmpty)) {
+          final oldIndexId = _makeNameIndexId(
+            collectionPath: collection.path,
+            parentIds: oldParentIds,
+            name: oldName,
+          );
+
+          if (oldIndexId != newIndexId) {
+            oldIndexRef = _nameIndexes.doc(oldIndexId);
+
+            // READ 3: old index, if the name or parent is changing.
+            oldIndexSnapshot = await transaction.get(oldIndexRef);
+          }
+        }
+      }
+
+      // All reads are complete. Writes begin below.
+      if (newIndexSnapshot.exists) {
+        final ownerId =
+            newIndexSnapshot.data()?['ownerId']?.toString() ?? '';
+
+        if (ownerId != targetRef.id) {
+          throw StateError(
+            '$label "$name" already exists under the selected parent.',
+          );
+        }
+      }
+
+      if (oldIndexRef != null && oldIndexSnapshot != null) {
+        final oldOwnerId =
+            oldIndexSnapshot.data()?['ownerId']?.toString() ?? '';
+
+        if (oldIndexSnapshot.exists && oldOwnerId == targetRef.id) {
+          transaction.delete(oldIndexRef);
+        }
+      }
+
+      transaction.set(
+        newIndexRef,
+        {
+          'ownerId': targetRef.id,
+          'collectionName': collection.id,
+          'parentIds': parentIds,
+          'normalizedName': _normalizeName(name),
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
       );
-    }
 
-    Query<Map<String, dynamic>> query = collection;
+      final documentData = Map<String, dynamic>.from(data);
 
-    for (var i = 0; i < parentFields.length; i++) {
-      final parentId = parentIds[i].trim();
+      // Ensure createdAt is retained on updates.
+      if (!includeCreatedAt && targetSnapshot.exists) {
+        final oldData = targetSnapshot.data();
 
-      if (parentId.isEmpty) {
-        throw ArgumentError(
-          'A valid parent must be selected for $label.',
-        );
+        if (oldData != null && oldData.containsKey('createdAt')) {
+          documentData['createdAt'] = oldData['createdAt'];
+        }
       }
 
-      query = query.where(
-        parentFields[i],
-        isEqualTo: parentId,
+      transaction.set(
+        targetRef,
+        documentData,
+        SetOptions(merge: true),
       );
-    }
 
-    final snapshot = await query.get();
-    final normalizedName = _normalizeName(name);
-
-    for (final document in snapshot.docs) {
-      if (excludeId != null &&
-          excludeId.isNotEmpty &&
-          document.id == excludeId) {
-        continue;
-      }
-
-      final existingName =
-          document.data()['name']?.toString() ?? '';
-
-      if (_normalizeName(existingName) == normalizedName) {
-        throw StateError(
-          '$label "$name" already exists under the selected parent.',
-        );
-      }
-    }
+      return targetRef.id;
+    });
   }
 
   void _validateBoundary({
@@ -124,9 +220,7 @@ class ServiceLocationService {
           point.latitude > 90 ||
           point.longitude < -180 ||
           point.longitude > 180) {
-        throw StateError(
-          'Boundary contains invalid coordinates.',
-        );
+        throw StateError('Boundary contains invalid coordinates.');
       }
     }
 
@@ -254,8 +348,7 @@ class ServiceLocationService {
   Future<void> _ensureNoActiveChildren({
     required String parentId,
     required String parentLabel,
-    required List<CollectionReference<Map<String, dynamic>>>
-        collections,
+    required List<CollectionReference<Map<String, dynamic>>> collections,
     required List<String> parentFields,
     required List<String> statusFields,
   }) async {
@@ -276,6 +369,30 @@ class ServiceLocationService {
     }
   }
 
+  /// Blocks moving a location to a different parent when it has
+  /// any descendants, including inactive descendants.
+  Future<void> _ensureNoChildrenForReparent({
+    required String parentId,
+    required String parentLabel,
+    required List<CollectionReference<Map<String, dynamic>>> collections,
+    required List<String> parentFields,
+  }) async {
+    for (var i = 0; i < collections.length; i++) {
+      final snapshot = await collections[i]
+          .where(parentFields[i], isEqualTo: parentId)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        throw StateError(
+          'Cannot change the parent of this $parentLabel because '
+          'child locations already exist. Create a new location '
+          'or move the children first.',
+        );
+      }
+    }
+  }
+
   // =========================================================
   // COUNTRIES
   // =========================================================
@@ -283,12 +400,7 @@ class ServiceLocationService {
   Stream<List<ServiceCountry>> watchCountries() {
     return _countries.orderBy('name').snapshots().map(
       (snapshot) => snapshot.docs
-          .map(
-            (doc) => ServiceCountry.fromMap(
-              doc.id,
-              doc.data(),
-            ),
-          )
+          .map((doc) => ServiceCountry.fromMap(doc.id, doc.data()))
           .toList(),
     );
   }
@@ -299,15 +411,6 @@ class ServiceLocationService {
 
     final isNew = country.id.trim().isEmpty;
 
-    await _ensureUniqueName(
-      collection: _countries,
-      name: country.name,
-      label: 'Country',
-      parentFields: const [],
-      parentIds: const [],
-      excludeId: isNew ? null : country.id,
-    );
-
     if (!isNew) {
       await _requireExistingForUpdate(
         _countries,
@@ -316,38 +419,29 @@ class ServiceLocationService {
       );
     }
 
-    final doc = isNew
-        ? _countries.doc()
-        : _countries.doc(country.id);
-
-    await doc.set(
-      country.toMap(includeCreatedAt: isNew),
-      SetOptions(merge: true),
+    return _saveUniqueNamedDocument(
+      collection: _countries,
+      documentId: country.id,
+      name: country.name,
+      label: 'Country',
+      parentFields: const [],
+      parentIds: const [],
+      data: country.toMap(includeCreatedAt: isNew),
+      includeCreatedAt: isNew,
     );
-
-    return doc.id;
   }
 
   Future<void> setCountryStatus({
     required String countryId,
     required bool isActive,
   }) async {
-    await _requireDocument(
-      _countries,
-      countryId,
-      'country',
-    );
+    await _requireDocument(_countries, countryId, 'country');
 
     if (!isActive) {
       await _ensureNoActiveChildren(
         parentId: countryId,
         parentLabel: 'country',
-        collections: [
-          _states,
-          _cities,
-          _areas,
-          _localities,
-        ],
+        collections: [_states, _cities, _areas, _localities],
         parentFields: [
           'countryId',
           'countryId',
@@ -379,18 +473,11 @@ class ServiceLocationService {
         .snapshots()
         .map((snapshot) {
       final result = snapshot.docs
-          .map(
-            (doc) => ServiceState.fromMap(
-              doc.id,
-              doc.data(),
-            ),
-          )
+          .map((doc) => ServiceState.fromMap(doc.id, doc.data()))
           .toList();
 
       result.sort(
-        (a, b) => a.name.toLowerCase().compareTo(
-              b.name.toLowerCase(),
-            ),
+        (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
       );
 
       return result;
@@ -400,11 +487,7 @@ class ServiceLocationService {
   Future<String> saveState(ServiceState state) async {
     _validateName(state.name, 'State name');
 
-    await _requireDocument(
-      _countries,
-      state.countryId,
-      'country',
-    );
+    await _requireDocument(_countries, state.countryId, 'country');
 
     if (state.isActive) {
       await _requireActiveCountry(state.countryId);
@@ -412,44 +495,42 @@ class ServiceLocationService {
 
     final isNew = state.id.trim().isEmpty;
 
-    await _ensureUniqueName(
-      collection: _states,
-      name: state.name,
-      label: 'State',
-      parentFields: const ['countryId'],
-      parentIds: [state.countryId],
-      excludeId: isNew ? null : state.id,
-    );
-
     if (!isNew) {
-      await _requireExistingForUpdate(
+      final oldData = await _requireDocument(
         _states,
         state.id,
         'state',
       );
+
+      final oldCountryId = oldData['countryId']?.toString() ?? '';
+
+      if (oldCountryId != state.countryId) {
+        await _ensureNoChildrenForReparent(
+          parentId: state.id,
+          parentLabel: 'state',
+          collections: [_cities, _areas, _localities],
+          parentFields: ['stateId', 'stateId', 'stateId'],
+        );
+      }
     }
 
-    final doc = isNew
-        ? _states.doc()
-        : _states.doc(state.id);
-
-    await doc.set(
-      state.toMap(includeCreatedAt: isNew),
-      SetOptions(merge: true),
+    return _saveUniqueNamedDocument(
+      collection: _states,
+      documentId: state.id,
+      name: state.name,
+      label: 'State',
+      parentFields: const ['countryId'],
+      parentIds: [state.countryId],
+      data: state.toMap(includeCreatedAt: isNew),
+      includeCreatedAt: isNew,
     );
-
-    return doc.id;
   }
 
   Future<void> setStateStatus({
     required String stateId,
     required bool isActive,
   }) async {
-    final data = await _requireDocument(
-      _states,
-      stateId,
-      'state',
-    );
+    final data = await _requireDocument(_states, stateId, 'state');
 
     if (isActive) {
       await _requireActiveCountry(
@@ -459,16 +540,8 @@ class ServiceLocationService {
       await _ensureNoActiveChildren(
         parentId: stateId,
         parentLabel: 'state',
-        collections: [
-          _cities,
-          _areas,
-          _localities,
-        ],
-        parentFields: [
-          'stateId',
-          'stateId',
-          'stateId',
-        ],
+        collections: [_cities, _areas, _localities],
+        parentFields: ['stateId', 'stateId', 'stateId'],
         statusFields: [
           'isServiceActive',
           'isServiceActive',
@@ -494,33 +567,20 @@ class ServiceLocationService {
     Query<Map<String, dynamic>> query = _cities;
 
     if (countryId != null && countryId.trim().isNotEmpty) {
-      query = query.where(
-        'countryId',
-        isEqualTo: countryId,
-      );
+      query = query.where('countryId', isEqualTo: countryId);
     }
 
     if (stateId != null && stateId.trim().isNotEmpty) {
-      query = query.where(
-        'stateId',
-        isEqualTo: stateId,
-      );
+      query = query.where('stateId', isEqualTo: stateId);
     }
 
     return query.snapshots().map((snapshot) {
       final result = snapshot.docs
-          .map(
-            (doc) => ServiceCity.fromMap(
-              doc.id,
-              doc.data(),
-            ),
-          )
+          .map((doc) => ServiceCity.fromMap(doc.id, doc.data()))
           .toList();
 
       result.sort(
-        (a, b) => a.name.toLowerCase().compareTo(
-              b.name.toLowerCase(),
-            ),
+        (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
       );
 
       return result;
@@ -534,10 +594,7 @@ class ServiceLocationService {
       return null;
     }
 
-    return ServiceCity.fromMap(
-      doc.id,
-      doc.data()!,
-    );
+    return ServiceCity.fromMap(doc.id, doc.data()!);
   }
 
   Future<String> saveCity(ServiceCity city) async {
@@ -561,14 +618,12 @@ class ServiceLocationService {
       );
     }
 
-    if (city.isServiceActive) {
-      if (country['isActive'] != true ||
-          state['isActive'] != true) {
-        throw StateError(
-          'The country and state must be active '
-          'before activating this city.',
-        );
-      }
+    if (city.isServiceActive &&
+        (country['isActive'] != true || state['isActive'] != true)) {
+      throw StateError(
+        'The country and state must be active '
+        'before activating this city.',
+      );
     }
 
     _validateBoundary(
@@ -580,33 +635,35 @@ class ServiceLocationService {
 
     final isNew = city.id.trim().isEmpty;
 
-    await _ensureUniqueName(
-      collection: _cities,
-      name: city.name,
-      label: 'City/District',
-      parentFields: const ['stateId'],
-      parentIds: [city.stateId],
-      excludeId: isNew ? null : city.id,
-    );
-
     if (!isNew) {
-      await _requireExistingForUpdate(
+      final oldData = await _requireDocument(
         _cities,
         city.id,
         'city/district',
       );
+
+      final oldStateId = oldData['stateId']?.toString() ?? '';
+
+      if (oldStateId != city.stateId) {
+        await _ensureNoChildrenForReparent(
+          parentId: city.id,
+          parentLabel: 'city/district',
+          collections: [_areas, _localities],
+          parentFields: ['cityId', 'cityId'],
+        );
+      }
     }
 
-    final doc = isNew
-        ? _cities.doc()
-        : _cities.doc(city.id);
-
-    await doc.set(
-      city.toMap(includeCreatedAt: isNew),
-      SetOptions(merge: true),
+    return _saveUniqueNamedDocument(
+      collection: _cities,
+      documentId: city.id,
+      name: city.name,
+      label: 'City/District',
+      parentFields: const ['stateId'],
+      parentIds: [city.stateId],
+      data: city.toMap(includeCreatedAt: isNew),
+      includeCreatedAt: isNew,
     );
-
-    return doc.id;
   }
 
   // =========================================================
@@ -619,18 +676,11 @@ class ServiceLocationService {
         .snapshots()
         .map((snapshot) {
       final result = snapshot.docs
-          .map(
-            (doc) => ServiceArea.fromMap(
-              doc.id,
-              doc.data(),
-            ),
-          )
+          .map((doc) => ServiceArea.fromMap(doc.id, doc.data()))
           .toList();
 
       result.sort(
-        (a, b) => a.name.toLowerCase().compareTo(
-              b.name.toLowerCase(),
-            ),
+        (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
       );
 
       return result;
@@ -673,15 +723,14 @@ class ServiceLocationService {
       );
     }
 
-    if (area.isServiceActive) {
-      if (country['isActive'] != true ||
-          state['isActive'] != true ||
-          !city.isServiceActive) {
-        throw StateError(
-          'Activate the parent country, state and city/district '
-          'before activating this area.',
-        );
-      }
+    if (area.isServiceActive &&
+        (country['isActive'] != true ||
+            state['isActive'] != true ||
+            !city.isServiceActive)) {
+      throw StateError(
+        'Activate the parent country, state and city/district '
+        'before activating this area.',
+      );
     }
 
     _validateBoundary(
@@ -693,33 +742,35 @@ class ServiceLocationService {
 
     final isNew = area.id.trim().isEmpty;
 
-    await _ensureUniqueName(
-      collection: _areas,
-      name: area.name,
-      label: 'Area/Sub-district',
-      parentFields: const ['cityId'],
-      parentIds: [area.cityId],
-      excludeId: isNew ? null : area.id,
-    );
-
     if (!isNew) {
-      await _requireExistingForUpdate(
+      final oldData = await _requireDocument(
         _areas,
         area.id,
         'area',
       );
+
+      final oldCityId = oldData['cityId']?.toString() ?? '';
+
+      if (oldCityId != area.cityId) {
+        await _ensureNoChildrenForReparent(
+          parentId: area.id,
+          parentLabel: 'area',
+          collections: [_localities],
+          parentFields: ['areaId'],
+        );
+      }
     }
 
-    final doc = isNew
-        ? _areas.doc()
-        : _areas.doc(area.id);
-
-    await doc.set(
-      area.toMap(includeCreatedAt: isNew),
-      SetOptions(merge: true),
+    return _saveUniqueNamedDocument(
+      collection: _areas,
+      documentId: area.id,
+      name: area.name,
+      label: 'Area/Sub-district',
+      parentFields: const ['cityId'],
+      parentIds: [area.cityId],
+      data: area.toMap(includeCreatedAt: isNew),
+      includeCreatedAt: isNew,
     );
-
-    return doc.id;
   }
 
   // =========================================================
@@ -736,31 +787,19 @@ class ServiceLocationService {
         .snapshots()
         .map((snapshot) {
       final result = snapshot.docs
-          .map(
-            (doc) => ServiceLocality.fromMap(
-              doc.id,
-              doc.data(),
-            ),
-          )
+          .map((doc) => ServiceLocality.fromMap(doc.id, doc.data()))
           .toList();
 
       result.sort(
-        (a, b) => a.name.toLowerCase().compareTo(
-              b.name.toLowerCase(),
-            ),
+        (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
       );
 
       return result;
     });
   }
 
-  Future<String> saveLocality(
-    ServiceLocality locality,
-  ) async {
-    _validateName(
-      locality.name,
-      'Locality/Village name',
-    );
+  Future<String> saveLocality(ServiceLocality locality) async {
+    _validateName(locality.name, 'Locality/Village name');
 
     final city = await getCity(locality.cityId);
 
@@ -776,10 +815,7 @@ class ServiceLocationService {
       'area',
     );
 
-    final area = ServiceArea.fromMap(
-      locality.areaId,
-      areaData,
-    );
+    final area = ServiceArea.fromMap(locality.areaId, areaData);
 
     final country = await _requireDocument(
       _countries,
@@ -809,16 +845,15 @@ class ServiceLocationService {
       );
     }
 
-    if (locality.isServiceActive) {
-      if (country['isActive'] != true ||
-          state['isActive'] != true ||
-          !city.isServiceActive ||
-          !area.isServiceActive) {
-        throw StateError(
-          'Activate the parent country, state, city/district '
-          'and area before activating this locality.',
-        );
-      }
+    if (locality.isServiceActive &&
+        (country['isActive'] != true ||
+            state['isActive'] != true ||
+            !city.isServiceActive ||
+            !area.isServiceActive)) {
+      throw StateError(
+        'Activate the parent country, state, city/district '
+        'and area before activating this locality.',
+      );
     }
 
     _validateBoundary(
@@ -830,15 +865,6 @@ class ServiceLocationService {
 
     final isNew = locality.id.trim().isEmpty;
 
-    await _ensureUniqueName(
-      collection: _localities,
-      name: locality.name,
-      label: 'Locality/Village',
-      parentFields: const ['areaId'],
-      parentIds: [locality.areaId],
-      excludeId: isNew ? null : locality.id,
-    );
-
     if (!isNew) {
       await _requireExistingForUpdate(
         _localities,
@@ -847,16 +873,16 @@ class ServiceLocationService {
       );
     }
 
-    final doc = isNew
-        ? _localities.doc()
-        : _localities.doc(locality.id);
-
-    await doc.set(
-      locality.toMap(includeCreatedAt: isNew),
-      SetOptions(merge: true),
+    return _saveUniqueNamedDocument(
+      collection: _localities,
+      documentId: locality.id,
+      name: locality.name,
+      label: 'Locality/Village',
+      parentFields: const ['areaId'],
+      parentIds: [locality.areaId],
+      data: locality.toMap(includeCreatedAt: isNew),
+      includeCreatedAt: isNew,
     );
-
-    return doc.id;
   }
 
   // =========================================================
@@ -879,21 +905,14 @@ class ServiceLocationService {
         );
   }
 
-  Future<String> saveImport(
-    ServiceLocationImport record,
-  ) async {
+  Future<String> saveImport(ServiceLocationImport record) async {
     _validateName(record.source, 'Import source');
     _validateName(record.fileName, 'Import file name');
     _validateName(record.status, 'Import status');
     _validateName(record.importedBy, 'Importer');
-
-    _validateName(
-      record.verificationStatus,
-      'Verification status',
-    );
+    _validateName(record.verificationStatus, 'Verification status');
 
     final doc = _imports.doc();
-
     await doc.set(record.toMap());
 
     return doc.id;
@@ -932,18 +951,9 @@ class ServiceLocationService {
       await _ensureNoActiveChildren(
         parentId: cityId,
         parentLabel: 'city/district',
-        collections: [
-          _areas,
-          _localities,
-        ],
-        parentFields: [
-          'cityId',
-          'cityId',
-        ],
-        statusFields: [
-          'isServiceActive',
-          'isServiceActive',
-        ],
+        collections: [_areas, _localities],
+        parentFields: ['cityId', 'cityId'],
+        statusFields: ['isServiceActive', 'isServiceActive'],
       );
     }
 
@@ -968,16 +978,9 @@ class ServiceLocationService {
     required String areaId,
     required bool isActive,
   }) async {
-    final data = await _requireDocument(
-      _areas,
-      areaId,
-      'area',
-    );
+    final data = await _requireDocument(_areas, areaId, 'area');
 
-    final area = ServiceArea.fromMap(
-      areaId,
-      data,
-    );
+    final area = ServiceArea.fromMap(areaId, data);
 
     if (isActive) {
       await _requireActiveCity(area.cityId);
@@ -1028,10 +1031,7 @@ class ServiceLocationService {
       'locality',
     );
 
-    final locality = ServiceLocality.fromMap(
-      localityId,
-      data,
-    );
+    final locality = ServiceLocality.fromMap(localityId, data);
 
     if (isActive) {
       await _requireActiveCity(locality.cityId);
