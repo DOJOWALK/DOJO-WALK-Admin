@@ -137,8 +137,14 @@ class WalkerDetailsSections extends StatelessWidget {
     );
 
     final parts = <String>[
-      _nestedValue(address, ['flatHouse', 'houseNumber', 'flat']),
-      _nestedValue(address, ['area', 'locality', 'street']),
+      _nestedValue(
+        address,
+        ['flatHouse', 'houseNumber', 'flat'],
+      ),
+      _nestedValue(
+        address,
+        ['area', 'locality', 'street'],
+      ),
       _nestedValue(address, ['landmark']),
       _nestedValue(address, ['city']),
       _nestedValue(address, ['state']),
@@ -155,12 +161,13 @@ class WalkerDetailsSections extends StatelessWidget {
       return '';
     }
 
-    // documentReference() can return null.
     return WalkerAdminHelpers.documentReference(document) ?? '';
   }
 
   bool _hasDocument(String key) {
-    return _documentReference(key).isNotEmpty;
+    final reference = _documentReference(key).trim();
+
+    return reference.isNotEmpty;
   }
 
   String _documentSubtitle(String key) {
@@ -231,6 +238,7 @@ class WalkerDetailsSections extends StatelessWidget {
       ),
       child: Text(
         label,
+        softWrap: true,
         style: TextStyle(
           color: color,
           fontSize: 12,
@@ -249,6 +257,7 @@ class WalkerDetailsSections extends StatelessWidget {
       title: title,
       icon: icon,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: children,
       ),
     );
@@ -284,6 +293,11 @@ class WalkerDetailsSections extends StatelessWidget {
     );
   }
 
+  /// Displays a KYC document.
+  ///
+  /// The callback is always non-null because WalkerAdminKycDocumentTile
+  /// requires a VoidCallback. The tile itself disables View when the
+  /// document is unavailable.
   Widget _document({
     required String title,
     required String key,
@@ -294,12 +308,14 @@ class WalkerDetailsSections extends StatelessWidget {
       title: title,
       subtitle: _documentSubtitle(key),
       isAvailable: available,
-      onView: available
-          ? () => onOpenDocument(
-                title,
-                _documents[key],
-              )
-          : null,
+      onView: () {
+        if (!available) return;
+
+        onOpenDocument(
+          title,
+          _documents[key],
+        );
+      },
     );
   }
 
@@ -334,6 +350,7 @@ class WalkerDetailsSections extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   label,
@@ -506,17 +523,17 @@ class WalkerDetailsSections extends StatelessWidget {
             _grid([
               _info(
                 label: 'Work Area',
-                value: _value(['area', 'workArea']),
+                value: _value(['workArea', 'area']),
                 icon: Icons.place_outlined,
               ),
               _info(
                 label: 'Work City',
-                value: _value(['city', 'workCity']),
+                value: _value(['workCity', 'city']),
                 icon: Icons.location_city_outlined,
               ),
               _info(
                 label: 'Work State',
-                value: _value(['state', 'workState']),
+                value: _value(['workState', 'state']),
                 icon: Icons.map_outlined,
               ),
               _info(
