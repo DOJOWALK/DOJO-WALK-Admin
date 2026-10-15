@@ -1,7 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// ===========================================================
-/// COMMON HELPERS
+/// DOJO WALK ADMIN
+/// Service Location Models
+///
+/// Hierarchy:
+/// Country -> State -> City/District -> Area/Sub-district
+/// -> Locality/Village
+///
+/// Compatibility:
+/// - Legacy embedded boundary fields are retained.
+/// - City and Area support verifiedBoundaryId.
+/// - Locality does not require its own polygon.
 /// ===========================================================
 
 DateTime? _readLocationDate(dynamic value) {
@@ -23,7 +33,17 @@ List<GeoPoint> _readLocationBoundary(dynamic value) {
 
   for (final point in value) {
     if (point is GeoPoint) {
-      points.add(point);
+      final lat = point.latitude;
+      final lng = point.longitude;
+
+      if (lat.isFinite &&
+          lng.isFinite &&
+          lat >= -90 &&
+          lat <= 90 &&
+          lng >= -180 &&
+          lng <= 180) {
+        points.add(GeoPoint(lat, lng));
+      }
     } else if (point is Map) {
       final lat = point['latitude'];
       final lng = point['longitude'];
@@ -32,7 +52,9 @@ List<GeoPoint> _readLocationBoundary(dynamic value) {
         final latitude = lat.toDouble();
         final longitude = lng.toDouble();
 
-        if (latitude >= -90 &&
+        if (latitude.isFinite &&
+            longitude.isFinite &&
+            latitude >= -90 &&
             latitude <= 90 &&
             longitude >= -180 &&
             longitude <= 180) {
@@ -67,7 +89,9 @@ class ServiceCountry {
     this.updatedAt,
   });
 
-  Map<String, dynamic> toMap({bool includeCreatedAt = false}) {
+  Map<String, dynamic> toMap({
+    bool includeCreatedAt = false,
+  }) {
     return {
       'name': name.trim(),
       'code': code.trim().toUpperCase(),
@@ -133,7 +157,9 @@ class ServiceState {
     this.updatedAt,
   });
 
-  Map<String, dynamic> toMap({bool includeCreatedAt = false}) {
+  Map<String, dynamic> toMap({
+    bool includeCreatedAt = false,
+  }) {
     return {
       'countryId': countryId.trim(),
       'name': name.trim(),
@@ -178,8 +204,11 @@ class ServiceState {
 }
 
 /// ===========================================================
-/// 3. SERVICE CITY
+/// 3. SERVICE CITY / DISTRICT
 /// Collection: service_cities
+///
+/// verifiedBoundaryId links the City to the exact boundary
+/// document used for activation.
 /// ===========================================================
 
 class ServiceCity {
@@ -188,11 +217,16 @@ class ServiceCity {
   final String stateId;
   final String name;
 
+  /// Retained for compatibility with existing documents.
   final List<GeoPoint> boundary;
   final String boundarySource;
   final bool boundaryVerified;
-  final bool isServiceActive;
 
+  /// ID of the verified document in
+  /// service_location_boundaries.
+  final String verifiedBoundaryId;
+
+  final bool isServiceActive;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -204,19 +238,28 @@ class ServiceCity {
     this.boundary = const [],
     this.boundarySource = '',
     this.boundaryVerified = false,
+    this.verifiedBoundaryId = '',
     this.isServiceActive = false,
     this.createdAt,
     this.updatedAt,
   });
 
-  Map<String, dynamic> toMap({bool includeCreatedAt = false}) {
+  Map<String, dynamic> toMap({
+    bool includeCreatedAt = false,
+  }) {
     return {
       'countryId': countryId.trim(),
       'stateId': stateId.trim(),
       'name': name.trim(),
+
+      // Legacy fields retained.
       'boundary': boundary,
       'boundarySource': boundarySource.trim(),
       'boundaryVerified': boundaryVerified,
+
+      // New authoritative boundary reference.
+      'verifiedBoundaryId': verifiedBoundaryId.trim(),
+
       'isServiceActive': isServiceActive,
       'updatedAt': FieldValue.serverTimestamp(),
       if (includeCreatedAt)
@@ -236,6 +279,8 @@ class ServiceCity {
       boundary: _readLocationBoundary(data['boundary']),
       boundarySource: data['boundarySource']?.toString() ?? '',
       boundaryVerified: data['boundaryVerified'] == true,
+      verifiedBoundaryId:
+          data['verifiedBoundaryId']?.toString() ?? '',
       isServiceActive: data['isServiceActive'] == true,
       createdAt: _readLocationDate(data['createdAt']),
       updatedAt: _readLocationDate(data['updatedAt']),
@@ -250,6 +295,7 @@ class ServiceCity {
     List<GeoPoint>? boundary,
     String? boundarySource,
     bool? boundaryVerified,
+    String? verifiedBoundaryId,
     bool? isServiceActive,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -262,6 +308,8 @@ class ServiceCity {
       boundary: boundary ?? this.boundary,
       boundarySource: boundarySource ?? this.boundarySource,
       boundaryVerified: boundaryVerified ?? this.boundaryVerified,
+      verifiedBoundaryId:
+          verifiedBoundaryId ?? this.verifiedBoundaryId,
       isServiceActive: isServiceActive ?? this.isServiceActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -272,6 +320,8 @@ class ServiceCity {
 /// ===========================================================
 /// 4. SERVICE AREA / SUB-DISTRICT
 /// Collection: service_areas
+///
+/// verifiedBoundaryId links the Area to its verified polygon.
 /// ===========================================================
 
 class ServiceArea {
@@ -281,11 +331,16 @@ class ServiceArea {
   final String cityId;
   final String name;
 
+  /// Retained for legacy compatibility.
   final List<GeoPoint> boundary;
   final String boundarySource;
   final bool boundaryVerified;
-  final bool isServiceActive;
 
+  /// ID of the verified document in
+  /// service_location_boundaries.
+  final String verifiedBoundaryId;
+
+  final bool isServiceActive;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -298,20 +353,29 @@ class ServiceArea {
     this.boundary = const [],
     this.boundarySource = '',
     this.boundaryVerified = false,
+    this.verifiedBoundaryId = '',
     this.isServiceActive = false,
     this.createdAt,
     this.updatedAt,
   });
 
-  Map<String, dynamic> toMap({bool includeCreatedAt = false}) {
+  Map<String, dynamic> toMap({
+    bool includeCreatedAt = false,
+  }) {
     return {
       'countryId': countryId.trim(),
       'stateId': stateId.trim(),
       'cityId': cityId.trim(),
       'name': name.trim(),
+
+      // Legacy fields retained.
       'boundary': boundary,
       'boundarySource': boundarySource.trim(),
       'boundaryVerified': boundaryVerified,
+
+      // New authoritative boundary reference.
+      'verifiedBoundaryId': verifiedBoundaryId.trim(),
+
       'isServiceActive': isServiceActive,
       'updatedAt': FieldValue.serverTimestamp(),
       if (includeCreatedAt)
@@ -332,6 +396,8 @@ class ServiceArea {
       boundary: _readLocationBoundary(data['boundary']),
       boundarySource: data['boundarySource']?.toString() ?? '',
       boundaryVerified: data['boundaryVerified'] == true,
+      verifiedBoundaryId:
+          data['verifiedBoundaryId']?.toString() ?? '',
       isServiceActive: data['isServiceActive'] == true,
       createdAt: _readLocationDate(data['createdAt']),
       updatedAt: _readLocationDate(data['updatedAt']),
@@ -347,6 +413,7 @@ class ServiceArea {
     List<GeoPoint>? boundary,
     String? boundarySource,
     bool? boundaryVerified,
+    String? verifiedBoundaryId,
     bool? isServiceActive,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -360,6 +427,8 @@ class ServiceArea {
       boundary: boundary ?? this.boundary,
       boundarySource: boundarySource ?? this.boundarySource,
       boundaryVerified: boundaryVerified ?? this.boundaryVerified,
+      verifiedBoundaryId:
+          verifiedBoundaryId ?? this.verifiedBoundaryId,
       isServiceActive: isServiceActive ?? this.isServiceActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -370,6 +439,8 @@ class ServiceArea {
 /// ===========================================================
 /// 5. SERVICE LOCALITY / VILLAGE
 /// Collection: service_localities
+///
+/// An individual locality polygon is optional.
 /// ===========================================================
 
 class ServiceLocality {
@@ -381,11 +452,12 @@ class ServiceLocality {
   final String name;
   final String pincode;
 
+  /// Optional legacy boundary information.
   final List<GeoPoint> boundary;
   final String boundarySource;
   final bool boundaryVerified;
-  final bool isServiceActive;
 
+  final bool isServiceActive;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -405,7 +477,9 @@ class ServiceLocality {
     this.updatedAt,
   });
 
-  Map<String, dynamic> toMap({bool includeCreatedAt = false}) {
+  Map<String, dynamic> toMap({
+    bool includeCreatedAt = false,
+  }) {
     return {
       'countryId': countryId.trim(),
       'stateId': stateId.trim(),
@@ -413,9 +487,12 @@ class ServiceLocality {
       'areaId': areaId.trim(),
       'name': name.trim(),
       'pincode': pincode.trim(),
+
+      // Optional legacy boundary fields.
       'boundary': boundary,
       'boundarySource': boundarySource.trim(),
       'boundaryVerified': boundaryVerified,
+
       'isServiceActive': isServiceActive,
       'updatedAt': FieldValue.serverTimestamp(),
       if (includeCreatedAt)
