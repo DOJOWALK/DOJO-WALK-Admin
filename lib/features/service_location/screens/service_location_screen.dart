@@ -644,7 +644,7 @@ class _ServiceLocationScreenState
           children: [
             for (final city in cities)
               StreamBuilder<List<ServiceArea>>(
-                stream: _service.watchAreas(city.id),
+                stream: _service.watchAreas(cityId: city.id),
                 builder: (context, snapshot) {
                   if (snapshot.hasError || !snapshot.hasData) {
                     return const SizedBox.shrink();
