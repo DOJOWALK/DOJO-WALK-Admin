@@ -77,3 +77,11 @@ Commit: `c572371cfd74a9888a66b2e51e7af1e20c627b62`
 ## Next planned step
 
 Download the newest official LGD state, district, and sub-district exports from the Government of India OGD/LGD sources and reconcile codes, names, additions, removals, and parent mappings against these restored files. Record differences and update the checksums/counts only after review. Then add State → District → Sub-district integration tests and continue the NCR boundary review. The validation workflow currently skips tests because the repository has no `test/` directory. Do not merge until official-data reconciliation and integration/API review are complete. No production Firebase import or boundary activation is authorized by this status note.
+
+
+## Official-source verification follow-up (2026-10-17)
+
+- Reviewed the Ministry of Panchayati Raj's LGD information page and the OGD LGD catalog/resource listings.
+- OGD displays an LGD catalog update date of 2026-10-15 and a Districts resource update date of 2026-10-08. However, the pages explicitly state they are a sandbox/testing environment and that content/data/functionality may be incomplete or inaccurate. These dates are therefore **not accepted as authoritative evidence of a current official snapshot**.
+- Official references for manual/source verification: [Ministry of Panchayati Raj LGD page](https://panchayat.gov.in/en/lgd/), [LGD live directory portal](https://lgdirectory.gov.in/), [OGD LGD catalog](https://www.data.gov.in/catalog/local-government-directory-lgd), [OGD Districts resource](https://www.data.gov.in/resource/local-government-directory-lgd-districts).
+- Next action: obtain an export from the live LGD portal (its download flow may require captcha) or a verifiable official data/API response, save source URL/date/checksum, then compare State, District, and Sub-district codes and parent mappings. No new export has yet been downloaded, so no current-data reconciliation is claimed.
