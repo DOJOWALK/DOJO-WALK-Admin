@@ -343,3 +343,12 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [ ] The fixture correction is committed as `643d0c310a981ea88b5d712664f326bc2c07ffe2`; inspect the new CI result before marking tests passed.
 - [ ] No production Firebase writes/imports/deployment occurred. Official LGD row-level reconciliation and robust geographic polygon validation remain pending; PR #6 stays open.
 
+## Step 34 — Polygon geometry validation hardening (2026-10-17)
+
+- [x] Run 191 completed successfully: Python LGD reconciliation tests, Flutter analysis, Flutter unit tests, Firestore Emulator REST smoke test, and Flutter Web release build all passed. [Workflow run 191](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38971524233).
+- [x] Added geometry checks to `ServiceLocationBoundary.validate()`: reject zero-area/collinear rings, self-intersecting edges, and duplicate adjacent vertices; permit a conventional repeated closing vertex.
+- [x] Added focused tests for a valid triangle, repeated closing vertex, zero-area polygon, bow-tie self-intersection, and duplicate adjacent vertices.
+- [ ] New code/tests committed in `bd4b6b3605c892f9e948551abb4a9fe0108b7a09` and `24f59c4e43e0d445bb4058a312128bb9d3f4b283`; wait for their CI run before marking this step PASS.
+- [ ] This is basic planar geometry validation, not proof of authoritative boundaries, contiguity between neighboring areas, containment within parent polygons, or antimeridian-safe geodesic validity. Those remain required before operational service activation.
+- [ ] No production Firebase writes/imports/deployment occurred; PR #6 remains open.
+
