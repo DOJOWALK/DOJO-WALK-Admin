@@ -4,6 +4,11 @@ Last updated: 2026-10-17
 
 ## Current status
 
+- [x] Added an India State/UT reference dropdown to the Add Location dialog for State records, using the restored `india_states.dart` list.
+- [x] Added optional `lgdCode` support to `ServiceState` model parsing/serialization and persisted the code when selected; existing records without this field remain compatible.
+- [ ] Validate the state picker/model changes with the latest GitHub Actions run before proceeding to District and Sub-district selectors.
+- [ ] State reference records are restored user-provided LGD-derived data; official live LGD reconciliation is still required before production imports.
+
 - [x] Previous structural audit recorded in the ChatGPT Library.
 - [x] Boundary dialog metadata omission fixed in commit `c572371cfd74a9888a66b2e51e7af1e20c627b62`.
 - [x] Project file structure documented in `docs/PROJECT_FILE_STRUCTURE.md`.
