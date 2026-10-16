@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../data/reference/india_locations/india_districts.dart';
 import '../../../data/reference/india_locations/india_location_filters.dart';
 import '../../../data/reference/india_locations/india_states.dart';
+import '../../../data/reference/india_locations/india_sub_districts.dart';
 import '../models/service_location_models.dart';
 import '../services/service_location_service.dart';
 
@@ -38,6 +39,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
   String? _areaId;
   IndiaState? _referenceState;
   IndiaDistrict? _referenceDistrict;
+  IndiaSubDistrict? _referenceSubDistrict;
 
   bool _saving = false;
 
@@ -118,6 +120,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
               stateId: city.stateId,
               cityId: city.id,
               name: name,
+              lgdCode: _referenceSubDistrict?.code,
               isServiceActive: false,
             ),
           );
@@ -233,6 +236,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
               _cityId = null;
               _areaId = null;
               _referenceDistrict = null;
+              _referenceSubDistrict = null;
             });
           },
         );
@@ -416,6 +420,89 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     );
   }
 
+  Widget _buildIndiaReferenceSubDistrictDropdown() {
+    if (_cityId == null) return const SizedBox.shrink();
+
+    return FutureBuilder<ServiceCity?>(
+      future: widget.service.getCity(_cityId!),
+      builder: (context, citySnapshot) {
+        final city = citySnapshot.data;
+        if (city == null || citySnapshot.hasError) {
+          return const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Sub-district reference list needs a saved District with an LGD code. Manual entry remains available.',
+                style: TextStyle(fontSize: 12, color: Colors.black54),
+              ),
+            ),
+          );
+        }
+
+        return StreamBuilder<List<ServiceState>>(
+          stream: widget.service.watchStates(countryId: city.countryId),
+          builder: (context, stateSnapshot) {
+            final matching = (stateSnapshot.data ?? [])
+                .where((state) => state.id == city.stateId);
+            if (matching.isEmpty ||
+                matching.first.lgdCode == null ||
+                city.lgdCode == null ||
+                city.lgdCode!.trim().isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.only(bottom: 12),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Sub-district reference list needs LGD codes on both the selected State and District. Manual entry remains available.',
+                    style: TextStyle(fontSize: 12, color: Colors.black54),
+                  ),
+                ),
+              );
+            }
+
+            final subDistricts = filterSubDistrictsForStateAndDistrict(
+              stateLgdCode: matching.first.lgdCode!,
+              districtLgdCode: city.lgdCode!,
+            );
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: DropdownButtonFormField<String>(
+                initialValue: _referenceSubDistrict?.code,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'India Sub-district reference (optional)',
+                  helperText: 'Filtered by both State and District LGD codes.',
+                  border: OutlineInputBorder(),
+                ),
+                items: subDistricts
+                    .map(
+                      (item) => DropdownMenuItem<String>(
+                        value: item.code,
+                        child: Text(item.name),
+                      ),
+                    )
+                    .toList(growable: false),
+                onChanged: _saving
+                    ? null
+                    : (code) {
+                        if (code == null) return;
+                        final selected = subDistricts.firstWhere(
+                          (item) => item.code == code,
+                        );
+                        setState(() {
+                          _referenceSubDistrict = selected;
+                          _nameController.text = selected.name;
+                        });
+                      },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildAreaDropdown() {
     if (_cityId == null) {
       return _dropdown<String>(
@@ -489,6 +576,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                             _areaId = null;
                             _referenceState = null;
                             _referenceDistrict = null;
+                            _referenceSubDistrict = null;
 
                             _nameController.clear();
                             _codeController.clear();
@@ -506,6 +594,8 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                 if (_level >= 2) _buildStateDropdown(),
 
                 if (_level == 2) _buildIndiaReferenceDistrictDropdown(),
+
+                if (_level == 3) _buildIndiaReferenceSubDistrictDropdown(),
 
                 if (_level >= 3) _buildCityDropdown(),
 
