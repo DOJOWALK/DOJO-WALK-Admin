@@ -562,3 +562,15 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - Latest relevant commits: rules `8319d4e348270b9c3d46cae6122b169b1c35d312`; rules tests `228029e3d8d94045a3c4df996fd590be47e12ddf`.
 - Remaining: verify the latest Actions run, add callable/emulator integration tests, reconcile Admin app boundary schema, and wire the Admin UI to call the backend before any merge/deployment.
 - No production deployment or activation has occurred.
+
+## Step 48 — Admin/Firebase boundary schema reconciliation (in progress)
+
+- [x] Compared Admin boundary model/service with the trusted activation Function.
+- [x] Found a real schema mismatch: Admin stores polygon vertices as Firestore `GeoPoint` values (read as `latitude`/`longitude`), while the Function originally accepted only `lat`/`lng`.
+- [x] Updated the Firebase feature branch geometry parser to accept both shapes while applying the same coordinate validation.
+- [x] Added two regression tests for Firestore GeoPoint-shaped City/Area polygons and containment.
+- [ ] Fresh GitHub Actions results for these newest commits still need confirmation.
+- [ ] Admin activation UI must call `activateServiceLocation`; direct client activation remains blocked by the draft rules.
+- [ ] No merge, deployment, import, or real service-location activation performed.
+
+Firebase feature branch commits: `86cbc63efb51dc895d9756cfb017f6b657558a72`, `1c65936526fa38f4cf7ced629a8282bfd01d2129`.
