@@ -248,3 +248,18 @@ The test file now covers State, District, and Sub-district hierarchy consistency
 - [ ] Keep PR #6 open; do not import into production Firebase or activate service locations until outstanding gates pass.
 
 Audit scope: static cross-file consistency only. No repository source files other than this status document were changed by this audit; no Firebase writes or deployments were performed.
+
+## Step 26 — Service Location activation and boundary code audit (2026-10-17)
+
+- [x] Reviewed `service_location_service.dart`, `service_location_boundary_service.dart`, `service_location_screen.dart`, `add_location_dialog.dart`, and `service_boundary_dialog.dart` at PR head commit `e6f2f22ef02e6cf38326f04b22056790c09e26af`.
+- [x] City activation requires active Country + active State and a verified polygon boundary; Area activation requires active Country + State + City and its own verified polygon boundary.
+- [x] Locality activation requires active Country + State + City + Area; an individual locality polygon is optional.
+- [x] Boundary verification and service activation are separate stages. Boundary service records verifier UID and server timestamp; verified boundaries are not editable/deletable through the reviewed service methods.
+- [x] Parent deactivation is blocked when active children exist; reparenting is blocked while child records exist.
+- [!] Boundary geometry validation is basic only: at least three distinct valid coordinates are checked. The reviewed validator does not establish polygon non-self-intersection, non-zero area, ring closure/normalization, or geographic correctness/contiguity.
+- [!] The boundary lookup checks status, points, source name/reference, verifier, and verified timestamp, but the audit did not establish that the polygon was compared against an authoritative map boundary.
+- [ ] Run UI/emulator integration tests for activation rejection/acceptance, parent-child deactivation, reparenting, boundary verification, and stale/missing boundary IDs.
+- [ ] Decide and test whether the product needs stricter polygon geometry validation and an authoritative boundary-source/review workflow before service activation.
+- [ ] Official LGD row-level reconciliation remains pending; keep PR #6 open and production import/service activation blocked until all required gates are met.
+
+Audit scope: static code review only. No source code was changed in this step; no production Firebase writes or deployment were performed.
