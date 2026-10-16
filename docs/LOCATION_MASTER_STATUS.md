@@ -427,3 +427,12 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [ ] Scope caveat: the new Dart tests use `fake_cloud_firestore`, not the Firestore Emulator server. Existing Node REST smoke test checks emulator persistence only and does not execute `markVerified()`; emulator-backed service integration coverage remains outstanding.
 - [ ] Official LGD row-level reconciliation, authoritative polygon provenance, robust geographic containment/adjacency checks, and Firestore rules/admin authorization review remain blockers before production activation.
 - [ ] No production Firebase writes, location imports, activations, or deployments. Keep PR #6 open.
+
+
+## Step 45 — Firestore authorization audit (2026-10-17)
+
+- [x] Inspected repository tree, `firebase.json`, `AuthGate`, and `AuthService`.
+- [x] Found a production-readiness blocker: no version-controlled `firestore.rules` file is present in this branch tree. Client-side `admin_users/{uid}.isActive` checks gate the UI, but cannot secure direct Firestore/API access on their own.
+- [x] Added [Step 45 audit report](LOCATION_MASTER_STEP_45.md) with minimum required rules and Emulator test cases.
+- [ ] Do not invent/deploy a ruleset without reviewing the current deployed rules and existing app access patterns. Obtain the canonical rules, commit them to version control, then add Emulator authorization tests.
+- [ ] Official LGD row-level reconciliation and authoritative polygon provenance/geographic verification remain pending. PR #6 remains open; no production Firebase rules/data/import/activation/deployment changes were made.
