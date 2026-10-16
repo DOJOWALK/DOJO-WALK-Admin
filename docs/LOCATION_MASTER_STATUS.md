@@ -481,3 +481,13 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [ ] Step 46 was user-confirmed PASS, but its exact GitHub Actions run URL is still not recorded.
 - [ ] No central Firestore Rules edits, production deployment, data import, or location activation occurred.
 - Next: retrieve central rules/test harness, implement emulator-backed cases, run workflow, and record the actual run URL.
+
+
+## Step 47 follow-up — Firestore security tests added; CI confirmation pending
+
+- [x] Located the correct central rules repository: `dojoplatform2026/DOJO-WALK-Firebase` (main).
+- [x] Added emulator-suite cases for Area boundary activation/mismatch, name-index authorization, import actor/role permissions, audit immutability, and active non-super-admin denial.
+- [ ] GitHub Actions result for the latest test commit has not yet been confirmed; do not mark these new tests PASS until the actual run is inspected.
+- [!] Rules audit found `validAreaActivation()` checks matching verified boundary metadata but does not itself enforce active/verified parent City state or polygon containment.
+- [ ] No production rules deployment, data import, or service activation was performed.
+- Details: [Firestore Security Test Coverage report](FIRESTORE_SECURITY_TEST_COVERAGE_STEP_47.md).
