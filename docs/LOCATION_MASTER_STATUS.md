@@ -234,3 +234,17 @@ The test file now covers State, District, and Sub-district hierarchy consistency
 - [ ] Official record-level comparison is still **PENDING** until original States/UTs, Districts, and Sub-districts exports are downloaded from the live LGD portal and compared. The tool's tests passing do not validate the actual data snapshot.
 - [ ] No Dart reference data was changed; PR #6 remains open/unmerged; production import and service activation remain blocked.
 
+## Step 25 — Combined reference-data internal audit (2026-10-17)
+
+- [x] Re-read the three generated Dart reference files from PR head commit `e6f2f22ef02e6cf38326f04b22056790c09e26af` and parsed the records for cross-file checks.
+- [x] Counts: 36 States/UTs, 785 Districts, 7,151 Sub-districts.
+- [x] State records: 36 unique LGD codes; all 36 CSV state codes are present in the Dart reference list.
+- [x] District records: 785 records and 785 unique district codes; no missing State parent; State names and State Census-code fields agree with the State Dart records for all district records.
+- [x] Sub-district records: 7,151 records and 7,151 unique sub-district codes; no missing State parent, no missing District parent, and no State/District parent-chain mismatch against the supplied State and District Dart files.
+- [x] Source snapshot dates in the Sub-district file are 2024-10-07 for all 7,151 records.
+- [ ] State CSV-to-Dart field comparison has 14 field-level differences requiring source review: local-name differences for Chhattisgarh and Odisha; Census 2011 code representation/value differences for Chandigarh, Delhi, Haryana, Himachal Pradesh, Jammu and Kashmir, Ladakh, Punjab, Rajasthan, Telangana, Dadra and Nagar Haveli and Daman and Diu, Uttarakhand, and Uttar Pradesh. These differences are flags, not yet proof of which side is authoritative. Preserve source values until resolved.
+- [ ] Obtain a current official LGD export and reconcile all State, District, and Sub-district rows, codes, names, and parent relationships. The internal cross-file audit does not establish current official completeness.
+- [ ] Full Flutter service-class ↔ Firestore Emulator integration run, geographic polygon validation, and remaining API review are still required.
+- [ ] Keep PR #6 open; do not import into production Firebase or activate service locations until outstanding gates pass.
+
+Audit scope: static cross-file consistency only. No repository source files other than this status document were changed by this audit; no Firebase writes or deployments were performed.
