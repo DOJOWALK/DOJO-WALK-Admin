@@ -19,6 +19,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Python for LGD CSV reconciliation tests
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Test LGD CSV reconciliation tool
+        run: python -m unittest discover -s tool_tests -v
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
