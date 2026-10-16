@@ -56,122 +56,134 @@ void main() {
     }
 
     test(
-      'City activation is rejected when no verified boundary exists',
+      'City activation delegates to the trusted backend without client writes',
       () async {
         final firestore = FakeFirebaseFirestore();
-        final service = ServiceLocationService(firestore: firestore);
-        final suffix = DateTime.now().microsecondsSinceEpoch.toString();
-        await seedParents(firestore, suffix: suffix);
-        await expectLater(
-          service.setCityServiceStatus(cityId: 'city-$suffix', isActive: true),
-          throwsA(isA<StateError>()),
+        String? calledType;
+        String? calledId;
+        final service = ServiceLocationService(
+          firestore: firestore,
+          activateLocation: ({
+            required String locationType,
+            required String locationId,
+          }) async {
+            calledType = locationType;
+            calledId = locationId;
+          },
         );
-        final snapshot = await firestore.collection('service_cities')
-            .doc('city-$suffix').get();
-        expect(snapshot.data()?['isServiceActive'], isNot(true));
-      },
-    );
-
-    test(
-      'City activation is rejected when its State is inactive',
-      () async {
-        final firestore = FakeFirebaseFirestore();
-        final service = ServiceLocationService(firestore: firestore);
-        final suffix = DateTime.now().microsecondsSinceEpoch.toString();
-        await seedParents(firestore, suffix: suffix, stateActive: false);
-        await seedVerifiedBoundary(
-          firestore,
-          locationId: 'city-$suffix',
-          locationType: 'city',
-        );
-        await expectLater(
-          service.setCityServiceStatus(cityId: 'city-$suffix', isActive: true),
-          throwsA(isA<StateError>()),
-        );
-        final snapshot = await firestore.collection('service_cities')
-            .doc('city-$suffix').get();
-        expect(snapshot.data()?['isServiceActive'], isNot(true));
-      },
-    );
-
-    test(
-      'Area activation is rejected when no verified boundary exists',
-      () async {
-        final firestore = FakeFirebaseFirestore();
-        final service = ServiceLocationService(firestore: firestore);
-        final suffix = DateTime.now().microsecondsSinceEpoch.toString();
-        await seedParents(firestore, suffix: suffix);
-        await seedVerifiedBoundary(
-          firestore,
-          locationId: 'city-$suffix',
-          locationType: 'city',
-        );
-        await service.setCityServiceStatus(cityId: 'city-$suffix', isActive: true);
-        await firestore.collection('service_areas').doc('area-$suffix').set({
-          'name': 'Area $suffix',
-          'countryId': 'c-$suffix',
-          'stateId': 's-$suffix',
-          'cityId': 'city-$suffix',
+        await firestore.collection('service_cities').doc('city-test').set({
+          'name': 'Test City',
           'isServiceActive': false,
         });
-        await expectLater(
-          service.setAreaServiceStatus(areaId: 'area-$suffix', isActive: true),
-          throwsA(isA<StateError>()),
-        );
-        final snapshot = await firestore.collection('service_areas')
-            .doc('area-$suffix').get();
-        expect(snapshot.data()?['isServiceActive'], isNot(true));
-      },
-    );
-
-    test(
-      'City activation succeeds with a verified City boundary',
-      () async {
-        final firestore = FakeFirebaseFirestore();
-        final service = ServiceLocationService(firestore: firestore);
-        final suffix = DateTime.now().microsecondsSinceEpoch.toString();
-        await seedParents(firestore, suffix: suffix);
-        await seedVerifiedBoundary(
-          firestore,
-          locationId: 'city-$suffix',
-          locationType: 'city',
-        );
 
         await service.setCityServiceStatus(
-          cityId: 'city-$suffix',
+          cityId: 'city-test',
           isActive: true,
         );
 
+        expect(calledType, 'city');
+        expect(calledId, 'city-test');
         final snapshot = await firestore.collection('service_cities')
-            .doc('city-$suffix').get();
-        expect(snapshot.data()?['isServiceActive'], isTrue);
-        expect(
-          snapshot.data()?['verifiedBoundaryId'],
-          'boundary-city-$suffix',
+            .doc('city-test').get();
+        expect(snapshot.data()?['isServiceActive'], isFalse,
+            reason: 'Client code must not activate a City directly.');
+      },
+    );
+
+    test(
+      'Area activation delegates to the trusted backend without client writes',
+      () async {
+        final firestore = FakeFirebaseFirestore();
+        String? calledType;
+        String? calledId;
+        final service = ServiceLocationService(
+          firestore: firestore,
+          activateLocation: ({
+            required String locationType,
+            required String locationId,
+          }) async {
+            calledType = locationType;
+            calledId = locationId;
+          },
+        );
+        await firestore.collection('service_areas').doc('area-test').set({
+          'name': 'Test Area',
+          'isServiceActive': false,
+        });
+
+        await service.setAreaServiceStatus(
+          areaId: 'area-test',
+          isActive: true,
+        );
+
+        expect(calledType, 'area');
+        expect(calledId, 'area-test');
+        final snapshot = await firestore.collection('service_areas')
+            .doc('area-test').get();
+        expect(snapshot.data()?['isServiceActive'], isFalse,
+            reason: 'Client code must not activate an Area directly.');
+      },
+    );
+
+    test(
+      'City activation propagates trusted backend validation failures',
+      () async {
+        final service = ServiceLocationService(
+          firestore: FakeFirebaseFirestore(),
+          activateLocation: ({
+            required String locationType,
+            required String locationId,
+          }) async {
+            throw StateError('Backend rejected activation.');
+          },
+        );
+
+        await expectLater(
+          service.setCityServiceStatus(cityId: 'city-rejected', isActive: true),
+          throwsA(isA<StateError>()),
         );
       },
     );
 
     test(
-      'City activation rejects a verified boundary belonging to another location type',
+      'Area activation propagates trusted backend validation failures',
       () async {
-        final firestore = FakeFirebaseFirestore();
-        final service = ServiceLocationService(firestore: firestore);
-        final suffix = DateTime.now().microsecondsSinceEpoch.toString();
-        await seedParents(firestore, suffix: suffix);
-        await seedVerifiedBoundary(
-          firestore,
-          locationId: 'city-$suffix',
-          locationType: 'area',
+        final service = ServiceLocationService(
+          firestore: FakeFirebaseFirestore(),
+          activateLocation: ({
+            required String locationType,
+            required String locationId,
+          }) async {
+            throw StateError('Backend rejected activation.');
+          },
         );
 
         await expectLater(
-          service.setCityServiceStatus(
-            cityId: 'city-$suffix',
-            isActive: true,
-          ),
+          service.setAreaServiceStatus(areaId: 'area-rejected', isActive: true),
           throwsA(isA<StateError>()),
         );
+      },
+    );
+
+    test(
+      'City activation rejects an empty ID before calling the backend',
+      () async {
+        var called = false;
+        final service = ServiceLocationService(
+          firestore: FakeFirebaseFirestore(),
+          activateLocation: ({
+            required String locationType,
+            required String locationId,
+          }) async {
+            called = true;
+          },
+        );
+
+        await expectLater(
+          service.setCityServiceStatus(cityId: '  ', isActive: true),
+          throwsA(isA<ArgumentError>()),
+        );
+        expect(called, isFalse);
       },
     );
 
