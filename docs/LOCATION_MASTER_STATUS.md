@@ -6,6 +6,8 @@ Last updated: 2026-10-17
 
 ## LGD code persistence and backward compatibility (Step 16)
 
+- [x] Service save-path audit found that merge writes could preserve an old `lgdCode` when the incoming model had no code; State, District, and Sub-district save maps now explicitly write the nullable field so stale codes can be cleared. Commit `4ea5535ae00a38d38a08338d008c159754c7ea9f`.
+- [ ] Verify this save-path fix through the latest CI and, before claiming Firestore end-to-end success, add/run emulator-backed integration coverage.
 - [x] Added model tests for State (integer LGD code), District and Sub-district (string LGD codes).
 - [x] Tests cover serialization/reload, copyWith retention, omission of null codes, and loading legacy records that have no lgdCode field.
 - [ ] Confirm these tests and the web release build pass in GitHub Actions on the latest commit.
