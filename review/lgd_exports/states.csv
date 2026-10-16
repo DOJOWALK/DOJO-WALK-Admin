@@ -1,4 +1,8 @@
-S.No.,State Code,State Version,State Name (In English),State Name (In Local),Census 2001 Code,Census 2011 Code,State or UT
+import 'dart:io';
+
+void main() async {
+  // CSV Headers aur Data
+  final String csvContent = '''S.No.,State Code,State Version,State Name (In English),State Name (In Local),Census 2001 Code,Census 2011 Code,State or UT
 1,35,1,Andaman And Nicobar Islands,ANDAMAN AND NICOBAR ISLANDS,35,35,U
 2,28,2,Andhra Pradesh,ANDHRA PRADESH,28,28,S
 3,12,1,Arunachal Pradesh,ARUNACHAL PRADESH,12,12,S
@@ -34,4 +38,11 @@ S.No.,State Code,State Version,State Name (In English),State Name (In Local),Cen
 33,16,1,Tripura,ত্রিপুরা,16,16,S
 34,5,1,Uttarakhand,UTTARAKHAND,5,5,S
 35,9,1,Uttar Pradesh,UTTAR PRADESH,9,9,S
-36,19,1,West Bengal,WEST BENGAL,19,19,S
+36,19,1,West Bengal,WEST BENGAL,19,19,S''';
+
+  // File create/write karna
+  final file = File('states.csv');
+  await file.writeAsString(csvContent);
+
+  print('File successfully saved as states.csv');
+}
