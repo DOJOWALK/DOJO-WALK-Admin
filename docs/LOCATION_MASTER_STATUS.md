@@ -7,10 +7,10 @@ Last updated: 2026-10-17
 ## LGD code persistence and backward compatibility (Step 16)
 
 - [x] Service save-path audit found that merge writes could preserve an old `lgdCode` when the incoming model had no code; State, District, and Sub-district save maps now explicitly write the nullable field so stale codes can be cleared. Commit `4ea5535ae00a38d38a08338d008c159754c7ea9f`.
-- [ ] Verify this save-path fix through the latest CI and, before claiming Firestore end-to-end success, add/run emulator-backed integration coverage.
+- [x] Latest CI verified the save-path fix: commit `f35ee9a` completed successfully (analysis, tests, Flutter Web release build). Emulator-backed Firestore integration coverage is still pending.
 - [x] Added model tests for State (integer LGD code), District and Sub-district (string LGD codes).
 - [x] Tests cover serialization/reload, copyWith retention, omission of null codes, and loading legacy records that have no lgdCode field.
-- [ ] Confirm these tests and the web release build pass in GitHub Actions on the latest commit.
+- [x] Confirmed model tests and Flutter Web release build pass in GitHub Actions on latest commit `f35ee9a` (run `38956005813`).
 - [ ] This is model-level serialization coverage, not a live Firestore round-trip test. A Firebase emulator/integration test is still needed before claiming end-to-end persistence.
 - [ ] Official LGD reconciliation, geographic boundary verification, and production import remain pending.
 
@@ -18,18 +18,18 @@ Last updated: 2026-10-17
 - [x] Added an optional India Sub-district reference dropdown for Area/Sub-district records. The options are filtered by both the selected State LGD code and the selected District LGD code.
 - [x] Added optional `lgdCode` support to `ServiceArea` parsing/serialization; a selected sub-district's code is saved with the Area record.
 - [x] Reset the Sub-district reference selection when its State, District, or location type parent changes to prevent stale code/name combinations.
-- [ ] Validate State → District → Sub-district UI and model changes in the latest GitHub Actions run before considering the reference selector step complete.
+- [x] Latest GitHub Actions passed for State → District → Sub-district UI/model changes on commit `f35ee9a`; emulator-backed Firestore verification remains separate.
 - [ ] The sub-district list is based on the restored 2024-10-07 snapshot; current official LGD reconciliation and geographic boundary verification are still required.
 
 
 - [x] Added an optional India District reference selector to the Add Location dialog. Its list filters district records by the selected saved State/UT LGD code.
 - [x] Added optional `lgdCode` support to `ServiceCity` serialization and parsing; the selected district code is saved with a newly created city/district record.
-- [ ] Validate the latest State and District picker commits through GitHub Actions before adding the Sub-district/Area picker.
+- [x] State and District picker changes are included in the successful CI validation on commit `f35ee9a`.
 - [ ] If a saved State has no LGD code, the dialog leaves manual district-name entry available; reference selection is not silently guessed.
 
 - [x] Added an India State/UT reference dropdown to the Add Location dialog for State records, using the restored `india_states.dart` list.
 - [x] Added optional `lgdCode` support to `ServiceState` model parsing/serialization and persisted the code when selected; existing records without this field remain compatible.
-- [ ] Validate the state picker/model changes with the latest GitHub Actions run before proceeding to District and Sub-district selectors.
+- [x] State picker/model changes passed the latest GitHub Actions validation on commit `f35ee9a`.
 - [ ] State reference records are restored user-provided LGD-derived data; official live LGD reconciliation is still required before production imports.
 
 - [x] Previous structural audit recorded in the ChatGPT Library.
