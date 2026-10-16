@@ -4,6 +4,11 @@ Last updated: 2026-10-17
 
 ## Current status
 
+- [x] Added an optional India District reference selector to the Add Location dialog. Its list filters district records by the selected saved State/UT LGD code.
+- [x] Added optional `lgdCode` support to `ServiceCity` serialization and parsing; the selected district code is saved with a newly created city/district record.
+- [ ] Validate the latest State and District picker commits through GitHub Actions before adding the Sub-district/Area picker.
+- [ ] If a saved State has no LGD code, the dialog leaves manual district-name entry available; reference selection is not silently guessed.
+
 - [x] Added an India State/UT reference dropdown to the Add Location dialog for State records, using the restored `india_states.dart` list.
 - [x] Added optional `lgdCode` support to `ServiceState` model parsing/serialization and persisted the code when selected; existing records without this field remain compatible.
 - [ ] Validate the state picker/model changes with the latest GitHub Actions run before proceeding to District and Sub-district selectors.
