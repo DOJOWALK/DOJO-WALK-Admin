@@ -12,12 +12,11 @@ import '../models/service_location_boundary.dart';
 /// Pending -> Rejected
 /// Rejected -> Pending (resubmission)
 ///
-/// Important:
+/// Security:
+/// - Firestore Security Rules remain authoritative.
 /// - Verified boundaries cannot be edited or deleted.
 /// - Only pending boundaries can be verified or rejected.
-/// - Resubmission requires a valid polygon and source metadata.
-/// - Firestore Security Rules must independently enforce
-///   administrator permissions.
+/// - Rejected boundaries may be edited and resubmitted.
 
 class ServiceLocationBoundaryService {
   final FirebaseFirestore _firestore;
@@ -137,11 +136,8 @@ class ServiceLocationBoundaryService {
     }
   }
 
-  void _requireEditableStatus(
-    String status,
-  ) {
-    if (status ==
-        BoundaryVerificationStatus.verified.name) {
+  void _requireEditableStatus(String status) {
+    if (status == BoundaryVerificationStatus.verified.name) {
       throw StateError(
         'Verified boundaries cannot be edited.',
       );
@@ -199,9 +195,7 @@ class ServiceLocationBoundaryService {
       );
     }
 
-    final normalizedType = locationType
-        ?.trim()
-        .toLowerCase();
+    final normalizedType = locationType?.trim().toLowerCase();
 
     return _boundaries
         .where('locationId', isEqualTo: id)
@@ -216,8 +210,7 @@ class ServiceLocationBoundaryService {
         );
 
         if (normalizedType != null &&
-            boundary.locationType.toLowerCase() !=
-                normalizedType) {
+            boundary.locationType.toLowerCase() != normalizedType) {
           continue;
         }
 
@@ -225,8 +218,7 @@ class ServiceLocationBoundaryService {
       }
 
       results.sort((a, b) {
-        final dateComparison =
-            b.updatedAt.compareTo(a.updatedAt);
+        final dateComparison = b.updatedAt.compareTo(a.updatedAt);
 
         if (dateComparison != 0) {
           return dateComparison;
@@ -241,10 +233,6 @@ class ServiceLocationBoundaryService {
 
   // ============================================================
   // SAVE / UPDATE BOUNDARY
-  //
-  // Existing pending or rejected boundaries can be edited.
-  // Saving an edited rejected boundary sends it back to pending.
-  // Verified boundaries cannot be overwritten.
   // ============================================================
 
   Future<String> saveDraft(
@@ -273,8 +261,6 @@ class ServiceLocationBoundaryService {
       );
     }
 
-    // This workflow requires source metadata before saving.
-    // Incomplete polygon geometry is not accepted.
     _throwIfInvalid(boundary);
 
     final document = boundary.id.trim().isEmpty
@@ -319,7 +305,8 @@ class ServiceLocationBoundaryService {
             BoundaryVerificationStatus.pending.name,
         'verifiedBy': null,
         'verifiedAt': null,
-        'verificationNotes': '',
+        // Required by the current Firestore create/update Rules.
+        'verificationNotes': null,
         'updatedAt': now,
       };
 
@@ -339,12 +326,6 @@ class ServiceLocationBoundaryService {
 
   // ============================================================
   // REQUEST VERIFICATION / RESUBMIT
-  //
-  // Supports:
-  // - Pending -> Pending after validation.
-  // - Rejected -> Pending after corrections.
-  //
-  // Does not allow Verified -> Pending.
   // ============================================================
 
   Future<void> requestVerification(
@@ -367,8 +348,7 @@ class ServiceLocationBoundaryService {
       final status =
           data['verificationStatus']?.toString() ?? '';
 
-      if (status ==
-          BoundaryVerificationStatus.verified.name) {
+      if (status == BoundaryVerificationStatus.verified.name) {
         throw StateError(
           'This boundary is already verified.',
         );
@@ -393,7 +373,8 @@ class ServiceLocationBoundaryService {
             BoundaryVerificationStatus.pending.name,
         'verifiedBy': null,
         'verifiedAt': null,
-        'verificationNotes': '',
+        // The current Rules require null when returning to pending.
+        'verificationNotes': null,
         'updatedAt': FieldValue.serverTimestamp(),
       });
     });
@@ -401,9 +382,6 @@ class ServiceLocationBoundaryService {
 
   // ============================================================
   // MARK VERIFIED
-  //
-  // Only a pending boundary can be verified.
-  // Reviewer notes are required.
   // ============================================================
 
   Future<void> markVerified({
@@ -426,11 +404,7 @@ class ServiceLocationBoundaryService {
       'Verification notes',
     );
 
-    final id = _required(
-      boundaryId,
-      'Boundary ID',
-    );
-
+    final id = _required(boundaryId, 'Boundary ID');
     final reference = _boundaries.doc(id);
 
     await _firestore.runTransaction((transaction) async {
@@ -442,10 +416,7 @@ class ServiceLocationBoundaryService {
 
       final data = snapshot.data()!;
 
-      final status =
-          data['verificationStatus']?.toString() ?? '';
-
-      if (status !=
+      if (data['verificationStatus'] !=
           BoundaryVerificationStatus.pending.name) {
         throw StateError(
           'Only pending boundaries can be verified.',
@@ -472,8 +443,6 @@ class ServiceLocationBoundaryService {
 
   // ============================================================
   // REJECT BOUNDARY
-  //
-  // Only a pending boundary can be rejected.
   // ============================================================
 
   Future<void> rejectBoundary({
@@ -491,16 +460,8 @@ class ServiceLocationBoundaryService {
       );
     }
 
-    final rejectionReason = _required(
-      reason,
-      'Rejection reason',
-    );
-
-    final id = _required(
-      boundaryId,
-      'Boundary ID',
-    );
-
+    final rejectionReason = _required(reason, 'Rejection reason');
+    final id = _required(boundaryId, 'Boundary ID');
     final reference = _boundaries.doc(id);
 
     await _firestore.runTransaction((transaction) async {
@@ -512,10 +473,7 @@ class ServiceLocationBoundaryService {
 
       final data = snapshot.data()!;
 
-      final status =
-          data['verificationStatus']?.toString() ?? '';
-
-      if (status !=
+      if (data['verificationStatus'] !=
           BoundaryVerificationStatus.pending.name) {
         throw StateError(
           'Only pending boundaries can be rejected.',
@@ -535,8 +493,6 @@ class ServiceLocationBoundaryService {
 
   // ============================================================
   // DELETE PENDING / REJECTED BOUNDARY
-  //
-  // Verified boundaries cannot be deleted.
   // ============================================================
 
   Future<void> deleteDraft(
@@ -544,11 +500,7 @@ class ServiceLocationBoundaryService {
   ) async {
     _currentUid;
 
-    final id = _required(
-      boundaryId,
-      'Boundary ID',
-    );
-
+    final id = _required(boundaryId, 'Boundary ID');
     final reference = _boundaries.doc(id);
 
     await _firestore.runTransaction((transaction) async {
@@ -560,10 +512,7 @@ class ServiceLocationBoundaryService {
 
       final data = snapshot.data()!;
 
-      final status =
-          data['verificationStatus']?.toString() ?? '';
-
-      if (status ==
+      if (data['verificationStatus'] ==
           BoundaryVerificationStatus.verified.name) {
         throw StateError(
           'Verified boundaries cannot be deleted.',
