@@ -95,5 +95,52 @@ void main() {
       final locality = await db.collection('service_localities').doc('loc-$suffix').get();
       expect(locality.exists, isFalse);
     });
+
+    test('Country cannot be deactivated while an active State exists', () async {
+      final db = FakeFirebaseFirestore();
+      final service = ServiceLocationService(firestore: db);
+      final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+      await seedBase(db, suffix);
+
+      await expectLater(
+        service.setCountryStatus(countryId: 'c-$suffix', isActive: false),
+        throwsA(isA<StateError>()),
+      );
+      final country = await db.collection('service_countries').doc('c-$suffix').get();
+      expect(country.data()?['isActive'], isTrue);
+    });
+
+    test('State cannot be deactivated while an active City exists', () async {
+      final db = FakeFirebaseFirestore();
+      final service = ServiceLocationService(firestore: db);
+      final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+      await seedBase(db, suffix);
+
+      await expectLater(
+        service.setStateStatus(stateId: 's-$suffix', isActive: false),
+        throwsA(isA<StateError>()),
+      );
+      final state = await db.collection('service_states').doc('s-$suffix').get();
+      expect(state.data()?['isActive'], isTrue);
+    });
+
+    test('State cannot be activated when its Country is inactive', () async {
+      final db = FakeFirebaseFirestore();
+      final service = ServiceLocationService(firestore: db);
+      final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+      await db.collection('service_countries').doc('c-$suffix').set({
+        'name': 'Country $suffix', 'code': 'TST', 'isActive': false,
+      });
+      await db.collection('service_states').doc('s-$suffix').set({
+        'name': 'State $suffix', 'countryId': 'c-$suffix', 'isActive': false,
+      });
+
+      await expectLater(
+        service.setStateStatus(stateId: 's-$suffix', isActive: true),
+        throwsA(isA<StateError>()),
+      );
+      final state = await db.collection('service_states').doc('s-$suffix').get();
+      expect(state.data()?['isActive'], isFalse);
+    });
   });
 }
