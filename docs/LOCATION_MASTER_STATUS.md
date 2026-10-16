@@ -502,3 +502,12 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [ ] Polygon containment is still not computed in Firestore Rules and needs a separate trusted-backend/security design.
 - [ ] No production Firebase deployment, location import, or activation was performed.
 - Details: [Firestore Security Test Coverage report](FIRESTORE_SECURITY_TEST_COVERAGE_STEP_47.md).
+
+
+## Test fixture review — 2026-10-17
+
+- [x] Reviewed parent City/boundary IDs in the committed emulator tests.
+- [x] Corrected the active parent City fixture to reference a verified boundary whose `locationId` is exactly `city-parent`; inactive-parent test now references that matching boundary too.
+- [ ] Emulator/Actions result remains unconfirmed; tests are not marked PASS.
+- [ ] Polygon containment remains a separate security gap; no production deployment/import/activation performed.
+- Test fix commit: `bafe724b628d7a4a79ae2569fdcc49827dca93f7` in `DOJO-WALK-Firebase/main`.
