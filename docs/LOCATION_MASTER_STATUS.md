@@ -16,6 +16,7 @@ Last updated: 2026-10-16
 - [ ] Finish sub-district API review and add integration tests for State → District → Sub-district filtering.
 - [ ] Run `flutter pub get` and `flutter build web --release`; record the actual CI/build result.
 - [ ] Reconcile reference counts and records against a current official LGD snapshot.
+- [ ] **Data-quality blocker:** `india_states.dart` contains 38 `IndiaState` records while its header claims 28 States + 8 UTs (36). Codes 37/38 represent Ladakh and the merged Dadra & Nagar Haveli/Daman & Diu UT, while historical/legacy rows may overlap; do not silently edit source values until reconciled against official LGD master data.
 - [ ] Complete UP/NCR targeted review.
 - [ ] Verify location boundaries and activation rules in the admin UI.
 - [ ] Do not import reference data into production Firebase until the above checks pass.
@@ -42,9 +43,13 @@ The following files now exist on the integration branch `restore/india-location-
 - `lib/data/reference/india_locations/india_districts.dart`
 - `lib/data/reference/india_locations/india_sub_districts.dart`
 
-The generated files were restored byte-for-byte from the Library. The GitHub blob SHAs and byte sizes were verified against the new branch. Their top-level names are `IndiaState/indiaStates`, `IndiaDistrict/indiaDistricts`, and `IndiaSubDistrict/indiaSubDistricts`. Repository code search did not return usages of those identifiers. The state model uses an integer `lgdCode`, whereas district records use a string `stateCode`; integration must normalize the comparison intentionally. The full Flutter build and automated checks have not been run for this branch.
+The generated files were restored byte-for-byte from the Library. The GitHub blob SHAs and byte sizes were verified against the new branch. Their top-level names are `IndiaState/indiaStates`, `IndiaDistrict/indiaDistricts`, and `IndiaSubDistrict/indiaSubDistricts`. Repository code search did not return usages of those identifiers. The state model uses an integer `lgdCode`, whereas district records use a string `stateCode`; integration must normalize the comparison intentionally. The full Flutter build and automated checks have not been run for this branch. A further static audit found a state-count inconsistency: the file contains 38 state records but its comment claims 36 current States/UTs. This is a merge blocker pending source reconciliation.
 
 Do not recreate the 7,151 records by hand or replace them with sample/partial data. Preserve the exact Library files and official codes when restoring.
+
+## Newly discovered data-quality blocker
+
+`india_states.dart` has 38 `IndiaState(...)` record entries (LGD codes include 1–24 with gaps, then 27–38), while its comment says the list contains 28 States and 8 Union Territories (36 total). This could reflect source/master-data history and must not be “fixed” by guessing. Compare every state record and the parent state codes used by district/sub-district records against a current official LGD snapshot before production use or merging this reference dataset.
 
 ## Boundary dialog fix
 
