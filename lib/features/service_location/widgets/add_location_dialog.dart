@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../data/reference/india_locations/india_districts.dart';
+import '../../../data/reference/india_locations/india_location_filters.dart';
 import '../../../data/reference/india_locations/india_states.dart';
 import '../models/service_location_models.dart';
 import '../services/service_location_service.dart';
@@ -35,6 +37,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
   String? _cityId;
   String? _areaId;
   IndiaState? _referenceState;
+  IndiaDistrict? _referenceDistrict;
 
   bool _saving = false;
 
@@ -94,6 +97,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
               countryId: _countryId!,
               stateId: _stateId!,
               name: name,
+              lgdCode: _referenceDistrict?.districtCode,
               isServiceActive: false,
             ),
           );
@@ -308,6 +312,68 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     );
   }
 
+  Widget _buildIndiaReferenceDistrictDropdown() {
+    if (_countryId == null || _stateId == null) {
+      return const SizedBox.shrink();
+    }
+
+    return StreamBuilder<List<ServiceState>>(
+      stream: widget.service.watchStates(countryId: _countryId!),
+      builder: (context, snapshot) {
+        final states = snapshot.data ?? [];
+        final matchingStates = states.where((state) => state.id == _stateId);
+        if (matchingStates.isEmpty || matchingStates.first.lgdCode == null) {
+          return const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'District reference list requires a State selected from the India reference list. You can still enter the name manually.',
+                style: TextStyle(fontSize: 12, color: Colors.black54),
+              ),
+            ),
+          );
+        }
+
+        final districts = filterDistrictsForStateLgdCode(
+          matchingStates.first.lgdCode!,
+        );
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: DropdownButtonFormField<String>(
+            initialValue: _referenceDistrict?.districtCode,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'India District reference (optional)',
+              helperText: 'Filtered by the selected State / UT.',
+              border: OutlineInputBorder(),
+            ),
+            items: districts
+                .map(
+                  (district) => DropdownMenuItem<String>(
+                    value: district.districtCode,
+                    child: Text(district.districtName),
+                  ),
+                )
+                .toList(growable: false),
+            onChanged: _saving
+                ? null
+                : (code) {
+                    if (code == null) return;
+                    final selected = districts.firstWhere(
+                      (district) => district.districtCode == code,
+                    );
+                    setState(() {
+                      _referenceDistrict = selected;
+                      _nameController.text = selected.districtName;
+                    });
+                  },
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildCityDropdown() {
     if (_countryId == null || _stateId == null) {
       return _dropdown<String>(
@@ -420,6 +486,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                             _cityId = null;
                             _areaId = null;
                             _referenceState = null;
+                            _referenceDistrict = null;
 
                             _nameController.clear();
                             _codeController.clear();
@@ -435,6 +502,8 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                 if (_level == 1) _buildIndiaReferenceStateDropdown(),
 
                 if (_level >= 2) _buildStateDropdown(),
+
+                if (_level == 2) _buildIndiaReferenceDistrictDropdown(),
 
                 if (_level >= 3) _buildCityDropdown(),
 
