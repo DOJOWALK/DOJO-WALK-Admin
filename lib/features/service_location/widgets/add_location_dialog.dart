@@ -311,6 +311,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
               _cityId = null;
               _areaId = null;
               _referenceDistrict = null;
+              _referenceSubDistrict = null;
             });
           },
         );
