@@ -13,7 +13,7 @@ void main() {
   setUpAll(() async {
     if (!emulatorEnabled) return;
 
-    final parts = emulatorHost!.split(':');
+    final parts = emulatorHost.split(':');
     final host = parts.first;
     final port = parts.length > 1 ? int.parse(parts.last) : 8080;
 
