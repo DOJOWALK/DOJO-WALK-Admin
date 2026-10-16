@@ -138,3 +138,11 @@ The test file now covers State, District, and Sub-district hierarchy consistency
 - These helpers are reference-data utilities; the Service Locations screen/Firestore import flow has not yet been wired to them. UI/API integration review remains pending.
 - Validation is running for the latest commits: [run 38953242437](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38953242437). Do not count the new filter tests as passing until this run completes successfully.
 - Official current LGD exports, record-by-record reconciliation, and boundary validation remain pending. PR #6 remains open.
+
+
+## CI failure and correction (2026-10-17)
+
+- The first validation run after adding hierarchy-filter tests failed at `flutter analyze` because the reference files already contained helpers named `districtsForState` and `subDistrictsForDistrict`, causing ambiguous imports and mismatched signatures.
+- Corrected by giving the new pure helpers unique names: `filterDistrictsForStateLgdCode` and `filterSubDistrictsForStateAndDistrict`; updated tests to call those names and removed an unused import.
+- The failed run was [38953285492](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38953285492). A fresh CI run must confirm the correction; until then, do not claim the new tests pass.
+- No Firebase deployment or production data import was performed. Official LGD reconciliation and screen/import integration remain pending.
