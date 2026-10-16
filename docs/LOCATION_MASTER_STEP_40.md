@@ -8,12 +8,14 @@ Pull request: [#6 — Restore India location reference data](https://github.com/
 
 GitHub Actions run [38973920698](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38973920698) passed all validation stages.
 
-## Step 40 — Boundary-required activation regression tests: CI pending
+## Step 40 — Boundary-required activation regression tests: PASS
 
 Added regression tests that confirm:
 - A City cannot be activated without a verified polygon boundary.
 - An Area cannot be activated without a verified polygon boundary.
 - A failed activation leaves the location inactive.
+
+GitHub Actions run [38974326242](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38974326242) completed successfully. Python reconciliation-tool tests, Flutter dependency resolution, static analysis, Flutter unit tests, Firestore Emulator persistence smoke test, and Flutter Web release build all passed.
 
 These tests verify the service activation gate only. They do **not** prove that a polygon is an official, contiguous, correctly contained geographic boundary.
 
