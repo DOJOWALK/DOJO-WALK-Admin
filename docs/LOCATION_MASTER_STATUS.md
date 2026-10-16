@@ -276,3 +276,21 @@ Audit scope: static code review only. No source code was changed in this step; n
 - [ ] Official LGD row-level reconciliation and geographic polygon validation remain pending. Keep PR #6 open and production import/service activation blocked until all required gates pass.
 
 Audit scope: static review of the current named tests and workflow only. No source code was changed; no production Firebase writes or deployment were performed.
+
+## Step 28 — Activation guard integration tests added (2026-10-17)
+
+- [x] Added four Firestore Emulator integration cases to `test/service_location_firestore_emulator_test.dart`:
+  1. City activation fails without a verified boundary.
+  2. City activation fails when its parent State is inactive, even if a verified boundary exists.
+  3. Area activation fails without its own verified boundary.
+  4. City deactivation fails while an active Area child exists.
+- [x] Updated `.github/workflows/validate_flutter_web.yml` so the Firestore Emulator workflow step runs the existing Node smoke test and then executes the Dart service-location integration test with `FIRESTORE_EMULATOR_HOST=127.0.0.1:8080`. This avoids silently skipping the emulator-only tests during CI.
+- [ ] These new tests have been committed but are not yet marked PASS; wait for the CI workflow result and inspect any failures.
+- [ ] Additional cases remain: wrong-parent hierarchy, reparenting while children exist, country/state deactivation constraints, locality activation with no locality polygon, and successful activation with a verified boundary.
+- [ ] Official LGD row-level reconciliation and robust geographic polygon validation remain pending. Keep PR #6 open and production import/service activation blocked until all required gates pass.
+
+Commit sequence:
+- Test additions: `1200cb3ec12803e6d04c88e7a917869ee1769025`
+- Emulator CI execution: `34f387b476515f4ee85f64ed556599b4fe94e1f8`
+
+Audit scope: test and CI configuration changes only. No production Firebase writes or deployment were performed.
