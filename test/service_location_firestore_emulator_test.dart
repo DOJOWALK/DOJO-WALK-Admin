@@ -33,6 +33,163 @@ void main() {
     );
   });
 
+
+  group('Service location activation guards', () {
+    Future<void> seedParents(
+      FirebaseFirestore firestore, {
+      required String suffix,
+      bool countryActive = true,
+      bool stateActive = true,
+      bool cityActive = true,
+    }) async {
+      await firestore.collection('service_countries').doc('c-$suffix').set({
+        'name': 'Country $suffix',
+        'code': 'TST-$suffix',
+        'isActive': countryActive,
+      });
+      await firestore.collection('service_states').doc('s-$suffix').set({
+        'name': 'State $suffix',
+        'countryId': 'c-$suffix',
+        'isActive': stateActive,
+      });
+      await firestore.collection('service_cities').doc('city-$suffix').set({
+        'name': 'City $suffix',
+        'countryId': 'c-$suffix',
+        'stateId': 's-$suffix',
+        'isServiceActive': cityActive,
+      });
+    }
+
+    Future<void> seedVerifiedBoundary(
+      FirebaseFirestore firestore, {
+      required String locationId,
+      required String locationType,
+    }) async {
+      await firestore.collection('service_location_boundaries')
+          .doc('boundary-$locationId')
+          .set({
+        'locationId': locationId,
+        'locationType': locationType,
+        'points': const [
+          GeoPoint(28.0, 77.0),
+          GeoPoint(28.1, 77.0),
+          GeoPoint(28.1, 77.1),
+        ],
+        'sourceType': 'importedGeoJson',
+        'sourceName': 'Test source',
+        'sourceReference': 'test://boundary',
+        'verificationStatus': 'verified',
+        'verifiedBy': 'test-admin',
+        'verifiedAt': Timestamp.now(),
+      });
+    }
+
+    test(
+      'City activation is rejected when no verified boundary exists',
+      () async {
+        final firestore = FirebaseFirestore.instance;
+        final service = ServiceLocationService(firestore: firestore);
+        final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+        await seedParents(firestore, suffix: suffix);
+        await expectLater(
+          service.setCityServiceStatus(cityId: 'city-$suffix', isActive: true),
+          throwsA(isA<StateError>()),
+        );
+        final snapshot = await firestore.collection('service_cities')
+            .doc('city-$suffix').get();
+        expect(snapshot.data()?['isServiceActive'], isNot(true));
+      },
+      skip: !emulatorEnabled
+          ? 'Set FIRESTORE_EMULATOR_HOST to run this integration test.'
+          : false,
+    );
+
+    test(
+      'City activation is rejected when its State is inactive',
+      () async {
+        final firestore = FirebaseFirestore.instance;
+        final service = ServiceLocationService(firestore: firestore);
+        final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+        await seedParents(firestore, suffix: suffix, stateActive: false);
+        await seedVerifiedBoundary(
+          firestore,
+          locationId: 'city-$suffix',
+          locationType: 'city',
+        );
+        await expectLater(
+          service.setCityServiceStatus(cityId: 'city-$suffix', isActive: true),
+          throwsA(isA<StateError>()),
+        );
+        final snapshot = await firestore.collection('service_cities')
+            .doc('city-$suffix').get();
+        expect(snapshot.data()?['isServiceActive'], isNot(true));
+      },
+      skip: !emulatorEnabled
+          ? 'Set FIRESTORE_EMULATOR_HOST to run this integration test.'
+          : false,
+    );
+
+    test(
+      'Area activation is rejected when no verified boundary exists',
+      () async {
+        final firestore = FirebaseFirestore.instance;
+        final service = ServiceLocationService(firestore: firestore);
+        final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+        await seedParents(firestore, suffix: suffix);
+        await seedVerifiedBoundary(
+          firestore,
+          locationId: 'city-$suffix',
+          locationType: 'city',
+        );
+        await service.setCityServiceStatus(cityId: 'city-$suffix', isActive: true);
+        await firestore.collection('service_areas').doc('area-$suffix').set({
+          'name': 'Area $suffix',
+          'countryId': 'c-$suffix',
+          'stateId': 's-$suffix',
+          'cityId': 'city-$suffix',
+          'isServiceActive': false,
+        });
+        await expectLater(
+          service.setAreaServiceStatus(areaId: 'area-$suffix', isActive: true),
+          throwsA(isA<StateError>()),
+        );
+        final snapshot = await firestore.collection('service_areas')
+            .doc('area-$suffix').get();
+        expect(snapshot.data()?['isServiceActive'], isNot(true));
+      },
+      skip: !emulatorEnabled
+          ? 'Set FIRESTORE_EMULATOR_HOST to run this integration test.'
+          : false,
+    );
+
+    test(
+      'City deactivation is rejected while an active Area exists',
+      () async {
+        final firestore = FirebaseFirestore.instance;
+        final service = ServiceLocationService(firestore: firestore);
+        final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+        await seedParents(firestore, suffix: suffix);
+        await firestore.collection('service_areas').doc('area-$suffix').set({
+          'name': 'Area $suffix',
+          'countryId': 'c-$suffix',
+          'stateId': 's-$suffix',
+          'cityId': 'city-$suffix',
+          'isServiceActive': true,
+        });
+        await expectLater(
+          service.setCityServiceStatus(cityId: 'city-$suffix', isActive: false),
+          throwsA(isA<StateError>()),
+        );
+        final snapshot = await firestore.collection('service_cities')
+            .doc('city-$suffix').get();
+        expect(snapshot.data()?['isServiceActive'], isTrue);
+      },
+      skip: !emulatorEnabled
+          ? 'Set FIRESTORE_EMULATOR_HOST to run this integration test.'
+          : false,
+    );
+  });
+
   group('Service location Firestore emulator persistence', () {
     test(
       'saves, reloads, and clears LGD codes for State, District, and Area',
