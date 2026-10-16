@@ -1,49 +1,10 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dojo_admin/features/service_location/models/service_location_models.dart';
 import 'package:dojo_admin/features/service_location/services/service_location_service.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_core_platform_interface/test.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-  final emulatorHost = Platform.environment['FIRESTORE_EMULATOR_HOST'];
-  final emulatorEnabled = emulatorHost != null && emulatorHost.isNotEmpty;
-
-  setUpAll(() async {
-    if (!emulatorEnabled) return;
-
-    final parts = emulatorHost.split(':');
-    final host = parts.first;
-    final port = parts.length > 1 ? int.parse(parts.last) : 8080;
-
-    setupFirebaseCoreMocks();
-    // Some test/plugin setups may already register the default app. Avoid
-    // initializing it twice while still ensuring the emulator test has one.
-    try {
-      await Firebase.initializeApp(
-        options: const FirebaseOptions(
-          apiKey: 'fake-api-key',
-          appId: '1:123456789:web:dojo-admin-test',
-          messagingSenderId: '123456789',
-          projectId: 'demo-dojo-walk',
-        ),
-      );
-    } on FirebaseException catch (error) {
-      // The test platform may have already registered the default app through
-      // its mock host API. Continue only for that specific duplicate-app case.
-      if (error.code != 'duplicate-app') rethrow;
-    }
-
-    FirebaseFirestore.instance.useFirestoreEmulator(host, port);
-    FirebaseFirestore.instance.settings = const Settings(
-      persistenceEnabled: false,
-    );
-  });
-
-
   group('Service location activation guards', () {
     Future<void> seedParents(
       FirebaseFirestore firestore, {
@@ -97,7 +58,7 @@ void main() {
     test(
       'City activation is rejected when no verified boundary exists',
       () async {
-        final firestore = FirebaseFirestore.instance;
+        final firestore = FakeFirebaseFirestore();
         final service = ServiceLocationService(firestore: firestore);
         final suffix = DateTime.now().microsecondsSinceEpoch.toString();
         await seedParents(firestore, suffix: suffix);
@@ -109,15 +70,12 @@ void main() {
             .doc('city-$suffix').get();
         expect(snapshot.data()?['isServiceActive'], isNot(true));
       },
-      skip: !emulatorEnabled
-          ? 'Set FIRESTORE_EMULATOR_HOST to run this integration test.'
-          : false,
     );
 
     test(
       'City activation is rejected when its State is inactive',
       () async {
-        final firestore = FirebaseFirestore.instance;
+        final firestore = FakeFirebaseFirestore();
         final service = ServiceLocationService(firestore: firestore);
         final suffix = DateTime.now().microsecondsSinceEpoch.toString();
         await seedParents(firestore, suffix: suffix, stateActive: false);
@@ -134,15 +92,12 @@ void main() {
             .doc('city-$suffix').get();
         expect(snapshot.data()?['isServiceActive'], isNot(true));
       },
-      skip: !emulatorEnabled
-          ? 'Set FIRESTORE_EMULATOR_HOST to run this integration test.'
-          : false,
     );
 
     test(
       'Area activation is rejected when no verified boundary exists',
       () async {
-        final firestore = FirebaseFirestore.instance;
+        final firestore = FakeFirebaseFirestore();
         final service = ServiceLocationService(firestore: firestore);
         final suffix = DateTime.now().microsecondsSinceEpoch.toString();
         await seedParents(firestore, suffix: suffix);
@@ -167,15 +122,12 @@ void main() {
             .doc('area-$suffix').get();
         expect(snapshot.data()?['isServiceActive'], isNot(true));
       },
-      skip: !emulatorEnabled
-          ? 'Set FIRESTORE_EMULATOR_HOST to run this integration test.'
-          : false,
     );
 
     test(
       'City deactivation is rejected while an active Area exists',
       () async {
-        final firestore = FirebaseFirestore.instance;
+        final firestore = FakeFirebaseFirestore();
         final service = ServiceLocationService(firestore: firestore);
         final suffix = DateTime.now().microsecondsSinceEpoch.toString();
         await seedParents(firestore, suffix: suffix);
@@ -194,17 +146,14 @@ void main() {
             .doc('city-$suffix').get();
         expect(snapshot.data()?['isServiceActive'], isTrue);
       },
-      skip: !emulatorEnabled
-          ? 'Set FIRESTORE_EMULATOR_HOST to run this integration test.'
-          : false,
     );
   });
 
-  group('Service location Firestore emulator persistence', () {
+  group('Service location Firestore service persistence', () {
     test(
       'saves, reloads, and clears LGD codes for State, District, and Area',
       () async {
-        final firestore = FirebaseFirestore.instance;
+        final firestore = FakeFirebaseFirestore();
         final service = ServiceLocationService(firestore: firestore);
         final suffix = DateTime.now().microsecondsSinceEpoch.toString();
         final countryId = 'test-country-$suffix';
@@ -293,9 +242,6 @@ void main() {
           reason: 'A merge save must not retain a previous Sub-district LGD code.',
         );
       },
-      skip: !emulatorEnabled
-          ? 'Set FIRESTORE_EMULATOR_HOST to run this integration test.'
-          : false,
     );
   });
 }
