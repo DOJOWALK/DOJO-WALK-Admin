@@ -305,3 +305,13 @@ Audit scope: test and CI configuration changes only. No production Firebase writ
 - [ ] Official LGD row-level reconciliation and robust geographic polygon validation remain pending. Keep PR #6 open and production import/service activation blocked until required gates pass.
 
 Failure evidence: Node emulator smoke checks passed; Dart test setup failed before test execution. No production Firebase access or deployment occurred.
+
+## Step 30 — Duplicate Firebase app initialization identified (2026-10-17)
+
+- [x] Checked CI runs after Step 29. Python reconciliation tests, Flutter analysis, and standard Flutter unit tests passed.
+- [x] Node Firestore Emulator REST smoke test passed for State, City, and Area LGD-code save/read/clear.
+- [x] The Dart emulator test now gets past the earlier Firebase Core channel error, but setup failed before any tests ran with `[core/duplicate-app] A Firebase App named "[DEFAULT]" already exists`.
+- [x] Updated `test/service_location_firestore_emulator_test.dart` to initialize the default Firebase app only when `Firebase.apps.isEmpty`.
+- [ ] This correction is committed as `c56b8c48fbcd2ae8076725c23cd03ba1bfae4af4`; its CI run must complete and be inspected before treating emulator integration tests as passing.
+- [ ] Official LGD row-level reconciliation and robust geographic polygon validation remain pending. Keep PR #6 open; no production Firebase writes, imports, or deployments were performed.
+
