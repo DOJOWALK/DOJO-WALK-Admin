@@ -294,3 +294,14 @@ Commit sequence:
 - Emulator CI execution: `34f387b476515f4ee85f64ed556599b4fe94e1f8`
 
 Audit scope: test and CI configuration changes only. No production Firebase writes or deployment were performed.
+
+## Step 29 — CI failure inspected and Firebase Core test setup adjusted (2026-10-17)
+
+- [x] Inspected GitHub Actions job logs for the Firestore Emulator step.
+- [x] Node Firestore Emulator smoke test passed for State, City, and Area LGD-code save/read/clear.
+- [x] Confirmed the Dart emulator test failed in `setUpAll` before any Dart test ran, with `PlatformException(channel-error ... FirebaseCoreHostApi.initializeCore)`.
+- [x] Added `firebase_core_platform_interface/test.dart` test support and `setupFirebaseCoreMocks()` before `Firebase.initializeApp` to mock the Firebase Core host API.
+- [ ] The adjustment is not yet verified by a subsequent successful CI run. Firestore plugin platform support may also need a different test strategy; do not mark the activation integration tests as passed until the job confirms it.
+- [ ] Official LGD row-level reconciliation and robust geographic polygon validation remain pending. Keep PR #6 open and production import/service activation blocked until required gates pass.
+
+Failure evidence: Node emulator smoke checks passed; Dart test setup failed before test execution. No production Firebase access or deployment occurred.
