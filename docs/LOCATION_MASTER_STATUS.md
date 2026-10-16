@@ -1,6 +1,6 @@
 # DOJO WALK Location Master — Project Status
 
-Last updated: 2026-10-16
+Last updated: 2026-10-17
 
 ## Current status
 
@@ -19,11 +19,11 @@ Last updated: 2026-10-16
 - [x] Removed the three unused-code warnings and updated all six deprecated dropdown usages to `initialValue`.
 - [x] Latest run `38950826261` confirmed `flutter analyze` passes with `No issues found!`.
 - [x] Validation workflow adjusted in commit `1a1309a1d151f0d65f941539f981ffe7bcca0d19`: this repository currently has no `test/` directory, so the test step now reports a clear skip instead of failing before the web build.
-- [ ] Confirm the new commit's workflow completes, including `flutter build web --release`; no successful release build has been confirmed yet.
+- [x] GitHub Actions PR validation run `38951129623` completed successfully on commit `6e9ae122fdd6a0b8e25e170da94d1e62a0080d09`: dependencies installed, `flutter analyze` passed, conditional test step passed by skipping because `test/` is absent, and `flutter build web --release` passed. This is a non-deploying CI build, not a Firebase deployment.
 - [ ] Reconcile reference counts and records against a current official LGD snapshot.
 - [x] State record-count check corrected: the file contains **36 records with 36 unique LGD codes** (the 38 seen previously were the first and last code values, not the record count). The header's 28 States + 8 UTs = 36 is internally consistent. Codes 37/38 are included in the 36 records.
 - [x] Parent integrity audit on the restored branch: 785 districts / 785 unique district codes; 7,151 sub-districts / 7,151 unique sub-district codes; no missing state parents, no state-name mismatches, no missing sub-district district parents, and no sub-district/district parent-name mismatches detected in the supplied files.
-- [ ] Verify current official LGD source and update freshness; internal consistency does not prove that the 2024-10-07 snapshot is current.
+- [x] Official-source discovery started: the Government of India OGD catalog for LGD lists the Districts dataset as updated 2026-10-08 and the overall LGD catalog as updated 2026-10-09. This confirms a newer official catalog exists, but the actual latest export has not yet been downloaded and compared record-by-record; freshness reconciliation remains pending.
 - [x] UP/NCR parent-chain spot-check completed for Gautam Buddha Nagar, Ghaziabad, Hapur, Meerut, Bulandshahr, Baghpat, Shamli, and Muzaffarnagar: every checked sub-district points to the expected UP state code and district code/name in the supplied snapshot.
 - [ ] Complete full NCR review, including current official district coverage and map-boundary validation.
 - [ ] Verify location boundaries and activation rules in the admin UI.
@@ -51,7 +51,7 @@ The following files now exist on the integration branch `restore/india-location-
 - `lib/data/reference/india_locations/india_districts.dart`
 - `lib/data/reference/india_locations/india_sub_districts.dart`
 
-The generated files were restored byte-for-byte from the Library. The GitHub blob SHAs and byte sizes were verified against the new branch. Their top-level names are `IndiaState/indiaStates`, `IndiaDistrict/indiaDistricts`, and `IndiaSubDistrict/indiaSubDistricts`. Repository code search did not return usages of those identifiers. The state model uses an integer `lgdCode`, whereas district records use a string `stateCode`; integration must normalize the comparison intentionally. A separate validation-only GitHub Actions workflow has run. `flutter pub get` passed, and the latest checked run passed `flutter analyze` with no issues. Its test step failed because this repository has no `test/` directory, not because a test assertion failed; commit `1a1309a1d151f0d65f941539f981ffe7bcca0d19` changes this step to report that coverage gap and continue to the release web build. The new commit's workflow result still needs checking. The workflow does not deploy to Firebase. Do not merge until a release web build succeeds and the missing automated tests are considered. A follow-up parser audit confirmed 36 state records with 36 unique LGD codes; the earlier “38 records” warning was incorrect and has been corrected. The hierarchy audit found no missing or mismatched parent codes/names across the restored state, district, and sub-district datasets. Current official LGD freshness validation and a successful Flutter web build remain pending.
+The generated files were restored byte-for-byte from the Library. The GitHub blob SHAs and byte sizes were verified against the new branch. Their top-level names are `IndiaState/indiaStates`, `IndiaDistrict/indiaDistricts`, and `IndiaSubDistrict/indiaSubDistricts`. Repository code search did not return usages of those identifiers. The state model uses an integer `lgdCode`, whereas district records use a string `stateCode`; integration must normalize the comparison intentionally. A separate validation-only GitHub Actions workflow has run. `flutter pub get` passed, and the latest checked run passed `flutter analyze` with no issues. Its test step failed because this repository has no `test/` directory, not because a test assertion failed; commit `1a1309a1d151f0d65f941539f981ffe7bcca0d19` changes this step to report that coverage gap and continue to the release web build. The latest PR validation run `38951129623` completed successfully, including the Flutter web release build. The workflow does not deploy to Firebase. Do not merge until a release web build succeeds and the missing automated tests are considered. A follow-up parser audit confirmed 36 state records with 36 unique LGD codes; the earlier “38 records” warning was incorrect and has been corrected. The hierarchy audit found no missing or mismatched parent codes/names across the restored state, district, and sub-district datasets. The Flutter web release build now passes in CI. Current official LGD record-by-record reconciliation remains pending.
 
 Do not recreate the 7,151 records by hand or replace them with sample/partial data. Preserve the exact Library files and official codes when restoring.
 
@@ -66,7 +66,7 @@ Static parsing of the restored files produced these results:
 - Sub-district district parents: no missing `(stateCode, districtCode)` parent pairs and no district-name mismatches found.
 - Uttar Pradesh: 75 district records and 350 sub-district records. NCR spot-check: Gautam Buddha Nagar (3: Gautam Buddha Nagar, Dadri, Jewar), Ghaziabad (3), Hapur (3), Meerut (3), Bulandshahr (7), Baghpat (3), Shamli (3), and Muzaffarnagar (4) all had matching state/district parent codes and names in this snapshot.
 
-Important limitation: this is an internal consistency audit of the supplied dataset, not proof that the snapshot is current or officially complete. Official LGD freshness reconciliation and Flutter build validation remain pending. The earlier note claiming 38 state records was incorrect; it counted the upper code value rather than the number of records and has been corrected.
+Important limitation: this is an internal consistency audit of the supplied dataset, not proof that the snapshot is current or officially complete. Flutter build validation now passes in CI; official LGD freshness reconciliation remains pending. The earlier note claiming 38 state records was incorrect; it counted the upper code value rather than the number of records and has been corrected.
 
 ## Boundary dialog fix
 
@@ -76,4 +76,4 @@ Commit: `c572371cfd74a9888a66b2e51e7af1e20c627b62`
 
 ## Next planned step
 
-Review the proposed branch, confirm no conflicting names/imports, then run formatting, analysis/tests, and the web build before merging. No production Firebase import or boundary activation is authorized by this status note.
+Download the newest official LGD state, district, and sub-district exports from the Government of India OGD/LGD sources and reconcile codes, names, additions, removals, and parent mappings against these restored files. Record differences and update the checksums/counts only after review. Then add State → District → Sub-district integration tests and continue the NCR boundary review. The validation workflow currently skips tests because the repository has no `test/` directory. Do not merge until official-data reconciliation and integration/API review are complete. No production Firebase import or boundary activation is authorized by this status note.
