@@ -1,6 +1,6 @@
 # DOJO WALK Location Master — Project Status
 
-## Latest CI result — Step 39 PASS
+## Latest CI result — Step 39 PASS; Step 40 pending
 
 - [x] Step 38 City hierarchy guard tests passed in GitHub Actions run [38973476430](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38973476430), including Flutter analysis/tests, Firestore Emulator persistence smoke test, and Flutter Web release build.
 - [x] Added a State reparent guard: an existing State cannot change Country while any child City exists.
@@ -11,6 +11,14 @@
 
 
 Last updated: 2026-10-17
+
+## Step 40 — Boundary-required activation tests: CI pending
+
+- [x] Added regression tests that City and Area activation are rejected without a verified polygon boundary.
+- [x] Tests assert the failed activation leaves the location inactive.
+- [ ] Step 40 GitHub Actions validation pending; do not mark PASS until the full workflow completes successfully.
+- [ ] These tests cover the activation gate, not official/contiguous polygon geometry or geographic containment.
+- [ ] Official LGD row-level reconciliation and authoritative polygon verification remain pending; production import/activation remains blocked.
 
 ## Step 39 — State reparent guard: PASS
 
