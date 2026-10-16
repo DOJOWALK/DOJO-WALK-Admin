@@ -10,7 +10,8 @@ Branch: `restore/india-location-reference-data`
 - [x] Test: an Area cannot be moved to a different City while child Localities exist.
 - [x] Test: saving a Locality is rejected when its supplied City does not match the selected Area's parent chain.
 - [x] Tests use `FakeFirebaseFirestore`; no production Firebase data is read or modified.
-- [ ] GitHub Actions validation is pending for this commit. Do not mark Step 36 PASS until Python tests, Flutter analyze/tests, Firestore Emulator smoke test, and Flutter Web release build all succeed.
+- [x] GitHub Actions validation passed for commit `d91067188337993e25c79adfd27355e7027a0134`: Python LGD CSV tests, Flutter analyze, Flutter unit tests, Firestore Emulator smoke test, and Flutter Web release build all succeeded. Run: https://github.com/dojoplatform2026/dojo-admin/actions/runs/38972812619.
+- [x] Step 36 PASS — all three hierarchy guard tests passed in CI.
 
 ## Remaining safety/data gates
 
