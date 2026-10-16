@@ -31,6 +31,15 @@ Last updated: 2026-10-17
 - [ ] Obtain an official downloadable export, calculate its checksum, and compare records/code parent chains before any reference-data edit.
 - [ ] Keep production import and activation blocked pending official reconciliation and polygon validation.
 
+## Step 24C — Ministry annual-report count cross-check
+
+- [x] Found the Ministry of Panchayati Raj Annual Report 2025–2026, section 10.9/page 78; its LGD dashboard reports figures as of 2025-12-31.
+- [x] Compared those historical totals against the local snapshot: States/UTs 36 vs 36; Districts 785 vs 778; Sub-districts 7,151 vs 7,071.
+- [x] Recorded the differences (+7 districts, +80 sub-districts) as reconciliation flags only; totals do not identify individual incorrect records.
+- [x] Saved the source and comparison in `docs/OFFICIAL_LGD_COUNT_CROSSCHECK_2025-12-31.md`.
+- [ ] Obtain current live LGD exports and reconcile every code/name/parent relationship. The Ministry dashboard is a historical aggregate, not a substitute for row-level exports.
+- [ ] Keep PR #6, production import, and service activation blocked until data differences and polygon boundaries are verified.
+
 ## Current status
 
 ## Firestore Emulator integration coverage (Step 18)
