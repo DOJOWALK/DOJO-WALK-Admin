@@ -85,43 +85,50 @@ void main() {
     });
   });
 
-    test('rejects latitude outside the valid geographic range', () {
-      final boundary = makeBoundary(const [
-        GeoPoint(91.0, 77.0),
-        GeoPoint(28.0, 77.1),
-        GeoPoint(28.1, 77.0),
+  group('Imported boundary coordinate validation', () {
+    ServiceLocationBoundary fromImportedPoints(List<Map<String, double>> points) {
+      return ServiceLocationBoundary.fromMap('boundary-1', {
+        'locationId': 'area-1',
+        'locationType': 'area',
+        'points': points,
+        'sourceType': 'importedGeoJson',
+        'sourceName': 'Test fixture',
+        'sourceReference': 'test://polygon',
+        'verificationStatus': 'pending',
+      });
+    }
+
+    test('safely rejects imported latitude outside valid range', () {
+      final boundary = fromImportedPoints([
+        {'latitude': 91, 'longitude': 77},
+        {'latitude': 28, 'longitude': 77.1},
+        {'latitude': 28.1, 'longitude': 77},
       ]);
 
-      expect(
-        boundary.validate(),
-        contains('Boundary point 1 is invalid.'),
-      );
+      expect(boundary.points, hasLength(2));
+      expect(boundary.validate(), contains('A polygon must contain at least three points.'));
     });
 
-    test('rejects longitude outside the valid geographic range', () {
-      final boundary = makeBoundary(const [
-        GeoPoint(28.0, 181.0),
-        GeoPoint(28.0, 77.1),
-        GeoPoint(28.1, 77.0),
+    test('safely rejects imported longitude outside valid range', () {
+      final boundary = fromImportedPoints([
+        {'latitude': 28, 'longitude': 181},
+        {'latitude': 28, 'longitude': 77.1},
+        {'latitude': 28.1, 'longitude': 77},
       ]);
 
-      expect(
-        boundary.validate(),
-        contains('Boundary point 1 is invalid.'),
-      );
+      expect(boundary.points, hasLength(2));
+      expect(boundary.validate(), contains('A polygon must contain at least three points.'));
     });
 
-    test('rejects non-finite polygon coordinates', () {
-      final boundary = makeBoundary([
-        GeoPoint(double.nan, 77.0),
-        const GeoPoint(28.0, 77.1),
-        const GeoPoint(28.1, 77.0),
+    test('safely rejects non-finite imported coordinates', () {
+      final boundary = fromImportedPoints([
+        {'latitude': double.nan, 'longitude': 77},
+        {'latitude': 28, 'longitude': 77.1},
+        {'latitude': 28.1, 'longitude': 77},
       ]);
 
-      expect(
-        boundary.validate(),
-        contains('Boundary point 1 is invalid.'),
-      );
+      expect(boundary.points, hasLength(2));
+      expect(boundary.validate(), contains('A polygon must contain at least three points.'));
     });
-
+  });
 }
