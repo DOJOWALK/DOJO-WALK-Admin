@@ -1,5 +1,18 @@
 # DOJO WALK Location Master — Project Status
 
+## Step 50 — Trusted City/Area activation callable integration tests (CI running)
+
+- [x] Added Firestore Emulator-backed callable integration coverage in the Firebase feature branch: unauthenticated caller, ordinary authenticated user, inactive super_admin, invalid boundary rejection with City remaining inactive, valid super_admin City activation, and Area activation contained by an active City.
+- [x] Test suite refuses to run unless `FIRESTORE_EMULATOR_HOST` is set, to avoid accidentally touching a production Firestore project.
+- [x] Updated the Firebase GitHub Actions workflow to run TypeScript build, geometry tests, and callable integration tests through the Firestore Emulator using a demo project.
+- [ ] GitHub Actions validation is pending; run [38982563785](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38982563785) was queued at last check. Do not mark Step 50 PASS until it completes successfully.
+- [ ] Callable emulator integration has not yet been confirmed passing. Admin Flutter dependency resolution, analysis, tests and Web build also remain pending.
+- [ ] No merge, production deployment, data import, or real service-location activation was performed.
+
+Firebase branch: `feature/trusted-location-activation`; latest CI workflow change commit: `350df27b7d6173a6e4eb93267bb9877049361eb0`.
+
+Last updated: 2026-10-17
+
 ## Latest CI result — Step 41 PASS; Step 42 containment validation pending
 
 - [x] Step 38 City hierarchy guard tests passed in GitHub Actions run [38973476430](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38973476430), including Flutter analysis/tests, Firestore Emulator persistence smoke test, and Flutter Web release build.
