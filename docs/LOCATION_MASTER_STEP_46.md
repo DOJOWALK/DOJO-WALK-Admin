@@ -3,7 +3,7 @@
 Date: 2026-10-17  
 Related repository: `dojoplatform2026/dojo-firebase`
 
-## Work completed: Emulator test harness added (CI result pending)
+## Work completed: Emulator test harness added (user-confirmed CI PASS)
 
 Added a test harness to the central Firebase repository:
 - `package.json` with Node test script and Firebase Emulator test dependencies.
@@ -17,7 +17,7 @@ Files:
 
 ## Important validation status
 
-The test workflow was committed, but a successful GitHub Actions run has **not yet been confirmed**. Do not mark these tests PASS until the workflow has executed successfully and failures, if any, are fixed. No Firebase production deployment was triggered by this work: the existing deployment workflow watches `firestore.rules`, `firebase.json`, `.firebaserc`, and its own deployment workflow; this change added separate test files/workflow.
+The user confirmed that the GitHub Actions workflow result is PASS. The exact run ID/link was not captured in this chat, so record it in a follow-up for audit traceability. This report records the user's confirmation and does not claim an independently retrieved run log. No Firebase production deployment was triggered by this work: the existing deployment workflow watches `firestore.rules`, `firebase.json`, `.firebaserc`, and its own deployment workflow; this change added separate test files/workflow.
 
 ## Security findings still open
 
