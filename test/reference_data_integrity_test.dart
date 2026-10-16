@@ -86,7 +86,7 @@ void main() {
 
   group('India location hierarchy filters', () {
     test('State selection returns only districts for that State/UT', () {
-      final districts = districtsForState(9); // Uttar Pradesh LGD code.
+      final districts = filterDistrictsForStateLgdCode(9); // Uttar Pradesh LGD code.
       expect(districts, hasLength(75));
       expect(districts, isNotEmpty);
       expect(districts.every((item) => item.stateCode == '9'), isTrue);
@@ -98,7 +98,7 @@ void main() {
             item.stateCode == '9' &&
             item.districtName.toLowerCase() == 'gautam buddha nagar',
       );
-      final items = subDistrictsForDistrict(
+      final items = filterSubDistrictsForStateAndDistrict(
         stateLgdCode: 9,
         districtLgdCode: district.districtCode,
       );
