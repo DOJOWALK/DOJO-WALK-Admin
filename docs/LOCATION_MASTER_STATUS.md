@@ -491,3 +491,14 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [!] Rules audit found `validAreaActivation()` checks matching verified boundary metadata but does not itself enforce active/verified parent City state or polygon containment.
 - [ ] No production rules deployment, data import, or service activation was performed.
 - Details: [Firestore Security Test Coverage report](FIRESTORE_SECURITY_TEST_COVERAGE_STEP_47.md).
+
+
+## Next security hardening update — parent City validation
+
+- [x] Firestore Rules now require Area activation to reference a verified matching Area boundary **and** an existing active parent City whose own verified-boundary activation check passes.
+- [x] Added an emulator test that denies Area activation when its parent City is inactive.
+- [x] Repaired test fixtures after reviewing the committed test file; active `admin` is explicitly tested as not authorized for super-admin-only service-location writes.
+- [ ] GitHub Actions result for the latest commits is still unconfirmed. Do not mark these tests PASS until the run is inspected.
+- [ ] Polygon containment is still not computed in Firestore Rules and needs a separate trusted-backend/security design.
+- [ ] No production Firebase deployment, location import, or activation was performed.
+- Details: [Firestore Security Test Coverage report](FIRESTORE_SECURITY_TEST_COVERAGE_STEP_47.md).
