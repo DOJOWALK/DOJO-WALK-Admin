@@ -718,6 +718,7 @@ class ServiceLocationService {
       data: {
         'countryId': countryId,
         'name': name,
+        if (state.lgdCode != null) 'lgdCode': state.lgdCode,
         'isActive': state.isActive,
       },
     );
