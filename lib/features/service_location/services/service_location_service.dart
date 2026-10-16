@@ -404,14 +404,6 @@ class ServiceLocationService {
     }
   }
 
-  Future<void> _requireExistingForUpdate(
-    CollectionReference<Map<String, dynamic>> collection,
-    String id,
-    String label,
-  ) async {
-    await _requireDocument(collection, id, label);
-  }
-
   Future<bool> _hasActiveChild({
     required String parentCollection,
     required String parentId,
