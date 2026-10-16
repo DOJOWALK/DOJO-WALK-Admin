@@ -222,6 +222,7 @@ class ServiceCity {
   final String countryId;
   final String stateId;
   final String name;
+  final String? lgdCode;
 
   /// Retained for compatibility with existing documents.
   final List<GeoPoint> boundary;
@@ -241,6 +242,7 @@ class ServiceCity {
     required this.countryId,
     required this.stateId,
     required this.name,
+    this.lgdCode,
     this.boundary = const [],
     this.boundarySource = '',
     this.boundaryVerified = false,
@@ -257,6 +259,7 @@ class ServiceCity {
       'countryId': countryId.trim(),
       'stateId': stateId.trim(),
       'name': name.trim(),
+      if (lgdCode != null) 'lgdCode': lgdCode!.trim(),
 
       // Legacy fields retained.
       'boundary': boundary,
@@ -282,6 +285,7 @@ class ServiceCity {
       countryId: data['countryId']?.toString() ?? '',
       stateId: data['stateId']?.toString() ?? '',
       name: data['name']?.toString() ?? '',
+      lgdCode: data['lgdCode']?.toString(),
       boundary: _readLocationBoundary(data['boundary']),
       boundarySource: data['boundarySource']?.toString() ?? '',
       boundaryVerified: data['boundaryVerified'] == true,
@@ -298,6 +302,7 @@ class ServiceCity {
     String? countryId,
     String? stateId,
     String? name,
+    String? lgdCode,
     List<GeoPoint>? boundary,
     String? boundarySource,
     bool? boundaryVerified,
@@ -311,6 +316,7 @@ class ServiceCity {
       countryId: countryId ?? this.countryId,
       stateId: stateId ?? this.stateId,
       name: name ?? this.name,
+      lgdCode: lgdCode ?? this.lgdCode,
       boundary: boundary ?? this.boundary,
       boundarySource: boundarySource ?? this.boundarySource,
       boundaryVerified: boundaryVerified ?? this.boundaryVerified,
