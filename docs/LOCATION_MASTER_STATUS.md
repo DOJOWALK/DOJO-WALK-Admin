@@ -610,3 +610,10 @@ Firebase feature branch commits: `86cbc63efb51dc895d9756cfb017f6b657558a72`, `1c
 - [ ] No merge, deployment, production import, or real location activation has occurred.
 
 Admin branch commits: `61c4d7e48b94c07efbc3040221662f3c4de99e9d`, `18921352195dba20e81d624cb46d7d3d6452e58a`.
+
+
+## Step 51 validation trigger — 2026-10-17
+
+- [x] Re-triggered the non-deploying Admin validation workflow by updating this status report on `restore/india-location-reference-data`; the workflow is configured to run on pushes to `restore/**`.
+- [ ] Await and inspect the actual GitHub Actions run for Python reference-data tests, Flutter dependency resolution, analysis, unit tests, Firestore Emulator smoke test, and Flutter Web release build.
+- [ ] Do not mark Step 51 PASS until the run completes successfully. No Firebase deployment, production data change, import, or location activation.
