@@ -2,13 +2,13 @@
 
 Last updated: 2026-10-17
 
-## Latest CI investigation (Step 20)
+## Latest CI investigation (Step 21)
 
-- [x] Flutter analysis and unit tests pass on the latest tested commit; 18 tests passed and the emulator test was skipped in the ordinary unit-test run as expected.
-- [x] Added Firestore Emulator configuration on port 8080 and disabled the Emulator UI in `firebase.json` (commit `6d5c417`).
-- [x] New CI failure identified: the current Firebase CLI requires Java 21+, while the GitHub runner's default Java was older.
-- [x] Added a dedicated Temurin Java 21 setup step before starting Firebase Emulator (commit `86bfdaa`).
-- [ ] Verify the CI run for `86bfdaa` completes the emulator-backed Firestore round-trip test and Flutter Web release build.
+- [x] Flutter analysis and unit tests pass; the regular suite reports 18 passed and the emulator test skipped when no emulator host is configured.
+- [x] Firestore Emulator starts successfully in CI after adding local emulator config and Java 21 (commits `6d5c417`, `86bfdaa`).
+- [x] New integration-test failure identified: Firebase initialization attempted before Flutter's ServicesBinding was initialized.
+- [x] Added `TestWidgetsFlutterBinding.ensureInitialized()` at the start of the emulator test (commit `6ac2448`).
+- [ ] Verify CI on `6ac2448` passes the emulator-backed Firestore round-trip and Flutter Web release build.
 - [ ] Do not mark end-to-end persistence complete until that CI run passes.
 - [ ] Official live LGD export reconciliation and geographic boundary verification remain pending.
 
