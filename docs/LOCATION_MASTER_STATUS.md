@@ -12,6 +12,16 @@ Last updated: 2026-10-17
 - [ ] Official latest LGD export reconciliation remains pending. Local counts (36 States/UTs, 785 districts, 7,151 sub-districts) are not proof of current official completeness.
 - [ ] Geographic boundary verification and remaining integration/API review remain pending. PR #6 must stay open until those gates pass.
 
+## Step 24A — Official LGD source discovery (2026-10-17)
+
+- [x] Checked Ministry of Panchayati Raj LGD overview and official OGD catalog metadata.
+- [x] Official OGD LGD catalog showed updated 2026-10-15; official Districts resource showed updated 2026-10-08.
+- [x] Attempted the catalog ZIP link; it returned HTTP 503 in this check, so no export contents were obtained.
+- [x] Confirmed the LGD portal's normal download flow includes CAPTCHA; do not bypass it.
+- [ ] Record-by-record official reconciliation is still blocked until the official export is obtained.
+- [ ] Do not replace Dart data based only on catalog dates or third-party extracts.
+- [x] Details saved in `docs/OFFICIAL_LGD_SOURCE_DISCOVERY_2026-10-17.md`.
+
 ## Current status
 
 ## Firestore Emulator integration coverage (Step 18)
