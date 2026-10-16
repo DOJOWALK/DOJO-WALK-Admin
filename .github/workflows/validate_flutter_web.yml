@@ -31,14 +31,20 @@ jobs:
       - name: Analyze Dart and Flutter code
         run: flutter analyze
 
-      - name: Run tests when test suite exists
-        shell: bash
+      - name: Run unit tests
+        run: flutter test
+
+      - name: Set up Node.js for Firebase Emulator
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run Firestore emulator integration test
         run: |
-          if [ -d test ]; then
-            flutter test
-          else
-            echo "No test/ directory exists yet; test step skipped. Add tests before relying on automated test coverage."
-          fi
+          npm install --global firebase-tools
+          firebase emulators:exec --project demo-dojo-walk --only firestore "flutter test test/service_location_firestore_emulator_test.dart"
+        env:
+          CI: true
 
       - name: Build Flutter Web (no deployment)
         run: flutter build web --release
