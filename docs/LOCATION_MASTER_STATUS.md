@@ -472,3 +472,12 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [ ] Add rule tests for each approved role and each protected collection before changing the rules or UI gate.
 - [ ] Central Firebase repo file retrieval was unavailable during this step, so no rules code was changed and no claims are made about additional tests.
 - [ ] No production Firebase deployment, data writes, imports, or activations. Keep PR #6 open.
+
+
+## Step 47 follow-up — Firestore security test coverage plan
+
+- [x] Recorded required test cases for Area activation, parent boundary verification, name indexes, import permissions/audit trail, and admin-role authorization in [Step 47 security coverage report](FIRESTORE_SECURITY_TEST_COVERAGE_STEP_47.md).
+- [ ] Test implementation and execution are pending: central `dojoplatform2026/dojo-firebase` rules/test/workflow files could not be retrieved by the GitHub connector in this follow-up.
+- [ ] Step 46 was user-confirmed PASS, but its exact GitHub Actions run URL is still not recorded.
+- [ ] No central Firestore Rules edits, production deployment, data import, or location activation occurred.
+- Next: retrieve central rules/test harness, implement emulator-backed cases, run workflow, and record the actual run URL.
