@@ -22,6 +22,15 @@ Last updated: 2026-10-17
 - [ ] Do not replace Dart data based only on catalog dates or third-party extracts.
 - [x] Details saved in `docs/OFFICIAL_LGD_SOURCE_DISCOVERY_2026-10-17.md`.
 
+## Step 24B — Cross-check lead recorded (not official reconciliation)
+
+- [x] Recorded third-party metadata for an LGD-derived dataset dated 2026-10-12 as a comparison lead only.
+- [x] Noted advertised metadata counts: 35 distinct state codes, 781 distinct district codes, and 7,081 distinct sub-district codes across a 677,673-row village dataset.
+- [x] Explicitly marked these as non-authoritative metadata; no record-level download/comparison was completed and no Dart reference data was changed.
+- [x] Saved procedure and caveats in `docs/LGD_CROSSCHECK_LEAD_2026-10-17.md`.
+- [ ] Obtain an official downloadable export, calculate its checksum, and compare records/code parent chains before any reference-data edit.
+- [ ] Keep production import and activation blocked pending official reconciliation and polygon validation.
+
 ## Current status
 
 ## Firestore Emulator integration coverage (Step 18)
