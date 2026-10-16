@@ -335,3 +335,11 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [ ] The fake tests validate service-layer behavior against an in-memory Firestore implementation, not Firestore Emulator server semantics. Keep the Node REST smoke test as separate emulator coverage.
 - [ ] Official LGD row-level reconciliation and robust polygon validation remain pending. Keep PR #6 open; no production Firebase writes, imports, or deployments were performed.
 
+## Step 33 — Activation guard test fixture corrected (2026-10-17)
+
+- [x] Inspected failed CI run [38971324020](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38971324020). Python reconciliation tests and `flutter analyze` passed; the normal Flutter test stage failed with 21 passed and 2 failed.
+- [x] Both failures were assertions in the City activation tests: the shared fixture seeded City documents with `isServiceActive: true`, then the tests expected a rejected activation to leave that field false. The service correctly rejected activation, but the test's starting state made its postcondition invalid.
+- [x] Changed the shared activation-test fixture's default City status to inactive. The City deactivation test now explicitly seeds an active City, preserving its intended scenario; the Area test still activates its City after seeding a verified boundary.
+- [ ] The fixture correction is committed as `643d0c310a981ea88b5d712664f326bc2c07ffe2`; inspect the new CI result before marking tests passed.
+- [ ] No production Firebase writes/imports/deployment occurred. Official LGD row-level reconciliation and robust geographic polygon validation remain pending; PR #6 stays open.
+
