@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:crypto/crypto.dart';
 
 import '../models/service_location_models.dart';
@@ -934,6 +935,18 @@ class ServiceLocationService {
   }) async {
     final id = _required(cityId, 'City ID');
 
+    // Activation must pass through the trusted backend callable. Direct
+    // client-side false -> true writes are denied by Firestore Rules.
+    if (isActive) {
+      await FirebaseFunctions.instanceFor(region: 'asia-south1')
+          .httpsCallable('activateServiceLocation')
+          .call({
+        'locationType': 'city',
+        'locationId': id,
+      });
+      return;
+    }
+
     final city = await _requireDocument(
       _cities,
       id,
@@ -1121,6 +1134,18 @@ class ServiceLocationService {
     required bool isActive,
   }) async {
     final id = _required(areaId, 'Area ID');
+
+    // Area activation is validated server-side against its active parent
+    // City and verified polygon containment.
+    if (isActive) {
+      await FirebaseFunctions.instanceFor(region: 'asia-south1')
+          .httpsCallable('activateServiceLocation')
+          .call({
+        'locationType': 'area',
+        'locationId': id,
+      });
+      return;
+    }
 
     final area = await _requireDocument(
       _areas,
