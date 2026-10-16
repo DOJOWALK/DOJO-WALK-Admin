@@ -570,8 +570,20 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [x] Updated the Firebase feature branch geometry parser to accept both shapes while applying the same coordinate validation.
 - [x] Added two regression tests for Firestore GeoPoint-shaped City/Area polygons and containment.
 - [x] Geometry build and unit tests passed on the newest schema-fix commit in GitHub Actions run [38981979874](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38981979874).
-- [ ] Firestore Rules Emulator run [38981979951](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38981979951) was still in progress at last check.
-- [ ] Admin activation UI must call `activateServiceLocation`; direct client activation remains blocked by the draft rules.
+- [x] Firestore Rules Emulator run [38981979951](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38981979951) completed successfully.
+- [x] Admin ServiceLocationService now calls `activateServiceLocation` for City and Area activation; deactivation remains a direct update, subject to Firestore Rules.
 - [ ] No merge, deployment, import, or real service-location activation performed.
 
 Firebase feature branch commits: `86cbc63efb51dc895d9756cfb017f6b657558a72`, `1c65936526fa38f4cf7ced629a8282bfd01d2129`.
+
+## Step 49 — Admin activation wired to trusted backend (code updated, validation pending)
+
+- [x] Added `cloud_functions: ^6.0.3` to the Admin app dependencies.
+- [x] City activation now calls `activateServiceLocation` in `asia-south1` with `locationType: city` and the City ID.
+- [x] Area activation now calls the same callable with `locationType: area` and the Area ID.
+- [x] Deactivation path remains separate and uses the existing service status update.
+- [ ] Flutter dependency resolution, static analysis and Admin tests still need a fresh run on this branch.
+- [ ] Callable/emulator integration tests are still needed before merge.
+- [ ] No merge, deployment, production import, or real location activation has occurred.
+
+Admin branch commits: `61c4d7e48b94c07efbc3040221662f3c4de99e9d`, `18921352195dba20e81d624cb46d7d3d6452e58a`.
