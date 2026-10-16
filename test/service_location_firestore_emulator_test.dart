@@ -31,30 +31,6 @@ void main() {
       });
     }
 
-    Future<void> seedVerifiedBoundary(
-      FirebaseFirestore firestore, {
-      required String locationId,
-      required String locationType,
-    }) async {
-      await firestore.collection('service_location_boundaries')
-          .doc('boundary-$locationId')
-          .set({
-        'locationId': locationId,
-        'locationType': locationType,
-        'points': const [
-          GeoPoint(28.0, 77.0),
-          GeoPoint(28.1, 77.0),
-          GeoPoint(28.1, 77.1),
-        ],
-        'sourceType': 'importedGeoJson',
-        'sourceName': 'Test source',
-        'sourceReference': 'test://boundary',
-        'verificationStatus': 'verified',
-        'verifiedBy': 'test-admin',
-        'verifiedAt': Timestamp.now(),
-      });
-    }
-
     test(
       'City activation delegates to the trusted backend without client writes',
       () async {
