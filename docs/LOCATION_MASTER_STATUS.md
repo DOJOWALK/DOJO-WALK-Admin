@@ -460,3 +460,15 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [ ] Confirm deployed rules revision and decide trusted server-side enforcement for polygon parent-containment.
 - Report: [Step 46](LOCATION_MASTER_STEP_46.md)
 - Safety: no production deploy/import/activation or production data changes; keep PR #6 open.
+
+
+## Step 47 — Admin authorization policy review (2026-10-17)
+
+- [x] Re-read `lib/screens/auth/auth_gate.dart`: the gate allows any `admin_users/{uid}` record with `isActive == true`, regardless of role.
+- [x] Re-read `lib/services/auth_service.dart`: login likewise checks only `isActive == true`, not the role.
+- [x] Compared this with the Step 45 central-rules audit: privileged Service Location rules require an active `super_admin`. The UI/server authorization policies therefore do not align.
+- [x] Kept the product requirement in view: future non-super-admins may have role-scoped screens, so simply forcing every admin to be `super_admin` could incorrectly block intended workflows.
+- [ ] Define the role/permission matrix first: which roles can read each service-location collection, create/edit drafts, verify boundaries, activate/deactivate locations, manage imports, and manage global indexes.
+- [ ] Add rule tests for each approved role and each protected collection before changing the rules or UI gate.
+- [ ] Central Firebase repo file retrieval was unavailable during this step, so no rules code was changed and no claims are made about additional tests.
+- [ ] No production Firebase deployment, data writes, imports, or activations. Keep PR #6 open.
