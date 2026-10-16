@@ -315,3 +315,12 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [ ] This correction is committed as `c56b8c48fbcd2ae8076725c23cd03ba1bfae4af4`; its CI run must complete and be inspected before treating emulator integration tests as passing.
 - [ ] Official LGD row-level reconciliation and robust geographic polygon validation remain pending. Keep PR #6 open; no production Firebase writes, imports, or deployments were performed.
 
+## Step 31 — Firebase mock duplicate-app handling refined (2026-10-17)
+
+- [x] Checked CI run [38970661705](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38970661705). Python reconciliation tests, Flutter analysis, and standard Flutter tests passed; 18 tests passed and 5 emulator-only tests were skipped in the normal test stage.
+- [x] The dedicated emulator stage still failed before Dart test execution with `[core/duplicate-app] A Firebase App named "[DEFAULT]" already exists`; Node REST smoke tests passed.
+- [x] Updated the test setup to catch only Firebase's `duplicate-app` exception from initialization and rethrow any other Firebase initialization error.
+- [ ] Fix commit: `2f7782114a4ae0e83b5d4067bf909c70d68bb8d1`. Await and inspect its dedicated emulator CI result; no integration test is considered passed yet.
+- [ ] If this remains unstable, move plugin-backed tests to `integration_test` on an emulator/device and keep unit tests independent of native Firebase plugin channels.
+- [ ] Official LGD record-level reconciliation and robust polygon validation remain pending. PR #6 stays open; no production Firebase writes/import/deployment occurred.
+
