@@ -125,6 +125,127 @@ void main() {
     );
 
     test(
+      'City activation succeeds with a verified City boundary',
+      () async {
+        final firestore = FakeFirebaseFirestore();
+        final service = ServiceLocationService(firestore: firestore);
+        final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+        await seedParents(firestore, suffix: suffix);
+        await seedVerifiedBoundary(
+          firestore,
+          locationId: 'city-$suffix',
+          locationType: 'city',
+        );
+
+        await service.setCityServiceStatus(
+          cityId: 'city-$suffix',
+          isActive: true,
+        );
+
+        final snapshot = await firestore.collection('service_cities')
+            .doc('city-$suffix').get();
+        expect(snapshot.data()?['isServiceActive'], isTrue);
+        expect(
+          snapshot.data()?['verifiedBoundaryId'],
+          'boundary-city-$suffix',
+        );
+      },
+    );
+
+    test(
+      'City activation rejects a verified boundary belonging to another location type',
+      () async {
+        final firestore = FakeFirebaseFirestore();
+        final service = ServiceLocationService(firestore: firestore);
+        final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+        await seedParents(firestore, suffix: suffix);
+        await seedVerifiedBoundary(
+          firestore,
+          locationId: 'city-$suffix',
+          locationType: 'area',
+        );
+
+        await expectLater(
+          service.setCityServiceStatus(
+            cityId: 'city-$suffix',
+            isActive: true,
+          ),
+          throwsA(isA<StateError>()),
+        );
+      },
+    );
+
+    test(
+      'Locality can activate without its own polygon when its parent Area is active',
+      () async {
+        final firestore = FakeFirebaseFirestore();
+        final service = ServiceLocationService(firestore: firestore);
+        final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+        await seedParents(firestore, suffix: suffix, cityActive: true);
+        await firestore.collection('service_areas').doc('area-$suffix').set({
+          'name': 'Area $suffix',
+          'countryId': 'c-$suffix',
+          'stateId': 's-$suffix',
+          'cityId': 'city-$suffix',
+          'isServiceActive': true,
+        });
+        await firestore.collection('service_localities').doc('locality-$suffix').set({
+          'name': 'Locality $suffix',
+          'countryId': 'c-$suffix',
+          'stateId': 's-$suffix',
+          'cityId': 'city-$suffix',
+          'areaId': 'area-$suffix',
+          'isServiceActive': false,
+        });
+
+        await service.setLocalityServiceStatus(
+          localityId: 'locality-$suffix',
+          isActive: true,
+        );
+
+        final snapshot = await firestore.collection('service_localities')
+            .doc('locality-$suffix').get();
+        expect(snapshot.data()?['isServiceActive'], isTrue);
+      },
+    );
+
+    test(
+      'Locality activation is rejected when parent Area is inactive',
+      () async {
+        final firestore = FakeFirebaseFirestore();
+        final service = ServiceLocationService(firestore: firestore);
+        final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+        await seedParents(firestore, suffix: suffix, cityActive: true);
+        await firestore.collection('service_areas').doc('area-$suffix').set({
+          'name': 'Area $suffix',
+          'countryId': 'c-$suffix',
+          'stateId': 's-$suffix',
+          'cityId': 'city-$suffix',
+          'isServiceActive': false,
+        });
+        await firestore.collection('service_localities').doc('locality-$suffix').set({
+          'name': 'Locality $suffix',
+          'countryId': 'c-$suffix',
+          'stateId': 's-$suffix',
+          'cityId': 'city-$suffix',
+          'areaId': 'area-$suffix',
+          'isServiceActive': false,
+        });
+
+        await expectLater(
+          service.setLocalityServiceStatus(
+            localityId: 'locality-$suffix',
+            isActive: true,
+          ),
+          throwsA(isA<StateError>()),
+        );
+        final snapshot = await firestore.collection('service_localities')
+            .doc('locality-$suffix').get();
+        expect(snapshot.data()?['isServiceActive'], isFalse);
+      },
+    );
+
+    test(
       'City deactivation is rejected while an active Area exists',
       () async {
         final firestore = FakeFirebaseFirestore();
