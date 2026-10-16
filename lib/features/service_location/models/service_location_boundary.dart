@@ -272,6 +272,73 @@ class ServiceLocationBoundary {
     return false;
   }
 
+  /// Returns whether this polygon lies inside or on the edge of [parent].
+  ///
+  /// Uses planar longitude/latitude geometry. This is a structural containment
+  /// check only; it is not a geodesic or official-boundary verification.
+  bool isContainedBy(ServiceLocationBoundary parent) {
+    if (validate().isNotEmpty || parent.validate().isNotEmpty) {
+      return false;
+    }
+
+    final childRing = _normalizedRing(points);
+    final parentRing = _normalizedRing(parent.points);
+    if (childRing.length < 3 || parentRing.length < 3) return false;
+
+    // A child ring must not cross the parent's boundary. Boundary-touching
+    // and shared collinear edges are allowed.
+    for (var i = 0; i < childRing.length; i++) {
+      final a = childRing[i];
+      final b = childRing[(i + 1) % childRing.length];
+      for (var j = 0; j < parentRing.length; j++) {
+        final c = parentRing[j];
+        final d = parentRing[(j + 1) % parentRing.length];
+        final o1 = _orientation(a, b, c);
+        final o2 = _orientation(a, b, d);
+        final o3 = _orientation(c, d, a);
+        final o4 = _orientation(c, d, b);
+        final properCrossing =
+            ((o1 > _geometryEpsilon && o2 < -_geometryEpsilon) ||
+                (o1 < -_geometryEpsilon && o2 > _geometryEpsilon)) &&
+            ((o3 > _geometryEpsilon && o4 < -_geometryEpsilon) ||
+                (o3 < -_geometryEpsilon && o4 > _geometryEpsilon));
+        if (properCrossing) return false;
+      }
+    }
+
+    return childRing.every((point) => _pointInOrOnPolygon(point, parentRing));
+  }
+
+  static List<GeoPoint> _normalizedRing(List<GeoPoint> points) {
+    final ring = List<GeoPoint>.from(points);
+    if (ring.length > 3 && _samePoint(ring.first, ring.last)) {
+      ring.removeLast();
+    }
+    return ring;
+  }
+
+  static bool _pointInOrOnPolygon(GeoPoint point, List<GeoPoint> ring) {
+    var inside = false;
+    for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      final a = ring[j];
+      final b = ring[i];
+      if (_orientation(a, b, point).abs() <= _geometryEpsilon &&
+          _onSegment(a, b, point)) {
+        return true;
+      }
+      final straddles = (a.latitude > point.latitude) !=
+          (b.latitude > point.latitude);
+      if (straddles) {
+        final crossingLongitude = a.longitude +
+            (point.latitude - a.latitude) *
+                (b.longitude - a.longitude) /
+                (b.latitude - a.latitude);
+        if (point.longitude < crossingLongitude) inside = !inside;
+      }
+    }
+    return inside;
+  }
+
   /// Validates the polygon and its required metadata.
   ///
   /// Returns a list of validation errors.
