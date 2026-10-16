@@ -114,7 +114,7 @@ void main() {
 
     test('same district code under a different State does not leak records', () {
       final district = indiaDistricts.first;
-      final items = subDistrictsForDistrict(
+      final items = filterSubDistrictsForStateAndDistrict(
         stateLgdCode: int.parse(district.stateCode),
         districtLgdCode: district.districtCode,
       );
@@ -128,7 +128,7 @@ void main() {
     });
 
     test('unknown State/UT code returns no districts', () {
-      expect(districtsForState(-1), isEmpty);
+      expect(filterDistrictsForStateLgdCode(-1), isEmpty);
     });
   });
 
