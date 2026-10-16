@@ -263,3 +263,16 @@ Audit scope: static cross-file consistency only. No repository source files othe
 - [ ] Official LGD row-level reconciliation remains pending; keep PR #6 open and production import/service activation blocked until all required gates are met.
 
 Audit scope: static code review only. No source code was changed in this step; no production Firebase writes or deployment were performed.
+
+## Step 27 — Automated test coverage audit (2026-10-17)
+
+- [x] Reviewed `test/service_location_lgd_compatibility_test.dart`: covers legacy State/District/Area records, LGD-code serialization/reload, preservation of leading zeros, and omission of null LGD codes.
+- [x] Reviewed `test/service_location_firestore_emulator_test.dart`: the service-class Emulator test covers save/reload and clearing stale LGD codes for State, District, and Sub-district. It is skipped unless `FIRESTORE_EMULATOR_HOST` is configured.
+- [x] Reviewed `.github/workflows/validate_flutter_web.yml`: workflow runs Flutter analyze, Flutter tests, a separate Firestore Emulator persistence smoke test, and a Flutter Web release build without deployment.
+- [!] Current named Service Location tests do not directly exercise City/Area activation rejection without verified boundaries, parent active-state preconditions, active-child deactivation blocking, reparenting constraints, or locality activation rules.
+- [!] The workflow's Firestore Emulator smoke test is a Node script; it is not evidence by itself that the Dart `ServiceLocationService` activation paths were integration-tested.
+- [ ] Add focused service-class Emulator tests for the activation and parent-child cases listed above; run and inspect their results before marking these gates passed.
+- [ ] At audit time, workflow run associated with Step 26 commit `271c023672b0898f69845e6ccec6c1c2f2f8defa` was `in_progress`; its final result must be checked separately.
+- [ ] Official LGD row-level reconciliation and geographic polygon validation remain pending. Keep PR #6 open and production import/service activation blocked until all required gates pass.
+
+Audit scope: static review of the current named tests and workflow only. No source code was changed; no production Firebase writes or deployment were performed.
