@@ -39,6 +39,12 @@ jobs:
         with:
           node-version: 22
 
+      - name: Set up Java for Firebase Emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
       - name: Run Firestore emulator integration test
         run: |
           npm install --global firebase-tools
