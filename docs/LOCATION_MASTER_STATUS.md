@@ -2,15 +2,15 @@
 
 Last updated: 2026-10-17
 
-## Latest CI investigation (Step 22)
+## Latest CI result (Step 23) — PASS
 
-- [x] Rechecked GitHub Actions for commit `00a8b38`; the Firestore Emulator starts successfully, but the Flutter test fails at Firebase Core initialization with `PlatformException(channel-error ... FirebaseCoreHostApi.initializeCore)`.
-- [x] Root cause narrowed: a plain `flutter test` run cannot invoke the native Firebase plugin channel as this test expects. Initializing `TestWidgetsFlutterBinding` did not solve the plugin-channel issue.
-- [x] Added `tool/firestore_emulator_smoke_test.mjs`: uses the emulator's local REST endpoint to save, reload, and clear LGD fields for test State, District, and Sub-district documents. It does not use production Firebase.
-- [x] Updated CI to run that REST smoke test inside `firebase emulators:exec` instead of invoking Firebase native plugins through plain `flutter test`.
-- [ ] Await GitHub Actions for the new commits; do not claim emulator verification passed until the run confirms it.
-- [ ] This REST smoke test validates emulator persistence/field-clearing behavior, not the Flutter service class end-to-end. Flutter model/unit tests remain separate coverage.
-- [ ] Official live LGD export reconciliation and geographic boundary verification remain pending.
+- [x] GitHub Actions run `38958559004` passed on commit `5fd05c561fe1ba18bc7442c17c86ee81360f6f81`; duplicate run `38958552086` also passed.
+- [x] The `validate` job completed successfully, including Flutter analysis/tests, Firestore Emulator REST smoke test, and Flutter Web release build.
+- [x] Emulator smoke test checks save/reload/clear behavior for test State, District, and Sub-district LGD-code fields without using production Firebase.
+- [x] Documented the verified result and next gates in `docs/LOCATION_MASTER_CI_PASS_AND_NEXT_GATE.md`.
+- [ ] Full end-to-end Flutter service-class ↔ Firestore Emulator coverage is still separate; the REST smoke test alone does not prove that path.
+- [ ] Official latest LGD export reconciliation remains pending. Local counts (36 States/UTs, 785 districts, 7,151 sub-districts) are not proof of current official completeness.
+- [ ] Geographic boundary verification and remaining integration/API review remain pending. PR #6 must stay open until those gates pass.
 
 ## Current status
 
@@ -19,7 +19,7 @@ Last updated: 2026-10-17
 - [x] Added `test/service_location_firestore_emulator_test.dart` to exercise actual Firestore writes and reads for State, District, and Sub-district LGD codes.
 - [x] The integration test also saves each record again without its LGD code and asserts that the previous code is no longer returned by the model.
 - [x] Updated `.github/workflows/validate_flutter_web.yml` to run unit tests and launch the Firestore Emulator for this integration test. This is emulator-only; it does not connect to production Firebase or deploy anything.
-- [ ] Confirm the new emulator workflow passes on the latest commit.
+- [x] The emulator workflow passed on commit `5fd05c5` (run `38958559004`).
 - [ ] A production Firestore round-trip has intentionally not been run; no production records were changed.
 - [ ] Official LGD source reconciliation and geographic boundary verification remain pending.
 
