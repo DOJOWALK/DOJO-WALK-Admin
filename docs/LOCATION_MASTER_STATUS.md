@@ -324,3 +324,14 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [ ] If this remains unstable, move plugin-backed tests to `integration_test` on an emulator/device and keep unit tests independent of native Firebase plugin channels.
 - [ ] Official LGD record-level reconciliation and robust polygon validation remain pending. PR #6 stays open; no production Firebase writes/import/deployment occurred.
 
+## Step 32 — Flutter Firestore plugin-channel failure isolated (2026-10-17)
+
+- [x] Inspected CI run [38970950558](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38970950558) for commit `2f7782114a4ae0e83b5d4067bf909c70d68bb8d1`.
+- [x] Python reconciliation tests, `flutter analyze`, and the normal Flutter test stage passed. The Node Firestore Emulator REST smoke test also passed for State, City, and Area LGD-code save/read/clear.
+- [x] The Dart tests failed because `cloud_firestore` could not establish the Flutter plugin host channel for `FirebaseFirestoreHostApi.documentReferenceSet`. Starting the Firestore Emulator does not provide a native Flutter plugin host inside `flutter test`; this is a test-harness mismatch, not evidence that the Firestore REST emulator itself failed.
+- [x] Added `fake_cloud_firestore: ^4.0.0` and changed the ServiceLocationService test file to use an in-memory Firestore fake, so service guards and LGD-code serialization can run as ordinary Flutter unit tests without Firebase Core or native plugin setup.
+- [x] Updated the workflow so its emulator stage runs the Node REST smoke test only; the service-layer tests are picked up by the normal `flutter test` stage.
+- [ ] The new approach is **not yet CI-verified**. Check the workflow run for the latest branch head before calling these tests passed.
+- [ ] The fake tests validate service-layer behavior against an in-memory Firestore implementation, not Firestore Emulator server semantics. Keep the Node REST smoke test as separate emulator coverage.
+- [ ] Official LGD row-level reconciliation and robust polygon validation remain pending. Keep PR #6 open; no production Firebase writes, imports, or deployments were performed.
+
