@@ -569,7 +569,8 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [x] Found a real schema mismatch: Admin stores polygon vertices as Firestore `GeoPoint` values (read as `latitude`/`longitude`), while the Function originally accepted only `lat`/`lng`.
 - [x] Updated the Firebase feature branch geometry parser to accept both shapes while applying the same coordinate validation.
 - [x] Added two regression tests for Firestore GeoPoint-shaped City/Area polygons and containment.
-- [ ] Fresh GitHub Actions results for these newest commits still need confirmation.
+- [x] Geometry build and unit tests passed on the newest schema-fix commit in GitHub Actions run [38981979874](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38981979874).
+- [ ] Firestore Rules Emulator run [38981979951](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38981979951) was still in progress at last check.
 - [ ] Admin activation UI must call `activateServiceLocation`; direct client activation remains blocked by the draft rules.
 - [ ] No merge, deployment, import, or real service-location activation performed.
 
