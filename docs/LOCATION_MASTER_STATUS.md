@@ -4,6 +4,15 @@ Last updated: 2026-10-17
 
 ## Current status
 
+## Firestore Emulator integration coverage (Step 18)
+
+- [x] Added `test/service_location_firestore_emulator_test.dart` to exercise actual Firestore writes and reads for State, District, and Sub-district LGD codes.
+- [x] The integration test also saves each record again without its LGD code and asserts that the previous code is no longer returned by the model.
+- [x] Updated `.github/workflows/validate_flutter_web.yml` to run unit tests and launch the Firestore Emulator for this integration test. This is emulator-only; it does not connect to production Firebase or deploy anything.
+- [ ] Confirm the new emulator workflow passes on the latest commit.
+- [ ] A production Firestore round-trip has intentionally not been run; no production records were changed.
+- [ ] Official LGD source reconciliation and geographic boundary verification remain pending.
+
 ## LGD code persistence and backward compatibility (Step 16)
 
 - [x] Service save-path audit found that merge writes could preserve an old `lgdCode` when the incoming model had no code; State, District, and Sub-district save maps now explicitly write the nullable field so stale codes can be cleared. Commit `4ea5535ae00a38d38a08338d008c159754c7ea9f`.
