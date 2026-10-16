@@ -7,13 +7,15 @@ Rules repository: `dojoplatform2026/DOJO-WALK-Firebase` (main)
 
 ## Current outcome
 
-**Additional tests committed; execution result is pending.** The correct repository name is `DOJO-WALK-Firebase` (uppercase). Its current rules, Node test harness, and workflow were retrieved and inspected.
+**Additional tests and a rules hardening change are committed; execution result is pending.** The correct repository name is `DOJO-WALK-Firebase` (uppercase). Its current rules, Node test harness, and workflow were retrieved and inspected.
 
 ## Test changes committed
 
 File: `test/firestore.rules.test.mjs`
 
 - Added Area activation denial when the verified boundary is missing.
+- Hardened `validAreaActivation()` so an Area can only be activated if its parent City exists, is active, and itself passes verified-boundary validation.
+- Added a regression test denying Area activation when the parent City is inactive.
 - Added Area activation success when a verified boundary matches the Area ID.
 - Added Area activation denial when the referenced verified boundary belongs to another Area.
 - Added name-index authorization tests: active `super_admin` allowed; active `admin`, active `support`, and inactive `super_admin` denied.
@@ -23,19 +25,22 @@ File: `test/firestore.rules.test.mjs`
 Commits on `DOJO-WALK-Firebase/main`:
 - `69c345f7475bf594ba6f531a07b49006e531a1b1` — Area, index, and import tests.
 - `b0a2266c0dd97f3200c96ac82e77c5e8babae97a` — active non-super-admin authorization coverage.
+- `ede074758e8bbe971bf923df3478fd9b55254e42` — repaired test fixtures and added a scoped active `admin` role fixture.
+- `b478b373ac340bf10023bfa404b7937eb2d0a4d2` — require an active, boundary-verified parent City before Area activation.
+- `d447c37bd63b955ab8cec2c0d3ad331ac41ca4ae` — test denial when parent City is inactive.
 
 Test file: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/blob/main/test/firestore.rules.test.mjs
 
 ## Important rules gap identified
 
-The current `validAreaActivation()` checks that the Area references a verified boundary whose `locationId` and `locationType` match the Area. It does **not** itself validate that the parent City is active/verified or perform polygon containment. Existing service-layer containment checks are not equivalent to enforcement in Firestore Rules. Treat parent activation/containment as a separate security/backend requirement; do not claim it is covered by these rules tests.
+The current `validAreaActivation()` now checks that the Area references a verified matching Area boundary and that its parent City exists, is active, and passes `validCityActivation()`. It still does **not** perform polygon containment. Existing service-layer containment checks are not equivalent to enforcement in Firestore Rules; polygon containment remains a separate security/backend requirement.
 
 The rules' current admin roles are `super_admin`, `admin`, and `support`. Proposed product roles such as `location_admin`, `operations_admin`, and `support_admin` are not assumed to be implemented. Any role expansion requires an approved permission matrix and matching rules/UI work.
 
 ## CI status
 
 - The repository workflow `.github/workflows/test-firestore-rules.yml` runs the tests through Firebase Emulator on pushes to `main`, pull requests, or manual dispatch.
-- The GitHub connector did not provide a workflow-run result in this pass. Therefore **these new tests are committed but not yet confirmed PASS**. Capture the exact Actions run URL and confirm its conclusion before marking them passed.
+- The GitHub connector did not return a workflow-run result for the latest commit in this pass. Therefore **these new tests are committed but not yet confirmed PASS**. Capture the exact Actions run URL and confirm its conclusion before marking them passed.
 - Step 46 remains user-confirmed PASS from the earlier conversation; its exact Actions run URL is still missing.
 
 ## Safety / scope
