@@ -144,6 +144,7 @@ class ServiceState {
   final String id;
   final String countryId;
   final String name;
+  final int? lgdCode;
   final bool isActive;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -152,6 +153,7 @@ class ServiceState {
     this.id = '',
     required this.countryId,
     required this.name,
+    this.lgdCode,
     this.isActive = false,
     this.createdAt,
     this.updatedAt,
@@ -163,6 +165,7 @@ class ServiceState {
     return {
       'countryId': countryId.trim(),
       'name': name.trim(),
+      if (lgdCode != null) 'lgdCode': lgdCode,
       'isActive': isActive,
       'updatedAt': FieldValue.serverTimestamp(),
       if (includeCreatedAt)
@@ -178,6 +181,7 @@ class ServiceState {
       id: id,
       countryId: data['countryId']?.toString() ?? '',
       name: data['name']?.toString() ?? '',
+      lgdCode: int.tryParse(data['lgdCode']?.toString() ?? ''),
       isActive: data['isActive'] == true,
       createdAt: _readLocationDate(data['createdAt']),
       updatedAt: _readLocationDate(data['updatedAt']),
@@ -188,6 +192,7 @@ class ServiceState {
     String? id,
     String? countryId,
     String? name,
+    int? lgdCode,
     bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -196,6 +201,7 @@ class ServiceState {
       id: id ?? this.id,
       countryId: countryId ?? this.countryId,
       name: name ?? this.name,
+      lgdCode: lgdCode ?? this.lgdCode,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
