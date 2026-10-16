@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/service_location_boundary.dart';
+import '../models/service_location_models.dart';
 
 /// DOJO WALK Admin
 ///
