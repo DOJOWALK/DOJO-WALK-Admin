@@ -183,5 +183,27 @@ void main() {
       final city = await db.collection('service_cities').doc('wrong-city-$suffix').get();
       expect(city.exists, isFalse);
     });
+
+    test('State cannot be moved to another Country while child Cities exist', () async {
+      final db = FakeFirebaseFirestore();
+      final service = ServiceLocationService(firestore: db);
+      final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+      await seedBase(db, suffix);
+      await db.collection('service_countries').doc('other-country-$suffix').set({
+        'name': 'Other Country $suffix', 'code': 'OTH', 'isActive': true,
+      });
+
+      await expectLater(
+        service.saveState(ServiceState(
+          id: 's-$suffix',
+          countryId: 'other-country-$suffix',
+          name: 'State $suffix',
+          isActive: true,
+        )),
+        throwsA(isA<StateError>()),
+      );
+      final state = await db.collection('service_states').doc('s-$suffix').get();
+      expect(state.data()?['countryId'], 'c-$suffix');
+    });
   });
 }
