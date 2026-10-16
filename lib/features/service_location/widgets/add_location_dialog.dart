@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../data/reference/india_locations/india_states.dart';
 import '../models/service_location_models.dart';
 import '../services/service_location_service.dart';
 
@@ -33,6 +34,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
   String? _stateId;
   String? _cityId;
   String? _areaId;
+  IndiaState? _referenceState;
 
   bool _saving = false;
 
@@ -80,6 +82,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
             ServiceState(
               countryId: _countryId!,
               name: name,
+              lgdCode: _referenceState?.lgdCode,
               isActive: false,
             ),
           );
@@ -232,6 +235,41 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     );
   }
 
+  Widget _buildIndiaReferenceStateDropdown() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: DropdownButtonFormField<int>(
+        initialValue: _referenceState?.lgdCode,
+        isExpanded: true,
+        decoration: const InputDecoration(
+          labelText: 'India State / UT reference',
+          helperText: 'Select a reference record; verify source data before production use.',
+          border: OutlineInputBorder(),
+        ),
+        items: indiaStates
+            .map(
+              (state) => DropdownMenuItem<int>(
+                value: state.lgdCode,
+                child: Text(state.displayName),
+              ),
+            )
+            .toList(growable: false),
+        onChanged: _saving
+            ? null
+            : (code) {
+                if (code == null) return;
+                final selected = indiaStates.firstWhere(
+                  (state) => state.lgdCode == code,
+                );
+                setState(() {
+                  _referenceState = selected;
+                  _nameController.text = selected.name;
+                });
+              },
+      ),
+    );
+  }
+
   Widget _buildStateDropdown() {
     if (_countryId == null) {
       return _dropdown<String>(
@@ -381,6 +419,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                             _stateId = null;
                             _cityId = null;
                             _areaId = null;
+                            _referenceState = null;
 
                             _nameController.clear();
                             _codeController.clear();
@@ -392,6 +431,8 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                 const SizedBox(height: 12),
 
                 if (_level >= 1) _buildCountryDropdown(),
+
+                if (_level == 1) _buildIndiaReferenceStateDropdown(),
 
                 if (_level >= 2) _buildStateDropdown(),
 
