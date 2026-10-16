@@ -436,3 +436,14 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [x] Added [Step 45 audit report](LOCATION_MASTER_STEP_45.md) with minimum required rules and Emulator test cases.
 - [ ] Do not invent/deploy a ruleset without reviewing the current deployed rules and existing app access patterns. Obtain the canonical rules, commit them to version control, then add Emulator authorization tests.
 - [ ] Official LGD row-level reconciliation and authoritative polygon provenance/geographic verification remain pending. PR #6 remains open; no production Firebase rules/data/import/activation/deployment changes were made.
+
+
+## Step 45 correction — central Firestore rules are in dojo-firebase (2026-10-17)
+
+- [x] Corrected the earlier overly broad finding: `firestore.rules` is absent from the `dojo-admin` repo, but **does exist** in the central [dojo-firebase repository](https://github.com/dojoplatform2026/dojo-firebase/blob/main/firestore.rules). The repository includes `firebase.json` rules mapping and a deployment workflow.
+- [x] Reviewed the central rules: service-location collections and boundary lifecycle/activation guards are present.
+- [x] New finding: central rules' `isAdmin()` requires active `super_admin`, while Admin `AuthGate` and `AuthService` check only `isActive == true`. Align the UI authorization policy with the server-side role requirement.
+- [x] The rules validate boundary location/type/status/provenance for activation but do not implement polygon parent-containment geometry checks. That invariant needs a trusted server-side enforcement strategy if it must be secure against direct client writes.
+- [ ] Confirm which rules version is currently deployed; repository workflow presence alone does not prove production deployment state.
+- [ ] Add Firestore Emulator authorization tests for unauthenticated, inactive, role-limited users and boundary/activation lifecycle. Keep PR #6 open; no production rules/data/import/activation/deployment changes were made.
+- [x] Updated [Step 45 report](LOCATION_MASTER_STEP_45.md) to correct the scope of the earlier finding.
