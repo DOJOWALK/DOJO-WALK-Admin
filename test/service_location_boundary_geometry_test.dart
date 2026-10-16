@@ -84,4 +84,44 @@ void main() {
       );
     });
   });
+
+    test('rejects latitude outside the valid geographic range', () {
+      final boundary = makeBoundary(const [
+        GeoPoint(91.0, 77.0),
+        GeoPoint(28.0, 77.1),
+        GeoPoint(28.1, 77.0),
+      ]);
+
+      expect(
+        boundary.validate(),
+        contains('Boundary point 1 is invalid.'),
+      );
+    });
+
+    test('rejects longitude outside the valid geographic range', () {
+      final boundary = makeBoundary(const [
+        GeoPoint(28.0, 181.0),
+        GeoPoint(28.0, 77.1),
+        GeoPoint(28.1, 77.0),
+      ]);
+
+      expect(
+        boundary.validate(),
+        contains('Boundary point 1 is invalid.'),
+      );
+    });
+
+    test('rejects non-finite polygon coordinates', () {
+      final boundary = makeBoundary([
+        GeoPoint(double.nan, 77.0),
+        const GeoPoint(28.0, 77.1),
+        const GeoPoint(28.1, 77.0),
+      ]);
+
+      expect(
+        boundary.validate(),
+        contains('Boundary point 1 is invalid.'),
+      );
+    });
+
 }
