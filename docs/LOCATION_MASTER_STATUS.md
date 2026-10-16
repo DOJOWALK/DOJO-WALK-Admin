@@ -1,16 +1,23 @@
 # DOJO WALK Location Master — Project Status
 
-## Latest CI result — Step 38 PASS; Step 39 pending
+## Latest CI result — Step 39 PASS
 
 - [x] Step 38 City hierarchy guard tests passed in GitHub Actions run [38973476430](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38973476430), including Flutter analysis/tests, Firestore Emulator persistence smoke test, and Flutter Web release build.
 - [x] Added a State reparent guard: an existing State cannot change Country while any child City exists.
 - [x] Added a regression test confirming the failed move leaves the State's original Country unchanged.
-- [ ] Step 39 CI is pending; do not mark PASS until its full workflow completes successfully.
+- [x] Step 39 CI passed in GitHub Actions run [38973920698](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38973920698), including Python tests, Flutter analyze/tests, Firestore Emulator persistence smoke test, and Flutter Web release build.
 - [ ] Official LGD row-level reconciliation and verified contiguous geographic boundaries remain pending; production import/activation remains blocked.
 - [x] Details recorded in [Step 39 report](LOCATION_MASTER_STEP_39.md).
 
 
 Last updated: 2026-10-17
+
+## Step 39 — State reparent guard: PASS
+
+- [x] Existing State cannot be moved to another Country while any child City exists (active or inactive).
+- [x] Regression test verifies rejected move preserves original `countryId`.
+- [x] Full validation passed in [GitHub Actions run 38973920698](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38973920698).
+- [ ] Official LGD row-level reconciliation, authoritative contiguous polygon validation, and integration/API review remain pending. No production import or activation.
 
 ## Latest CI result (Step 23) — PASS
 
