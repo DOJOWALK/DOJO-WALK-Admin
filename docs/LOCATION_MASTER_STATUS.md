@@ -223,3 +223,14 @@ The test file now covers State, District, and Sub-district hierarchy consistency
 - No Firebase deployment or production data import was performed. Official LGD reconciliation and screen/import integration remain pending.
 
 - Follow-up source review found two legacy helper calls still remained in the tests (the negative State-code case and the cross-State isolation case). Updated both to the new uniquely named helpers in commit `b2538c17c79237ad5d80103e4c8e621f3d0f828c`. The validation run started before this final test edit is not sufficient; verify CI for the new head commit.
+
+## Step 25 — Repeatable LGD CSV reconciliation tooling (2026-10-17)
+
+- [x] Added `tool/reconcile_lgd_csv.py`, a dependency-free CSV comparator keyed by an explicitly supplied LGD code column.
+- [x] Added `tool_tests/test_reconcile_lgd_csv.py` for added/removed/changed records, whitespace trimming, and duplicate-key rejection.
+- [x] Added the Python test command to `.github/workflows/validate_flutter_web.yml`.
+- [x] Documented usage and manual official-export requirements in `docs/OFFICIAL_LGD_RECONCILIATION_RUNBOOK.md`.
+- [x] Latest complete validation run for commit `ec26e38` passed: Python reconciliation tests, Flutter analysis, Flutter tests, Firestore Emulator persistence smoke test, and Flutter Web release build. Run: https://github.com/dojoplatform2026/dojo-admin/actions/runs/38959939935
+- [ ] Official record-level comparison is still **PENDING** until original States/UTs, Districts, and Sub-districts exports are downloaded from the live LGD portal and compared. The tool's tests passing do not validate the actual data snapshot.
+- [ ] No Dart reference data was changed; PR #6 remains open/unmerged; production import and service activation remain blocked.
+
