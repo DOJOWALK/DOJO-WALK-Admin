@@ -142,5 +142,46 @@ void main() {
       final state = await db.collection('service_states').doc('s-$suffix').get();
       expect(state.data()?['isActive'], isFalse);
     });
+
+    test('City cannot be deactivated while an active Area exists', () async {
+      final db = FakeFirebaseFirestore();
+      final service = ServiceLocationService(firestore: db);
+      final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+      await seedBase(db, suffix);
+      await db.collection('service_areas').doc('area-$suffix').set({
+        'name': 'Area $suffix', 'countryId': 'c-$suffix',
+        'stateId': 's-$suffix', 'cityId': 'city-a-$suffix',
+        'isServiceActive': true,
+      });
+
+      await expectLater(
+        service.setCityServiceStatus(cityId: 'city-a-$suffix', isActive: false),
+        throwsA(isA<StateError>()),
+      );
+      final city = await db.collection('service_cities').doc('city-a-$suffix').get();
+      expect(city.data()?['isServiceActive'], isTrue);
+    });
+
+    test('City save rejects a State belonging to another Country', () async {
+      final db = FakeFirebaseFirestore();
+      final service = ServiceLocationService(firestore: db);
+      final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+      await seedBase(db, suffix);
+      await db.collection('service_countries').doc('other-country-$suffix').set({
+        'name': 'Other Country $suffix', 'code': 'OTH', 'isActive': true,
+      });
+
+      await expectLater(
+        service.saveCity(ServiceCity(
+          id: 'wrong-city-$suffix',
+          countryId: 'other-country-$suffix',
+          stateId: 's-$suffix',
+          name: 'Wrong City $suffix',
+        )),
+        throwsA(isA<StateError>()),
+      );
+      final city = await db.collection('service_cities').doc('wrong-city-$suffix').get();
+      expect(city.exists, isFalse);
+    });
   });
 }
