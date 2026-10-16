@@ -8,9 +8,9 @@ Last updated: 2026-10-16
 - [x] Boundary dialog metadata omission fixed in commit `c572371cfd74a9888a66b2e51e7af1e20c627b62`.
 - [x] Project file structure documented in `docs/PROJECT_FILE_STRUCTURE.md`.
 - [x] Generated Dart reference files located, record counts verified, and SHA-256 integrity manifest committed at `docs/LOCATION_REFERENCE_CHECKSUMS.md`.
-- [x] Expected repository paths checked; all three generated reference files are still absent.
+- [x] Expected repository paths checked; all three generated reference files have now been restored on the integration branch.
 - [x] Restored the exact three generated India reference Dart files to the proposed integration branch; byte sizes and Git blob SHAs verified.
-- [ ] Merge the integration branch after import/API review and build validation.
+- [ ] Review the integration pull request; merge only after import/API review and build validation.
 - [ ] Verify all imports and model/API compatibility after restoring the files.
 - [ ] Run `flutter pub get` and `flutter build web --release`; record the actual CI/build result.
 - [ ] Reconcile reference counts and records against a current official LGD snapshot.
