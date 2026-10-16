@@ -19,7 +19,8 @@ Last updated: 2026-10-16
 - [x] State record-count check corrected: the file contains **36 records with 36 unique LGD codes** (the 38 seen previously were the first and last code values, not the record count). The header's 28 States + 8 UTs = 36 is internally consistent. Codes 37/38 are included in the 36 records.
 - [x] Parent integrity audit on the restored branch: 785 districts / 785 unique district codes; 7,151 sub-districts / 7,151 unique sub-district codes; no missing state parents, no state-name mismatches, no missing sub-district district parents, and no sub-district/district parent-name mismatches detected in the supplied files.
 - [ ] Verify current official LGD source and update freshness; internal consistency does not prove that the 2024-10-07 snapshot is current.
-- [ ] Complete UP/NCR targeted review.
+- [x] UP/NCR parent-chain spot-check completed for Gautam Buddha Nagar, Ghaziabad, Hapur, Meerut, Bulandshahr, Baghpat, Shamli, and Muzaffarnagar: every checked sub-district points to the expected UP state code and district code/name in the supplied snapshot.
+- [ ] Complete full NCR review, including current official district coverage and map-boundary validation.
 - [ ] Verify location boundaries and activation rules in the admin UI.
 - [ ] Do not import reference data into production Firebase until the above checks pass.
 
@@ -58,7 +59,7 @@ Static parsing of the restored files produced these results:
 - Sub-districts: 7,151 records, 7,151 unique sub-district codes.
 - District state parents: no missing state codes and no state-name mismatches found.
 - Sub-district district parents: no missing `(stateCode, districtCode)` parent pairs and no district-name mismatches found.
-- Uttar Pradesh: 75 district records and 350 sub-district records; Gautam Buddha Nagar includes Dadri and Jewar in this snapshot.
+- Uttar Pradesh: 75 district records and 350 sub-district records. NCR spot-check: Gautam Buddha Nagar (3: Gautam Buddha Nagar, Dadri, Jewar), Ghaziabad (3), Hapur (3), Meerut (3), Bulandshahr (7), Baghpat (3), Shamli (3), and Muzaffarnagar (4) all had matching state/district parent codes and names in this snapshot.
 
 Important limitation: this is an internal consistency audit of the supplied dataset, not proof that the snapshot is current or officially complete. Official LGD freshness reconciliation and Flutter build validation remain pending. The earlier note claiming 38 state records was incorrect; it counted the upper code value rather than the number of records and has been corrected.
 
