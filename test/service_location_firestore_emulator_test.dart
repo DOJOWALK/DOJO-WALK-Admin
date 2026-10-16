@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dojo_admin/features/service_location/models/service_location_models.dart';
 import 'package:dojo_admin/features/service_location/services/service_location_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -18,6 +19,7 @@ void main() {
     final host = parts.first;
     final port = parts.length > 1 ? int.parse(parts.last) : 8080;
 
+    setupFirebaseCoreMocks();
     await Firebase.initializeApp(
       options: const FirebaseOptions(
         apiKey: 'fake-api-key',
