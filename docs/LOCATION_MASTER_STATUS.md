@@ -449,12 +449,12 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [x] Updated [Step 45 report](LOCATION_MASTER_STEP_45.md) to correct the scope of the earlier finding.
 
 
-## Step 46 — Firestore Rules Emulator test harness added (2026-10-17)
+## Step 46 — Firestore Rules Emulator tests: PASS (user-confirmed, 2026-10-17)
 
 - [x] Identified the central source of truth as `dojoplatform2026/dojo-firebase/firestore.rules`.
 - [x] Added `package.json`, `test/firestore.rules.test.mjs`, and `.github/workflows/test-firestore-rules.yml` in the central Firebase repo.
-- [x] Initial tests cover unauthenticated denial, active super-admin allowed, inactive/support-role denied, city activation requiring a verified matching boundary, and verified boundary edit/delete denial.
-- [ ] GitHub Actions execution has not yet been confirmed; **tests are not marked PASS**.
+- [x] User confirmed the GitHub Actions workflow result is PASS. The exact run ID/link was not captured in this chat, so it still needs to be recorded for audit traceability.
+- [x] Initial tests cover unauthenticated denial, active super-admin allowed, inactive/support-role denied, city activation requiring a verified matching boundary, mismatched boundary rejection, and verified boundary edit/delete denial.
 - [ ] Add further cases for Area activation, boundary verification/rejection transitions, name indexes, import audit, and collection-by-collection authorization.
 - [ ] Align Admin UI access gate with the rules' active `super_admin` requirement.
 - [ ] Confirm deployed rules revision and decide trusted server-side enforcement for polygon parent-containment.
