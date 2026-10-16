@@ -522,3 +522,15 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [ ] Latest emulator test CI result remains unconfirmed; no PASS claim.
 - [ ] No production deployment, data import, or location activation.
 - Design commit: `2a545f1eb1635b955811a84cba8f7b15b6e5d558`.
+
+
+## Trusted activation function scaffold — 2026-10-17
+
+- [x] Created isolated branch `feature/trusted-location-activation` in `dojoplatform2026/DOJO-WALK-Firebase`; work is not merged to `main`.
+- [x] Added TypeScript callable function scaffold `activateServiceLocation` restricted to active `super_admin`, with verified boundary metadata checks, parent City checks, full Area polygon containment via Turf, transaction revalidation, and server-created activation audit records.
+- [x] Added geometry unit tests for valid polygon, contained Area, crossing/outside Area, invalid coordinate, and too-few-distinct-points.
+- [x] Added dedicated GitHub Actions workflow for function build/geometry tests on pull requests.
+- [ ] Build/tests have not been executed in this environment; CI result pending a pull request/run. Do not claim PASS.
+- [ ] Firestore rules and production deployments have not been changed/deployed by this branch; do not merge or deploy until review, CI, emulator/integration tests, and explicit approval.
+- [!] Review note: current implementation supports single-ring Polygon geometry represented by `points: [{lat, lng}]`; holes/MultiPolygon/antimeridian policy are not implemented. Boundary-touching behavior depends on Turf's strict containment semantics and needs tests.
+- Branch: `feature/trusted-location-activation` in `DOJO-WALK-Firebase`.
