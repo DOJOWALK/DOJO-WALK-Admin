@@ -1,6 +1,6 @@
 # DOJO WALK Location Master — Project Status
 
-## Latest CI result — Step 40 PASS; Step 41 pending
+## Latest CI result — Step 40 PASS; Step 41 fix in validation
 
 - [x] Step 38 City hierarchy guard tests passed in GitHub Actions run [38973476430](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38973476430), including Flutter analysis/tests, Firestore Emulator persistence smoke test, and Flutter Web release build.
 - [x] Added a State reparent guard: an existing State cannot change Country while any child City exists.
@@ -12,10 +12,12 @@
 
 Last updated: 2026-10-17
 
-## Step 41 — Invalid geographic coordinate tests: CI pending
+## Step 41 — Imported coordinate validation fix: CI pending
 
-- [x] Added tests rejecting latitude above 90 degrees, longitude above 180 degrees, and non-finite coordinates.
-- [ ] Step 41 GitHub Actions validation pending; do not mark PASS until the full workflow completes.
+- [x] Initial CI exposed invalid constant `GeoPoint` test fixtures; `flutter analyze` failed before tests ran.
+- [x] Updated `ServiceLocationBoundary.fromMap()` to validate finite latitude/longitude ranges before constructing Firestore `GeoPoint` objects, safely skipping malformed imported points.
+- [x] Updated regression tests to exercise invalid raw imported map coordinates.
+- [ ] Corrected validation is running in [workflow 38975162943](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38975162943) and [workflow 38975160030](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38975160030); do not mark PASS until a full workflow succeeds.
 - [ ] These tests do not prove official boundary source, contiguity, or geographic containment.
 - [ ] Official LGD row-level reconciliation and authoritative polygon verification remain pending; production import/activation remains blocked.
 
