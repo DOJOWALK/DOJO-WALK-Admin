@@ -51,7 +51,8 @@ const cases = [
 
 for (const item of cases) {
   const path = `${item.collection}/${item.id}`;
-  const createQuery = new URLSearchParams({ 'updateMask.fieldPaths': ['name', 'lgdCode', 'isActive'] });
+  const createQuery = new URLSearchParams();
+  for (const field of ['name', 'lgdCode', 'isActive']) createQuery.append('updateMask.fieldPaths', field);
   await request(`${path}?${createQuery}`, {
     method: 'PATCH',
     body: JSON.stringify({ fields: fieldsWithLgd(item.name, item.code) }),
@@ -63,7 +64,8 @@ for (const item of cases) {
 
   // An explicit update mask for lgdCode with the field omitted removes the
   // old code, matching the nullable-field clearing requirement.
-  const clearQuery = new URLSearchParams({ 'updateMask.fieldPaths': ['lgdCode'] });
+  const clearQuery = new URLSearchParams();
+  clearQuery.append('updateMask.fieldPaths', 'lgdCode');
   await request(`${path}?${clearQuery}`, {
     method: 'PATCH',
     body: JSON.stringify({ fields: { name: stringField(item.name), isActive: { booleanValue: false } } }),
