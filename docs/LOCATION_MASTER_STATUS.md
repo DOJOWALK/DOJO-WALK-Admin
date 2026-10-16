@@ -6,6 +6,7 @@ Last updated: 2026-10-17
 
 - [x] Added an optional India Sub-district reference dropdown for Area/Sub-district records. The options are filtered by both the selected State LGD code and the selected District LGD code.
 - [x] Added optional `lgdCode` support to `ServiceArea` parsing/serialization; a selected sub-district's code is saved with the Area record.
+- [x] Reset the Sub-district reference selection when its State, District, or location type parent changes to prevent stale code/name combinations.
 - [ ] Validate State → District → Sub-district UI and model changes in the latest GitHub Actions run before considering the reference selector step complete.
 - [ ] The sub-district list is based on the restored 2024-10-07 snapshot; current official LGD reconciliation and geographic boundary verification are still required.
 
