@@ -52,3 +52,12 @@ The rules' current admin roles are `super_admin`, `admin`, and `support`. Propos
 ## Next step
 
 Verify the Actions run triggered by commit `b0a2266c0dd97f3200c96ac82e77c5e8babae97a`. If it fails, fix the test fixture or rules only after reviewing the failure logs. Then plan a separate security change for parent City state and polygon containment, with explicit emulator tests.
+
+
+## Follow-up — parent City fixture correction (2026-10-17)
+
+- Commit `bafe724b628d7a4a79ae2569fdcc49827dca93f7` updates `test/firestore.rules.test.mjs` in `dojoplatform2026/DOJO-WALK-Firebase`.
+- Review found the shared test fixture's active parent City referenced a verified boundary whose `locationId` belonged to a different City. Since the rules deliberately require an exact boundary/location ID match, the Area-success test would be denied for the wrong reason.
+- Added a separate verified test boundary for `city-parent` and updated the inactive-parent fixture to use that same matching boundary. This makes the positive and negative Area-parent tests reflect the intended rule checks.
+- This is a fixture correction only; the Firestore rules themselves were not changed by this commit.
+- Emulator/CI execution is still **not confirmed**. Do not claim PASS until the Actions conclusion or local emulator output is inspected.
