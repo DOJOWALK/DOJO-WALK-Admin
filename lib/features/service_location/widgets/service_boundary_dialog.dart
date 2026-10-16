@@ -117,6 +117,8 @@ class _ServiceBoundaryDialogState
       sourceName: _sourceNameController.text.trim(),
       sourceReference: _sourceReferenceController.text.trim(),
       verificationStatus: BoundaryVerificationStatus.pending,
+      verifiedBy: null,
+      verifiedAt: null,
       verificationNotes: _notesController.text.trim().isEmpty
           ? null
           : _notesController.text.trim(),
