@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dojo_admin/data/reference/india_locations/india_states.dart';
 import 'package:dojo_admin/data/reference/india_locations/india_districts.dart';
+import 'package:dojo_admin/data/reference/india_locations/india_sub_districts.dart';
 
 void main() {
   group('India location reference data integrity', () {
@@ -23,11 +24,8 @@ void main() {
           .map((district) => '${district.stateCode}:${district.districtName}')
           .toList();
 
-      expect(
-        missingParents,
-        isEmpty,
-        reason: 'Districts must reference an existing State/UT code.',
-      );
+      expect(missingParents, isEmpty,
+          reason: 'Districts must reference an existing State/UT code.');
     });
 
     test('district state names agree with their state-code parent', () {
@@ -43,11 +41,45 @@ void main() {
           '${district.stateCode}:${district.stateName} / ${district.districtName}')
        .toList();
 
-      expect(
-        mismatches,
-        isEmpty,
-        reason: 'District state names must match the state-code parent.',
-      );
+      expect(mismatches, isEmpty,
+          reason: 'District state names must match the state-code parent.');
+    });
+
+    test('contains 7,151 sub-district records with unique LGD codes', () {
+      expect(indiaSubDistricts, hasLength(7151));
+      final codes = indiaSubDistricts.map((item) => item.code).toList();
+      expect(codes.toSet(), hasLength(codes.length));
+    });
+
+    test('every sub-district references an existing State + District pair', () {
+      final districtKeys = indiaDistricts
+          .map((district) => '${district.stateCode}:${district.districtCode}')
+          .toSet();
+      final missingParents = indiaSubDistricts.where((item) =>
+          !districtKeys.contains('${item.stateCode}:${item.districtCode}'))
+          .map((item) => '${item.stateCode}:${item.districtCode}:${item.name}')
+          .toList();
+
+      expect(missingParents, isEmpty,
+          reason: 'Sub-districts must reference an existing state/district pair.');
+    });
+
+    test('sub-district state and district names match their parent records', () {
+      final districtsByKey = {
+        for (final district in indiaDistricts)
+          '${district.stateCode}:${district.districtCode}': district,
+      };
+      final mismatches = indiaSubDistricts.where((item) {
+        final parent = districtsByKey['${item.stateCode}:${item.districtCode}'];
+        return parent == null ||
+            parent.stateName.trim().toUpperCase() != item.stateName.trim().toUpperCase() ||
+            parent.districtName.trim().toUpperCase() != item.districtName.trim().toUpperCase();
+      }).map((item) =>
+          '${item.stateCode}:${item.districtCode}:${item.name}')
+       .toList();
+
+      expect(mismatches, isEmpty,
+          reason: 'Sub-district state/district names must match parent records.');
     });
   });
 }
