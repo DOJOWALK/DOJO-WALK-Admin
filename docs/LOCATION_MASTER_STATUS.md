@@ -1,6 +1,6 @@
 # DOJO WALK Location Master — Project Status
 
-## Latest CI result — Step 41 PASS
+## Latest CI result — Step 41 PASS; Step 42 containment validation pending
 
 - [x] Step 38 City hierarchy guard tests passed in GitHub Actions run [38973476430](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38973476430), including Flutter analysis/tests, Firestore Emulator persistence smoke test, and Flutter Web release build.
 - [x] Added a State reparent guard: an existing State cannot change Country while any child City exists.
@@ -9,6 +9,13 @@
 - [ ] Official LGD row-level reconciliation and verified contiguous geographic boundaries remain pending; production import/activation remains blocked.
 - [x] Details recorded in [Step 39 report](LOCATION_MASTER_STEP_39.md).
 
+
+## Step 42 — Parent/child polygon containment: CI pending
+
+- [x] Added a planar polygon containment check to the boundary model. It rejects invalid polygons, child vertices outside the parent, and proper child/parent edge crossings; touching/shared edges are allowed.
+- [x] Added tests for an Area polygon inside a City, an Area extending outside the City, and invalid polygon input.
+- [ ] Full CI validation pending in [workflow 38975696435](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38975696435) and [workflow 38975692845](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38975692845).
+- [ ] This is planar geometry only and is not yet wired into the save/verification lifecycle. It does not prove official provenance, full locality hierarchy integration, geodesic correctness, or real-world boundary accuracy. Production import/activation remains blocked.
 
 Last updated: 2026-10-17
 
