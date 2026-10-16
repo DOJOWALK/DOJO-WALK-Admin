@@ -6,24 +6,30 @@ Last updated: 2026-10-16
 
 - [x] Previous structural audit recorded in the ChatGPT Library.
 - [x] Boundary dialog metadata omission fixed in commit `c572371cfd74a9888a66b2e51e7af1e20c627b62`.
-- [x] Reference-data artifacts located in the Library under `/DOJO WALK Location Master/02_GENERATED_DART/`.
+- [x] Project file structure documented in `docs/PROJECT_FILE_STRUCTURE.md`.
+- [x] Generated Dart reference files located and their declarations inspected in the Library.
+- [x] Expected repository paths checked; all three generated reference files are still absent.
 - [ ] Restore and integrate the generated India reference Dart files into this repository.
 - [ ] Verify all imports and model/API compatibility after restoring the files.
 - [ ] Run `flutter pub get` and `flutter build web --release`; record the actual CI/build result.
 - [ ] Reconcile reference counts and records against a current official LGD snapshot.
 - [ ] Complete UP/NCR targeted review.
 - [ ] Verify location boundaries and activation rules in the admin UI.
-- [ ] Do not import location data into production Firebase until the above checks pass.
+- [ ] Do not import reference data into production Firebase until the above checks pass.
 
 ## Reference data currently in the Library
 
-- `india_states.dart` — 36 State/UT records.
-- `india_districts.dart` — 785 district records.
-- `india_sub_districts.dart` — 7,151 sub-district records.
+Folder: `/DOJO WALK Location Master/02_GENERATED_DART/`
+
+| File | Previous audited count | File size | Top-level declaration |
+|---|---:|---:|---|
+| `india_states.dart` | 36 State/UT records | 6,871 bytes | `IndiaState`, `indiaStates` |
+| `india_districts.dart` | 785 district records | 215,355 bytes | `IndiaDistrict`, `indiaDistricts` |
+| `india_sub_districts.dart` | 7,151 sub-district records | 1,830,733 bytes | `IndiaSubDistrict`, `indiaSubDistricts` |
 
 These are the previously audited local counts. They are **not** a claim that the records have been reconciled against the latest official LGD export. The source snapshot currently available for sub-districts is dated 2024-10-07, and a fresh official-source reconciliation remains pending.
 
-## Important repository note
+## Restore and compatibility check
 
 The following expected paths were checked on the default branch and were not found:
 
@@ -31,14 +37,16 @@ The following expected paths were checked on the default branch and were not fou
 - `lib/data/reference/india_locations/india_districts.dart`
 - `lib/data/reference/india_locations/india_sub_districts.dart`
 
-The matching generated files are available in the Library, but have **not** been restored to this repository yet. Do not mark reference-data integration as complete until the files are restored, imports are checked, and the build result is verified.
+The generated files were materialized from the Library for inspection. Their top-level names are `IndiaState/indiaStates`, `IndiaDistrict/indiaDistricts`, and `IndiaSubDistrict/indiaSubDistricts`. Repository code search did not return usages of those identifiers, so imports and integration still need an explicit check after restoration. No reference file has been committed back to the repository yet.
+
+Do not recreate the 7,151 records by hand or replace them with sample/partial data. Preserve the exact Library files and official codes when restoring.
 
 ## Boundary dialog fix
 
-The dialog now supplies `verifiedBy: null` and `verifiedAt: null` when creating a pending boundary. This resolves the missing required constructor arguments in that call site; it does not by itself prove that the entire application builds successfully.
+The dialog supplies `verifiedBy: null` and `verifiedAt: null` when creating a pending boundary. This fixes the missing required constructor arguments in that call site; it does not prove that the entire application builds successfully.
 
 Commit: `c572371cfd74a9888a66b2e51e7af1e20c627b62`
 
 ## Next planned step
 
-Safely restore the three generated Dart reference files from the Library to `lib/data/reference/india_locations/`, preserving their existing source values and code strings. Then inspect imports/usages and run the web build. No production Firebase import or boundary activation is authorized by this status note.
+Restore the exact three generated Dart files from the Library to `lib/data/reference/india_locations/`, confirm no conflicting names/imports, then run formatting, analysis/tests, and the web build. No production Firebase import or boundary activation is authorized by this status note.
