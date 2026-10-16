@@ -9,7 +9,8 @@ Last updated: 2026-10-16
 - [x] Project file structure documented in `docs/PROJECT_FILE_STRUCTURE.md`.
 - [x] Generated Dart reference files located, record counts verified, and SHA-256 integrity manifest committed at `docs/LOCATION_REFERENCE_CHECKSUMS.md`.
 - [x] Expected repository paths checked; all three generated reference files are still absent.
-- [ ] Restore the exact three generated India reference Dart files into this repository; checksum manifest is ready.
+- [x] Restored the exact three generated India reference Dart files to the proposed integration branch; byte sizes and Git blob SHAs verified.
+- [ ] Merge the integration branch after import/API review and build validation.
 - [ ] Verify all imports and model/API compatibility after restoring the files.
 - [ ] Run `flutter pub get` and `flutter build web --release`; record the actual CI/build result.
 - [ ] Reconcile reference counts and records against a current official LGD snapshot.
@@ -33,13 +34,13 @@ These are the previously audited local counts. They are **not** a claim that the
 
 Integrity manifest: [`docs/LOCATION_REFERENCE_CHECKSUMS.md`](LOCATION_REFERENCE_CHECKSUMS.md). It records measured counts, byte sizes, and SHA-256 hashes for the exact Library files. This makes it possible to verify byte-for-byte restoration.
 
-The following expected paths were checked on the default branch and were not found:
+The following files now exist on the integration branch `restore/india-location-reference-data` and are not yet present on `main`:
 
 - `lib/data/reference/india_locations/india_states.dart`
 - `lib/data/reference/india_locations/india_districts.dart`
 - `lib/data/reference/india_locations/india_sub_districts.dart`
 
-The generated files were materialized from the Library for inspection. Their top-level names are `IndiaState/indiaStates`, `IndiaDistrict/indiaDistricts`, and `IndiaSubDistrict/indiaSubDistricts`. Repository code search did not return usages of those identifiers, so imports and integration still need an explicit check after restoration. No reference file has been committed back to the repository yet.
+The generated files were restored byte-for-byte from the Library. The GitHub blob SHAs and byte sizes were verified against the new branch. Their top-level names are `IndiaState/indiaStates`, `IndiaDistrict/indiaDistricts`, and `IndiaSubDistrict/indiaSubDistricts`. Repository code search did not return usages of those identifiers, so imports and integration still need an explicit check before merging.
 
 Do not recreate the 7,151 records by hand or replace them with sample/partial data. Preserve the exact Library files and official codes when restoring.
 
@@ -51,4 +52,4 @@ Commit: `c572371cfd74a9888a66b2e51e7af1e20c627b62`
 
 ## Next planned step
 
-Restore the exact three generated Dart files from the Library to `lib/data/reference/india_locations/`, confirm no conflicting names/imports, then run formatting, analysis/tests, and the web build. No production Firebase import or boundary activation is authorized by this status note.
+Review the proposed branch, confirm no conflicting names/imports, then run formatting, analysis/tests, and the web build before merging. No production Firebase import or boundary activation is authorized by this status note.
