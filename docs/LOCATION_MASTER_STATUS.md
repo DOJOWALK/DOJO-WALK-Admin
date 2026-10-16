@@ -511,3 +511,14 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [ ] Emulator/Actions result remains unconfirmed; tests are not marked PASS.
 - [ ] Polygon containment remains a separate security gap; no production deployment/import/activation performed.
 - Test fix commit: `bafe724b628d7a4a79ae2569fdcc49827dca93f7` in `DOJO-WALK-Firebase/main`.
+
+
+## Polygon containment security design — 2026-10-17
+
+- [x] Added `docs/SERVICE_LOCATION_POLYGON_SECURITY_DESIGN.md` as a design proposal for trusted server-side activation and full Area-within-City polygon validation.
+- [x] Documented geometry checks, role checks, race/revision handling, audit requirements, emulator tests, and safe rollout sequence.
+- [ ] Backend/Cloud Function not implemented or deployed.
+- [ ] Firestore Rules still do not calculate polygon containment; direct activation must be blocked when the trusted backend is ready.
+- [ ] Latest emulator test CI result remains unconfirmed; no PASS claim.
+- [ ] No production deployment, data import, or location activation.
+- Design commit: `2a545f1eb1635b955811a84cba8f7b15b6e5d558`.
