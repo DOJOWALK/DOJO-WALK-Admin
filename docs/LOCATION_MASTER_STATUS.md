@@ -1,15 +1,25 @@
 # DOJO WALK Location Master — Project Status
 
-## Step 50 — Trusted City/Area activation callable integration tests (CI running)
+## Step 50 — Trusted City/Area activation callable integration tests: PASS
 
-- [x] Added Firestore Emulator-backed callable integration coverage in the Firebase feature branch: unauthenticated caller, ordinary authenticated user, inactive super_admin, invalid boundary rejection with City remaining inactive, valid super_admin City activation, and Area activation contained by an active City.
-- [x] Test suite refuses to run unless `FIRESTORE_EMULATOR_HOST` is set, to avoid accidentally touching a production Firestore project.
-- [x] Updated the Firebase GitHub Actions workflow to run TypeScript build, geometry tests, and callable integration tests through the Firestore Emulator using a demo project.
-- [ ] GitHub Actions validation is pending; run [38982563785](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38982563785) was queued at last check. Do not mark Step 50 PASS until it completes successfully.
-- [ ] Callable emulator integration has not yet been confirmed passing. Admin Flutter dependency resolution, analysis, tests and Web build also remain pending.
+- [x] Firestore Emulator-backed callable tests cover unauthenticated callers, ordinary authenticated users, inactive super_admin accounts, invalid boundary rejection with City remaining inactive, valid super_admin City activation, and Area activation contained by an active City.
+- [x] The test suite refuses to run unless `FIRESTORE_EMULATOR_HOST` is set, protecting against accidental use of a production Firestore project.
+- [x] GitHub Actions run [38982563785](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38982563785) completed successfully. The workflow built TypeScript and ran geometry plus callable integration tests through the Firestore Emulator.
+- [x] Firestore Security Rules workflow run [38982563782](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38982563782) also completed successfully.
+- [ ] Admin Flutter dependency resolution, static analysis, tests and Web build remain to be verified on the Admin branch.
 - [ ] No merge, production deployment, data import, or real service-location activation was performed.
 
 Firebase branch: `feature/trusted-location-activation`; latest CI workflow change commit: `350df27b7d6173a6e4eb93267bb9877049361eb0`.
+
+Last updated: 2026-10-17
+
+## Step 51 — Admin Flutter validation after Cloud Functions wiring (pending)
+
+- [x] Confirmed Admin `pubspec.yaml` includes `cloud_functions: ^6.0.3`.
+- [x] Confirmed City and Area activation call the `activateServiceLocation` callable in `asia-south1`.
+- [ ] Trigger and inspect Admin Flutter CI: `flutter pub get`, `flutter analyze`, `flutter test`, and `flutter build web --release`.
+- [ ] Fix any build/test issues before considering the Admin wiring ready for review.
+- [ ] No Firebase deployment or real location activation.
 
 Last updated: 2026-10-17
 
