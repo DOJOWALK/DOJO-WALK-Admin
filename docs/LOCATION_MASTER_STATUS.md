@@ -17,6 +17,14 @@
 - [ ] Full CI validation pending in [workflow 38975696435](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38975696435) and [workflow 38975692845](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38975692845).
 - [ ] This is planar geometry only and is not yet wired into the save/verification lifecycle. It does not prove official provenance, full locality hierarchy integration, geodesic correctness, or real-world boundary accuracy. Production import/activation remains blocked.
 
+## Step 43 — Verification lifecycle containment guard: CI pending
+
+- [x] `markVerified()` now checks Area boundaries against the referenced verified City polygon.
+- [x] `markVerified()` now checks submitted Locality polygons against the referenced verified Area polygon.
+- [x] Parent location and boundary references are checked inside the same Firestore transaction before writing the verified status.
+- [ ] CI for commit `49ee3421ecfb6be9e7684cd52df63e442c4225d1` is pending: [workflow](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38975978339).
+- [ ] Emulator-backed integration tests for the verification guard remain to be added. Production activation/import remains blocked.
+
 Last updated: 2026-10-17
 
 ## Step 41 — Imported coordinate validation: PASS
