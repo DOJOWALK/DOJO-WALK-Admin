@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dojo_admin/data/reference/india_locations/india_states.dart';
 import 'package:dojo_admin/data/reference/india_locations/india_districts.dart';
 import 'package:dojo_admin/data/reference/india_locations/india_sub_districts.dart';
+import 'package:dojo_admin/data/reference/india_locations/india_location_filters.dart';
 
 void main() {
   group('India location reference data integrity', () {
@@ -82,4 +83,53 @@ void main() {
           reason: 'Sub-district state/district names must match parent records.');
     });
   });
+
+  group('India location hierarchy filters', () {
+    test('State selection returns only districts for that State/UT', () {
+      final districts = districtsForState(9); // Uttar Pradesh LGD code.
+      expect(districts, hasLength(75));
+      expect(districts, isNotEmpty);
+      expect(districts.every((item) => item.stateCode == '9'), isTrue);
+    });
+
+    test('District selection returns only its sub-districts', () {
+      final district = indiaDistricts.firstWhere(
+        (item) =>
+            item.stateCode == '9' &&
+            item.districtName.toLowerCase() == 'gautam buddha nagar',
+      );
+      final items = subDistrictsForDistrict(
+        stateLgdCode: 9,
+        districtLgdCode: district.districtCode,
+      );
+
+      expect(items, hasLength(3));
+      expect(
+        items.every((item) =>
+            item.stateCode == '9' &&
+            item.districtCode == district.districtCode),
+        isTrue,
+      );
+    });
+
+    test('same district code under a different State does not leak records', () {
+      final district = indiaDistricts.first;
+      final items = subDistrictsForDistrict(
+        stateLgdCode: int.parse(district.stateCode),
+        districtLgdCode: district.districtCode,
+      );
+
+      expect(
+        items.every((item) =>
+            item.stateCode == district.stateCode &&
+            item.districtCode == district.districtCode),
+        isTrue,
+      );
+    });
+
+    test('unknown State/UT code returns no districts', () {
+      expect(districtsForState(-1), isEmpty);
+    });
+  });
+
 }
