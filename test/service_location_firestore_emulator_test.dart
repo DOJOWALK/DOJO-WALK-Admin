@@ -22,7 +22,7 @@ void main() {
     setupFirebaseCoreMocks();
     // Some test/plugin setups may already register the default app. Avoid
     // initializing it twice while still ensuring the emulator test has one.
-    if (Firebase.apps.isEmpty) {
+    try {
       await Firebase.initializeApp(
         options: const FirebaseOptions(
           apiKey: 'fake-api-key',
@@ -31,6 +31,10 @@ void main() {
           projectId: 'demo-dojo-walk',
         ),
       );
+    } on FirebaseException catch (error) {
+      // The test platform may have already registered the default app through
+      // its mock host API. Continue only for that specific duplicate-app case.
+      if (error.code != 'duplicate-app') rethrow;
     }
 
     FirebaseFirestore.instance.useFirestoreEmulator(host, port);
