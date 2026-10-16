@@ -543,3 +543,12 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - CI result: pending/not confirmed. Do not report tests as passing until a real Actions result is inspected.
 - Outstanding before merge: reconcile boundary schema with Admin service layer, fix/confirm Firestore Rules to block direct client activation writes, add callable/emulator integration tests, inspect geometry edge cases, and review generated audit schema.
 - No production deployment, rules deployment, import, or activation performed.
+
+
+## CI finding and fix — 2026-10-17
+
+- First geometry CI run failed at TypeScript build because GeoJSON `Feature`/`Polygon` types were imported from the wrong package.
+- Corrected imports to use `geojson` types and declared `@types/geojson` explicitly.
+- Follow-up geometry CI run #3 is in progress; Firestore Rules emulator run #11 is queued as of this update. Neither is confirmed passing.
+- Follow-up geometry run: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38981323120
+- Firestore Rules run: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38981323158
