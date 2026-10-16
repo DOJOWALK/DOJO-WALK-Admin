@@ -352,3 +352,12 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [ ] This is basic planar geometry validation, not proof of authoritative boundaries, contiguity between neighboring areas, containment within parent polygons, or antimeridian-safe geodesic validity. Those remain required before operational service activation.
 - [ ] No production Firebase writes/imports/deployment occurred; PR #6 remains open.
 
+## Step 35 — Boundary activation and locality guard coverage (2026-10-17)
+
+- [x] Step 34 CI passed in [Run 197](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38971911543): Python reference-data tests, Flutter analysis, all Flutter tests, Firestore Emulator smoke test, and Flutter Web release build succeeded.
+- [x] Added tests for City activation succeeding with a verified City boundary and persisting its boundary ID.
+- [x] Added a test rejecting a boundary with the wrong location type.
+- [x] Added tests confirming a Locality can activate without its own polygon when its Area is active, and cannot activate when the parent Area is inactive.
+- [ ] Tests committed as `01761c0fde70821d07eeb25e72591accd0997006`; wait for CI before marking Step 35 PASS.
+- [ ] Still required: reparenting and broader parent/child deactivation tests; authoritative LGD row-level reconciliation; polygon containment/adjacency/official source verification. No production writes/deployment; PR #6 remains open.
+
