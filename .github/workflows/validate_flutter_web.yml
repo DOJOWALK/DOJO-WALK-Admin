@@ -31,8 +31,14 @@ jobs:
       - name: Analyze Dart and Flutter code
         run: flutter analyze
 
-      - name: Run tests
-        run: flutter test
+      - name: Run tests when test suite exists
+        shell: bash
+        run: |
+          if [ -d test ]; then
+            flutter test
+          else
+            echo "No test/ directory exists yet; test step skipped. Add tests before relying on automated test coverage."
+          fi
 
       - name: Build Flutter Web (no deployment)
         run: flutter build web --release
