@@ -79,3 +79,12 @@ A public GitHub Gist describes a sub-district CSV as exported from the live LGD 
 - Gist page: https://gist.github.com/planemad/b2195c7feb506f8436659f36da1e58af
 - The page links a raw CSV and states that it was exported from `https://lgdirectory.gov.in/downloadDirectory.do`.
 - Do not replace the direct live LGD export requirement with this file. If used for investigation, record its capture date, checksum, and provenance separately, and label results “secondary comparison” until checked against a fresh export from the live portal.
+
+
+## Newer secondary cross-check lead (2026-10-17)
+
+A third-party data platform, Dataful, lists a dataset titled “List of States, Districts, Sub-Districts, and Villages along with their LGD Codes (as of 12 Oct 2026)” and attributes the source to the Ministry of Panchayati Raj / Local Government Directory. Page: https://dataful.in/datasets/21838/
+
+The page reports 677,673 village rows and these distinct-code counts within its village-based table: 35 state codes, 781 district codes, and 7,081 sub-district codes. These are **not directly comparable entity-table totals**: the table is village-granular and only shows entities represented in village rows. It is also hosted by a third party, so treat it as a strong lead for cross-checking—not as a substitute for original files downloaded from the live LGD portal.
+
+Compared with the restored standalone reference files (36 states/UTs, 785 districts, 7,151 sub-districts), these counts signal that a careful code-level reconciliation is important. Do not assume every difference is an error; check the dataset's coverage, extraction date, entity definitions, and parent mappings. No production or Dart data was changed based on this secondary listing.
