@@ -718,7 +718,7 @@ class ServiceLocationService {
       data: {
         'countryId': countryId,
         'name': name,
-        if (state.lgdCode != null) 'lgdCode': state.lgdCode,
+        'lgdCode': state.lgdCode,
         'isActive': state.isActive,
       },
     );
@@ -904,7 +904,11 @@ class ServiceLocationService {
       name: name,
       parentIds: [countryId, stateId],
       isNew: oldId.isEmpty,
-      data: savedCity.toMap(),
+      data: {
+        ...savedCity.toMap(),
+        // Merge writes must explicitly clear a stale reference code.
+        'lgdCode': savedCity.lgdCode,
+      },
     );
   }
 
@@ -1088,7 +1092,11 @@ class ServiceLocationService {
       name: name,
       parentIds: [countryId, stateId, cityId],
       isNew: oldId.isEmpty,
-      data: savedArea.toMap(),
+      data: {
+        ...savedArea.toMap(),
+        // Merge writes must explicitly clear a stale reference code.
+        'lgdCode': savedArea.lgdCode,
+      },
     );
   }
 
