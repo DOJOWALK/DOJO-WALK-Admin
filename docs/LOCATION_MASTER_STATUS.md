@@ -552,3 +552,13 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - Follow-up geometry CI run #3 is in progress; Firestore Rules emulator run #11 is queued as of this update. Neither is confirmed passing.
 - Follow-up geometry run: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38981323120
 - Firestore Rules run: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38981323158
+
+
+## Client activation bypass closed in draft — 2026-10-17
+
+- Updated the draft branch Firestore Rules so City/Area documents can be created inactive, but clients cannot create an active location or transition an inactive location to active. Activation is intended to go through the trusted callable backend.
+- Updated rules emulator tests to reject direct City/Area activation, including an inactive-to-active City update regression case.
+- CI from the previous code revision completed successfully: Geometry Build + Unit Tests PASS; Firestore Rules Emulator Tests PASS. These results are for the earlier revision, before the latest direct-activation rule/test edits. The latest revision still requires a fresh run; do not infer its result.
+- Latest relevant commits: rules `8319d4e348270b9c3d46cae6122b169b1c35d312`; rules tests `228029e3d8d94045a3c4df996fd590be47e12ddf`.
+- Remaining: verify the latest Actions run, add callable/emulator integration tests, reconcile Admin app boundary schema, and wire the Admin UI to call the backend before any merge/deployment.
+- No production deployment or activation has occurred.
