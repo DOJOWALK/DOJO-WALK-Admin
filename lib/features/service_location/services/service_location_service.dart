@@ -22,12 +22,32 @@ import '../models/service_location_models.dart';
 /// Unique names are enforced through transactional name indexes.
 /// ===========================================================
 
+typedef ServiceLocationActivation = Future<void> Function({
+  required String locationType,
+  required String locationId,
+});
+
 class ServiceLocationService {
   final FirebaseFirestore _firestore;
+  final ServiceLocationActivation _activateLocation;
 
   ServiceLocationService({
     FirebaseFirestore? firestore,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+    ServiceLocationActivation? activateLocation,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _activateLocation = activateLocation ?? _activateWithCloudFunction;
+
+  static Future<void> _activateWithCloudFunction({
+    required String locationType,
+    required String locationId,
+  }) async {
+    await FirebaseFunctions.instanceFor(region: 'asia-south1')
+        .httpsCallable('activateServiceLocation')
+        .call({
+      'locationType': locationType,
+      'locationId': locationId,
+    });
+  }
 
   // ==========================================================
   // COLLECTIONS
@@ -938,12 +958,10 @@ class ServiceLocationService {
     // Activation must pass through the trusted backend callable. Direct
     // client-side false -> true writes are denied by Firestore Rules.
     if (isActive) {
-      await FirebaseFunctions.instanceFor(region: 'asia-south1')
-          .httpsCallable('activateServiceLocation')
-          .call({
-        'locationType': 'city',
-        'locationId': id,
-      });
+      await _activateLocation(
+        locationType: 'city',
+        locationId: id,
+      );
       return;
     }
 
@@ -1138,12 +1156,10 @@ class ServiceLocationService {
     // Area activation is validated server-side against its active parent
     // City and verified polygon containment.
     if (isActive) {
-      await FirebaseFunctions.instanceFor(region: 'asia-south1')
-          .httpsCallable('activateServiceLocation')
-          .call({
-        'locationType': 'area',
-        'locationId': id,
-      });
+      await _activateLocation(
+        locationType: 'area',
+        locationId: id,
+      );
       return;
     }
 
