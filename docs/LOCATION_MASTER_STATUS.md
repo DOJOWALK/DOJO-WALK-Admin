@@ -417,3 +417,13 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [ ] Tests committed as `01761c0fde70821d07eeb25e72591accd0997006`; wait for CI before marking Step 35 PASS.
 - [ ] Still required: reparenting and broader parent/child deactivation tests; authoritative LGD row-level reconciliation; polygon containment/adjacency/official source verification. No production writes/deployment; PR #6 remains open.
 
+
+
+## Step 44 — Boundary verification parent-containment tests (2026-10-17)
+
+- [x] Added `test/service_location_boundary_verification_test.dart` with five service-layer cases: Area inside verified City accepted; Area outside City rejected and remains pending; missing City boundary reference rejected; Locality inside verified Area accepted; wrong parent boundary location reference rejected.
+- [x] CI run [38976622599](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38976622599) completed successfully for test commit `af9b4040ffc812dcf616414e406db69aa25bcfbd`. Python reference-data tests, Flutter analysis, Flutter unit tests, Firestore Emulator REST smoke test, and Flutter Web build completed successfully.
+- [x] Added [Step 44 report](LOCATION_MASTER_STEP_44.md).
+- [ ] Scope caveat: the new Dart tests use `fake_cloud_firestore`, not the Firestore Emulator server. Existing Node REST smoke test checks emulator persistence only and does not execute `markVerified()`; emulator-backed service integration coverage remains outstanding.
+- [ ] Official LGD row-level reconciliation, authoritative polygon provenance, robust geographic containment/adjacency checks, and Firestore rules/admin authorization review remain blockers before production activation.
+- [ ] No production Firebase writes, location imports, activations, or deployments. Keep PR #6 open.
