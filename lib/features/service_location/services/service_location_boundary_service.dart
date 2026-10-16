@@ -3,21 +3,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/service_location_boundary.dart';
 
-/// ===========================================================
-/// DOJO WALK ADMIN
-/// Service Location Boundary Service
+/// DOJO WALK Admin
 ///
-/// Firestore collection:
-/// service_location_boundaries
+/// Service Location Boundary Service.
 ///
-/// Boundary lifecycle:
-/// Draft -> Pending -> Verified / Rejected
+/// Lifecycle:
+/// Pending -> Verified
+/// Pending -> Rejected
+/// Rejected -> Pending (resubmission)
 ///
-/// IMPORTANT:
+/// Important:
 /// - Verified boundaries cannot be edited or deleted.
 /// - Only pending boundaries can be verified or rejected.
-/// - Firestore Security Rules must enforce admin permissions.
-/// ===========================================================
+/// - Resubmission requires a valid polygon and source metadata.
+/// - Firestore Security Rules must independently enforce
+///   administrator permissions.
 
 class ServiceLocationBoundaryService {
   final FirebaseFirestore _firestore;
@@ -44,35 +44,28 @@ class ServiceLocationBoundaryService {
     return user.uid;
   }
 
-  /// =========================================================
-  /// HELPERS
-  /// =========================================================
+  // ============================================================
+  // HELPERS
+  // ============================================================
 
-  String _normalizeRequired(
-    String value,
-    String fieldName,
-  ) {
-    final normalized = value.trim();
+  String _required(String value, String field) {
+    final result = value.trim();
 
-    if (normalized.isEmpty) {
-      throw ArgumentError('$fieldName is required.');
+    if (result.isEmpty) {
+      throw ArgumentError('$field is required.');
     }
 
-    return normalized;
+    return result;
   }
 
   bool _isSupportedLocationType(String value) {
-    return const {
-      'city',
-      'area',
-      'locality',
-    }.contains(value.trim().toLowerCase());
+    return const {'city', 'area', 'locality'}
+        .contains(value.trim().toLowerCase());
   }
 
   Map<String, dynamic> _serializePoints(
     List<GeoPoint> points,
   ) {
-    // Store points consistently as Firestore GeoPoints.
     return {
       'points': points
           .map(
@@ -85,12 +78,25 @@ class ServiceLocationBoundaryService {
     };
   }
 
-  List<String> _validateBoundaryForReview(
+  void _validateLocation({
+    required String locationId,
+    required String locationType,
+  }) {
+    _required(locationId, 'Location ID');
+
+    if (!_isSupportedLocationType(locationType)) {
+      throw ArgumentError(
+        'Location type must be city, area, or locality.',
+      );
+    }
+  }
+
+  List<String> _validationErrors(
     ServiceLocationBoundary boundary,
   ) {
-    final errors = <String>[];
-
-    errors.addAll(boundary.validate());
+    final errors = <String>[
+      ...boundary.validate(),
+    ];
 
     if (boundary.locationId.trim().isEmpty) {
       errors.add('Location ID is required.');
@@ -119,27 +125,46 @@ class ServiceLocationBoundaryService {
     return errors.toSet().toList();
   }
 
-  void _throwValidationErrors(List<String> errors) {
-    if (errors.isEmpty) return;
+  void _throwIfInvalid(
+    ServiceLocationBoundary boundary,
+  ) {
+    final errors = _validationErrors(boundary);
 
-    throw ArgumentError(
-      'Boundary validation failed:\n'
-      '${errors.join('\n')}',
-    );
+    if (errors.isNotEmpty) {
+      throw ArgumentError(
+        'Boundary validation failed:\n${errors.join('\n')}',
+      );
+    }
   }
 
-  /// =========================================================
-  /// GET BOUNDARY
-  /// =========================================================
+  void _requireEditableStatus(
+    String status,
+  ) {
+    if (status ==
+        BoundaryVerificationStatus.verified.name) {
+      throw StateError(
+        'Verified boundaries cannot be edited.',
+      );
+    }
+
+    if (status != BoundaryVerificationStatus.pending.name &&
+        status != BoundaryVerificationStatus.rejected.name) {
+      throw StateError(
+        'Only pending or rejected boundaries can be edited.',
+      );
+    }
+  }
+
+  // ============================================================
+  // GET BOUNDARY
+  // ============================================================
 
   Future<ServiceLocationBoundary?> getById(
     String boundaryId,
   ) async {
-    final id = _normalizeRequired(
-      boundaryId,
-      'Boundary ID',
-    );
+    _currentUid;
 
+    final id = _required(boundaryId, 'Boundary ID');
     final snapshot = await _boundaries.doc(id).get();
 
     if (!snapshot.exists) {
@@ -158,9 +183,9 @@ class ServiceLocationBoundaryService {
     );
   }
 
-  /// =========================================================
-  /// WATCH BOUNDARIES FOR A LOCATION
-  /// =========================================================
+  // ============================================================
+  // WATCH BOUNDARIES FOR A LOCATION
+  // ============================================================
 
   Stream<List<ServiceLocationBoundary>> watchForLocation(
     String locationId, {
@@ -185,11 +210,9 @@ class ServiceLocationBoundaryService {
       final results = <ServiceLocationBoundary>[];
 
       for (final document in snapshot.docs) {
-        final data = document.data();
-
         final boundary = ServiceLocationBoundary.fromMap(
           document.id,
-          data,
+          document.data(),
         );
 
         if (normalizedType != null &&
@@ -202,40 +225,47 @@ class ServiceLocationBoundaryService {
       }
 
       results.sort((a, b) {
-        return b.updatedAt.compareTo(a.updatedAt);
+        final dateComparison =
+            b.updatedAt.compareTo(a.updatedAt);
+
+        if (dateComparison != 0) {
+          return dateComparison;
+        }
+
+        return b.id.compareTo(a.id);
       });
 
       return results;
     });
   }
 
-  /// =========================================================
-  /// SAVE DRAFT
-  ///
-  /// A draft is saved with pending verification status.
-  /// Existing verified documents cannot be overwritten.
-  /// =========================================================
+  // ============================================================
+  // SAVE / UPDATE BOUNDARY
+  //
+  // Existing pending or rejected boundaries can be edited.
+  // Saving an edited rejected boundary sends it back to pending.
+  // Verified boundaries cannot be overwritten.
+  // ============================================================
 
   Future<String> saveDraft(
     ServiceLocationBoundary boundary,
   ) async {
     _currentUid;
 
-    final locationId = _normalizeRequired(
+    final locationId = _required(
       boundary.locationId,
       'Location ID',
     );
 
-    final locationType = _normalizeRequired(
+    final locationType = _required(
       boundary.locationType,
       'Location type',
     ).toLowerCase();
 
-    if (!_isSupportedLocationType(locationType)) {
-      throw ArgumentError(
-        'Location type must be city, area, or locality.',
-      );
-    }
+    _validateLocation(
+      locationId: locationId,
+      locationType: locationType,
+    );
 
     if (boundary.isVerified) {
       throw StateError(
@@ -243,64 +273,23 @@ class ServiceLocationBoundaryService {
       );
     }
 
-    final errors = _validateBoundaryForReview(
-      boundary,
-    );
-
-    // Drafts can be incomplete in source metadata while being
-    // edited. However, coordinates must still be structurally
-    // valid before they are saved.
-    final coordinateErrors = boundary
-        .validate()
-        .where(
-          (error) =>
-              error.toLowerCase().contains('point') ||
-              error.toLowerCase().contains('coordinate') ||
-              error.toLowerCase().contains('polygon'),
-        )
-        .toList();
-
-    if (coordinateErrors.isNotEmpty) {
-      _throwValidationErrors(coordinateErrors);
-    }
-
-    // Remove only metadata errors that can be completed before
-    // verification. Structural coordinate errors remain fatal.
-    final fatalErrors = errors.where((error) {
-      final normalized = error.toLowerCase();
-
-      return normalized.contains('latitude') ||
-          normalized.contains('longitude') ||
-          normalized.contains('coordinate') ||
-          normalized.contains('polygon') ||
-          normalized.contains('distinct') ||
-          normalized.contains('location id') ||
-          normalized.contains('location type');
-    }).toList();
-
-    if (fatalErrors.isNotEmpty) {
-      _throwValidationErrors(fatalErrors);
-    }
+    // This workflow requires source metadata before saving.
+    // Incomplete polygon geometry is not accepted.
+    _throwIfInvalid(boundary);
 
     final document = boundary.id.trim().isEmpty
         ? _boundaries.doc()
         : _boundaries.doc(boundary.id.trim());
 
     await _firestore.runTransaction((transaction) async {
-      final existingSnapshot =
-          await transaction.get(document);
+      final snapshot = await transaction.get(document);
+      final existing = snapshot.data();
 
-      final existing = existingSnapshot.data();
-
-      if (existingSnapshot.exists && existing != null) {
+      if (snapshot.exists && existing != null) {
         final existingStatus =
             existing['verificationStatus']?.toString() ?? '';
 
-        if (existingStatus == 'verified') {
-          throw StateError(
-            'Verified boundaries cannot be edited.',
-          );
-        }
+        _requireEditableStatus(existingStatus);
 
         final existingLocationId =
             existing['locationId']?.toString() ?? '';
@@ -334,7 +323,7 @@ class ServiceLocationBoundaryService {
         'updatedAt': now,
       };
 
-      if (!existingSnapshot.exists) {
+      if (!snapshot.exists) {
         data['createdAt'] = now;
       }
 
@@ -348,22 +337,22 @@ class ServiceLocationBoundaryService {
     return document.id;
   }
 
-  /// =========================================================
-  /// REQUEST VERIFICATION
-  ///
-  /// Moves an editable boundary into pending review.
-  /// =========================================================
+  // ============================================================
+  // REQUEST VERIFICATION / RESUBMIT
+  //
+  // Supports:
+  // - Pending -> Pending after validation.
+  // - Rejected -> Pending after corrections.
+  //
+  // Does not allow Verified -> Pending.
+  // ============================================================
 
   Future<void> requestVerification(
     String boundaryId,
   ) async {
     _currentUid;
 
-    final id = _normalizeRequired(
-      boundaryId,
-      'Boundary ID',
-    );
-
+    final id = _required(boundaryId, 'Boundary ID');
     final reference = _boundaries.doc(id);
 
     await _firestore.runTransaction((transaction) async {
@@ -375,12 +364,20 @@ class ServiceLocationBoundaryService {
 
       final data = snapshot.data()!;
 
-      final currentStatus =
+      final status =
           data['verificationStatus']?.toString() ?? '';
 
-      if (currentStatus == 'verified') {
+      if (status ==
+          BoundaryVerificationStatus.verified.name) {
         throw StateError(
           'This boundary is already verified.',
+        );
+      }
+
+      if (status != BoundaryVerificationStatus.pending.name &&
+          status != BoundaryVerificationStatus.rejected.name) {
+        throw StateError(
+          'Only pending or rejected boundaries can be submitted.',
         );
       }
 
@@ -389,9 +386,7 @@ class ServiceLocationBoundaryService {
         data,
       );
 
-      final errors = _validateBoundaryForReview(boundary);
-
-      _throwValidationErrors(errors);
+      _throwIfInvalid(boundary);
 
       transaction.update(reference, {
         'verificationStatus':
@@ -404,16 +399,12 @@ class ServiceLocationBoundaryService {
     });
   }
 
-  /// =========================================================
-  /// MARK VERIFIED
-  ///
-  /// IMPORTANT:
-  /// The application should call this only after an authorized
-  /// reviewer has checked the polygon and its source.
-  ///
-  /// Firestore Rules must independently restrict this operation
-  /// to authorized admins.
-  /// =========================================================
+  // ============================================================
+  // MARK VERIFIED
+  //
+  // Only a pending boundary can be verified.
+  // Reviewer notes are required.
+  // ============================================================
 
   Future<void> markVerified({
     required String boundaryId,
@@ -430,12 +421,12 @@ class ServiceLocationBoundaryService {
       );
     }
 
-    final notes = _normalizeRequired(
+    final notes = _required(
       verificationNotes,
       'Verification notes',
     );
 
-    final id = _normalizeRequired(
+    final id = _required(
       boundaryId,
       'Boundary ID',
     );
@@ -451,10 +442,10 @@ class ServiceLocationBoundaryService {
 
       final data = snapshot.data()!;
 
-      final currentStatus =
+      final status =
           data['verificationStatus']?.toString() ?? '';
 
-      if (currentStatus !=
+      if (status !=
           BoundaryVerificationStatus.pending.name) {
         throw StateError(
           'Only pending boundaries can be verified.',
@@ -466,9 +457,7 @@ class ServiceLocationBoundaryService {
         data,
       );
 
-      final errors = _validateBoundaryForReview(boundary);
-
-      _throwValidationErrors(errors);
+      _throwIfInvalid(boundary);
 
       transaction.update(reference, {
         'verificationStatus':
@@ -481,11 +470,11 @@ class ServiceLocationBoundaryService {
     });
   }
 
-  /// =========================================================
-  /// REJECT BOUNDARY
-  ///
-  /// Only pending boundaries can be rejected.
-  /// =========================================================
+  // ============================================================
+  // REJECT BOUNDARY
+  //
+  // Only a pending boundary can be rejected.
+  // ============================================================
 
   Future<void> rejectBoundary({
     required String boundaryId,
@@ -502,12 +491,12 @@ class ServiceLocationBoundaryService {
       );
     }
 
-    final rejectionReason = _normalizeRequired(
+    final rejectionReason = _required(
       reason,
       'Rejection reason',
     );
 
-    final id = _normalizeRequired(
+    final id = _required(
       boundaryId,
       'Boundary ID',
     );
@@ -523,10 +512,10 @@ class ServiceLocationBoundaryService {
 
       final data = snapshot.data()!;
 
-      final currentStatus =
+      final status =
           data['verificationStatus']?.toString() ?? '';
 
-      if (currentStatus !=
+      if (status !=
           BoundaryVerificationStatus.pending.name) {
         throw StateError(
           'Only pending boundaries can be rejected.',
@@ -544,18 +533,18 @@ class ServiceLocationBoundaryService {
     });
   }
 
-  /// =========================================================
-  /// DELETE DRAFT / REJECTED BOUNDARY
-  ///
-  /// Verified boundaries cannot be deleted through this method.
-  /// =========================================================
+  // ============================================================
+  // DELETE PENDING / REJECTED BOUNDARY
+  //
+  // Verified boundaries cannot be deleted.
+  // ============================================================
 
   Future<void> deleteDraft(
     String boundaryId,
   ) async {
     _currentUid;
 
-    final id = _normalizeRequired(
+    final id = _required(
       boundaryId,
       'Boundary ID',
     );
