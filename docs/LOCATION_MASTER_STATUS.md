@@ -617,3 +617,24 @@ Admin branch commits: `61c4d7e48b94c07efbc3040221662f3c4de99e9d`, `18921352195db
 - [x] Re-triggered the non-deploying Admin validation workflow by updating this status report on `restore/india-location-reference-data`; the workflow is configured to run on pushes to `restore/**`.
 - [ ] Await and inspect the actual GitHub Actions run for Python reference-data tests, Flutter dependency resolution, analysis, unit tests, Firestore Emulator smoke test, and Flutter Web release build.
 - [ ] Do not mark Step 51 PASS until the run completes successfully. No Firebase deployment, production data change, import, or location activation.
+
+
+## Step 52 — Admin activation test repair and validation (PASS)
+
+- [x] Added an injectable activation callback to `ServiceLocationService`; default production behavior still calls the trusted `activateServiceLocation` Cloud Function in `asia-south1`.
+- [x] Updated activation tests to verify City/Area activation delegates to the trusted backend and does not directly write the active status in client Firestore code.
+- [x] Added tests for backend rejection propagation and empty City ID validation.
+- [x] Removed the obsolete local boundary helper from the affected test file.
+- [x] GitHub Actions validation run #314 completed successfully: Python LGD reference-data tests, Flutter setup/dependency resolution, `flutter analyze`, unit tests, Firestore Emulator persistence smoke test, and Flutter Web release build all PASS.
+- Validation run: https://github.com/dojoplatform2026/dojo-admin/actions/runs/38983613239
+- Validated commit: `35dea86634c4ea1023075676a94f708367efe387`.
+- [ ] This is branch CI validation only. The separate Firebase callable's latest revision still requires its own CI/review and integration confirmation before merge/deployment.
+- [x] No production deployment, production data import, or real location activation performed.
+
+## Step 53 — Firebase callable integration and cross-repository verification (NEXT)
+
+- [ ] Inspect the latest Actions runs and PR status in `dojoplatform2026/DOJO-WALK-Firebase` branch `feature/trusted-location-activation` / draft PR #1.
+- [ ] Verify callable tests cover active admin authorization, missing/invalid boundary, inactive parent, valid City/Area activation, and direct-write rejection in emulator.
+- [ ] Confirm Admin and Functions agree on boundary schema and collection/field names.
+- [ ] Record the real CI results before declaring Step 53 PASS.
+- [ ] No merge or deployment without review and explicit approval; no production import or activation.
