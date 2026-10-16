@@ -85,6 +85,66 @@ void main() {
     });
   });
 
+  group('Parent and child polygon containment', () {
+    ServiceLocationBoundary polygon(
+      String id,
+      String type,
+      List<GeoPoint> points,
+    ) {
+      return ServiceLocationBoundary(
+        id: id,
+        locationId: id,
+        locationType: type,
+        points: points,
+        sourceType: BoundarySourceType.importedGeoJson,
+        sourceName: 'Test fixture',
+        sourceReference: 'test://polygon',
+        verificationStatus: BoundaryVerificationStatus.pending,
+        verifiedBy: null,
+        verifiedAt: null,
+        verificationNotes: null,
+        createdAt: DateTime.utc(2026, 1, 1),
+        updatedAt: DateTime.utc(2026, 1, 1),
+      );
+    }
+
+    final city = polygon('city', 'city', const [
+      GeoPoint(28.0, 77.0),
+      GeoPoint(28.0, 78.0),
+      GeoPoint(29.0, 78.0),
+      GeoPoint(29.0, 77.0),
+    ]);
+
+    test('accepts an area polygon fully inside its city', () {
+      final area = polygon('area', 'area', const [
+        GeoPoint(28.2, 77.2),
+        GeoPoint(28.2, 77.4),
+        GeoPoint(28.4, 77.4),
+        GeoPoint(28.4, 77.2),
+      ]);
+      expect(area.isContainedBy(city), isTrue);
+    });
+
+    test('rejects an area polygon extending outside its city', () {
+      final area = polygon('area', 'area', const [
+        GeoPoint(28.2, 77.2),
+        GeoPoint(28.2, 78.2),
+        GeoPoint(28.4, 78.2),
+        GeoPoint(28.4, 77.2),
+      ]);
+      expect(area.isContainedBy(city), isFalse);
+    });
+
+    test('rejects containment checks when either polygon is invalid', () {
+      final invalidArea = polygon('area', 'area', const [
+        GeoPoint(28.2, 77.2),
+        GeoPoint(28.3, 77.3),
+        GeoPoint(28.4, 77.4),
+      ]);
+      expect(invalidArea.isContainedBy(city), isFalse);
+    });
+  });
+
   group('Imported boundary coordinate validation', () {
     ServiceLocationBoundary fromImportedPoints(List<Map<String, double>> points) {
       return ServiceLocationBoundary.fromMap('boundary-1', {
