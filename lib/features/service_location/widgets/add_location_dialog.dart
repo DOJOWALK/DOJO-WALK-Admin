@@ -413,6 +413,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
             setState(() {
               _cityId = value;
               _areaId = null;
+              _referenceSubDistrict = null;
             });
           },
         );
