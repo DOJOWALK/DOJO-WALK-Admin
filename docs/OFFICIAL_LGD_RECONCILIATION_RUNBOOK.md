@@ -70,3 +70,12 @@ The public LGD download page exposes a CAPTCHA-protected report flow. An automat
 ## Safety boundary
 
 Do not overwrite the restored Dart data, merge PR #6, import the snapshot into production Firebase, or activate service boundaries based solely on internal consistency or OGD metadata.
+
+
+## Additional comparison lead discovered (2026-10-17)
+
+A public GitHub Gist describes a sub-district CSV as exported from the live LGD download flow. The gist shows last activity on 2026-06-21. It may be useful as an **interim cross-check only**, not as the final official snapshot, because it is third-party hosted, covers sub-districts only in the surfaced file, and predates this status date.
+
+- Gist page: https://gist.github.com/planemad/b2195c7feb506f8436659f36da1e58af
+- The page links a raw CSV and states that it was exported from `https://lgdirectory.gov.in/downloadDirectory.do`.
+- Do not replace the direct live LGD export requirement with this file. If used for investigation, record its capture date, checksum, and provenance separately, and label results “secondary comparison” until checked against a fresh export from the live portal.
