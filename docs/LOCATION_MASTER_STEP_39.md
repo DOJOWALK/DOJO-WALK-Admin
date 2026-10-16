@@ -12,7 +12,7 @@ Added coverage:
 - City cannot be deactivated while an active Area exists.
 - Saving a City is rejected when its selected State belongs to a different Country.
 
-## Step 39 — State reparent guard: CI pending
+## Step 39 — State reparent guard: PASS
 
 Code review found that `saveState` verified the target Country exists but did not prevent moving a saved State to another Country while child Cities still referenced that State. This could leave the hierarchy's stored country/state chain inconsistent.
 
@@ -21,7 +21,7 @@ Changes made:
 - If the Country changes, the save is rejected while any child City exists (active or inactive).
 - Added a regression test asserting that the move is rejected and the original Country ID remains unchanged.
 
-The code/test changes are committed, but this step is **not PASS until GitHub Actions completes successfully**.
+GitHub Actions run [38973920698](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38973920698) completed successfully. Python reconciliation-tool tests, Flutter dependency resolution, static analysis, Flutter unit tests, Firestore Emulator persistence smoke test, and Flutter Web release build all passed.
 
 ## Remaining gates
 
