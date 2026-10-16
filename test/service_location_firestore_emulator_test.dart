@@ -11,7 +11,7 @@ void main() {
       required String suffix,
       bool countryActive = true,
       bool stateActive = true,
-      bool cityActive = true,
+      bool cityActive = false,
     }) async {
       await firestore.collection('service_countries').doc('c-$suffix').set({
         'name': 'Country $suffix',
@@ -130,7 +130,7 @@ void main() {
         final firestore = FakeFirebaseFirestore();
         final service = ServiceLocationService(firestore: firestore);
         final suffix = DateTime.now().microsecondsSinceEpoch.toString();
-        await seedParents(firestore, suffix: suffix);
+        await seedParents(firestore, suffix: suffix, cityActive: true);
         await firestore.collection('service_areas').doc('area-$suffix').set({
           'name': 'Area $suffix',
           'countryId': 'c-$suffix',
