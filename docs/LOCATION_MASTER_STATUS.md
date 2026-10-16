@@ -2,6 +2,16 @@
 
 Last updated: 2026-10-17
 
+## Latest CI investigation (Step 19)
+
+- [x] The latest commit `cd60999` passed Flutter analysis and unit tests.
+- [x] Identified the emulator-stage failure: Firebase CLI reported “No emulators to start” because `firebase.json` did not define an emulator.
+- [x] Added a local Firestore Emulator configuration on port 8080 and disabled the Emulator UI in `firebase.json` (commit `6d5c417`). This configures a local test emulator only; it does not connect to or modify production Firebase.
+- [ ] Wait for CI on commit `6d5c417` to verify emulator startup, Firestore round-trip assertions, and Flutter Web build.
+- [ ] Do not mark end-to-end persistence complete until the new CI run passes.
+- [ ] Official live LGD export reconciliation and geographic boundary verification remain pending.
+
+
 ## Current status
 
 ## Firestore Emulator integration coverage (Step 18)
