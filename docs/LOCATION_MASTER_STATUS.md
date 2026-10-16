@@ -4,6 +4,15 @@ Last updated: 2026-10-17
 
 ## Current status
 
+## LGD code persistence and backward compatibility (Step 16)
+
+- [x] Added model tests for State (integer LGD code), District and Sub-district (string LGD codes).
+- [x] Tests cover serialization/reload, copyWith retention, omission of null codes, and loading legacy records that have no lgdCode field.
+- [ ] Confirm these tests and the web release build pass in GitHub Actions on the latest commit.
+- [ ] This is model-level serialization coverage, not a live Firestore round-trip test. A Firebase emulator/integration test is still needed before claiming end-to-end persistence.
+- [ ] Official LGD reconciliation, geographic boundary verification, and production import remain pending.
+
+
 - [x] Added an optional India Sub-district reference dropdown for Area/Sub-district records. The options are filtered by both the selected State LGD code and the selected District LGD code.
 - [x] Added optional `lgdCode` support to `ServiceArea` parsing/serialization; a selected sub-district's code is saved with the Area record.
 - [x] Reset the Sub-district reference selection when its State, District, or location type parent changes to prevent stale code/name combinations.
