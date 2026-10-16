@@ -88,3 +88,31 @@ A third-party data platform, Dataful, lists a dataset titled “List of States, 
 The page reports 677,673 village rows and these distinct-code counts within its village-based table: 35 state codes, 781 district codes, and 7,081 sub-district codes. These are **not directly comparable entity-table totals**: the table is village-granular and only shows entities represented in village rows. It is also hosted by a third party, so treat it as a strong lead for cross-checking—not as a substitute for original files downloaded from the live LGD portal.
 
 Compared with the restored standalone reference files (36 states/UTs, 785 districts, 7,151 sub-districts), these counts signal that a careful code-level reconciliation is important. Do not assume every difference is an error; check the dataset's coverage, extraction date, entity definitions, and parent mappings. No production or Dart data was changed based on this secondary listing.
+
+## Repeatable CSV comparison tool (added 2026-10-17)
+
+A dependency-free Python tool and unit tests are now in the branch:
+- `tool/reconcile_lgd_csv.py`
+- `tool_tests/test_reconcile_lgd_csv.py`
+
+Run the tests with:
+
+```bash
+python -m unittest discover -s tool_tests -v
+```
+
+For each entity, export the existing snapshot to CSV without modifying the original Dart files, download the matching fresh export from the live LGD portal, and compare using the exact header names shown in those two CSVs. Example (replace sample header names with the actual export headers):
+
+```bash
+python tool/reconcile_lgd_csv.py \
+  --baseline review/baseline_states.csv \
+  --official review/official_states.csv \
+  --key "State LGD Code" \
+  --compare "State Name,State Name (In Local language)" \
+  --output review/states_reconciliation.json
+```
+
+Repeat for districts and sub-districts, including the parent-code/name fields in `--compare`. The script trims surrounding whitespace but does not silently normalize code values, case, punctuation, or names. It reports added/removed keys and changed fields. Exit code 0 means no differences; 1 means differences exist; 2 means the input/header is invalid. Duplicate keys and empty keys are errors. Review differences manually before any Dart data update.
+
+The Flutter validation workflow now runs these Python unit tests before Flutter analysis/tests/build. This tooling prepares the reconciliation but does **not** mean the official export comparison has been completed; the live LGD files are still required.
+
