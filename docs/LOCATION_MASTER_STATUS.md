@@ -7,9 +7,9 @@ Last updated: 2026-10-16
 - [x] Previous structural audit recorded in the ChatGPT Library.
 - [x] Boundary dialog metadata omission fixed in commit `c572371cfd74a9888a66b2e51e7af1e20c627b62`.
 - [x] Project file structure documented in `docs/PROJECT_FILE_STRUCTURE.md`.
-- [x] Generated Dart reference files located and their declarations inspected in the Library.
+- [x] Generated Dart reference files located, record counts verified, and SHA-256 integrity manifest committed at `docs/LOCATION_REFERENCE_CHECKSUMS.md`.
 - [x] Expected repository paths checked; all three generated reference files are still absent.
-- [ ] Restore and integrate the generated India reference Dart files into this repository.
+- [ ] Restore the exact three generated India reference Dart files into this repository; checksum manifest is ready.
 - [ ] Verify all imports and model/API compatibility after restoring the files.
 - [ ] Run `flutter pub get` and `flutter build web --release`; record the actual CI/build result.
 - [ ] Reconcile reference counts and records against a current official LGD snapshot.
@@ -30,6 +30,8 @@ Folder: `/DOJO WALK Location Master/02_GENERATED_DART/`
 These are the previously audited local counts. They are **not** a claim that the records have been reconciled against the latest official LGD export. The source snapshot currently available for sub-districts is dated 2024-10-07, and a fresh official-source reconciliation remains pending.
 
 ## Restore and compatibility check
+
+Integrity manifest: [`docs/LOCATION_REFERENCE_CHECKSUMS.md`](LOCATION_REFERENCE_CHECKSUMS.md). It records measured counts, byte sizes, and SHA-256 hashes for the exact Library files. This makes it possible to verify byte-for-byte restoration.
 
 The following expected paths were checked on the default branch and were not found:
 
