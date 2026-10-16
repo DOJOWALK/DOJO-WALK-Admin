@@ -2,48 +2,48 @@
 
 Date: 2026-10-17  
 Tracking repository: `dojoplatform2026/dojo-admin`  
-Branch: `restore/india-location-reference-data`  
-Target rules repository: `dojoplatform2026/dojo-firebase`
+Tracking branch: `restore/india-location-reference-data`  
+Rules repository: `dojoplatform2026/DOJO-WALK-Firebase` (main)
 
-## Outcome
+## Current outcome
 
-**Coverage plan recorded; tests not yet implemented or run in this follow-up.** The GitHub connector could not retrieve the target repository's `firestore.rules`, test file, or workflow, and repository code search returned no results. Without reading the exact current rules and test harness, safely editing or extending the tests is not possible.
+**Additional tests committed; execution result is pending.** The correct repository name is `DOJO-WALK-Firebase` (uppercase). Its current rules, Node test harness, and workflow were retrieved and inspected.
 
-## Required security cases
+## Test changes committed
 
-1. **Area activation**
-   - Deny activation when no verified Area boundary exists.
-   - Deny activation when boundary reference is missing, mismatched, or not verified.
-   - Deny activation if parent City is inactive/unverified or the Area boundary does not reference the expected parent.
-   - Verify rejected writes leave the Area inactive.
-2. **Boundary verification and transitions**
-   - Deny verification unless the parent boundary is verified and the referenced parent IDs match.
-   - Deny unauthorized edits/deletes of verified boundaries.
-   - Test status transitions and metadata tampering, not only the happy path.
-3. **Name indexes**
-   - Deny direct writes/deletes from ordinary client roles if indexes are maintained only by a trusted workflow.
-   - Confirm permitted trusted/admin path preserves normalized-name uniqueness and cannot claim another location's index.
-4. **Import permissions and audit trail**
-   - Deny import creation/update/delete for unauthorized roles.
-   - Confirm authorized import workflow writes required actor, timestamp, source and outcome fields.
-   - Ensure a user cannot impersonate another actor or rewrite a completed import audit record.
-5. **Role/rules authorization matrix**
-   - Unauthenticated user: deny privileged reads/writes.
-   - Inactive admin: deny privileged writes.
-   - Active `super_admin`: allow only documented administrative operations.
-   - Active `location_admin`, `operations_admin`, and `support_admin`: verify each permitted/denied operation against an explicitly approved scope.
-   - Test that a client-side `isActive` flag alone cannot grant privileged Firestore access.
-6. **Regression and execution**
-   - Run tests against the Firestore Rules Unit Testing SDK and Firebase Emulator, not only fake Firestore.
-   - Capture the exact GitHub Actions run URL, commit SHA, and result in the status report.
+File: `test/firestore.rules.test.mjs`
+
+- Added Area activation denial when the verified boundary is missing.
+- Added Area activation success when a verified boundary matches the Area ID.
+- Added Area activation denial when the referenced verified boundary belongs to another Area.
+- Added name-index authorization tests: active `super_admin` allowed; active `admin`, active `support`, and inactive `super_admin` denied.
+- Added import-audit tests for authorized creation, denial of active support role, denial of actor spoofing, and denial of audit-record updates.
+- Added an active `admin` fixture and tests confirming an active non-super-admin is not authorized for service-location writes.
+
+Commits on `DOJO-WALK-Firebase/main`:
+- `69c345f7475bf594ba6f531a07b49006e531a1b1` — Area, index, and import tests.
+- `b0a2266c0dd97f3200c96ac82e77c5e8babae97a` — active non-super-admin authorization coverage.
+
+Test file: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/blob/main/test/firestore.rules.test.mjs
+
+## Important rules gap identified
+
+The current `validAreaActivation()` checks that the Area references a verified boundary whose `locationId` and `locationType` match the Area. It does **not** itself validate that the parent City is active/verified or perform polygon containment. Existing service-layer containment checks are not equivalent to enforcement in Firestore Rules. Treat parent activation/containment as a separate security/backend requirement; do not claim it is covered by these rules tests.
+
+The rules' current admin roles are `super_admin`, `admin`, and `support`. Proposed product roles such as `location_admin`, `operations_admin`, and `support_admin` are not assumed to be implemented. Any role expansion requires an approved permission matrix and matching rules/UI work.
+
+## CI status
+
+- The repository workflow `.github/workflows/test-firestore-rules.yml` runs the tests through Firebase Emulator on pushes to `main`, pull requests, or manual dispatch.
+- The GitHub connector did not provide a workflow-run result in this pass. Therefore **these new tests are committed but not yet confirmed PASS**. Capture the exact Actions run URL and confirm its conclusion before marking them passed.
+- Step 46 remains user-confirmed PASS from the earlier conversation; its exact Actions run URL is still missing.
 
 ## Safety / scope
 
-- No Firestore rules or tests were modified in the central repository during this follow-up.
-- No production Firebase deployment, data import, or location activation was performed.
-- Step 46 remains **user-confirmed PASS** from the earlier conversation; its exact Actions run link is still missing.
-- The above cases are a test plan, not evidence that the cases currently pass.
+- No production Firebase deployment was performed.
+- No service locations were imported or activated.
+- This change adds tests only; it does not alter production rules or broaden admin permissions.
 
-## Next unblock
+## Next step
 
-Restore/confirm connector access to `dojoplatform2026/dojo-firebase`, then read the current `firestore.rules`, `package.json`, test file, and workflow. Implement the smallest compatible test additions, run the emulator-backed workflow, and record the actual run link.
+Verify the Actions run triggered by commit `b0a2266c0dd97f3200c96ac82e77c5e8babae97a`. If it fails, fix the test fixture or rules only after reviewing the failure logs. Then plan a separate security change for parent City state and polygon containment, with explicit emulator tests.
