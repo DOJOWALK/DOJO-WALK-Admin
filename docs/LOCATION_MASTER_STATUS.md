@@ -2,14 +2,14 @@
 
 Last updated: 2026-10-17
 
-## Latest CI investigation (Step 21)
+## Latest CI investigation (Step 22)
 
-- [x] Flutter analysis and unit tests pass; the regular suite reports 18 passed and the emulator test skipped when no emulator host is configured.
-- [x] Firestore Emulator starts successfully in CI after adding local emulator config and Java 21 (commits `6d5c417`, `86bfdaa`).
-- [x] New integration-test failure identified: Firebase initialization attempted before Flutter's ServicesBinding was initialized.
-- [x] Added `TestWidgetsFlutterBinding.ensureInitialized()` at the start of the emulator test (commit `6ac2448`).
-- [ ] Verify CI on `6ac2448` passes the emulator-backed Firestore round-trip and Flutter Web release build.
-- [ ] Do not mark end-to-end persistence complete until that CI run passes.
+- [x] Rechecked GitHub Actions for commit `00a8b38`; the Firestore Emulator starts successfully, but the Flutter test fails at Firebase Core initialization with `PlatformException(channel-error ... FirebaseCoreHostApi.initializeCore)`.
+- [x] Root cause narrowed: a plain `flutter test` run cannot invoke the native Firebase plugin channel as this test expects. Initializing `TestWidgetsFlutterBinding` did not solve the plugin-channel issue.
+- [x] Added `tool/firestore_emulator_smoke_test.mjs`: uses the emulator's local REST endpoint to save, reload, and clear LGD fields for test State, District, and Sub-district documents. It does not use production Firebase.
+- [x] Updated CI to run that REST smoke test inside `firebase emulators:exec` instead of invoking Firebase native plugins through plain `flutter test`.
+- [ ] Await GitHub Actions for the new commits; do not claim emulator verification passed until the run confirms it.
+- [ ] This REST smoke test validates emulator persistence/field-clearing behavior, not the Flutter service class end-to-end. Flutter model/unit tests remain separate coverage.
 - [ ] Official live LGD export reconciliation and geographic boundary verification remain pending.
 
 ## Current status
