@@ -153,12 +153,18 @@ class ServiceLocationBoundary {
           final longitude = point['longitude'];
 
           if (latitude is num && longitude is num) {
-            parsedPoints.add(
-              GeoPoint(
-                latitude.toDouble(),
-                longitude.toDouble(),
-              ),
-            );
+            final lat = latitude.toDouble();
+            final lon = longitude.toDouble();
+            // Firestore GeoPoint asserts on invalid coordinates. Validate
+            // imported map data before constructing the GeoPoint.
+            if (lat.isFinite &&
+                lon.isFinite &&
+                lat >= -90 &&
+                lat <= 90 &&
+                lon >= -180 &&
+                lon <= 180) {
+              parsedPoints.add(GeoPoint(lat, lon));
+            }
           }
         }
       }
