@@ -534,3 +534,12 @@ Failure evidence: Node emulator smoke checks passed; Dart test setup failed befo
 - [ ] Firestore rules and production deployments have not been changed/deployed by this branch; do not merge or deploy until review, CI, emulator/integration tests, and explicit approval.
 - [!] Review note: current implementation supports single-ring Polygon geometry represented by `points: [{lat, lng}]`; holes/MultiPolygon/antimeridian policy are not implemented. Boundary-touching behavior depends on Turf's strict containment semantics and needs tests.
 - Branch: `feature/trusted-location-activation` in `DOJO-WALK-Firebase`.
+
+
+## Review/CI handoff — 2026-10-17
+
+- Opened draft PR in central Firebase repo: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/pull/1
+- PR is intentionally Draft and unmerged; it is for CI/review only.
+- CI result: pending/not confirmed. Do not report tests as passing until a real Actions result is inspected.
+- Outstanding before merge: reconcile boundary schema with Admin service layer, fix/confirm Firestore Rules to block direct client activation writes, add callable/emulator integration tests, inspect geometry edge cases, and review generated audit schema.
+- No production deployment, rules deployment, import, or activation performed.
