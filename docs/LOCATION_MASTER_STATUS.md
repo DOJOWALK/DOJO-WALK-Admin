@@ -11,7 +11,9 @@ Last updated: 2026-10-16
 - [x] Expected repository paths checked; all three generated reference files have now been restored on the integration branch.
 - [x] Restored the exact three generated India reference Dart files to the proposed integration branch; byte sizes and Git blob SHAs verified.
 - [ ] Review the integration pull request; merge only after import/API review and build validation.
-- [ ] Verify all imports and model/API compatibility after restoring the files.
+- [x] Static repository code search completed for `IndiaState`, `IndiaDistrict`, `IndiaSubDistrict`, and their list identifiers; no existing usages were found on `main`.
+- [x] API/type review started: state LGD IDs are `int`, while district and sub-district state-code fields are `String`; callers must convert/compare codes deliberately.
+- [ ] Finish sub-district API review and add integration tests for State → District → Sub-district filtering.
 - [ ] Run `flutter pub get` and `flutter build web --release`; record the actual CI/build result.
 - [ ] Reconcile reference counts and records against a current official LGD snapshot.
 - [ ] Complete UP/NCR targeted review.
@@ -40,7 +42,7 @@ The following files now exist on the integration branch `restore/india-location-
 - `lib/data/reference/india_locations/india_districts.dart`
 - `lib/data/reference/india_locations/india_sub_districts.dart`
 
-The generated files were restored byte-for-byte from the Library. The GitHub blob SHAs and byte sizes were verified against the new branch. Their top-level names are `IndiaState/indiaStates`, `IndiaDistrict/indiaDistricts`, and `IndiaSubDistrict/indiaSubDistricts`. Repository code search did not return usages of those identifiers, so imports and integration still need an explicit check before merging.
+The generated files were restored byte-for-byte from the Library. The GitHub blob SHAs and byte sizes were verified against the new branch. Their top-level names are `IndiaState/indiaStates`, `IndiaDistrict/indiaDistricts`, and `IndiaSubDistrict/indiaSubDistricts`. Repository code search did not return usages of those identifiers. The state model uses an integer `lgdCode`, whereas district records use a string `stateCode`; integration must normalize the comparison intentionally. The full Flutter build and automated checks have not been run for this branch.
 
 Do not recreate the 7,151 records by hand or replace them with sample/partial data. Preserve the exact Library files and official codes when restoring.
 
