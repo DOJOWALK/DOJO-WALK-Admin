@@ -20,14 +20,18 @@ void main() {
     final port = parts.length > 1 ? int.parse(parts.last) : 8080;
 
     setupFirebaseCoreMocks();
-    await Firebase.initializeApp(
-      options: const FirebaseOptions(
-        apiKey: 'fake-api-key',
-        appId: '1:123456789:web:dojo-admin-test',
-        messagingSenderId: '123456789',
-        projectId: 'demo-dojo-walk',
-      ),
-    );
+    // Some test/plugin setups may already register the default app. Avoid
+    // initializing it twice while still ensuring the emulator test has one.
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: const FirebaseOptions(
+          apiKey: 'fake-api-key',
+          appId: '1:123456789:web:dojo-admin-test',
+          messagingSenderId: '123456789',
+          projectId: 'demo-dojo-walk',
+        ),
+      );
+    }
 
     FirebaseFirestore.instance.useFirestoreEmulator(host, port);
     FirebaseFirestore.instance.settings = const Settings(
