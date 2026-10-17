@@ -165,3 +165,12 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Commits: `62182d08c1189b67781f9e5eefbc2d031269c533`, `0f6c51d9f2954dc41c66fa81445d352cb462ebf1`, `ef8f9ad4699540dadac0c2ec9acf0025a9794697`, `68e4284a122b560c37253f40a7ec4153e7af317e`, `61f92dbe74754963db630a09267b16a0a148b755`.
 - New CI verification: **PENDING** until the workflows triggered by these commits complete.
 - Security limitation remains: this is client/Admin service-layer validation. No Firestore Rules file is present in this Admin repository, and no trusted backend write path has been confirmed in this review. Do not treat direct-write bypass protection as complete. Production activation/import and PR merge remain unauthorized.
+
+
+### Step 120 — targeted tests and no-deploy Web build passed (2026-10-17)
+- Geometry workflow run #41 passed: formatting, `git diff --check`, analyzer for both location services, and all 9 geometry tests passed.
+- Run: https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39037970612
+- Admin Web release build run #12 passed using `flutter build web --release`; no deploy step was present.
+- Run: https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39037970687
+- Security audit note: `ServiceLocationBoundaryService` checks that a user is signed in, but its client code alone does not establish that the user has reviewer/admin privileges. Firestore Rules must enforce role-based authorization and protect verified records against direct writes; rules were not verified in this Admin repository. Treat backend/rules authorization as **PENDING**, not passed.
+- Step 120 targeted validation: **PASS**. Merge/production readiness: **PENDING** until trusted Firestore Rules/backend enforcement and broader release review are verified.
