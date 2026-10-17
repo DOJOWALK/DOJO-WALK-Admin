@@ -664,3 +664,15 @@ Admin branch commits: `61c4d7e48b94c07efbc3040221662f3c4de99e9d`, `18921352195db
 - [ ] Official LGD row-level reconciliation and authoritative contiguous boundary verification remain separate production blockers. Do not activate real service locations until these are completed.
 - [ ] Draft PR still requires explicit human review/approval; no merge decision made.
 - [ ] No merge, deployment, production import, or real service-location activation performed.
+
+
+## Step 56 — Official LGD source recheck and repository data-gap audit (IN PROGRESS)
+
+- [x] Rechecked official source discovery: the Ministry of Panchayati Raj describes LGD as the authoritative directory for administrative entities and unique location codes: https://panchayat.gov.in/en/lgd/.
+- [x] Current OGD metadata pages surfaced an LGD Districts resource with an update date of 08 October 2026 and an LGD catalog update around 09 October 2026. These are metadata leads only, not row-level verification: https://data.gov.in/resource/local-government-directory-lgd-districts and https://data.gov.in/catalog/local-government-directory-lgd.
+- [x] Rechecked the official LGD Download Directory: it offers state-wise district/sub-district exports but requires an interactive CAPTCHA. No CAPTCHA was bypassed and no fresh full official export was obtained in this run: https://lgdirectory.gov.in/demo/downloadDirectory.do.
+- [x] Found an important repository gap: the integrity manifest records three exact Library artifacts (36 State/UT, 785 District, 7,151 Sub-District records), but the expected generated Dart files are absent from the current Admin branch at `lib/data/reference/india_locations/`. The manifest explicitly says the source files were not committed into the repository. See `docs/LOCATION_REFERENCE_CHECKSUMS.md`.
+- [x] Existing internal source↔Dart and hierarchy audits show consistency of the saved snapshot only; they do not prove that the snapshot matches the latest LGD export. The retained sub-district source is dated 07 October 2024; earlier flags remain open (37 district local-language blanks, 3,860 sub-district local-language blanks, 1,349 Census 2011 values `00000`, one blank sub-district Census code, and 145 district Census-code values flagged for review).
+- [ ] Next data gate: obtain the latest official state/district/sub-district export through the authorized portal or official downloadable dataset; archive the unmodified source with retrieval date and SHA-256, then run full row-level reconciliation against the Library artifacts.
+- [ ] Restore the three generated Dart files into the repository only after confirming the intended API/integration, then compare their byte counts and SHA-256 against `docs/LOCATION_REFERENCE_CHECKSUMS.md` and run Flutter CI.
+- [ ] No reference-data import to production Firebase, merge, deployment, or real service-location activation performed.
