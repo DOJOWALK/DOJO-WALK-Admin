@@ -972,3 +972,19 @@ Last updated: 2026-10-17.
 Next: Step 87 — harden the backend activation callable and update its emulator integration tests to require a complete active hierarchy.
 
 Last updated: 2026-10-17.
+
+## Step 87 — Backend activation ancestor validation (2026-10-17)
+
+- [x] Updated Firebase callable `activateServiceLocation` to require the location's Country and State IDs.
+- [x] City and Area activation now require an existing active Country and an existing active State linked to that Country.
+- [x] Area activation additionally requires its Country/State IDs to match its parent City; the transaction re-reads and rechecks ancestor status/linkage and the verified boundary before writing activation.
+- [x] Expanded callable integration fixtures and added negative tests for a missing State reference, inactive State, and State linked to a different Country.
+- [x] Firebase source commit: `cfedba1c9787dd4f3e10a4800dc7ee55bab44199`.
+- [x] Integration fixture update: `e15601baa9fa44585fac842d93987c31f60d10ef` (geometry/callable CI passed).
+- [ ] Latest regression-test commit: `780737b51c4dda419ade4314811f71adb79c8743`; geometry/callable run [39021142915](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39021142915) and Firestore Rules run [39021142926](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39021142926) were still running at checkpoint.
+- [ ] Do not call Step 87 fully validated until both latest runs finish successfully.
+- [ ] Official current LGD row-level reconciliation, authoritative contiguous polygon validation, review/merge and deployment remain pending. No production activation or deployment performed.
+
+Next: Step 88 — verify the latest CI results; if they pass, audit activation/deactivation races and ancestor deactivation constraints; if they fail, fix the exact regression before proceeding.
+
+Last updated: 2026-10-17.
