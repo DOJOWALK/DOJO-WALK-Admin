@@ -290,3 +290,11 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - This confirms the updated actionlint gate no longer blocks on the reviewed Node runtime warnings, and the Rules Emulator plus callable/geometry integration tests passed for this revision. It is CI evidence for the draft branch only, not evidence of production deployment.
 - No PR merged, no deployment workflow dispatched, no Functions/Rules deployed, and no production location activated/imported.
 - Next: review the manual deployment workflow and verify whether GitHub Environment `production` has required reviewers configured. Do not dispatch deployment as part of this audit.
+
+
+### Step 131 — manual deployment workflow safety review (2026-10-17)
+- Re-read Firebase branch file `.github/workflows/deploy-trusted-boundary-function.yml` at the latest feature branch revision. It is manual-only, requires the exact confirmation string and target project ID, gates the job to `refs/heads/main`, references GitHub Environment `production`, runs Functions tests before deployment, and deploys only `functions:reviewServiceLocationBoundary`. It contains no Rules deployment or location import/activation command.
+- Workflow YAML is covered by the passing actionlint job in [Rules run 39040785844](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39040785844). The deploy workflow was **not dispatched**.
+- GitHub's production Environment reviewer configuration could not be independently read with the available repository API access. Therefore required reviewers are **UNVERIFIED**; merely naming `environment: production` does not prove an approval gate exists.
+- Firebase Draft PR #1 remains open and unmerged: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/pull/1. Admin Draft PR #7 remains open and unmerged: https://github.com/dojoplatform2026/DOJO-WALK-Admin/pull/7.
+- Next release gate: an owner must confirm/configure required reviewers for Environment `production`, then review the combined Admin/Firebase changes and explicitly approve the rollout order. No deployment, Rules change, production location activation, or import was performed.
