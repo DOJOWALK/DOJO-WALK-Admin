@@ -5,6 +5,32 @@ import 'package:dojo_admin/features/service_location/services/service_location_g
 GeoPoint p(double lat, double lng) => GeoPoint(lat, lng);
 
 void main() {
+  group('ServiceLocationGeometry.isValidPolygon', () {
+    test('accepts a simple polygon', () {
+      expect(
+        ServiceLocationGeometry.isValidPolygon([
+          p(0, 0),
+          p(0, 2),
+          p(2, 2),
+          p(2, 0),
+        ]),
+        isTrue,
+      );
+    });
+
+    test('rejects a self-intersecting polygon', () {
+      expect(
+        ServiceLocationGeometry.isValidPolygon([
+          p(0, 0),
+          p(2, 2),
+          p(0, 2),
+          p(2, 0),
+        ]),
+        isFalse,
+      );
+    });
+  });
+
   group('ServiceLocationGeometry.isPolygonContained', () {
     final city = <GeoPoint>[
       p(0, 0),
