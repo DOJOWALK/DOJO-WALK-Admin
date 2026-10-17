@@ -125,30 +125,83 @@ class _ServiceLocationScreenState
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final width = MediaQuery.sizeOf(context).width;
+    final isMobile = width < 600;
 
     return Scaffold(
       backgroundColor: _locationBackground,
       appBar: AppBar(
-        title: const Text(
-          'Service Locations',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        toolbarHeight: isMobile ? 68 : 76,
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        foregroundColor: const Color(0xFF242424),
         elevation: 0,
-        actions: [
-          TextButton.icon(
-            onPressed: _showAddLocationDialog,
-            icon: const Icon(
-              Icons.add_location_alt,
-              color: _locationOrange,
-            ),
-            label: const Text(
-              'Add Location',
-              style: TextStyle(
+        titleSpacing: 18,
+        title: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: _locationOrange.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: const Icon(
+                Icons.location_on_rounded,
                 color: _locationOrange,
-                fontWeight: FontWeight.bold,
+                size: 23,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Service Locations',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  SizedBox(height: 3),
+                  Text(
+                    'Coverage & boundary management',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: isMobile ? 8 : 20),
+            child: Center(
+              child: FilledButton.icon(
+                onPressed: _showAddLocationDialog,
+                icon: const Icon(Icons.add_location_alt_outlined, size: 19),
+                label: Text(isMobile ? 'Add' : 'Add Location'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: _locationOrange,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 12 : 18,
+                    vertical: 13,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
               ),
             ),
           ),
@@ -157,51 +210,59 @@ class _ServiceLocationScreenState
       body: Column(
         children: [
           _buildHeader(),
-
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            padding: EdgeInsets.fromLTRB(
+              isMobile ? 12 : 20, 12, isMobile ? 12 : 20, 0,
+            ),
             child: SizedBox(
               width: double.infinity,
-              height: isMobile ? 180 : 220,
+              height: isMobile ? 172 : 228,
               child: _buildMapPreview(),
             ),
           ),
-
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: EdgeInsets.fromLTRB(
+              isMobile ? 12 : 20, 12, isMobile ? 12 : 20, 8,
+            ),
             child: TextField(
               controller: _searchController,
-              onChanged: (value) {
-                setState(() => _search = value.trim());
-              },
+              onChanged: (value) => setState(() => _search = value.trim()),
               decoration: InputDecoration(
-                hintText: 'Search State, City or Area',
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: _locationOrange,
-                ),
+                hintText: 'Search state, city, area or code',
+                hintStyle: const TextStyle(fontSize: 13, color: Colors.black45),
+                prefixIcon: const Icon(Icons.search_rounded, color: _locationOrange),
                 suffixIcon: _search.isEmpty
                     ? null
                     : IconButton(
+                        tooltip: 'Clear search',
                         onPressed: () {
                           _searchController.clear();
                           setState(() => _search = '');
                         },
-                        icon: const Icon(Icons.clear),
+                        icon: const Icon(Icons.close_rounded),
                       ),
                 filled: true,
                 fillColor: Colors.white,
-                border: OutlineInputBorder(
+                contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
+                  borderSide: const BorderSide(color: Color(0xFFECE5DE)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: _locationOrange, width: 1.5),
                 ),
               ),
             ),
           ),
-
           _buildTabs(),
-          const Divider(height: 1),
-          Expanded(child: _buildSelectedList()),
+          const Divider(height: 1, color: Color(0xFFECE5DE)),
+          Expanded(
+            child: Container(
+              color: Colors.white,
+              child: _buildSelectedList(),
+            ),
+          ),
         ],
       ),
     );
@@ -212,54 +273,122 @@ class _ServiceLocationScreenState
   // ============================================================
 
   Widget _buildHeader() {
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.fromLTRB(isMobile ? 12 : 20, 14, isMobile ? 12 : 20, 0),
+      padding: EdgeInsets.all(isMobile ? 13 : 17),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _locationOrange.withValues(alpha: 0.20),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFF8F0)],
         ),
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: const Color(0xFFFFE1C5)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF9B5B25).withValues(alpha: 0.045),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Location Hierarchy',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Coverage overview',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _locationOrange.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.shield_outlined, size: 14, color: _locationOrange),
+                    SizedBox(width: 5),
+                    Text(
+                      'Verification required',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: _locationOrange,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 6),
-          Text(
-            'Country → State → City/District → '
-            'Area/Sub-district → Locality/Village',
+          const SizedBox(height: 10),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 5,
+            runSpacing: 6,
+            children: [
+              _hierarchyChip('Country'),
+              _hierarchyArrow(),
+              _hierarchyChip('State'),
+              _hierarchyArrow(),
+              _hierarchyChip('City / District'),
+              _hierarchyArrow(),
+              _hierarchyChip('Area'),
+              _hierarchyArrow(),
+              _hierarchyChip('Locality'),
+            ],
           ),
-          SizedBox(height: 8),
-          Text(
-            'Pending Review → Verified / Rejected',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: _locationOrange,
-            ),
-          ),
-          SizedBox(height: 6),
-          Text(
-            'मौजूदा Firestore Rules में नई Boundary सीधे '
-            'Pending Review में जाती है। Verified Boundary '
-            'अपने आप service को active नहीं करती।',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.black54,
-            ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.info_outline_rounded, size: 16, color: Colors.black54),
+              const SizedBox(width: 7),
+              const Expanded(
+                child: Text(
+                  'नई boundaries Pending Review में सेव होती हैं। Verified boundary भी service को अपने आप active नहीं करती।',
+                  style: TextStyle(fontSize: 11, height: 1.35, color: Colors.black54),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
+
+  Widget _hierarchyChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFEFE3D8)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  Widget _hierarchyArrow() => const Icon(
+        Icons.chevron_right_rounded,
+        size: 16,
+        color: _locationOrange,
+      );
 
   // ============================================================
   // MAP PREVIEW
