@@ -1,3 +1,16 @@
+## Step 84 — Combined Admin-style boundary verification transaction test (CI PENDING)
+
+- [x] Audited Admin `markVerified()`: reads the pending boundary and owning location, checks parent boundary containment for Area/Locality, then atomically updates the boundary verification fields and City/Area `verifiedBoundaryId`.
+- [x] Confirmed the Admin unit test currently uses `FakeFirebaseFirestore`, which validates service logic but does not enforce deployed Firestore Security Rules.
+- [x] Added a Firebase Rules Emulator regression test that simulates the Admin-style transaction: verify a pending City boundary and bind the exact boundary ID to the inactive City in one transaction, while asserting the City remains inactive.
+- [x] Firebase test commit: `8f895ab6e48e6aee0a50eccb95db4254921b5f5d`.
+- [ ] CI runs [39020560454](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39020560454) (Rules) and [39020560479](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39020560479) (geometry/callable) were queued at report time; inspect completed results before declaring PASS.
+- [!] The new Emulator test checks the combined Firestore Rules contract with equivalent client writes; it does not execute Flutter/Dart code inside the Node.js test runner. Admin service-layer behavior remains covered separately by Flutter tests.
+- [ ] Current official LGD row-level reconciliation and authoritative contiguous polygon verification remain pending. No production import, activation, deployment, or merge.
+- [x] Details: [Step 84 report](LOCATION_MASTER_STEP_84_COMBINED_BOUNDARY_TRANSACTION_TEST.md).
+
+Last updated: 2026-10-17.
+
 ## Step 83 — Firebase boundary workflow Rules/Callable CI validation (2026-10-17) — PASS
 
 - [x] Firebase Firestore Rules Emulator workflow [39019936397](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39019936397) completed successfully on commit `855dfc731910b110c00ea7dd30cf1cec038d7eaa`.
