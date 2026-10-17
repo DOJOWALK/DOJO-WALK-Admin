@@ -956,3 +956,19 @@ Last updated: 2026-10-17.
 Next: Step 86 — audit the callable activation contract against the Admin activation UI and current Firestore data model, documenting every precondition and any uncovered integration tests.
 
 Last updated: 2026-10-17.
+
+## Step 86 — City/Area activation contract audit (2026-10-17)
+
+- [x] Confirmed Admin's City/Area activation status methods call the Firebase callable `activateServiceLocation` in region `asia-south1`; the Flutter service does not directly write `isServiceActive: true`.
+- [x] Confirmed the callable requires an authenticated active `super_admin`, a matching verified boundary with source/provenance fields, valid polygon geometry, and an active parent City plus geometric containment for Area activation.
+- [x] Confirmed activation writes and audit record creation occur in a Firestore transaction after rechecking key location/boundary state.
+- [!] **Integration gap found:** the callable currently does not require the City’s referenced Country and State to exist, match the hierarchy, and be active before City activation. The Area callable checks its parent City is active, but does not independently validate the Area’s Country/State ancestry. The Admin's regular service-save validation is not a security substitute because the activation button calls the callable directly.
+- [!] Existing callable integration fixtures also create a City without Country/State references, so current tests encode the weaker contract and do not catch this gap.
+- [ ] Fix the callable to validate Country → State → City → Area parent IDs and active ancestor states; re-read these ancestors transactionally before activation.
+- [ ] Add negative integration tests for missing/inactive/mismatched Country and State and positive fixtures with a complete active hierarchy.
+- [ ] Run Firebase geometry/callable CI and Admin Flutter CI after the fix.
+- [ ] Official current LGD row-level verification, authoritative contiguous polygons, PR review/merge and deployment remain pending. No production activation or deployment performed.
+
+Next: Step 87 — harden the backend activation callable and update its emulator integration tests to require a complete active hierarchy.
+
+Last updated: 2026-10-17.
