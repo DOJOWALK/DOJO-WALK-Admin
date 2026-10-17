@@ -488,55 +488,6 @@ class ServiceLocationService {
     }
   }
 
-  Future<void> _ensureNoChildrenForReparent({
-    required String parentCollection,
-    required String parentId,
-    required String label,
-  }) async {
-    Query<Map<String, dynamic>> query;
-
-    switch (parentCollection) {
-      case 'service_countries':
-        query = _states.where(
-          'countryId',
-          isEqualTo: parentId,
-        );
-        break;
-
-      case 'service_states':
-        query = _cities.where(
-          'stateId',
-          isEqualTo: parentId,
-        );
-        break;
-
-      case 'service_cities':
-        query = _areas.where(
-          'cityId',
-          isEqualTo: parentId,
-        );
-        break;
-
-      case 'service_areas':
-        query = _localities.where(
-          'areaId',
-          isEqualTo: parentId,
-        );
-        break;
-
-      default:
-        return;
-    }
-
-    final result = await query.limit(1).get();
-
-    if (result.docs.isNotEmpty) {
-      throw StateError(
-        'Cannot move this $label while child locations exist.',
-      );
-    }
-  }
-
   // ==========================================================
   // VERIFIED BOUNDARY LOOKUP
   // ==========================================================
