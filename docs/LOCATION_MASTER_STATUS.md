@@ -385,3 +385,12 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - PR descriptions are stale: Admin PR body still describes Rules/callable deployment as if the workflow deploys Rules only, while the branch now has a separate callable deployment workflow. Update both PR descriptions to reference current heads and current manual deploy sequencing before requesting review.
 - PRs remain open/draft/unmerged and mergeable. No PR was merged; no Functions/Rules were deployed; no production location was activated/imported. Step 141 is a source/metadata review, not a complete line-by-line security audit or release approval.
 - **Step 141 outcome: ROLLOUT DEPENDENCIES IDENTIFIED / RELEASE STILL BLOCKED.**
+
+
+### Step 142 — PR release notes reconciled (2026-10-17)
+- Updated Admin Draft PR #7 description to reflect the current client migration: review, activation, and status operations use trusted callables; current-head Admin test links are recorded.
+- Updated Firebase Draft PR #1 description to record the three callable deployment targets, manual-only deployment gates, Rules sequencing dependency, current known CI links, and coordinated rollback warning.
+- Confirmed through GitHub API after updates that both PRs remain open, draft, and unmerged. Admin PR head now includes this status-report commit; Firebase PR head remains `80b9df5602d85fbbeb063071711743d7dfb37b6c`.
+- No code was changed in Step 142; no tests were rerun because only PR descriptions and this status log were updated.
+- Production Environment required-reviewer configuration remains UNVERIFIED. No workflow was dispatched, no deployment occurred, and no production locations were activated/imported.
+- **Step 142 outcome: RELEASE DOCUMENTATION ALIGNED; RELEASE STILL BLOCKED PENDING OWNER REVIEW / ENVIRONMENT VERIFICATION.**
