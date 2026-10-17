@@ -14,9 +14,9 @@ Compared the Partner app onboarding screens on branch `ci/partner-pr-validation`
 ## Test update
 - Commit: `23ecbec506a9f52f05071d0e054c4a62d035ec9e`
 - Firebase PR #5 remains draft: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/pull/5
-- Rules Emulator run #149: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39070207493 — in progress at report creation.
-- Geometry/Callable run #138: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39070207505 — in progress at report creation.
-- Step 139 prior test run passed 56/56, but the latest nested-KYC refinement still requires its own final CI result.
+- Rules Emulator run #150: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39070246822 — PASS (57 tests, 57 passed, 0 failed), including the nested KYC payload test.
+- Geometry/Callable run #139: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39070246869 — PASS.
+- The latest nested-KYC refinement has now passed CI: 57/57 Rules tests and Geometry/Callable integration PASS.
 
 ## Outcome / limits
 No definite client-side route to edit a submitted application was found in the inspected onboarding screens. Client-side checks are not security boundaries; Firestore Rules block ordinary owner edits once submitted. A deliberate correction workflow after admin review is still not implemented/approved.
