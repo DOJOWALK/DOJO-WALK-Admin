@@ -6,6 +6,8 @@ on:
       - 'lib/features/service_location/services/service_location_geometry.dart'
       - 'lib/features/service_location/services/service_location_service.dart'
       - 'lib/features/service_location/services/service_location_boundary_service.dart'
+      - 'lib/features/service_location/services/location_csv_preview_parser.dart'
+      - 'test/features/service_location/services/location_csv_preview_parser_test.dart'
       - 'test/features/service_location/services/service_location_geometry_test.dart'
       - '.github/workflows/service-location-geometry-tests.yml'
       - 'pubspec.yaml'
@@ -43,13 +45,13 @@ jobs:
         run: flutter pub get
 
       - name: Format geometry files
-        run: dart format lib/features/service_location/services/service_location_geometry.dart lib/features/service_location/services/service_location_service.dart lib/features/service_location/services/service_location_boundary_service.dart test/features/service_location/services/service_location_geometry_test.dart
+        run: dart format lib/features/service_location/services/service_location_geometry.dart lib/features/service_location/services/service_location_service.dart lib/features/service_location/services/service_location_boundary_service.dart lib/features/service_location/services/location_csv_preview_parser.dart test/features/service_location/services/location_csv_preview_parser_test.dart test/features/service_location/services/service_location_geometry_test.dart
 
       - name: Check patch whitespace
         run: git diff --check
 
       - name: Analyze service-location activation integration
-        run: flutter analyze lib/features/service_location/services/service_location_service.dart lib/features/service_location/services/service_location_boundary_service.dart
+        run: flutter analyze lib/features/service_location/services/service_location_service.dart lib/features/service_location/services/service_location_boundary_service.dart lib/features/service_location/services/location_csv_preview_parser.dart
 
       - name: Run geometry unit tests
-        run: flutter test test/features/service_location/services/service_location_geometry_test.dart
+        run: flutter test test/features/service_location/services/service_location_geometry_test.dart test/features/service_location/services/location_csv_preview_parser_test.dart
