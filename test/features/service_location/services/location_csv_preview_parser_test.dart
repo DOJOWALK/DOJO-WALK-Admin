@@ -153,7 +153,7 @@ void main() {
 
     test('rejects duplicate optional metadata headers after normalization', () {
       final result = parser.parse(
-        'State,District,City,Area,State LGD Code,state_lgd-code\\n'
+        'State,District,City,Area,State LGD Code,state_lgd-code\n'
         'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City,09,10',
       );
 
