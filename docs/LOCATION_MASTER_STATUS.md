@@ -602,3 +602,11 @@ Read-only source review:
 - Missing local-language names remain warnings, not guessed values.
 - Initial implementation boundary is local/read-only only: no Firebase SDK, callable, credentials, or production write path.
 - This step records the design only. No parser code or tests were implemented/run; no Firestore writes/imports, activation, PR merge, or deployment occurred.
+
+
+## Step 165 — LGD read-only staging parser implementation (2026-10-17)
+- Added `lib/features/service_location/services/lgd_staging_parser.dart` on `step-119-boundary-geometry`. It parses State, District and Sub-District CSVs locally, preserves codes as strings, creates versioned JSONL records, reports input SHA-256/byte sizes, validates duplicate source identities and parent relationships, and withholds JSONL output if validation fails.
+- Added focused tests in `test/features/service_location/services/lgd_staging_parser_test.dart` for BOM, leading-zero codes, quoted commas/escaped quotes/multiline values, missing local names, duplicate/empty headers, bad row widths, duplicate codes, missing/mismatched parents, deterministic hashes and fail-closed malformed input.
+- Added the new parser and tests to `.github/workflows/service-location-geometry-tests.yml`.
+- Commits: parser `5d748f6545de213feb7b38c0fce1b253135ebafb`; tests `d31d02577d1951e15b6f9d3b5e765b1d940d697a`; workflow `0b91fcd95d144ac8f1f725714ce87a2adb7bfa90`.
+- **Verification status: CI pending/unverified at the time of this note.** Do not report parser tests as passing until a current GitHub Actions run confirms it. The sub-district header aliases still need confirmation against the full source header; the committed CSV file is large and the header was not independently read in this step. No Firebase writes/imports, activation, merge or deployment.
