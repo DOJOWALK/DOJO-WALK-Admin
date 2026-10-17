@@ -1,3 +1,22 @@
+# DOJO WALK Location Master — Step 100
+## Snapshot Metadata Format Validation
+Date: 2026-10-17
+
+- [x] Step 99 Rules CI [39028501969](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028501969) — PASS.
+- [x] Step 99 callable/geometry CI [39028501939](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028501939) — PASS.
+- [x] Added ISO-style export timestamp parsing, unknown collection-name detection, malformed collection-list detection, and non-negative/matching record-count checks.
+- [x] Added regression test for invalid timestamp and unknown collection name.
+- [x] Updated offline audit documentation and saved [Step 100 report](LOCATION_MASTER_STEP_100_SNAPSHOT_METADATA_VALIDATION.md).
+- [ ] Step 100 Rules CI [39028654624](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028654624) and callable/geometry CI [39028654618](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028654618) pending verification.
+- [!] No production export/live scan, write, import, activation, or deployment. Metadata checks do not prove export authenticity or completeness.
+- [!] Current official LGD row-level reconciliation and authoritative polygon validation/containment remain release gates.
+
+Next: confirm Step 100 CI before marking complete.
+
+Last updated: 2026-10-17.
+
+---
+
 # DOJO WALK Location Master — Step 99
 ## Offline Snapshot Scope and Completeness Reporting
 Date: 2026-10-17
