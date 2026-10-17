@@ -78,7 +78,19 @@ class ServiceLocationGeometry {
         '${p.longitude.toStringAsFixed(7)}',
       );
     }
-    return unique.length >= 3 && !_hasSelfIntersection(points);
+    if (unique.length < 3 || _hasSelfIntersection(points)) return false;
+
+    // Three or more distinct points can still lie on one straight line and
+    // therefore enclose no area. Reject zero/negligible-area rings before
+    // boundary verification or containment checks.
+    var twiceSignedArea = 0.0;
+    for (var i = 0; i < points.length; i++) {
+      final current = points[i];
+      final next = points[(i + 1) % points.length];
+      twiceSignedArea += current.longitude * next.latitude -
+          next.longitude * current.latitude;
+    }
+    return twiceSignedArea.abs() > _epsilon;
   }
 
   /// Rejects non-adjacent edges that cross or touch. Adjacent edges share
