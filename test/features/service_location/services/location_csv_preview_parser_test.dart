@@ -55,9 +55,7 @@ void main() {
       );
       expect(
         result.fileErrors,
-        contains(
-          'Malformed CSV near record 2: a quote must begin a field.',
-        ),
+        contains('Malformed CSV near record 2: a quote must begin a field.'),
       );
       expect(result.rows, isEmpty);
       expect(result.isSyntacticallyValid, isFalse);
@@ -65,8 +63,8 @@ void main() {
 
     test('does not confuse pipe characters across different parent fields', () {
       final result = parser.parse(
-        'State,District,City,Area\\n'
-        'A|B,C,D,E\\n'
+        'State,District,City,Area\n'
+        'A|B,C,D,E\n'
         'A,B|C,D,E',
       );
       expect(result.rows, hasLength(2));
