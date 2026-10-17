@@ -12,11 +12,12 @@ Date: 2026-10-17
 ## CI
 - Step 99 Rules [39028501969](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028501969) — PASS.
 - Step 99 callable/geometry [39028501939](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028501939) — PASS.
-- Step 100 Rules [39028654624](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028654624) — pending verification.
-- Step 100 callable/geometry [39028654618](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028654618) — pending verification.
+- Initial Step 100 Rules run failed because the timestamp regex was over-escaped; fixed in commit `29c124229afd33e4484729e62a9a4230d7cdd457`.
+- Step 100 Rules [39028867035](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028867035) — PASS.
+- Step 100 callable/geometry [39028867024](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028867024) — PASS.
 
 ## Safety / limitations
 This is still an offline JSON snapshot audit; no Firebase connection or production read/write was performed. Metadata format checks cannot prove export authenticity or completeness. Fresh official LGD row-level reconciliation and authoritative polygon geometry/containment review remain release gates.
 
 ## Next
-Confirm Step 100 CI. If successful, continue offline data-quality checks; use real records only after explicit authorization for a read-only export kept outside Git.
+Step 101: harden malformed collection-list metadata. Use real records only after explicit authorization for a read-only export kept outside Git.
