@@ -1077,7 +1077,7 @@ class _ServiceLocationScreenState
 
     Future<void> checkParentMapping(StateSetter setDialogState) async {
       final currentPreview = preview;
-      if (currentPreview == null || !currentPreview.canProceed) {
+      if (currentPreview == null || !currentPreview.isSyntacticallyValid) {
         setDialogState(() {
           mappingReport = ['Run a clean CSV validation before checking parents.'];
         });
@@ -1285,7 +1285,7 @@ class _ServiceLocationScreenState
                       ),
                     if (preview!.rows.length > 20)
                       Text('Showing first 20 of ${preview!.rows.length} rows.'),
-                    if (preview!.canProceed)
+                    if (preview!.isSyntacticallyValid)
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
