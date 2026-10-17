@@ -59,3 +59,19 @@ Therefore, do not feed the three administrative CSVs directly into the four-colu
 - No Firestore writes or imports were performed.
 - No service location was activated.
 - No PR was merged and no deployment was performed.
+
+
+## 6. Step 162 — Existing Admin schema audit (2026-10-17)
+
+Reviewed `lib/features/service_location/models/service_location_models.dart` and `lib/features/service_location/services/service_location_service.dart` on this branch.
+
+Observed current Admin schema:
+- `ServiceState` is stored in `service_states` and carries a `countryId`.
+- `ServiceCity` is stored in `service_cities` and carries `countryId` and `stateId`; the model does not currently expose an explicit `recordLevel`, `districtCode`, or LGD source-code field.
+- `ServiceArea` is stored in `service_areas` and carries `countryId`, `stateId`, and `cityId`; the model does not currently expose an explicit `subDistrictCode` or source-level field.
+- `ServiceLocality` references `countryId`, `stateId`, `cityId`, and `areaId`.
+- Service City and Area activation uses verified boundary records; LGD CSV records provide administrative names/codes, not verified DOJO service polygons.
+
+Decision from this audit: **do not import LGD Districts into `service_cities` yet.** Although the parent IDs could structurally fit, the current model cannot distinguish a district record from an actual city. Do not import LGD Sub-Districts into `service_areas` as active service areas; that would confuse administrative boundaries with DOJO service coverage.
+
+Before implementation, inspect and test Customer/Partner reads, Admin UI filters, callable functions, and Firestore rules against any proposed source metadata. The safe next design is a non-destructive, read-only staging format with explicit `sourceSystem`, `sourceLevel`, `sourceCode`, `parentSourceCode`, and `sourceUpdatedAt`; no production writes until compatibility and boundary approval are complete.
