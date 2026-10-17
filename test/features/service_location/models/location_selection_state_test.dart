@@ -67,6 +67,24 @@ void main() {
       expect(next.areaId, 'new-area');
     });
 
+    test('country selection is invalidated when it is no longer available', () {
+      expect(
+        retainAvailableSelection('deleted-country', ['country-a', 'country-b']),
+        isNull,
+      );
+    });
+
+    test('available selection is preserved', () {
+      expect(
+        retainAvailableSelection('country-b', ['country-a', 'country-b']),
+        'country-b',
+      );
+    });
+
+    test('null selection remains null', () {
+      expect(retainAvailableSelection(null, ['country-a']), isNull);
+    });
+
     test('selecting null parent still clears its descendants', () {
       const current = LocationSelectionState(
         countryId: 'country',
