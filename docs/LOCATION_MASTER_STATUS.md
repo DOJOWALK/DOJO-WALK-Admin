@@ -433,3 +433,13 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - The listed Firebase runs are successful historical checks on the reviewed PR head; they do not prove deployment gate execution or production behavior. No live deployment workflow was dispatched.
 - **Step 146 outcome: ADMIN WEB BUILD + GEOMETRY CI PASS; FIREBASE RULES + TRUSTED FUNCTION CI PASS.** Manual deploy source gates are reviewed, but Environment reviewer enforcement remains unverified and both PRs remain draft.
 - No merge, deployment, Rules change, or production location activation/import occurred.
+
+
+### Step 147 — final pre-merge workflow audit (2026-10-17)
+- Rechecked both pull requests: Admin PR #7 and Firebase PR #1 remain open, draft, and unmerged.
+- Admin PR #7 includes `.github/workflows/build_web.yml`; the PR-branch version is manual-only and requires `main`, `DEPLOY_DOJO_ADMIN_LIVE`, and project `dojo-platform-b68a3`. The earlier automatic `push: main` trigger is absent from that branch version.
+- Firebase PR #1 includes both manual-only deployment workflows. They are present on `feature/trusted-location-activation`; attempts to fetch them from `main` returned 404, confirming the deployment workflows are not available on main until the Firebase PR is merged.
+- Firebase function workflow targets only `reviewServiceLocationBoundary`, `activateServiceLocation`, and `setServiceLocationStatus`; Rules workflow targets only `firestore:rules`. Both require their own exact confirmation and target project, run Emulator tests first, and use the `production` Environment.
+- CI checks previously verified on the reviewed heads are passing (Admin build + geometry; Firebase Rules + trusted Functions). These checks are not a substitute for a real production deployment test.
+- **Pre-merge status: CODE/WORKFLOW REVIEWED; DO NOT MERGE OR DEPLOY YET.** Production Environment reviewer settings and branch protection remain unverified because the GitHub integration returned 403. The user has not approved either merge or any deployment.
+- No files outside the Admin PR branch status log/workflow were changed in this step; no production action occurred.
