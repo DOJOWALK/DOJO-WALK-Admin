@@ -1080,11 +1080,13 @@ Last updated: 2026-10-17.
 - [x] Added Firestore Rules checks requiring parent documents to exist and hierarchy IDs to match when creating State, City, Area, and Locality records.
 - [x] Added Rules Emulator regression coverage for missing/mismatched ancestors and a valid State creation control.
 - [x] Added an offline, read-only JSON snapshot audit utility for missing/mismatched parents and active children under inactive ancestors.
-- [ ] Firebase Rules Emulator and callable/geometry CI: pending latest-run verification; do not mark Step 93 passed until confirmed.
+- [x] Firebase Rules Emulator workflow — PASS, run [39027112643](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027112643), commit `8823cbc574e6be24ce9cfc2be9c41bb5e61b2484`.
+- [x] Trusted Location Geometry and Callable Tests — PASS, run [39027112624](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027112624), same commit.
+- [x] Step 93 rules and offline-audit regression tests passed in CI; earlier intermediate fixture failure was corrected before the passing run.
 - [ ] Existing live Firestore data integrity scan remains pending; no production database was read or changed. An authorized export is required for the offline audit.
 - [ ] Fresh official LGD row-level reconciliation and authoritative contiguous polygon verification remain pending.
 - [x] No production import, activation, or deployment performed.
 
-Next: Step 93 validation — inspect latest CI runs, fix any failures, and update this status with confirmed results.
+Next: Step 94 — review the Admin-side create/save workflow against the new parent checks, then prepare a read-only audit using an authorized location export. No live database scan or deployment without approval.
 
 Last updated: 2026-10-17.
