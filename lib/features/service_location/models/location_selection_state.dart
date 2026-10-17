@@ -34,3 +34,15 @@ class LocationSelectionState {
         areaId: value,
       );
 }
+
+/// Returns a selected ID only while it exists in the latest option list.
+///
+/// This prevents dropdowns from retaining a value whose document was deleted
+/// or removed from the current parent-filtered query.
+String? retainAvailableSelection(
+  String? selectedId,
+  Iterable<String> availableIds,
+) {
+  if (selectedId == null || !availableIds.contains(selectedId)) return null;
+  return selectedId;
+}
