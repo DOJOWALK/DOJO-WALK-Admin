@@ -148,3 +148,11 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - This verifies the current draft branch's targeted checks. It does **not** establish full Flutter Web release-build success, complete GIS/topology correctness, or protection against direct Firestore writes that bypass the Admin service.
 - Step 119 targeted CI: **PASS**. Overall production readiness: **NOT APPROVED / PENDING**.
 - Next review: confirm whether geometry enforcement must also be placed in a trusted backend callable/server path, inspect direct write paths and security rules, and run a full Admin web release build before considering merge. Do not import data or activate production locations.
+
+
+### Next validation — Admin Web release build check (2026-10-17)
+- Inspected `.github/workflows/build_web.yml`: it builds and deploys to Firebase Hosting's `live` channel on `main`; it is not suitable for safely testing this draft branch.
+- Added `.github/workflows/admin-web-build-check.yml` to run `flutter pub get` and `flutter build web --release` for relevant pull-request/branch changes, with **no deployment step**.
+- Workflow commit: `f7fb22ffeef713d701261a2ac8ac459050b572ce`.
+- Build result: **PENDING** until the newly triggered GitHub Actions run completes. The focused geometry CI pass remains valid, but does not replace a full web release build.
+- Release safeguard unchanged: do not merge the draft PR or activate/import production service locations.
