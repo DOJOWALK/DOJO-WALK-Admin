@@ -1201,6 +1201,8 @@ class _ServiceLocationScreenState
         setDialogState(() {
           sourceName = file.name;
           preview = parser.parse(contents);
+          // A new file invalidates any parent-mapping report from the old preview.
+          mappingReport = [];
         });
       } catch (error) {
         setDialogState(() {
@@ -1209,6 +1211,8 @@ class _ServiceLocationScreenState
             rows: const [],
             fileErrors: ['Could not read selected CSV: $error'],
           );
+          // Do not leave stale mapping results visible after a file-read error.
+          mappingReport = [];
         });
       }
     }
@@ -1368,6 +1372,8 @@ class _ServiceLocationScreenState
               onPressed: () => setDialogState(() {
                 controller.clear();
                 preview = null;
+                mappingReport = [];
+                sourceName = 'Pasted CSV';
               }),
               child: const Text('Clear'),
             ),
