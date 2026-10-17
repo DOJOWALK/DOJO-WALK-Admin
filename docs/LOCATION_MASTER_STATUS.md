@@ -352,3 +352,14 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Admin service status paths call `setServiceLocationStatus` / `activateServiceLocation`; direct client writes to the service activation flags were removed from those methods.
 - Release gates remain: verify GitHub `production` Environment required reviewers (still **UNVERIFIED**), review both Draft PRs, and obtain explicit approval before any production workflow dispatch. No PR merged; no production Functions/Rules deployed; no location activated/imported.
 - **Step 137 status: DRAFT-CODE CI PASS / RELEASE GATES OPEN.**
+
+
+### Step 138–139 — latest CI and release-gate recheck (2026-10-17)
+- Admin Geometry Tests run [39042011024](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39042011024): **PASS**.
+- Admin Web Build Check run [39042011070](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39042011070): **PASS**; the no-deploy Flutter Web build step completed successfully.
+- Firebase callable/geometry run [39041653090](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39041653090): **PASS**. Firestore Rules Emulator/workflow validation run [39041653227](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39041653227): **PASS**.
+- Rechecked current PR metadata: Admin PR #7 and Firebase PR #1 remain **open, draft, unmerged**, and both report mergeable. Latest known heads are Admin `b60331b09e96edd8c5fe5b7c75946639e01f3e6a` and Firebase `80b9df5602d85fbbeb063071711743d7dfb37b6c`.
+- Re-read Firebase draft deployment workflows. Both are manual-only, require exact confirmation and target project ID `dojo-platform-b68a3`, gate execution to `main`, use Environment `production`, and run emulator tests before deployment. The Functions workflow deploys the three trusted location callables; the Rules workflow deploys Firestore Rules only. Neither workflow was dispatched.
+- GitHub Environment required reviewers remain **UNVERIFIED** because repository API access did not permit inspection of Environment protection settings. Presence of `environment: production` is not proof that reviewers are configured.
+- Release remains **NOT APPROVED**: no PR merged, no production Functions/Rules deployed, no location activated/imported. Before release, verify Environment protection, reconcile the PR descriptions with the latest workflow behavior, and review the combined current diffs and ordered rollback plan.
+- **Step 138–139 outcome: DRAFT-BRANCH CI PASS / RELEASE GATES OPEN.**
