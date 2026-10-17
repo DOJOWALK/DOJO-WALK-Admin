@@ -49,6 +49,20 @@ void main() {
       expect(empty.fileErrors, contains('Header row contains an empty column name.'));
     });
 
+    test('rejects a quote inside an unquoted field', () {
+      final result = parser.parse(
+        'State,District,City,Area\nUP,GB"N,Noida,Sector 1',
+      );
+      expect(
+        result.fileErrors,
+        contains(
+          'Malformed CSV near record 2: a quote must begin a field.',
+        ),
+      );
+      expect(result.rows, isEmpty);
+      expect(result.canProceed, isFalse);
+    });
+
     test('rejects empty and malformed CSV input', () {
       expect(parser.parse('  ').fileErrors, contains('CSV file is empty.'));
       expect(
