@@ -1,3 +1,18 @@
+## Latest checkpoint — Step 115 PASS (2026-10-17)
+
+- [x] Removed fixed coordinate padding from segment bounding checks.
+- [x] Replaced fixed orientation epsilon with a scale-aware floating-point error bound.
+- [x] Replaced fixed polygon-area cutoff with a round-off-aware threshold.
+- [x] Added near-parallel positive-gap and small representable polygon regression tests.
+- [x] Firestore Rules CI PASS: [39034492047](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39034492047).
+- [x] Geometry/Callable CI PASS: [39034492053](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39034492053).
+- [x] Detailed report: [Step 115](LOCATION_MASTER_STEP_115_NUMERIC_TOLERANCE.md).
+- [!] Synthetic geometry only; official LGD reconciliation, authoritative real-world boundaries and production data audit remain pending. No production scan/export, write, import, activation or deployment was performed.
+
+Next: Step 116 — review coordinate range validation and ring normalization/closure edge cases.
+
+---
+
 ## Latest checkpoint — Step 116 PASS (2026-10-17)
 
 - [x] Ring closure and reverse-winding regression tests added.
