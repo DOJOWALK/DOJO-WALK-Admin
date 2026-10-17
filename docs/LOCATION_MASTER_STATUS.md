@@ -1,3 +1,21 @@
+# DOJO WALK Location Master — Step 92
+## Create/Edit/Reparent Hierarchy Audit
+Date: 2026-10-17
+
+- [x] Firestore Rules now reject changes to parent IDs on existing State, City, Area and Locality records.
+- [x] Added Rules Emulator regression tests for reparent rejection.
+- [x] Admin save methods preserve the existing stored activation state; new locations start inactive.
+- [x] Admin edit paths reject parent changes with a clear message rather than relying on a non-atomic client child query.
+- [x] Removed the obsolete client-only reparent helper.
+- [ ] Firebase Rules CI [39026587203](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026587203), callable CI [39026587210](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026587210), and Admin Flutter CI [39026612586](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39026612586) are pending; Step 92 is not yet PASS.
+- [!] Existing live database consistency has not been scanned. No production writes/deployment/import/activation.
+- [!] Current official LGD row-level reconciliation and authoritative contiguous boundary verification remain release gates.
+- [x] Details: [Step 92 report](LOCATION_MASTER_STEP_92_CREATE_EDIT_REPARENT_AUDIT.md).
+
+Next: Step 93 — validate parent existence/ancestry on create/edit and plan a read-only integrity scan.
+
+Last updated: 2026-10-17.
+
 # DOJO WALK Location Master — Step 91
 ## Locality Status Transition Hardening
 Date: 2026-10-17
