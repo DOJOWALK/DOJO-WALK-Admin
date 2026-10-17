@@ -343,3 +343,12 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - New Admin CI triggered by the analyzer fix is pending; do not mark Admin geometry tests passed until the new run completes.
 - No PR merged; no deployment workflow dispatched; no Functions/Rules deployed; no production location activated/imported. Production Environment required reviewers remain **UNVERIFIED**.
 - **Step 136 status: ANALYZER FIX COMMITTED / CI PENDING.**
+
+### Step 137 — CI verification and callable coverage audit (2026-10-17)
+- Admin Geometry Tests run [39041861817](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39041861817) is **PASS**: Dart formatting, whitespace check, `flutter analyze` for service-location activation integration, and geometry unit tests all completed successfully after Step 136.
+- Admin Web Build run [39041859066](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39041859066) is **PASS**: Flutter Web build completed successfully without deployment.
+- Firebase callable/geometry tests run [39041653090](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39041653090) is **PASS**; Rules Emulator plus workflow YAML lint run [39041653227](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39041653227) is **PASS**.
+- Source audit confirmed `functions/test/service_location_status.integration.test.cjs` covers admin authorization, parent-child deactivation guards, Country/State activation ancestry, Locality ancestry checks, and concurrency races. `functions/test/activate_service_location.integration.test.cjs` covers City/Area activation, authorization, invalid/missing boundaries, inactive/mismatched State, inactive parent City, and Area-outside-City rejection.
+- Admin service status paths call `setServiceLocationStatus` / `activateServiceLocation`; direct client writes to the service activation flags were removed from those methods.
+- Release gates remain: verify GitHub `production` Environment required reviewers (still **UNVERIFIED**), review both Draft PRs, and obtain explicit approval before any production workflow dispatch. No PR merged; no production Functions/Rules deployed; no location activated/imported.
+- **Step 137 status: DRAFT-CODE CI PASS / RELEASE GATES OPEN.**
