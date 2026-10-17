@@ -7,7 +7,9 @@ Date: 2026-10-17
 - [x] Shared audit core now checks active City/Area verifiedBoundaryId resolution, location ID/type binding, verification status and provenance metadata, minimum point count, coordinate ranges, and at least three distinct points.
 - [x] CLI now uses the same tested core, avoiding drift between unit-tested audit logic and actual report command.
 - [x] Added tests for missing active City boundary and invalid active Area boundary metadata/coordinates; updated synthetic fixture and scope documentation.
-- [ ] Step 97 Firebase CI is running: [Rules 39028120030](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028120030), [callable/geometry 39028120018](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028120018). Do not mark Step 97 complete until both runs finish successfully.
+- [x] Step 97 Firebase Rules CI [39028120030](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028120030) — PASS.
+- [x] Step 97 Firebase callable/geometry CI [39028120018](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028120018) — PASS.
+- [x] Step 97 code/test validation complete.
 - [!] This is only offline structural/basic coordinate checking. It does not prove polygon validity/containment, source authority, boundary continuity, or current official LGD alignment; the production data remains unaudited.
 - [!] No production export, live Firestore scan, source write, import, activation, or deployment was performed.
 
