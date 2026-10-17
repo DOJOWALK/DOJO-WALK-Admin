@@ -1505,36 +1505,13 @@ class _ServiceLocationScreenState
 
       if (!mounted) return;
 
-      final pending = boundaries
-          .where(
-            (boundary) =>
-                boundary.verificationStatus ==
-                BoundaryVerificationStatus.pending,
-          )
-          .toList();
-      final rejected = boundaries
-          .where(
-            (boundary) =>
-                boundary.verificationStatus ==
-                BoundaryVerificationStatus.rejected,
-          )
-          .toList();
       final verified = boundaries
           .where((boundary) => boundary.isVerified)
           .toList();
 
-      // Reviewable replacements must remain reachable even while the old
-      // verified record is preserved. Prefer pending, then rejected, then
-      // verified when opening the manager.
-      final existing = pending.isNotEmpty
-          ? pending.first
-          : rejected.isNotEmpty
-              ? rejected.first
-              : verified.isNotEmpty
-                  ? verified.first
-                  : boundaries.isNotEmpty
-                      ? boundaries.first
-                      : null;
+      // Keep replacement records reachable for review while preserving the
+      // old verified record.
+      final existing = selectBoundaryForManagement(boundaries);
 
       final initialPoints = existing == null
           ? <LatLng>[]
