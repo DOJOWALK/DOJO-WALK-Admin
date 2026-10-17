@@ -312,3 +312,21 @@ Before calling Admin ready for merge, verify all of the following:
 ## Safety
 
 This branch is a review branch. Do not import the reference data into production Firebase, activate any service locations, deploy Functions/Rules/Hosting, or merge either PR until the required checks and explicit release approval are complete.
+
+
+## Admin completion progress — Step 131 (2026-10-18)
+
+### Partner onboarding Rules tests added to Firebase review branch
+
+Report: [`docs/STEP_131_PARTNER_ONBOARDING_EMULATOR_TESTS.md`](STEP_131_PARTNER_ONBOARDING_EMULATOR_TESTS.md), commit `382f80da88bdee0a5ce227134184c939faaf00ae`.
+
+- Firebase draft PR #4: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/pull/4
+- Review branch: `step-131-partner-onboarding-emulator-tests`.
+- Added six Emulator tests for initial walker draft create, owner isolation, existing location update, approval/status protection, ordinary-update submission guard and explicit submission transition.
+- Added a Rules invariant so ordinary draft edits preserve the stored `applicationSubmitted` value; the dedicated transition handles submission.
+- CI runs `39067829446` (Firestore Rules Emulator tests) and `39067829625` (geometry/callable tests) were in progress at last check. Final results are pending; do not mark PASS until checked.
+- [ ] Inspect final CI results/logs and fix failures.
+- [ ] Verify the submission UI matches the explicit transition.
+- [ ] Review Firebase and Partner branches together before release.
+
+No production deployment, activation, import or merge was performed.
