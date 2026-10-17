@@ -980,8 +980,6 @@ class ServiceLocationService {
       'City',
     );
 
-    String? verifiedBoundaryId;
-
     if (isActive) {
       final countryId =
           city['countryId']?.toString() ?? '';
@@ -993,7 +991,7 @@ class ServiceLocationService {
 
       await _requireActiveState(stateId, countryId);
 
-      verifiedBoundaryId = await _requireVerifiedBoundary(
+      await _requireVerifiedBoundary(
         locationId: id,
         locationType: 'city',
       );
@@ -1193,8 +1191,6 @@ class ServiceLocationService {
       'Area',
     );
 
-    String? verifiedBoundaryId;
-
     if (isActive) {
       final countryId =
           area['countryId']?.toString() ?? '';
@@ -1211,7 +1207,7 @@ class ServiceLocationService {
 
       await _requireActiveCity(cityId, stateId);
 
-      verifiedBoundaryId = await _requireVerifiedBoundary(
+      await _requireVerifiedBoundary(
         locationId: id,
         locationType: 'area',
       );
