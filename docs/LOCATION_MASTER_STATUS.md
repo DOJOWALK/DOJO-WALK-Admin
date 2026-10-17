@@ -134,3 +134,9 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Fixed by loading the parent City through `_requireDocument(_cities, cityId, 'City')` before reading its verified boundary ID.
 - Fix commit: `dfca25aee7144648dc88fdce6636a6c9e96fbb73`.
 - Step 119 remains **PENDING** until a new run passes analyzer and unit tests. Production activation remains unauthorized.
+
+### Step 119 — second CI finding and cleanup (2026-10-17)
+- CI run #24 passed formatting and whitespace checks, but `flutter analyze` exited non-zero because the service had an unused private wrapper, `_requireExistingForUpdate`. Geometry tests were skipped after analyzer failure.
+- Removed the unused wrapper (it only delegated to `_requireDocument` and had no callers).
+- Fix commit: `49718dbf8eb496fdefae380c8bb56ba81c86cc30`.
+- Step remains **PENDING** until CI analyzer and geometry tests pass.
