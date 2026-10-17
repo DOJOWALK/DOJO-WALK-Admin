@@ -521,3 +521,12 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - **Safety boundary:** this is parser/validation groundwork only. It does not select files, resolve Firestore parent IDs, write records, create import-history records, or activate locations. Do not treat CSV rows as ready for import until parent mapping and explicit confirmation are implemented.
 - Commits: parser `87e4fe15b2363619dccfdda19cd541272a539694`; tests `1be5d40e3345830070a3ccea7ef9e6a25600c212`.
 - **Validation status: NOT YET VERIFIED.** No local Flutter runtime is available through the GitHub edit operation; check the branch CI runs before claiming tests/build pass. PR #7 remains Draft/open/unmerged. No data import, activation, merge, or deployment occurred.
+
+
+### Step 157 — Admin CSV preview UI and CI coverage (2026-10-17)
+- Added a **CSV Import Preview** card to the Service Locations → Import History tab and a dialog where an admin can paste CSV text and run validation. The dialog displays row totals, valid/invalid counts, row-level errors, and up to 20 parsed rows.
+- This is intentionally a paste-based first UI slice, not file selection yet. No Firestore writes, import-history writes, parent-ID mapping, or activation are performed. Even a clean preview warns that parent mapping and explicit import confirmation are still required.
+- Expanded `.github/workflows/service-location-geometry-tests.yml` path filters to include the parser and its test, and included the parser/test in format, analyze, and test commands. This fixes a coverage gap: the previous geometry-only CI run passed but did **not** exercise the new parser test.
+- Commits: UI `f4b384f62fd61f0dd3c54b03c3cb5691531b7dfc`; UI cleanup `745a762306a1ce8ea7dfc4b5c755c424d6b66ebf`; CI coverage `13e8ef2ef1deb2a9fc5ab389ea084f1e3bd0e288` and `c2c7e74c0d1a62762b1b93d8916f67e650c9a650`.
+- **Validation status: pending for the updated workflow.** The earlier run `39046266700` passed geometry checks only; it is not evidence that the new parser/UI compile or tests pass. Check a new run after the latest workflow commit.
+- PR #7 remains Draft/open/unmerged. No data import, activation, merge, or deployment occurred.
