@@ -20,6 +20,30 @@ India reference-data PR: [#6 — Restore India location reference data](https://
 - PR #7 remains Draft/open/unmerged. Firebase companion PR #1 remains Draft/open/unmerged.
 - Next safe task: verify CI on the new parser/test commits, then continue read-only validation coverage without introducing Firestore writes or guessing the District/City schema. Full transactional import remains blocked on the schema decision and trusted backend support.
 
+## Read-only cross-repository integration audit — 2026-10-18
+
+### Verified evidence
+
+- Admin review branch schema proposal remains design-only. Its recommended logical hierarchy is `Country → State → District → Service City → Service Area`; it explicitly says a City must not be inferred from a District/Sub-district name and an Area must not be treated as an LGD Sub-district without evidence. No approval or production implementation was found in the reviewed proposal.
+- Firebase companion PR #1, [trusted service-location activation backend](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/pull/1), is still Draft/open/unmerged at head `80b9df5602d85fbbeb063071711743d7dfb37b6c`. Its two PR workflow runs passed: [Firestore Rules tests](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39041653227) and [Trusted Location Geometry and Callable Tests](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39041653090). These are automated PR checks, not proof of production deployment. The PR describes manual-only deployment gates; production Environment required-reviewer configuration remains unverified.
+- Partner onboarding still reads active documents from `zones`, builds City/Area dropdowns from legacy `city` and `area` fields, and saves matching legacy zone document IDs into `walkers/{uid}.zones`. The reviewed Partner `main` code does not query `service_cities` or `service_areas`; no migration or compatibility adapter was found in the files reviewed.
+- **Potential Partner Rules mismatch found:** the Partner repo's own `firestore.rules` owner-update allowlist does not include `state`, `zoneName`, `zoneNames`, or `travelMode`, while `WorkLocationScreen` attempts to update those fields on an existing in-progress walker record. If this repository-local Rules file is deployed, that update can be rejected. The actual deployed Rules source/version was not verified, so treat this as a confirmed source mismatch and a deployment-risk item—not as proof of current production behavior. Resolve with an Emulator test and compare against the centrally maintained Firebase Rules before any rollout.
+- The Admin PR #7 and Firebase PR #1 remain Draft/open/unmerged. No Firestore writes, location activation, migration, merge, or deployment were performed during this audit.
+
+### Integration conclusion
+
+**Blocked — do not enable CSV writes or migrate Partner yet.** The Admin schema decision, trusted callable/Rules cutover, and legacy Partner zone compatibility must be agreed and tested together. Keep legacy `zones` readable until a separately reviewed mapping preserves existing zone IDs and walker records; do not auto-map by matching names alone.
+
+### Next safe step
+
+Add/execute read-only contract tests and Firebase Emulator tests for:
+1. legacy Partner zone reads and walker profile update fields;
+2. old City/District documents without `districtId` and proposed new District → Service City → Area ancestry;
+3. callable-only boundary review/activation, including rejection of direct client verification writes;
+4. rollback compatibility across Admin, Rules/callables, and Partner.
+
+No production Rules or Functions deployment is part of this step.
+
 ## Current decision
 
 **Do not merge yet.** Admin work is progressing on the review branch, but a production-ready completion gate has not been met. No merge, deployment, production import, or location activation was performed.
