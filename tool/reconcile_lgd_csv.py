@@ -24,11 +24,11 @@ def read_csv(path: str, key_column: str, compare_columns: list[str]) -> dict[str
             raise ValueError(f"{path}: CSV has no header")
         if any(not name or not name.strip() for name in reader.fieldnames):
             raise ValueError(f"{path}: CSV contains a blank header name")
-        if any(name != name.strip() for name in reader.fieldnames):
-            raise ValueError(f"{path}: CSV header names must not have leading/trailing whitespace")
         normalized_headers = [name.strip() for name in reader.fieldnames]
         if len(set(normalized_headers)) != len(normalized_headers):
             raise ValueError(f"{path}: CSV contains duplicate header names (including whitespace variants)")
+        if any(name != name.strip() for name in reader.fieldnames):
+            raise ValueError(f"{path}: CSV header names must not have leading/trailing whitespace")
         required = [key_column, *compare_columns]
         missing = [column for column in required if column not in reader.fieldnames]
         if missing:
