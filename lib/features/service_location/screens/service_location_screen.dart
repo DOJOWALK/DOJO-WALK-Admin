@@ -884,7 +884,7 @@ class _ServiceLocationScreenState
     bool checkingParents = false;
 
     String normalizeLocationName(String value) =>
-        value.trim().toLowerCase().replaceAll(RegExp(r'\\s+'), ' ');
+        value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
 
     Future<void> checkParentMapping(StateSetter setDialogState) async {
       final currentPreview = preview;
@@ -964,7 +964,7 @@ class _ServiceLocationScreenState
 
         report.insert(
           0,
-          'Existing parent matches: $matched / ${currentPreview.rows.length} rows.',
+          'Existing State/City/Area name matches: $matched / ${currentPreview.rows.length} rows. District is not validated.',
         );
         report.insert(
           1,
@@ -1126,7 +1126,7 @@ class _ServiceLocationScreenState
                         child: Text(
                           line,
                           style: TextStyle(
-                            color: line.startsWith('Existing parent matches')
+                            color: line.startsWith('Existing State/City/Area name matches')
                                 ? Colors.green.shade800
                                 : Colors.deepOrange.shade800,
                           ),
