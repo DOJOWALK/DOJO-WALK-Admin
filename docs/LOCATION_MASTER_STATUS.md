@@ -7,7 +7,8 @@ Date: 2026-10-17
 - [x] Admin save methods preserve the existing stored activation state; new locations start inactive.
 - [x] Admin edit paths reject parent changes with a clear message rather than relying on a non-atomic client child query.
 - [x] Removed the obsolete client-only reparent helper.
-- [ ] Firebase Rules CI [39026587203](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026587203), callable CI [39026587210](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026587210), and Admin Flutter CI [39026612586](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39026612586) are pending; Step 92 is not yet PASS.
+- [!] Initial Rules CI [39026587203](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026587203) failed on the new Locality reparent test because the condition was accidentally placed in the create rule. Fixed in Firebase commit `7fcede8b73ddfa7b0c1eee298df589f2ec53ef20`.
+- [ ] Corrected Firebase Rules CI [39026678657](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026678657), callable CI [39026678719](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026678719), and Admin Flutter CI [39026612586](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39026612586) are still pending; Step 92 is not yet PASS.
 - [!] Existing live database consistency has not been scanned. No production writes/deployment/import/activation.
 - [!] Current official LGD row-level reconciliation and authoritative contiguous boundary verification remain release gates.
 - [x] Details: [Step 92 report](LOCATION_MASTER_STEP_92_CREATE_EDIT_REPARENT_AUDIT.md).
