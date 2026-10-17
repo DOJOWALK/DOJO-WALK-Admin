@@ -267,13 +267,24 @@ class _ServiceLocationScreenState
   Future<Set<Polygon>> _loadActiveBoundaryPolygons() async {
     final cities = await _service.watchCities().first;
     final areas = await _service.watchAreas().first;
+    final boundarySnapshot = await FirebaseFirestore.instance
+        .collection('service_location_boundaries')
+        .where('verificationStatus', isEqualTo: 'verified')
+        .get();
+    final boundariesById = {
+      for (final document in boundarySnapshot.docs)
+        document.id: ServiceLocationBoundary.fromMap(
+          document.id,
+          document.data(),
+        ),
+    };
     final polygons = <Polygon>{};
 
     for (final city in cities.where((item) => item.isServiceActive)) {
       final boundaryId = city.verifiedBoundaryId.trim();
       if (boundaryId.isEmpty) continue;
 
-      final boundary = await _boundaryService.getById(boundaryId);
+      final boundary = boundariesById[boundaryId];
       if (boundary == null ||
           !boundary.isVerified ||
           boundary.locationId != city.id ||
@@ -301,7 +312,7 @@ class _ServiceLocationScreenState
       final boundaryId = area.verifiedBoundaryId.trim();
       if (boundaryId.isEmpty) continue;
 
-      final boundary = await _boundaryService.getById(boundaryId);
+      final boundary = boundariesById[boundaryId];
       if (boundary == null ||
           !boundary.isVerified ||
           boundary.locationId != area.id ||
