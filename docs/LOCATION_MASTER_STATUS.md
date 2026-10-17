@@ -156,3 +156,12 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Workflow commit: `f7fb22ffeef713d701261a2ac8ac459050b572ce`.
 - Build result: **PENDING** until the newly triggered GitHub Actions run completes. The focused geometry CI pass remains valid, but does not replace a full web release build.
 - Release safeguard unchanged: do not merge the draft PR or activate/import production service locations.
+
+
+### Step 120 — boundary verification hardening draft (2026-10-17)
+- Follow-up review found the boundary-review service used only basic polygon checks when marking a boundary verified. That could permit a self-intersecting polygon to receive `verified` status even though activation later rejects it.
+- Added `ServiceLocationGeometry.isValidPolygon` and wired `ServiceLocationBoundaryService` validation to reject self-intersecting/non-simple polygon rings during boundary save/request/verification validation.
+- Added unit tests for a valid simple polygon and a self-intersecting polygon; expanded the focused workflow to analyze the boundary service as well as the activation service.
+- Commits: `62182d08c1189b67781f9e5eefbc2d031269c533`, `0f6c51d9f2954dc41c66fa81445d352cb462ebf1`, `ef8f9ad4699540dadac0c2ec9acf0025a9794697`, `68e4284a122b560c37253f40a7ec4153e7af317e`, `61f92dbe74754963db630a09267b16a0a148b755`.
+- New CI verification: **PENDING** until the workflows triggered by these commits complete.
+- Security limitation remains: this is client/Admin service-layer validation. No Firestore Rules file is present in this Admin repository, and no trusted backend write path has been confirmed in this review. Do not treat direct-write bypass protection as complete. Production activation/import and PR merge remain unauthorized.
