@@ -330,3 +330,19 @@ Report: [`docs/STEP_131_PARTNER_ONBOARDING_EMULATOR_TESTS.md`](STEP_131_PARTNER_
 - [ ] Review Firebase and Partner branches together before release.
 
 No production deployment, activation, import or merge was performed.
+
+
+## Admin completion progress — Step 133 (2026-10-18)
+
+### Partner Flutter CI coverage audit
+
+Report: [`docs/STEP_133_PARTNER_FLUTTER_CI_AUDIT.md`](STEP_133_PARTNER_FLUTTER_CI_AUDIT.md), commit `5fa295a0a861e41644e5361ddf04ab351d8ac0d1`.
+
+- Inspected Partner `.github/workflows/flutter.yml`: it runs on push to `main` and manual `workflow_dispatch`, not on `pull_request`.
+- Workflow contains `flutter pub get`, asset checks, launcher-icon generation, `flutter analyze`, `flutter test`, release APK build and artifact upload.
+- No PASS is claimed for the exact Partner source head reviewed in Step 132. No workflow was manually dispatched.
+- Recommendation: add a dedicated PR validation workflow for analyze/tests and a non-release build; keep release APK artifact generation separate.
+- [ ] Approve/add PR validation workflow and capture CI for the exact reviewed Partner commit.
+- [ ] Cross-review Partner source and Firebase draft PR #4 before release.
+
+No source workflow change, merge, deployment, activation or production data operation occurred.
