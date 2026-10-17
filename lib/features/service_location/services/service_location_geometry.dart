@@ -61,7 +61,48 @@ class ServiceLocationGeometry {
         '${p.longitude.toStringAsFixed(7)}',
       );
     }
-    return unique.length >= 3;
+    return unique.length >= 3 && !_hasSelfIntersection(points);
+  }
+
+  /// Rejects non-adjacent edges that cross or touch. Adjacent edges share
+  /// their common vertex by design and are skipped.
+  static bool _hasSelfIntersection(List<GeoPoint> points) {
+    for (var i = 0; i < points.length; i++) {
+      final a = points[i];
+      final b = points[(i + 1) % points.length];
+      for (var j = i + 1; j < points.length; j++) {
+        // Edges that are adjacent in the ring are expected to share a vertex.
+        if (j == i || j == i + 1 || (i == 0 && j == points.length - 1)) {
+          continue;
+        }
+        final c = points[j];
+        final d = points[(j + 1) % points.length];
+        if (_segmentsIntersect(a, b, c, d)) return true;
+      }
+    }
+    return false;
+  }
+
+  static bool _segmentsIntersect(
+    GeoPoint a,
+    GeoPoint b,
+    GeoPoint c,
+    GeoPoint d,
+  ) {
+    final o1 = _orientation(a, b, c);
+    final o2 = _orientation(a, b, d);
+    final o3 = _orientation(c, d, a);
+    final o4 = _orientation(c, d, b);
+    final crosses = ((o1 > _epsilon && o2 < -_epsilon) ||
+            (o1 < -_epsilon && o2 > _epsilon)) &&
+        ((o3 > _epsilon && o4 < -_epsilon) ||
+            (o3 < -_epsilon && o4 > _epsilon));
+    if (crosses) return true;
+    if (o1.abs() <= _epsilon && _pointOnSegment(c, a, b)) return true;
+    if (o2.abs() <= _epsilon && _pointOnSegment(d, a, b)) return true;
+    if (o3.abs() <= _epsilon && _pointOnSegment(a, c, d)) return true;
+    if (o4.abs() <= _epsilon && _pointOnSegment(b, c, d)) return true;
+    return false;
   }
 
   static bool _pointInOrOnPolygon(GeoPoint point, List<GeoPoint> polygon) {
