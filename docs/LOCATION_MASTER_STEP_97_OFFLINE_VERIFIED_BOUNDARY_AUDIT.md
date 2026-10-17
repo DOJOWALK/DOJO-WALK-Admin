@@ -13,8 +13,8 @@ Date: 2026-10-17
 
 - Step 96 Rules [39027844599](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027844599) — PASS.
 - Step 96 callable/geometry [39027844595](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027844595) — PASS.
-- Step 97 Rules [39028120030](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028120030) — in progress at report creation.
-- Step 97 callable/geometry [39028120018](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028120018) — in progress at report creation.
+- Step 97 Rules [39028120030](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028120030) — PASS.
+- Step 97 callable/geometry [39028120018](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028120018) — PASS.
 
 ## Limitations and safety
 
