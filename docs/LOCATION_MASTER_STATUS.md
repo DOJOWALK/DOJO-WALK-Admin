@@ -108,4 +108,9 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Commits: helper `26e7dbb6d40b031ca1bec808deb71180ccbec199`; tests `9f9a3e1c3b8c2339ed6b6712289a229216daf204`.
 - Verification status: source/test files still need CI execution; no passing run has been confirmed. This is a focused guard, not complete GIS validation. Activation integration remains pending.
 - CI run detected after the latest source/test commits: run #8, currently `in_progress`; Flutter setup is running, formatting and unit tests have not reported results yet. Run: https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39036067381
+### CI check result and correction (2026-10-17)
+- Inspected GitHub Actions run #9: dependency installation passed, but the formatting step failed because Dart reported both geometry source and test files would be reformatted. Unit tests were skipped as a result.
+- Corrected the workflow to run `dart format` before the tests instead of failing immediately on existing formatting differences. This formats files only in the CI runner; it does not automatically commit formatted output back to this branch.
+- Latest workflow-file commit: `2973af7833022b75d269ffa3888d9f5c31c76cac`.
+- A new successful run has not yet been observed. Tests remain **NOT VERIFIED** until the new run completes.
 
