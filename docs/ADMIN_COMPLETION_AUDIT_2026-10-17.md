@@ -324,9 +324,9 @@ Report: [`docs/STEP_131_PARTNER_ONBOARDING_EMULATOR_TESTS.md`](STEP_131_PARTNER_
 - Review branch: `step-131-partner-onboarding-emulator-tests`.
 - Added six Emulator tests for initial walker draft create, owner isolation, existing location update, approval/status protection, ordinary-update submission guard and explicit submission transition.
 - Added a Rules invariant so ordinary draft edits preserve the stored `applicationSubmitted` value; the dedicated transition handles submission.
-- CI runs `39067829446` (Firestore Rules Emulator tests) and `39067829625` (geometry/callable tests) were in progress at last check. Final results are pending; do not mark PASS until checked.
-- [ ] Inspect final CI results/logs and fix failures.
-- [ ] Verify the submission UI matches the explicit transition.
+- CI runs `39067829446` (Firestore Rules Emulator tests) and `39067829625` (geometry/callable tests) both completed with `success`. The Emulator job's `Run Firestore Emulator tests` step passed, and the geometry/callable integration job passed. This validates the checked-in review branch head `e91d7370c28a1eaea77f3906af19b98e294e1e3f`, not deployed production Rules.
+- [x] Inspect final CI conclusions and job steps; both workflows passed.
+- [ ] Verify the Partner submission UI matches the explicit transition.
 - [ ] Review Firebase and Partner branches together before release.
 
 No production deployment, activation, import or merge was performed.
