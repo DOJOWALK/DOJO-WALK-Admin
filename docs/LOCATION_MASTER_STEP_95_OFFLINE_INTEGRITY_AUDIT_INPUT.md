@@ -13,7 +13,8 @@ Date: 2026-10-17
 
 ## Firebase validation
 
-- Rules run [39027503974](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027503974) and callable/geometry run [39027503976](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027503976) were queued when this report was drafted. Confirm the final conclusions before marking CI complete.
+- Firebase Rules run [39027503974](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027503974) — PASS.
+- Firebase callable/geometry run [39027503976](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027503976) — PASS.
 
 ## Safety and limitations
 
