@@ -256,3 +256,12 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Deployment guardrail remains: configure required reviewers on GitHub Environment `production`; confirm the callable is healthy in `asia-south1` before deploying Rules. The workflow's existence does not mean the callable is deployed.
 - No PR merged, no workflow dispatched, no Functions/Rules deployed, and no production locations activated/imported.
 - Step 127 status: **WORKFLOW DRAFTED / EXECUTION NOT VERIFIED**. Next: validate workflow YAML and its test command without dispatching the production deployment workflow; keep PRs draft and unmerged.
+
+
+### Step 128 — workflow validation gate added (2026-10-17)
+- Updated Firebase `.github/workflows/test-firestore-rules.yml` to trigger for any workflow-file changes in pull requests and added a dedicated `reviewdog/action-actionlint@v1` job to lint GitHub Actions workflow definitions.
+- The existing Firestore Emulator Rules test job remains present; no deployment command was added to this test workflow.
+- Commit: `8893a1d72b2447314916c606f0815ac7f06e7ca4`.
+- Combined with Step 127's manual-only Function deployment workflow, this should cause workflow lint and Rules Emulator tests to run on the PR when the relevant changes are proposed. Actual run status has **not yet been checked**, so YAML validation and Emulator regression status remain **PENDING**.
+- The deploy workflow itself was not dispatched. No Function or Rules deployed, no PR merged, and no production location activated/imported.
+- Follow-up: inspect the CI run and correct any workflow lint/test failures. Also verify GitHub Environment `production` has required reviewers configured before any future deployment approval.
