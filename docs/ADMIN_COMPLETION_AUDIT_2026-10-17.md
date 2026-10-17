@@ -44,6 +44,30 @@ Add/execute read-only contract tests and Firebase Emulator tests for:
 
 No production Rules or Functions deployment is part of this step.
 
+## Admin completion progress — Step 122 (2026-10-18)
+
+### PR #6 unique test/tool asset compatibility review
+
+Reviewed the PR #6 patches for the additional activation, hierarchy, LGD compatibility, boundary verification, and CSV reconciliation tests/tools against the current PR #7 branch.
+
+**Finding: these files must not be copied verbatim.** The patch review identified concrete API/dependency drift:
+- PR #6 activation test injects an `activateLocation` callback into `ServiceLocationService`; the current PR #7 constructor instead accepts Firestore and Functions and calls trusted Cloud Functions internally.
+- PR #6 tests import `fake_cloud_firestore`, which is not present in the current PR #7 `pubspec.yaml`.
+- PR #6 LGD compatibility tests expect `lgdCode` model properties, but the current PR #7 `ServiceState`, `ServiceCity`, and `ServiceArea` models do not expose those properties.
+- PR #6 boundary verification tests need to be checked against the current boundary model/service and trusted callable contract before they can be reused.
+- The Python CSV reconciliation utility and its unit tests are separable from Flutter runtime code, but still require an explicit run in CI and review of the report semantics before adoption.
+
+### Step 122 decision
+
+- Do not merge PR #6 separately.
+- Do not blindly copy its unique test files into PR #7.
+- Rework the useful tests against the current trusted-callable design, or explicitly decide that the old LGD-code model extension is superseded by the approved schema plan.
+- Keep the CSV reconciliation utility as a candidate for a later reviewed, tested port; it does not perform Firebase writes and must remain separate from the preview-only UI until transactional import is implemented.
+
+### Completion status
+
+PR #7's latest head CI remains green from Step 121. This step was a source/patch audit only; no application code, dependencies, production data, Rules, or deployments were changed. The PR remains Draft/open/unmerged.
+
 ## Admin completion progress — Step 121 (2026-10-18)
 
 ### Latest branch-head CI recheck
