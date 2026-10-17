@@ -44,6 +44,29 @@ Add/execute read-only contract tests and Firebase Emulator tests for:
 
 No production Rules or Functions deployment is part of this step.
 
+## Admin completion progress — Step 129 (2026-10-18)
+
+### Partner onboarding / Firestore Rules field audit
+
+Added [`docs/STEP_129_PARTNER_RULES_ONBOARDING_FIELD_AUDIT.md`](STEP_129_PARTNER_RULES_ONBOARDING_FIELD_AUDIT.md) in commit `9a883b9b74063f477977707f1fe20da7145c029b`.
+
+**Confirmed source-level mismatch:**
+- New walker profile creation supplies `applicationSubmitted`, `city`, `state`, `area`, `zoneName`, `zoneNames`, `zones`, and `travelMode`, while the checked-in Rules create allowlist excludes those fields. Under that source Rules file, the create payload should be denied.
+- Existing draft updates from Work Location include `state`, `zoneName`, `zoneNames`, and `travelMode`, which are missing from the checked-in ordinary owner-update allowlist. Personal Details can also update these fields, so that update path has the same source-level mismatch.
+- This comparison uses Partner repository `main` source blobs; it does **not** prove which Rules are deployed in Firebase.
+
+### Step 129 status
+
+- [x] Exact screen/rules snapshots fetched and compared.
+- [x] Initial create and existing-draft update mismatches documented.
+- [x] Least-privilege repair plan documented.
+- [ ] Firebase Emulator tests for exact client payloads.
+- [ ] Verify deployed Rules version through release process.
+- [ ] Implement reviewed Rules/client contract fix and regression tests.
+- [ ] Partner/Firebase CI and release review.
+
+No code, Firestore records, Rules, production configuration, imports, activation, deployment or merge was changed.
+
 ## Admin completion progress — Step 128 (2026-10-18)
 
 ### Partner and Customer compatibility audit
