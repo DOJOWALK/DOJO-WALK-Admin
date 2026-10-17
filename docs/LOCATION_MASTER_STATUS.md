@@ -1074,3 +1074,17 @@ Last updated: 2026-10-17.
 Next: Step 89 — design and implement a server-enforced deactivation contract with descendant checks and regression tests.
 
 Last updated: 2026-10-17.
+
+## Step 93 — Parent Creation Validation & Read-Only Integrity Audit (2026-10-17)
+
+- [x] Added Firestore Rules checks requiring parent documents to exist and hierarchy IDs to match when creating State, City, Area, and Locality records.
+- [x] Added Rules Emulator regression coverage for missing/mismatched ancestors and a valid State creation control.
+- [x] Added an offline, read-only JSON snapshot audit utility for missing/mismatched parents and active children under inactive ancestors.
+- [ ] Firebase Rules Emulator and callable/geometry CI: pending latest-run verification; do not mark Step 93 passed until confirmed.
+- [ ] Existing live Firestore data integrity scan remains pending; no production database was read or changed. An authorized export is required for the offline audit.
+- [ ] Fresh official LGD row-level reconciliation and authoritative contiguous polygon verification remain pending.
+- [x] No production import, activation, or deployment performed.
+
+Next: Step 93 validation — inspect latest CI runs, fix any failures, and update this status with confirmed results.
+
+Last updated: 2026-10-17.
