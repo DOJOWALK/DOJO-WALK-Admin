@@ -1,3 +1,19 @@
+# DOJO WALK Location Master — Step 103
+## Duplicate Snapshot Collection Metadata — CI Pending
+Date: 2026-10-17
+
+- [x] Step 102 Rules and callable/geometry CI confirmed PASS: [Rules 39029175469](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029175469), [callable/geometry 39029175515](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029175515); documentation-triggered runs [39029187377](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029187377) and [39029187381](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029187381) also PASS.
+- [x] Auditor now flags duplicate names within `collectionsIncluded` or `completeCollections` as malformed.
+- [x] Added regression test expecting `INCOMPLETE_OR_UNVERIFIED` and a deterministic duplicate-entry report.
+- [x] Updated the offline audit instructions.
+- [ ] Step 103 CI pending verification after code/test/docs commits.
+- [!] Offline-only validation. No production export/live scan, write, import, activation, or deployment. Official current LGD reconciliation and authoritative polygon validity/containment remain release gates.
+
+Next: verify Step 103 CI; then continue offline snapshot schema hardening.
+
+Last updated: 2026-10-17.
+---
+
 # DOJO WALK Location Master — Step 102
 ## Snapshot Record-Count Metadata Schema — PASS
 Date: 2026-10-17
