@@ -1,12 +1,32 @@
+# DOJO WALK Location Master — Step 97
+## Offline Verified-Boundary Integrity Checks
+Date: 2026-10-17
+
+- [x] Step 96 CI confirmed PASS: [Rules 39027844599](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027844599), [callable/geometry 39027844595](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027844595).
+- [x] Extended offline snapshot contract with `service_location_boundaries` as the sixth required collection.
+- [x] Shared audit core now checks active City/Area verifiedBoundaryId resolution, location ID/type binding, verification status and provenance metadata, minimum point count, coordinate ranges, and at least three distinct points.
+- [x] CLI now uses the same tested core, avoiding drift between unit-tested audit logic and actual report command.
+- [x] Added tests for missing active City boundary and invalid active Area boundary metadata/coordinates; updated synthetic fixture and scope documentation.
+- [ ] Step 97 Firebase CI is running: [Rules 39028120030](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028120030), [callable/geometry 39028120018](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028120018). Do not mark Step 97 complete until both runs finish successfully.
+- [!] This is only offline structural/basic coordinate checking. It does not prove polygon validity/containment, source authority, boundary continuity, or current official LGD alignment; the production data remains unaudited.
+- [!] No production export, live Firestore scan, source write, import, activation, or deployment was performed.
+
+Next: confirm Step 97 CI, then continue offline audit coverage; actual-data review still requires an explicitly authorized read-only export kept outside Git.
+
+Last updated: 2026-10-17.
+
+---
+
 # DOJO WALK Location Master — Step 96
-## Offline Audit Input Hardening
+## Offline Audit Input Hardening — PASS
 Date: 2026-10-17
 
 - [x] Step 95 Firebase Firestore Rules CI [39027503974](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027503974) — PASS.
 - [x] Step 95 Firebase callable/geometry CI [39027503976](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027503976) — PASS.
 - [x] Hardened offline audit core to reject a non-object JSON root and null/array document values with a clear collection/document reference instead of an unsafe property-access failure.
 - [x] Added regression tests for malformed root and malformed document values.
-- [ ] Step 96 CI is now running on test commit `de34dc975d799ef1b8c10f0562be2295e7a268a3`: [Rules run 39027844599](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027844599) and [callable/geometry run 39027844595](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027844595). Final conclusions are pending.
+- [x] Step 96 Firebase Rules CI [39027844599](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027844599) — PASS.
+- [x] Step 96 Firebase callable/geometry CI [39027844595](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027844595) — PASS.
 - [!] No production export or live Firestore scan has been performed. No production writes, import, activation, or deployment.
 - [!] Fresh official LGD row-level reconciliation and authoritative contiguous polygon verification remain release gates.
 
