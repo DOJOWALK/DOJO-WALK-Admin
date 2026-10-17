@@ -17,6 +17,7 @@ on:
     paths:
       - 'lib/features/service_location/services/service_location_geometry.dart'
       - 'lib/features/service_location/services/service_location_service.dart'
+      - 'lib/features/service_location/services/service_location_boundary_service.dart'
       - 'test/features/service_location/services/service_location_geometry_test.dart'
       - '.github/workflows/service-location-geometry-tests.yml'
       - 'pubspec.yaml'
