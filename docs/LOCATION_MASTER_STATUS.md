@@ -363,3 +363,12 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - GitHub Environment required reviewers remain **UNVERIFIED** because repository API access did not permit inspection of Environment protection settings. Presence of `environment: production` is not proof that reviewers are configured.
 - Release remains **NOT APPROVED**: no PR merged, no production Functions/Rules deployed, no location activated/imported. Before release, verify Environment protection, reconcile the PR descriptions with the latest workflow behavior, and review the combined current diffs and ordered rollback plan.
 - **Step 138–139 outcome: DRAFT-BRANCH CI PASS / RELEASE GATES OPEN.**
+
+
+### Step 140 — current-head CI and draft PR recheck (2026-10-17)
+- Fetched workflow runs associated with current Admin PR head `7b9fcae3954beaf9a1eab62363e569029c37339e`: Service Location Geometry Tests run [39042462468](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39042462468) **PASS**; Admin Web Build Check (No Deploy) run [39042462495](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39042462495) **PASS**.
+- Fetched workflow runs associated with Firebase PR head `80b9df5602d85fbbeb063071711743d7dfb37b6c`: Trusted Location Geometry and Callable Tests run [39041653090](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39041653090) **PASS**; Firestore Rules Emulator/workflow validation run [39041653227](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39041653227) **PASS**.
+- Re-fetched PR metadata: Admin PR #7 and Firebase PR #1 remain open, draft, unmerged, and reported mergeable. No merge was performed.
+- Release blockers unchanged: GitHub Environment `production` required reviewers remain **UNVERIFIED**; current combined diffs and rollback order still require owner review and explicit approval. The Functions and Rules deployment workflows were not dispatched.
+- No production Functions/Rules deployed and no production service locations activated/imported.
+- **Step 140 outcome: CURRENT-HEAD CI VERIFIED / RELEASE APPROVAL STILL BLOCKED.**
