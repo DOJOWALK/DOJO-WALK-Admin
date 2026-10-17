@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/service_location_boundary.dart';
 import '../models/service_location_models.dart';
+import 'service_location_geometry.dart';
 
 /// DOJO WALK Admin
 ///
@@ -119,6 +120,10 @@ class ServiceLocationBoundaryService {
     if (boundary.points.length < 3) {
       errors.add(
         'A polygon must contain at least three points.',
+      );
+    } else if (!ServiceLocationGeometry.isValidPolygon(boundary.points)) {
+      errors.add(
+        'Boundary must be a valid simple polygon without self-intersections.',
       );
     }
 
