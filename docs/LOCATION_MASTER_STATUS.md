@@ -246,3 +246,13 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - **Automation status:** attempted to add a manual-only function deployment workflow and a separate Firebase runbook, but the repository write action was blocked by the tool safety check. No workflow/runbook file was created by that attempt. Therefore deployment automation is **NOT IMPLEMENTED**; the safe sequence is documented here only.
 - No workflow was dispatched, no PR merged, no function/rules deployed, and no real location activated or imported.
 - Next: implement and review a narrowly scoped manual workflow in GitHub, then test its YAML and build/test gates without dispatching it or deploying production resources.
+
+
+### Step 127 — guarded manual Function deployment workflow (2026-10-17)
+- Added/updated `.github/workflows/deploy-trusted-boundary-function.yml` on Firebase feature branch `feature/trusted-location-activation`.
+- Workflow is manual-only (`workflow_dispatch`), requires the exact confirmation `DEPLOY_REVIEW_FUNCTION` and target project `dojo-platform-b68a3`, and is gated to run only when dispatched from `main`. It references the `production` GitHub Environment, serializes deployments, runs the Functions build/tests under the Firestore Emulator, and deploys only `functions:reviewServiceLocationBoundary`; it contains no Rules deployment or location activation/import step.
+- Workflow update commit: `29d7ebfaee6d811bbc32be78a0510620073b2dfe`. File: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/blob/feature/trusted-location-activation/.github/workflows/deploy-trusted-boundary-function.yml
+- This is a source-level review only. The workflow was **not dispatched** and no YAML lint or GitHub Actions execution was performed. It still needs CI validation. Verify the Functions lockfile/dependency install and emulator command in CI before approving any production use.
+- Deployment guardrail remains: configure required reviewers on GitHub Environment `production`; confirm the callable is healthy in `asia-south1` before deploying Rules. The workflow's existence does not mean the callable is deployed.
+- No PR merged, no workflow dispatched, no Functions/Rules deployed, and no production locations activated/imported.
+- Step 127 status: **WORKFLOW DRAFTED / EXECUTION NOT VERIFIED**. Next: validate workflow YAML and its test command without dispatching the production deployment workflow; keep PRs draft and unmerged.
