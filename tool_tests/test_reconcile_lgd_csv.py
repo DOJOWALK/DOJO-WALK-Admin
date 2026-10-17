@@ -45,7 +45,7 @@ class ReconcileLgdCsvTests(unittest.TestCase):
             module.compare_csvs(old, new, "Code", ["Name"])
 
     def test_utf8_bom_header_is_supported(self):
-        old = self.csv("old.csv", "\\ufeffCode,Name\n001,Alpha\n")
+        old = self.csv("old.csv", "\ufeffCode,Name\n001,Alpha\n")
         new = self.csv("new.csv", "Code,Name\n001,Alpha\n")
         self.assertTrue(module.compare_csvs(old, new, "Code", ["Name"])["passed"])
 
