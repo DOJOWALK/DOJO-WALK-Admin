@@ -19,8 +19,9 @@ Harden creation-time parent linkage in Firebase Firestore Rules and add an offli
 
 ## Validation status
 
-- Firebase Rules Emulator and callable/geometry GitHub Actions were triggered for the latest changes. **CI status is pending verification**; this report does not mark them passed.
-- The first intermediate Rules run failed while the test fixtures were being corrected. The later run must be checked before closing this step.
+- Firebase Rules Emulator run [39027112643](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027112643) — **PASS** on commit `8823cbc574e6be24ce9cfc2be9c41bb5e61b2484`.
+- Trusted Location Geometry and Callable Tests run [39027112624](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027112624) — **PASS** on the same commit.
+- An earlier intermediate Rules run failed because the country-create test reused a document seeded as a parent fixture. The fixture was isolated under a separate ID, and both latest workflows passed.
 - No live Firestore database was scanned. To audit real data, an authorized read-only export must be supplied as the documented JSON snapshot shape.
 - No production data was modified, imported, activated, or deployed.
 - Official current LGD row-level reconciliation and authoritative contiguous polygon verification remain release gates.
@@ -35,4 +36,4 @@ The output path must not already exist. The utility is offline and read-only wit
 
 ## Next
 
-Verify the latest Rules Emulator and callable/geometry CI runs, fix any regression, and only then mark Step 93 complete. Do not run a production scan without an authorized export and explicit approval.
+Step 93 code and Firebase CI validation are complete. Existing-data integrity scanning remains a separate pending gate and requires an authorized read-only export. Do not run a production scan without an authorized export and explicit approval.
