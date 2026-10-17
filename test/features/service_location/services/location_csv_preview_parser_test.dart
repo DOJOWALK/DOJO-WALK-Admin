@@ -5,7 +5,7 @@ void main() {
   group('LocationCsvPreviewParser', () {
     final parser = LocationCsvPreviewParser();
 
-    test('accepts required columns case-insensitively and counts valid rows', () {
+    test('marks valid CSV syntax without implying import approval', () {
       final result = parser.parse(
         'State,District,City,Area\nUttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City',
       );
