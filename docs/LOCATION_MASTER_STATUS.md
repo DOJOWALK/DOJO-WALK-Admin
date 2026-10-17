@@ -1,3 +1,21 @@
+# DOJO WALK Location Master — Step 95
+## Offline Integrity Audit Input Contract and Safe Snapshot Template
+Date: 2026-10-17
+
+- [x] Step 94 Admin CI runs confirmed PASS: [service commit 39027270570](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39027270570) and [test commit 39027285485](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39027285485).
+- [x] Added synthetic, explicitly non-production JSON template in Firebase repo: `scripts/examples/service_location_snapshot.example.json`.
+- [x] Added usage/safety instructions: `docs/SERVICE_LOCATION_INTEGRITY_AUDIT.md`. It specifies the five required collections, local command, exit codes, export-scope controls, and limitations.
+- [x] Added regression tests for missing required collections and arrays incorrectly used as collections.
+- [ ] Firebase CI is queued and must be checked before calling Step 95 validation complete: [Rules run 39027503974](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027503974), [callable/geometry run 39027503976](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027503976).
+- [!] The example is synthetic and does not represent real records. No live Firestore export/scan has been performed. Do not commit real exports to Git.
+- [!] Latest official LGD row-level reconciliation and authoritative contiguous polygon verification remain release gates. No production writes, import, activation, or deployment.
+
+Next: confirm Firebase CI, then request an explicitly authorized read-only snapshot/export before analyzing existing records.
+
+Last updated: 2026-10-17.
+
+---
+
 # DOJO WALK Location Master — Step 92
 ## Create/Edit/Reparent Hierarchy Audit
 Date: 2026-10-17
