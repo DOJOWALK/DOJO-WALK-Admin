@@ -1,3 +1,17 @@
+## Latest checkpoint — Step 115 PASS (2026-10-17)
+
+- [x] Removed fixed coordinate padding from segment bounds.
+- [x] Added scale-aware floating-point orientation and polygon-area error bounds.
+- [x] Regression tests cover near-parallel non-intersecting edges and a small representable polygon.
+- [x] Rules CI PASS: [39033453213](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39033453213).
+- [x] Geometry/Callable CI PASS: [39033453249](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39033453249).
+- [x] Detailed report: [Step 115](LOCATION_MASTER_STEP_115_SCALE_AWARE_POLYGON_TOLERANCE.md).
+- [!] Synthetic automated checks are not authoritative GIS validation; official LGD reconciliation and production data review remain pending. No production export/live scan, write, import, activation or deployment performed.
+
+Next: Step 116 — audit ring closure, winding/orientation assumptions and international date-line behavior.
+
+---
+
 ## Latest checkpoint — Step 114 PASS (2026-10-17)
 
 - [x] Added two regression tests for self-touching polygon rings: non-adjacent repeated vertex and non-adjacent vertex-on-edge.
