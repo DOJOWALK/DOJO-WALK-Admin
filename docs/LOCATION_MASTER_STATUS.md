@@ -1,3 +1,19 @@
+# DOJO WALK Location Master — Step 112
+## Boundary Document ID Validation — CI Pending
+Date: 2026-10-17
+
+- [x] City/Area activation validates boundary document IDs before Firestore path construction; parent City boundary IDs receive the same validation.
+- [x] Emulator regression test rejects slash-containing boundary IDs and checks the City stays inactive.
+- [x] Implementation `e3273a5741ab7b674209bb5c9c1d2fe829675df2`; test `a03b49515f3ed844b476c1061a78858403adfc87`; Firebase audit documentation `fcba4b2e49d6e63bd4bcb9f0e540f0f192f3ffb0`.
+- [ ] Rules and Callable/Geometry CI pending verification.
+- [!] Input/path validation only. No production export/live scan, write, import, activation or deployment. Official LGD reconciliation and authoritative polygon verification remain release gates.
+
+Next: verify Step 112 CI, then continue callable integrity review.
+
+Last updated: 2026-10-17.
+
+---
+
 # DOJO WALK Location Master — Step 111
 ## Verified-Boundary Timestamp Type Validation — PASS
 Date: 2026-10-17
