@@ -282,3 +282,11 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - New CI runs triggered: Rules run [39040781225](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39040781225) and callable/geometry run [39040781251](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39040781251). At the time of this update, workflow lint was **IN PROGRESS** and the Rules Emulator/callable jobs were **QUEUED or IN PROGRESS**; no result is marked PASS yet.
 - No PR merged, no workflow dispatched, no Functions/Rules deployed, and no production location activated/imported.
 - Next: inspect the new runs after completion. Only mark workflow lint fixed after its job passes; keep the two PRs draft and unmerged.
+
+
+### Step 130 — Firebase workflow lint and emulator CI verified (2026-10-17)
+- Rules workflow run [39040785844](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39040785844): **PASS**. Both `Validate GitHub Actions workflow YAML` and `Firestore Rules Emulator Tests` completed successfully on head commit `c2654d51e493da58cf77d8f4c035f9b805bf487b`.
+- Trusted Location Geometry and Callable Tests run [39040785831](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39040785831): **PASS** on the same head commit.
+- This confirms the updated actionlint gate no longer blocks on the reviewed Node runtime warnings, and the Rules Emulator plus callable/geometry integration tests passed for this revision. It is CI evidence for the draft branch only, not evidence of production deployment.
+- No PR merged, no deployment workflow dispatched, no Functions/Rules deployed, and no production location activated/imported.
+- Next: review the manual deployment workflow and verify whether GitHub Environment `production` has required reviewers configured. Do not dispatch deployment as part of this audit.
