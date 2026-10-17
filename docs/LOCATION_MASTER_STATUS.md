@@ -559,3 +559,13 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Rechecked Step 159 CI on commit `c1202afd969f505ddce8cb0419296e9684479e93`: Service Location Geometry Tests run #112 **PASS**; Admin Web Build Check (No Deploy) run #87 **PASS**.
 - Mapping decision remains a blocker: the import CSV preview expects State/District/City/Area, while the current Firestore hierarchy has no separate District collection. Keep import read-only until an explicit District-to-City/Area policy and ID mapping are approved and tested.
 - No Firestore writes, location imports/activation, PR merge, or deployment occurred.
+
+
+### Step 161 — Full LGD Sub-District CSV validation and mapping policy (2026-10-17)
+- Retrieved `review/lgd_exports/sub_districts.csv` through GitHub Contents API and parsed CSV quoting correctly.
+- Verified 7,151 data rows, 13 columns, 36 distinct state codes, 783 distinct district codes, 7,151 distinct sub-district codes, and no duplicate State/District/Sub-District code triples in this snapshot.
+- Required English names and administrative codes are populated across all rows. Local-language names remain optional/incomplete. All rows show source date 2024-10-07; this does not prove the snapshot is current.
+- Added `docs/LOCATION_LGD_MAPPING_POLICY.md` with the proposed safe mapping: LGD District may occupy the current City/District slot only as an explicitly typed district record; LGD Sub-District maps conceptually to Area/Sub-District, not to a service polygon. Source codes and parent codes must be preserved.
+- Four-column service CSV (`State, District, City, Area`) is not interchangeable with the three LGD administrative datasets. No City/service-area polygon dataset was found in `review/lgd_exports/`.
+- Remaining design gate: decide whether to explicitly type District records in the existing City collection or introduce a separate District entity, then audit compatibility across Admin, Customer, Partner, and Firebase before implementing any transformer.
+- No Firestore writes/imports, activation, PR merge, or deployment occurred.
