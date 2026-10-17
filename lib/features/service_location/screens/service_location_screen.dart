@@ -1206,6 +1206,37 @@ class _ServiceLocationScreenState
     String normalizeLocationName(String value) =>
         value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
 
+    List<String> optionalSourceHeaders(LocationCsvPreview value) =>
+        value.headers.where((header) {
+          final normalized = header
+              .trim()
+              .toLowerCase()
+              .replaceAll(RegExp(r'[ _-]+'), '');
+          return !const {'state', 'district', 'city', 'area'}
+              .contains(normalized);
+        }).toList();
+
+    String rowPreviewSubtitle(LocationCsvRow row) {
+      final validation = row.errors.isEmpty
+          ? 'Validation passed'
+          : row.errors.join('\\n');
+      final metadata = row.sourceValues.entries
+          .where((entry) {
+            final normalized = entry.key
+                .trim()
+                .toLowerCase()
+                .replaceAll(RegExp(r'[ _-]+'), '');
+            return !const {'state', 'district', 'city', 'area'}
+                    .contains(normalized) &&
+                entry.value.isNotEmpty;
+          })
+          .map((entry) => '${entry.key}: ${entry.value}')
+          .join(' · ');
+      return metadata.isEmpty
+          ? validation
+          : '$validation\\nSource metadata: $metadata';
+    }
+
     Future<void> checkParentMapping(StateSetter setDialogState) async {
       final currentPreview = preview;
       if (currentPreview == null || !currentPreview.isSyntacticallyValid) {
@@ -1404,6 +1435,42 @@ class _ServiceLocationScreenState
                         Chip(label: Text('Invalid: ${preview!.invalidRowCount}')),
                       ],
                     ),
+                    if (optionalSourceHeaders(preview!).isNotEmpty)
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.blueGrey.withValues(alpha: 0.07),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.blueGrey.withValues(alpha: 0.25),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Optional source metadata · preview only',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: optionalSourceHeaders(preview!)
+                                  .map((header) => Chip(
+                                        visualDensity: VisualDensity.compact,
+                                        label: Text(header),
+                                      ))
+                                  .toList(),
+                            ),
+                            const Text(
+                              'Source codes and versions are displayed as provided; they are not verified against an authoritative source.',
+                            ),
+                          ],
+                        ),
+                      ),
                     for (final error in preview!.fileErrors)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
@@ -1426,9 +1493,7 @@ class _ServiceLocationScreenState
                             '${row.values['district']} · ${row.values['city']} · '
                             '${row.values['area']}',
                           ),
-                          subtitle: row.errors.isEmpty
-                              ? const Text('Validation passed')
-                              : Text(row.errors.join('\n')),
+                          subtitle: Text(rowPreviewSubtitle(row)),
                         ),
                       ),
                     if (preview!.rows.length > 20)
