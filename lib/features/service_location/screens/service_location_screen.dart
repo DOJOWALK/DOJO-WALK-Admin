@@ -1505,15 +1505,36 @@ class _ServiceLocationScreenState
 
       if (!mounted) return;
 
+      final pending = boundaries
+          .where(
+            (boundary) =>
+                boundary.verificationStatus ==
+                BoundaryVerificationStatus.pending,
+          )
+          .toList();
+      final rejected = boundaries
+          .where(
+            (boundary) =>
+                boundary.verificationStatus ==
+                BoundaryVerificationStatus.rejected,
+          )
+          .toList();
       final verified = boundaries
           .where((boundary) => boundary.isVerified)
           .toList();
 
-      final existing = verified.isNotEmpty
-          ? verified.first
-          : boundaries.isNotEmpty
-              ? boundaries.first
-              : null;
+      // Reviewable replacements must remain reachable even while the old
+      // verified record is preserved. Prefer pending, then rejected, then
+      // verified when opening the manager.
+      final existing = pending.isNotEmpty
+          ? pending.first
+          : rejected.isNotEmpty
+              ? rejected.first
+              : verified.isNotEmpty
+                  ? verified.first
+                  : boundaries.isNotEmpty
+                      ? boundaries.first
+                      : null;
 
       final initialPoints = existing == null
           ? <LatLng>[]
@@ -1532,6 +1553,7 @@ class _ServiceLocationScreenState
         locationType: locationType,
         existingBoundary: existing,
         initialPoints: initialPoints,
+        hasVerifiedBoundary: verified.isNotEmpty,
       );
     } catch (error) {
       await _showError(error);
@@ -1544,6 +1566,7 @@ class _ServiceLocationScreenState
     required String locationType,
     required ServiceLocationBoundary? existingBoundary,
     required List<LatLng> initialPoints,
+    bool hasVerifiedBoundary = false,
   }) async {
     final sourceNameController = TextEditingController(
       text: existingBoundary?.sourceName ?? '',
@@ -1676,6 +1699,26 @@ class _ServiceLocationScreenState
                         const SizedBox(height: 8),
 
                         _boundaryStatusBanner(existingBoundary),
+
+                        if (hasVerifiedBoundary && !isVerified) ...[
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: _locationOrange.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: _locationOrange.withValues(alpha: 0.35),
+                              ),
+                            ),
+                            child: const Text(
+                              'इस location की पुरानी Verified Boundary सुरक्षित है। '
+                              'यह अलग replacement record है। Firebase replacement '
+                              'verify करने से पहले location का inactive होना जरूरी है; '
+                              'यह स्क्रीन service को अपने-आप deactivate नहीं करेगी।',
+                            ),
+                          ),
+                        ],
 
                         const SizedBox(height: 12),
 
