@@ -100,4 +100,6 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Workflow file commit: `83be0ea755ca4dd9e0b5347e2c0fc32bc18263cf`.
 - CI outcome: **NOT VERIFIED YET**. The presence of a workflow file is not evidence that the run started or passed. No passing run URL has been confirmed.
 - Geometry helper remains unintegrated into City/Area activation. Do not merge/deploy or mark Step 119 PASS until the workflow succeeds and parent/child boundary validation is integrated and reviewed.
+- Draft review PR opened against `main`: #7 — https://github.com/dojoplatform2026/DOJO-WALK-Admin/pull/7. It is **open, draft, and not merged**.
+- After opening the PR, the workflow-run lookup still returned no run; CI remains **pending/unverified**, not PASS.
 
