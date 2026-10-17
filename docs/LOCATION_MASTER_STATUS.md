@@ -1,3 +1,23 @@
+# DOJO WALK Location Master — Step 99
+## Offline Snapshot Scope and Completeness Reporting
+Date: 2026-10-17
+
+- [x] Step 98 Firebase Rules CI [39028290445](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028290445) — PASS.
+- [x] Step 98 Firebase callable/geometry CI [39028290666](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028290666) — PASS.
+- [x] Added optional snapshot metadata for source project ID, export timestamp, included/complete collections and declared record counts.
+- [x] Audit report flags missing metadata as UNVERIFIED and flags incomplete declarations/count mismatches as INCOMPLETE_OR_UNVERIFIED; matching metadata reports DECLARED_COMPLETE.
+- [x] Added regression tests for absent metadata, complete synthetic metadata, and mismatched counts.
+- [x] Updated offline audit instructions and created [Step 99 report](LOCATION_MASTER_STEP_99_OFFLINE_SNAPSHOT_SCOPE.md).
+- [ ] Step 99 Firebase Rules CI and callable/geometry CI are pending verification after commits `a6b28838a3ecf555736782918dd5ecfc31722f24` and `375195d51c1923128c25d4c57dad5805a736a78d`.
+- [!] Declared metadata/count matching is not proof of a complete or authorized export. No production export/live scan, source write, import, activation, or deployment was performed.
+- [!] Official current LGD row-level reconciliation and authoritative polygon validity/containment remain release gates.
+
+Next: verify Step 99 CI, then continue offline snapshot quality checks. Actual-data audit still requires explicit authorization for a read-only export kept outside Git.
+
+Last updated: 2026-10-17.
+
+---
+
 # DOJO WALK Location Master — Step 98
 ## Offline Audit Report Summaries
 Date: 2026-10-17
@@ -6,11 +26,11 @@ Date: 2026-10-17
 - [x] Step 97 Firebase callable/geometry CI [39028120018](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028120018) — PASS.
 - [x] Offline audit report now includes issue counts grouped by issue code and record type, making it easier to prioritize data cleanup without exposing full records.
 - [x] Added regression test for report summaries and consistency between issueCount and the issues array.
-- [ ] Step 98 Firebase Rules CI [39028290445](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028290445) and callable/geometry CI [39028290666](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028290666) are running; wait for success before marking complete.
+- [x] Step 98 Firebase Rules CI [39028290445](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028290445) — PASS.\n- [x] Step 98 Firebase callable/geometry CI [39028290666](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028290666) — PASS.
 - [!] This remains an offline audit utility. No production export or live Firestore scan, import, activation, write, or deployment has been performed.
 - [!] Authoritative polygon verification and fresh official LGD row-level reconciliation remain release gates.
 
-Next: confirm Step 98 CI, then improve export completeness/scope reporting. Actual-data audit needs explicit authorization for a read-only export kept outside Git.
+Next: Step 99 — add export completeness/scope reporting. Actual-data audit needs explicit authorization for a read-only export kept outside Git.
 
 Last updated: 2026-10-17.
 
