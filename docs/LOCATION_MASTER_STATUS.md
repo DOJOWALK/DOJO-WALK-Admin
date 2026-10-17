@@ -1,48 +1,45 @@
 # DOJO WALK Location Master — Step 106
-## Timezone Offset Range Validation — CI Pending
+## Timezone Offset Range Validation — PASS
 Date: 2026-10-17
 
-- [x] Step 105 Rules CI [39029683304](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029683304) and callable/geometry CI [39029683309](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029683309) — PASS.
-- [x] Step 105 rejects impossible calendar dates and invalid hour/minute/second components; leap-day regression test passes.
-- [ ] Step 106 adds timezone offset bounds: maximum ±14:00; offsets at 14 hours must have zero minutes.
-- [ ] Step 106 CI pending.
-- [!] Offline-only validation. No production export/live scan, write, import, activation, or deployment. Timestamp checks do not authenticate the export; official LGD reconciliation and authoritative polygon validation remain release gates.
+- [x] Step 106 enforces timezone offsets within ±14:00; at 14 hours, minutes must be zero.
+- [x] Tests reject +15:00 and +14:01 and accept +14:00.
+- [x] Firestore Rules CI — PASS: [39029808346](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029808346).
+- [x] Callable/Geometry CI — PASS: [39029808338](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029808338).
+- [!] Offline-only checks; no production export/live scan, write, import, activation or deployment. Current official LGD reconciliation and authoritative polygon validation remain release gates.
 
-Next: verify Step 106 CI after completion.
+Next: Step 107 — review strict timestamp parser edge cases and add focused regression tests.
 
 Last updated: 2026-10-17.
 
 ---
 
 # DOJO WALK Location Master — Step 106
-## Timezone Offset Range Validation — CI Pending
+## Timezone Offset Range Validation — PASS
 Date: 2026-10-17
 
-- [x] Step 105 Rules CI [39029683304](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029683304) and callable/geometry CI [39029683309](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029683309) — PASS.
-- [x] Step 106 limits numeric timezone offsets to ±14:00 and disallows non-zero minutes when the offset hour is 14.
-- [x] Added tests for +15:00 and +14:01 rejection, plus +14:00 acceptance.
-- [x] Updated Firebase offline audit documentation.
-- [ ] Step 106 CI pending; wait for Rules and callable/geometry workflows.
-- [!] Offline-only validation. No production export/live scan, write, import, activation, or deployment. Timestamp checks do not authenticate the export; official LGD reconciliation and authoritative polygon validation remain release gates.
+- [x] Step 106 enforces timezone offsets within ±14:00; at 14 hours, minutes must be zero.
+- [x] Tests reject +15:00 and +14:01 and accept +14:00.
+- [x] Firestore Rules CI — PASS: [39029808346](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029808346).
+- [x] Callable/Geometry CI — PASS: [39029808338](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029808338).
+- [!] Offline-only checks; no production export/live scan, write, import, activation or deployment. Current official LGD reconciliation and authoritative polygon validation remain release gates.
 
-Next: verify Step 106 CI after completion.
+Next: Step 107 — review strict timestamp parser edge cases and add focused regression tests.
 
 Last updated: 2026-10-17.
 
 ---
 
 # DOJO WALK Location Master — Step 105
-## Strict Snapshot Timestamp Calendar/Time Validation — CI Pending
+## Strict Snapshot Timestamp Calendar/Time Validation — PASS
 Date: 2026-10-17
 
-- [x] Step 104 timezone requirement verified by Rules CI [39029509094](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029509094) and callable/geometry CI [39029509102](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029509102) — PASS.
-- [x] Auditor now checks actual calendar day/month, leap years, hour/minute/second ranges, and timezone offset ranges after the ISO timestamp shape check.
-- [x] Added regression tests rejecting 30 February and hour 25 while accepting a valid leap-day timestamp.
-- [x] Updated Firebase offline audit documentation.
-- [ ] Step 105 CI pending; do not mark PASS until current Rules and callable/geometry workflows finish successfully.
-- [!] Offline-only validation. No production export/live scan, write, import, activation, or deployment. Timestamp checks do not authenticate the export. Official current LGD reconciliation and authoritative polygon validity/containment remain release gates.
+- [x] Rejects impossible calendar dates and invalid hour/minute/second components; valid leap-day timestamp accepted.
+- [x] Firestore Rules CI — PASS: [39029683304](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029683304).
+- [x] Callable/Geometry CI — PASS: [39029683309](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029683309).
+- [!] Offline-only checks; no production export/live scan, write, import, activation or deployment. Current official LGD reconciliation and authoritative polygon validation remain release gates.
 
-Next: verify Step 105 CI; if green, continue with another offline audit coverage gap.
+Next: Step 106 — validate timezone offset bounds.
 
 Last updated: 2026-10-17.
 
