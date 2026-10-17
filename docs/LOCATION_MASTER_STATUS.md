@@ -13,7 +13,7 @@ Last updated: 2026-10-17
 - [x] Polygon validator now rejects zero-length edges created by consecutive duplicate vertices.
 - [x] CSV parent-mapping status now explicitly states that District is not validated by the current schema.
 - [x] Add Location parent dropdowns now show loading/error states.
-- [ ] Latest full-project `flutter analyze`, `flutter test` and no-deploy `flutter build web --release` must all pass on the latest branch head.
+- [x] Full-project `flutter analyze`, `flutter test` and no-deploy `flutter build web --release` passed at code commit `2366912dde77e98b94abad75f134f1c5fda604ba` (run: https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39049905720).
 - [ ] Complete the safe CSV import design after the District-versus-City schema is resolved across Admin, Firebase Rules/callables and dependent apps.
 - [ ] Reconcile reference data against a fresh official LGD release and verify UP/NCR boundary sources.
 - [ ] Confirm trusted backend deployment and production review settings before production use.
