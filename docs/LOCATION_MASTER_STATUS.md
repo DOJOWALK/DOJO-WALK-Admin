@@ -227,3 +227,13 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Admin no-deploy Web release build: **PASS**, run [39039466071](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39039466071). No deployment step was run.
 - Step 124 targeted CI: **PASS** for the checked draft commits. This does not mean the PRs are merged or the callable/rules are deployed; both PRs remain draft/unmerged and production activation/import remains unauthorized.
 - Next: review the final combined diffs and compatibility/deployment ordering across Admin and Firebase before requesting approval to merge. Deploy only after explicit user approval and a separate deployment plan.
+
+
+### Step 125 — combined PR review and deployment-order audit (2026-10-17)
+- Rechecked both draft PRs and latest CI conclusions. Firebase PR #1 remains open/draft/unmerged at `f05bdcd227b1460cf8ca380757c5f30c4d8a78ed`; Admin PR #7 remains open/draft/unmerged at `aecc92fd29b679a3b4dda48666cb266d90fcc8e5`.
+- Confirmed the Firebase callable/geometry Emulator workflow passed: [39039578817](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39039578817). Firestore Rules Emulator workflow passed: [39039578809](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39039578809).
+- Confirmed Admin geometry workflow passed: [39039466173](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39039466173). Admin no-deploy Web release build passed: [39039466071](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39039466071).
+- Updated both PR descriptions to reflect actual test results and the cross-repository dependency.
+- **Deployment blocker found:** `.github/workflows/deploy-firestore-rules.yml` runs `firebase deploy --only firestore:rules` only. It does not deploy the new Cloud Functions. Deploying Rules that block direct client verification before `reviewServiceLocationBoundary` is deployed and callable could break the Admin review flow.
+- Required rollout order: review/approve code; deploy Functions and verify callable health first; deploy the Rules change only after callable availability is confirmed; then release the Admin client. Prepare a rollback plan and verify deployed versions before activating any real locations.
+- Step 125 status: **REVIEW FINDING RECORDED — rollout not ready**. No PR merged, no workflow dispatched, no Functions/Rules deployed, and no production locations activated/imported.
