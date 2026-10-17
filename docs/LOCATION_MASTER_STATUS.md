@@ -548,3 +548,14 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Code commit: `c1202afd969f505ddce8cb0419296e9684479e93`.
 - Step 158 fresh validation completed successfully before this change: Geometry/CSV CI run `39047198738` PASS; Admin Web Build Check (No Deploy) run `39047198713` PASS. Step 159 changes require their own fresh CI runs; do not claim this new code passes until those runs finish.
 - Admin PR #7 remains Draft/open/unmerged. No merge, deployment, production import, or activation occurred.
+
+
+### Step 160 — GitHub LGD CSV inventory and source check (2026-10-17)
+- Confirmed the repository branch `step-119-boundary-geometry` contains these source files under `review/lgd_exports/`:
+  - `states.csv` — 1,630 bytes in GitHub metadata; fetched content has a UTF-8 BOM, 8 columns, and 36 state/UT data rows (37 lines including header).
+  - `districts.csv` — 89,622 bytes in GitHub metadata; fetched content has 8 columns and 785 district data rows (786 lines including header).
+  - `sub_districts.csv` — present in GitHub metadata (1,109,638 bytes), but the file-content fetch returned empty content through the current integration. Its rows/header therefore remain unverified; do not infer its count from file size.
+- The directory listing contains only these three CSVs. No separate City or Area CSV is present in this directory. Do not treat the sub-district file as an Area boundary dataset: administrative sub-district records are not a substitute for contiguous service-area polygons.
+- Rechecked Step 159 CI on commit `c1202afd969f505ddce8cb0419296e9684479e93`: Service Location Geometry Tests run #112 **PASS**; Admin Web Build Check (No Deploy) run #87 **PASS**.
+- Mapping decision remains a blocker: the import CSV preview expects State/District/City/Area, while the current Firestore hierarchy has no separate District collection. Keep import read-only until an explicit District-to-City/Area policy and ID mapping are approved and tested.
+- No Firestore writes, location imports/activation, PR merge, or deployment occurred.
