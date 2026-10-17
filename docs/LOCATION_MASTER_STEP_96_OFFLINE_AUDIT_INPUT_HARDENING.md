@@ -13,7 +13,7 @@ Date: 2026-10-17
 
 - Step 95 Firebase Rules run [39027503974](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027503974) — PASS.
 - Step 95 Firebase callable/geometry run [39027503976](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027503976) — PASS.
-- CI for Step 96 latest commits is not confirmed yet. A lookup for PR-triggered workflow runs returned no runs; this is not evidence of a pass. Recheck repository Actions/commit status before closing this step.
+- Step 96 CI is running on test commit `de34dc975d799ef1b8c10f0562be2295e7a268a3`: [Rules run 39027844599](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027844599) and [callable/geometry run 39027844595](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027844595). Final conclusions remain pending.
 
 ## Safety and remaining gates
 
