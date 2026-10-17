@@ -41,5 +41,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Analyze complete Admin project
+        run: flutter analyze
+
+      - name: Run complete Admin test suite
+        run: flutter test
+
       - name: Build Flutter Web (no deployment)
         run: flutter build web --release
