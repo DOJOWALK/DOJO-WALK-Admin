@@ -402,3 +402,11 @@ No merge, release, or deployment occurred.
 - CI run `39069361083` was in progress at latest inspection; no final PASS/FAIL claimed.
 - Detailed report: docs/STEP_138_PARTNER_SUBMISSION_NEGATIVE_TESTS.md, commit `65bbdadd6e13c60593e8945b2e3addd2d7a39b30`.
 - Test-only change; production Rules unchanged; no merge or deployment.
+
+
+### Step 138 CI re-check update (2026-10-18)
+- Initial CI run `39069361083` failed: 54/55 tests passed; duplicate-submission test failed because a submitted draft remained editable through the ordinary owner-update rule.
+- Targeted Firebase review-branch Rules fix committed: `998ae64552d795ced708832f06f5925048bdc3c9`, adding a guard against ordinary owner updates after submission.
+- Follow-up run `39069565571`: workflow YAML validation passed; Firestore Emulator tests were still running at the latest check. Trusted Location workflow run `39069565556` was also in progress.
+- Detailed report: `docs/STEP_138_PARTNER_SUBMISSION_NEGATIVE_TESTS.md`, latest update commit `169da8f3d7dd992f2a93ec0ace0996e6e79c0475`.
+- Status remains **pending final CI verification**. No merge/deployment or production Rules changes.
