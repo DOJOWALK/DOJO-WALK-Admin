@@ -1,5 +1,16 @@
 
 
+## Step 71 — Official export intake checklist (2026-10-17)
+
+- [x] Added a reproducible intake checklist and manifest for the future official LGD export.
+- [x] Defined checksum, scope, schema, row-count, string-code preservation, and record-diff requirements.
+- [x] Explicitly prohibited silent normalization, CAPTCHA bypass, inferred Census-code replacements, and fabricated records.
+- [ ] Actual fresh official export intake and row-level comparison still await the original downloaded file.
+- [ ] No Dart reference files changed; no production import, activation, deployment, or merge.
+- [x] Details: [Step 71 report](LOCATION_MASTER_STEP_71_EXPORT_INTAKE_CHECKLIST.md).
+
+
+
 ## Step 70 — Official LGD export access check (2026-10-17)
 
 - [x] Rechecked official OGD LGD Districts catalog metadata; it displays Updated On 08/10/2026.
