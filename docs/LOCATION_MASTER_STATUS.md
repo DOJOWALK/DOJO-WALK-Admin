@@ -593,3 +593,12 @@ Read-only source review:
 - Compatibility risk: replacing the Partner's legacy `zones` query with Service Locations is a migration, not just a CSV import. Customer's free-text addresses also need an optional future mapping strategy if coverage validation is desired. Existing address strings should not be silently rewritten.
 - Step 163 decision: preserve the current production-facing legacy reads until a separately tested migration is planned. Keep LGD administrative records in read-only staging with source level/codes and parent source codes; do not create/activate service locations from LGD rows alone.
 - Scope limitation: source files were reviewed, but no emulator/integration tests were run in this step. No Firestore writes/imports, activation, PR merge, or deployment occurred.
+
+
+### Step 164 — Read-only LGD staging design (2026-10-17)
+- Added `docs/LOCATION_LGD_STAGING_DESIGN.md`.
+- Defined versioned JSONL staging fields: sourceSystem, sourceLevel, sourceCode, parentSourceLevel/parentSourceCode, sourceUpdatedAt, source file/row, and raw source fields.
+- Defined validation gates: duplicate codes, missing/mismatched parent codes, CSV parsing/header/field counts, leading-zero preservation, deterministic output, hashes, and audit report.
+- Missing local-language names remain warnings, not guessed values.
+- Initial implementation boundary is local/read-only only: no Firebase SDK, callable, credentials, or production write path.
+- This step records the design only. No parser code or tests were implemented/run; no Firestore writes/imports, activation, PR merge, or deployment occurred.
