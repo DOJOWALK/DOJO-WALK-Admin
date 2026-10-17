@@ -298,3 +298,13 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - GitHub's production Environment reviewer configuration could not be independently read with the available repository API access. Therefore required reviewers are **UNVERIFIED**; merely naming `environment: production` does not prove an approval gate exists.
 - Firebase Draft PR #1 remains open and unmerged: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/pull/1. Admin Draft PR #7 remains open and unmerged: https://github.com/dojoplatform2026/DOJO-WALK-Admin/pull/7.
 - Next release gate: an owner must confirm/configure required reviewers for Environment `production`, then review the combined Admin/Firebase changes and explicitly approve the rollout order. No deployment, Rules change, production location activation, or import was performed.
+
+
+### Step 132 — combined draft PR status and release-readiness review (2026-10-17)
+- Re-fetched live metadata for both companion PRs. Admin PR #7 is open/draft/unmerged at head `bd7c27bf747229b3c77f139685b7b974b89388be`; Firebase PR #1 is open/draft/unmerged at head `c2654d51e493da58cf77d8f4c035f9b805bf487b`.
+- Firebase PR #1 latest-head CI: Trusted Location Geometry and Callable Tests **PASS** and Firestore Rules Emulator Tests **PASS**. These results apply to the draft branch only.
+- Admin PR #7 latest-head CI: Service Location Geometry Tests **PASS**; Admin Web Build Check (No Deploy) was **IN_PROGRESS** at the time checked. Do not treat the full web build as passed until its run completes.
+- Reviewed Admin boundary service: verify/reject operations call `reviewServiceLocationBoundary` in `asia-south1`; local draft validation checks simple polygon geometry. Server-side review remains the trust boundary.
+- Re-read the manual Function deployment workflow: it is manual-only, gated to `main` and exact confirmation/project inputs, uses Environment `production`, and deploys only `functions:reviewServiceLocationBoundary`. It was not dispatched. Environment required reviewers remain **UNVERIFIED**.
+- Review caveat: Firebase PR #1 has continued evolving since its PR body’s cited test head `f05bdcd...`; its current head is `c2654d5...`. Use current-head CI and review the combined current diffs before any release decision; do not rely solely on stale PR-body commit labels.
+- Release remains **NOT APPROVED**: both PRs are drafts and unmerged; no production deployment, Rules deployment, location activation, or reference-data import occurred. Next: verify the Admin no-deploy Web build result, review whether the deployment workflow’s single-function scope covers the intended rollout dependencies, and confirm required reviewers on GitHub Environment `production` before requesting explicit release approval.
