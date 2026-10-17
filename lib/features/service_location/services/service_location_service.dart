@@ -673,6 +673,10 @@ class ServiceLocationService {
   ) async {
     final name = _required(country.name, 'Country name');
 
+    if (country.id.trim().isEmpty && country.isActive) {
+      throw StateError('Create a Country as inactive, then activate it separately.');
+    }
+
     final code = _required(country.code, 'Country code')
         .toUpperCase();
 
@@ -758,6 +762,10 @@ class ServiceLocationService {
     );
 
     final name = _required(state.name, 'State name');
+
+    if (state.id.trim().isEmpty && state.isActive) {
+      throw StateError('Create a State as inactive, then activate it separately.');
+    }
 
     await _requireDocument(
       _countries,
@@ -900,6 +908,10 @@ class ServiceLocationService {
 
     final oldId = city.id.trim();
 
+    if (oldId.isEmpty && city.isServiceActive) {
+      throw StateError('Create a City as inactive; verify its boundary before activation.');
+    }
+
     final id = oldId.isEmpty ? _cities.doc().id : oldId;
 
     await _requireDocument(
@@ -938,15 +950,11 @@ class ServiceLocationService {
     if (existingSnapshot.exists) {
       final oldData = existingSnapshot.data()!;
 
-      final oldStateId =
-          oldData['stateId']?.toString() ?? '';
+      final oldCountryId = oldData['countryId']?.toString() ?? '';
+      final oldStateId = oldData['stateId']?.toString() ?? '';
 
-      if (oldStateId != stateId) {
-        await _ensureNoChildrenForReparent(
-          parentCollection: 'service_cities',
-          parentId: id,
-          label: 'city',
-        );
+      if (oldCountryId != countryId || oldStateId != stateId) {
+        throw StateError('A City parent cannot be changed after creation. Create a new City under the correct State.');
       }
     }
 
@@ -1078,6 +1086,10 @@ class ServiceLocationService {
 
     final oldId = area.id.trim();
 
+    if (oldId.isEmpty && area.isServiceActive) {
+      throw StateError('Create an Area as inactive; verify its boundary before activation.');
+    }
+
     final id = oldId.isEmpty ? _areas.doc().id : oldId;
 
     final cityData = await _requireDocument(
@@ -1148,15 +1160,12 @@ class ServiceLocationService {
     if (existingSnapshot.exists) {
       final oldData = existingSnapshot.data()!;
 
-      final oldCityId =
-          oldData['cityId']?.toString() ?? '';
+      final oldCountryId = oldData['countryId']?.toString() ?? '';
+      final oldStateId = oldData['stateId']?.toString() ?? '';
+      final oldCityId = oldData['cityId']?.toString() ?? '';
 
-      if (oldCityId != cityId) {
-        await _ensureNoChildrenForReparent(
-          parentCollection: 'service_areas',
-          parentId: id,
-          label: 'area',
-        );
+      if (oldCountryId != countryId || oldStateId != stateId || oldCityId != cityId) {
+        throw StateError('An Area parent cannot be changed after creation. Create a new Area under the correct City.');
       }
     }
 
@@ -1311,6 +1320,10 @@ class ServiceLocationService {
 
     final oldId = locality.id.trim();
 
+    if (oldId.isEmpty && locality.isServiceActive) {
+      throw StateError('Create a Locality as inactive, then activate it separately.');
+    }
+
     final id = oldId.isEmpty
         ? _localities.doc().id
         : oldId;
@@ -1367,15 +1380,13 @@ class ServiceLocationService {
     if (existingSnapshot.exists) {
       final oldData = existingSnapshot.data()!;
 
-      final oldAreaId =
-          oldData['areaId']?.toString() ?? '';
+      final oldCountryId = oldData['countryId']?.toString() ?? '';
+      final oldStateId = oldData['stateId']?.toString() ?? '';
+      final oldCityId = oldData['cityId']?.toString() ?? '';
+      final oldAreaId = oldData['areaId']?.toString() ?? '';
 
-      if (oldAreaId != areaId) {
-        await _ensureNoChildrenForReparent(
-          parentCollection: 'service_localities',
-          parentId: id,
-          label: 'locality',
-        );
+      if (oldCountryId != countryId || oldStateId != stateId || oldCityId != cityId || oldAreaId != areaId) {
+        throw StateError('A Locality parent cannot be changed after creation. Create a new Locality under the correct Area.');
       }
     }
 
