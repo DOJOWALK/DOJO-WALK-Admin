@@ -6,7 +6,7 @@ Date: 2026-10-17
 - [x] Step 95 Firebase callable/geometry CI [39027503976](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027503976) — PASS.
 - [x] Hardened offline audit core to reject a non-object JSON root and null/array document values with a clear collection/document reference instead of an unsafe property-access failure.
 - [x] Added regression tests for malformed root and malformed document values.
-- [ ] CI for Step 96's latest commits has not yet been confirmed. A commit-run lookup did not return PR-triggered workflow runs; this is not a pass. Check the repository Actions page/commit statuses before closing Step 96.
+- [ ] Step 96 CI is now running on test commit `de34dc975d799ef1b8c10f0562be2295e7a268a3`: [Rules run 39027844599](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027844599) and [callable/geometry run 39027844595](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027844595). Final conclusions are pending.
 - [!] No production export or live Firestore scan has been performed. No production writes, import, activation, or deployment.
 - [!] Fresh official LGD row-level reconciliation and authoritative contiguous polygon verification remain release gates.
 
