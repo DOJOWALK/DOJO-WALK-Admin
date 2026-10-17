@@ -107,6 +107,20 @@ void main() {
       expect(row.sourceValues['Source Version'], 'LGD-2026-10');
     });
 
+    test('preserves quoted optional source metadata values', () {
+      final result = parser.parse(
+        'State,District,City,Area,Source Name,Source Note\\n'
+        'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City,'
+        '"LGD, 2026","Source said ""verified""; preview only"',
+      );
+
+      expect(result.isSyntacticallyValid, isTrue);
+      final row = result.rows.single;
+      expect(row.sourceValues['Source Name'], 'LGD, 2026');
+      expect(row.sourceValues['Source Note'], 'Source said "verified"; preview only');
+      expect(row.values.keys.toSet(), {'state', 'district', 'city', 'area'});
+    });
+
     test('rejects empty and malformed CSV input', () {
       expect(parser.parse('  ').fileErrors, contains('CSV file is empty.'));
       expect(
