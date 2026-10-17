@@ -44,6 +44,35 @@ Add/execute read-only contract tests and Firebase Emulator tests for:
 
 No production Rules or Functions deployment is part of this step.
 
+## Admin completion progress — Step 125 (2026-10-18)
+
+### Cross-repository schema blocker tracked
+
+Created GitHub Issue [#8 — Approve cross-app Service Location schema before enabling CSV import](https://github.com/dojoplatform2026/DOJO-WALK-Admin/issues/8).
+
+The issue turns the branch/schema audit into explicit acceptance gates covering:
+- official LGD State/District reference data versus operational Service City/Area;
+- stable IDs, parent references, and legacy documents without `districtId`;
+- Partner legacy `zones` and walker zone IDs;
+- Admin models, parent dropdowns and CSV preview mapping;
+- shared Firebase Rules/Functions and Emulator coverage;
+- dry-run/idempotent import, auditability, failure recovery, and source provenance.
+
+### Current implementation decision
+
+CSV import remains **preview-only**. The current mapping check can compare existing State/City/Area names but explicitly does not validate District, because the current schema has no separate District level. This result is not an import-readiness signal and must not be used to write or activate records.
+
+### Step 125 status
+
+- [x] Schema/compatibility blocker recorded in a dedicated GitHub issue with acceptance criteria.
+- [x] Existing schema proposal retained as design-only; no undocumented hierarchy was implemented.
+- [ ] Schema decision approved.
+- [ ] Admin/Firebase/Partner compatibility changes implemented and tested.
+- [ ] Transactional CSV import implemented and tested.
+- [ ] Merge/deployment/release approval.
+
+No application code, Rules, production data, imports, activations, merges or deployments were changed in this step.
+
 ## Admin completion progress — Step 124 (2026-10-18)
 
 ### Branch review followed by schema compatibility check
