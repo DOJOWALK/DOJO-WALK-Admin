@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:crypto/crypto.dart';
 
 import '../models/service_location_models.dart';
@@ -24,10 +25,37 @@ import 'service_location_geometry.dart';
 
 class ServiceLocationService {
   final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
 
   ServiceLocationService({
     FirebaseFirestore? firestore,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+    FirebaseFunctions? functions,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _functions = functions ?? FirebaseFunctions.instanceFor(region: 'asia-south1');
+
+  Future<void> _setTrustedStatus({
+    required String locationType,
+    required String locationId,
+    required bool isActive,
+  }) async {
+    final callable = _functions.httpsCallable('setServiceLocationStatus');
+    await callable.call<void>({
+      'locationType': locationType,
+      'locationId': locationId,
+      'isActive': isActive,
+    });
+  }
+
+  Future<void> _activateTrustedBoundaryLocation({
+    required String locationType,
+    required String locationId,
+  }) async {
+    final callable = _functions.httpsCallable('activateServiceLocation');
+    await callable.call<void>({
+      'locationType': locationType,
+      'locationId': locationId,
+    });
+  }
 
   // ==========================================================
   // COLLECTIONS
@@ -686,10 +714,11 @@ class ServiceLocationService {
       );
     }
 
-    await _countries.doc(id).update({
-      'isActive': isActive,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+    await _setTrustedStatus(
+      locationType: 'country',
+      locationId: id,
+      isActive: isActive,
+    );
   }
 
   // ==========================================================
@@ -778,10 +807,11 @@ class ServiceLocationService {
       );
     }
 
-    await _states.doc(id).update({
-      'isActive': isActive,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+    await _setTrustedStatus(
+      locationType: 'state',
+      locationId: id,
+      isActive: isActive,
+    );
   }
 
   // ==========================================================
@@ -975,16 +1005,18 @@ class ServiceLocationService {
       );
     }
 
-    final update = <String, dynamic>{
-      'isServiceActive': isActive,
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-
-    if (verifiedBoundaryId != null) {
-      update['verifiedBoundaryId'] = verifiedBoundaryId;
+    if (isActive) {
+      await _activateTrustedBoundaryLocation(
+        locationType: 'city',
+        locationId: id,
+      );
+    } else {
+      await _setTrustedStatus(
+        locationType: 'city',
+        locationId: id,
+        isActive: false,
+      );
     }
-
-    await _cities.doc(id).update(update);
   }
 
   // ==========================================================
@@ -1191,16 +1223,18 @@ class ServiceLocationService {
       );
     }
 
-    final update = <String, dynamic>{
-      'isServiceActive': isActive,
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-
-    if (verifiedBoundaryId != null) {
-      update['verifiedBoundaryId'] = verifiedBoundaryId;
+    if (isActive) {
+      await _activateTrustedBoundaryLocation(
+        locationType: 'area',
+        locationId: id,
+      );
+    } else {
+      await _setTrustedStatus(
+        locationType: 'area',
+        locationId: id,
+        isActive: false,
+      );
     }
-
-    await _areas.doc(id).update(update);
   }
 
   // ==========================================================
@@ -1407,11 +1441,12 @@ class ServiceLocationService {
       await _requireActiveArea(areaId, cityId);
     }
 
-    // No locality polygon requirement.
-    await _localities.doc(id).update({
-      'isServiceActive': isActive,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+    // No locality polygon requirement; the server validates ancestry.
+    await _setTrustedStatus(
+      locationType: 'locality',
+      locationId: id,
+      isActive: isActive,
+    );
   }
 
   // ==========================================================
