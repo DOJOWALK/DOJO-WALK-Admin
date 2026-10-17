@@ -582,3 +582,5 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
         ),
       ],
     );
+  }
+}
