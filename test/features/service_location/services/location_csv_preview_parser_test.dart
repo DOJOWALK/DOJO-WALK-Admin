@@ -73,6 +73,24 @@ void main() {
       expect(result.rows.every((row) => row.isValid), isTrue);
     });
 
+    test('maps State, District, City, and Area as four distinct source values', () {
+      final result = parser.parse(
+        'Area,City,State,District\n'
+        'Gaur City,Greater Noida,Uttar Pradesh,Gautam Buddha Nagar',
+      );
+
+      expect(result.fileErrors, isEmpty);
+      expect(result.rows, hasLength(1));
+      final values = result.rows.single.values;
+      expect(values.keys.toSet(), {'state', 'district', 'city', 'area'});
+      expect(values['state'], 'Uttar Pradesh');
+      expect(values['district'], 'Gautam Buddha Nagar');
+      expect(values['city'], 'Greater Noida');
+      expect(values['area'], 'Gaur City');
+      expect(values['city'], isNot(values['district']));
+      expect(result.isSyntacticallyValid, isTrue);
+    });
+
     test('rejects empty and malformed CSV input', () {
       expect(parser.parse('  ').fileErrors, contains('CSV file is empty.'));
       expect(
