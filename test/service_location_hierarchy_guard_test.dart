@@ -82,6 +82,62 @@ void main() {
 
 
 
+    test('Area save rejects a City with a missing State ancestor', () async {
+      final db = FakeFirebaseFirestore();
+      final service = ServiceLocationService(firestore: db);
+      final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+      await db.collection('service_countries').doc('c-$suffix').set({
+        'name': 'Country $suffix', 'code': 'TST', 'isActive': false,
+      });
+      await db.collection('service_cities').doc('city-broken-$suffix').set({
+        'name': 'Broken City $suffix', 'countryId': 'c-$suffix',
+        'stateId': 'missing-state-$suffix', 'isServiceActive': false,
+      });
+
+      await expectLater(
+        service.saveArea(ServiceArea(
+          id: 'area-broken-$suffix', countryId: 'c-$suffix',
+          stateId: 'missing-state-$suffix', cityId: 'city-broken-$suffix',
+          name: 'Area $suffix',
+        )),
+        throwsA(isA<StateError>()),
+      );
+      expect(
+        (await db.collection('service_areas').doc('area-broken-$suffix').get()).exists,
+        isFalse,
+      );
+    });
+
+    test('Locality save rejects an Area whose City ancestor is missing', () async {
+      final db = FakeFirebaseFirestore();
+      final service = ServiceLocationService(firestore: db);
+      final suffix = DateTime.now().microsecondsSinceEpoch.toString();
+      await db.collection('service_countries').doc('c-$suffix').set({
+        'name': 'Country $suffix', 'code': 'TST', 'isActive': false,
+      });
+      await db.collection('service_states').doc('s-$suffix').set({
+        'name': 'State $suffix', 'countryId': 'c-$suffix', 'isActive': false,
+      });
+      await db.collection('service_areas').doc('area-broken-$suffix').set({
+        'name': 'Broken Area $suffix', 'countryId': 'c-$suffix',
+        'stateId': 's-$suffix', 'cityId': 'missing-city-$suffix',
+        'isServiceActive': false,
+      });
+
+      await expectLater(
+        service.saveLocality(ServiceLocality(
+          id: 'locality-broken-$suffix', countryId: 'c-$suffix',
+          stateId: 's-$suffix', cityId: 'missing-city-$suffix',
+          areaId: 'area-broken-$suffix', name: 'Locality $suffix',
+        )),
+        throwsA(isA<StateError>()),
+      );
+      expect(
+        (await db.collection('service_localities').doc('locality-broken-$suffix').get()).exists,
+        isFalse,
+      );
+    });
+
     test('City save rejects a State belonging to another Country', () async {
       final db = FakeFirebaseFirestore();
       final service = ServiceLocationService(firestore: db);
