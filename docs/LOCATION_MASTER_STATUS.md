@@ -1,15 +1,15 @@
 # DOJO WALK Location Master — Step 103
-## Duplicate Snapshot Collection Metadata — CI Pending
+## Duplicate Snapshot Collection Metadata — PASS
 Date: 2026-10-17
 
 - [x] Step 102 Rules and callable/geometry CI confirmed PASS: [Rules 39029175469](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029175469), [callable/geometry 39029175515](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029175515); documentation-triggered runs [39029187377](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029187377) and [39029187381](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029187381) also PASS.
 - [x] Auditor now flags duplicate names within `collectionsIncluded` or `completeCollections` as malformed.
 - [x] Added regression test expecting `INCOMPLETE_OR_UNVERIFIED` and a deterministic duplicate-entry report.
 - [x] Updated the offline audit instructions.
-- [ ] Step 103 CI pending verification after code/test/docs commits.
+- [x] Step 103 Rules CI [39029364150](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029364150) and callable/geometry CI [39029364139](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029364139) — PASS on documentation commit; code/test runs [39029341173](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029341173), [39029341055](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029341055), [39029346477](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029346477), and [39029346474](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029346474) — PASS.
 - [!] Offline-only validation. No production export/live scan, write, import, activation, or deployment. Official current LGD reconciliation and authoritative polygon validity/containment remain release gates.
 
-Next: verify Step 103 CI; then continue offline snapshot schema hardening.
+Next: Step 104 — require an explicit timezone in snapshot export timestamps.
 
 Last updated: 2026-10-17.
 ---
