@@ -53,7 +53,9 @@ class ServiceLocationGeometry {
   static bool _isValidRing(List<GeoPoint> points) {
     if (points.length < 3) return false;
     final unique = <String>{};
-    for (final p in points) {
+    for (var i = 0; i < points.length; i++) {
+      final p = points[i];
+      final next = points[(i + 1) % points.length];
       if (!p.latitude.isFinite ||
           !p.longitude.isFinite ||
           p.latitude < -90 ||
@@ -62,6 +64,15 @@ class ServiceLocationGeometry {
           p.longitude > 180) {
         return false;
       }
+
+      // A zero-length edge is invalid even if the ring has three or more
+      // other distinct vertices. Reject repeated consecutive points rather
+      // than allowing a degenerate segment into verification/containment.
+      if ((p.latitude - next.latitude).abs() <= _epsilon &&
+          (p.longitude - next.longitude).abs() <= _epsilon) {
+        return false;
+      }
+
       unique.add(
         '${p.latitude.toStringAsFixed(7)},'
         '${p.longitude.toStringAsFixed(7)}',
