@@ -6,6 +6,14 @@ Working branch: `step-119-boundary-geometry`
 Review PR: [#7 — Step 119 service-location boundary geometry validation](https://github.com/dojoplatform2026/DOJO-WALK-Admin/pull/7)  
 India reference-data PR: [#6 — Restore India location reference data](https://github.com/dojoplatform2026/DOJO-WALK-Admin/pull/6)
 
+## Latest verification refresh — 2026-10-18
+
+- Exact code head checked: `e1fde3a478d587e22238a2c2c06f1762084355e1`.
+- Admin Web Build Check (No Deploy), run [39056623516](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39056623516): **SUCCESS** — dependency install, full-project `flutter analyze`, full `flutter test`, and `flutter build web --release` all passed. No deployment was performed.
+- Service Location Geometry Tests, run [39056623398](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39056623398): **SUCCESS** — formatting, whitespace, focused analysis, geometry/parser tests, and reference-data integrity checks passed.
+- PR #7 remains Draft/open/unmerged. Firebase companion PR #1 remains Draft/open/unmerged.
+- Next safe task: improve the read-only CSV preview/report and test its behavior without introducing Firestore writes or guessing the District/City schema. Full transactional import remains blocked on the schema decision and trusted backend support.
+
 ## Current decision
 
 **Do not merge yet.** Admin work is progressing on the review branch, but a production-ready completion gate has not been met. No merge, deployment, production import, or location activation was performed.
