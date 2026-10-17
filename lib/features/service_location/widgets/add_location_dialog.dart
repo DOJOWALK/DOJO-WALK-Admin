@@ -400,10 +400,47 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final dialogWidth = screenWidth < 520 ? screenWidth * 0.86 : 480.0;
+
     return AlertDialog(
-      title: const Text('Add Location'),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      title: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: _addLocationOrange.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.add_location_alt_outlined,
+              color: _addLocationOrange,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Add Location',
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
+                ),
+                SizedBox(height: 3),
+                Text(
+                  'Create an inactive service-location record',
+                  style: TextStyle(fontSize: 11, color: Colors.black54, fontWeight: FontWeight.w400),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
       content: SizedBox(
-        width: 480,
+        width: dialogWidth,
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -506,10 +543,9 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Text(
-                    'This location will be saved as inactive. '
-                    'City, Area and Locality require a verified '
-                    'geographic boundary before activation. '
-                    'This form does not verify geographic boundaries.',
+                    'Safety check: this record is saved as inactive. '
+                    'City and Area activation requires a verified geographic boundary. '
+                    'Saving here does not verify or activate coverage.',
                     style: TextStyle(fontSize: 12),
                   ),
                 ),
@@ -518,33 +554,3 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
           ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _saving
-              ? null
-              : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        FilledButton.icon(
-          onPressed: _saving ? null : _save,
-          icon: _saving
-              ? const SizedBox(
-                  height: 16,
-                  width: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                  ),
-                )
-              : const Icon(Icons.save),
-          label: Text(
-            _saving ? 'Saving...' : 'Save Location',
-          ),
-          style: FilledButton.styleFrom(
-            backgroundColor: _addLocationOrange,
-            foregroundColor: Colors.white,
-          ),
-        ),
-      ],
-    );
-  }
-}
