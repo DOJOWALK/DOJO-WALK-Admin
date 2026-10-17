@@ -177,6 +177,11 @@ class LocationCsvPreviewParser {
       }
       if (char == '"' && field.isEmpty && !afterQuote) {
         quoted = true;
+      } else if (char == '"') {
+        return _CsvParseResult(
+          [],
+          'Malformed CSV near record $recordNumber: a quote must begin a field.',
+        );
       } else if (char == ',') {
         finishField();
       } else if (char == '\n' || char == '\r') {
