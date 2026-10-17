@@ -118,6 +118,62 @@ void main() {
           .doc('area-boundary').get();
       expect(saved.data()?['verificationStatus'], 'verified');
       expect(saved.data()?['verifiedBy'], 'boundary-reviewer');
+
+      final area = await db.collection('service_areas').doc('area-1').get();
+      expect(
+        area.data()?['verifiedBoundaryId'],
+        'area-boundary',
+        reason: 'Verification must atomically bind the exact verified boundary ID.',
+      );
+    });
+
+    test('verifies a City and binds its exact boundary ID', () async {
+      await db.collection('service_cities').doc('city-1').set({
+        'name': 'Test City',
+        'isServiceActive': false,
+      });
+      await db.collection('service_location_boundaries')
+          .doc('city-boundary-pending')
+          .set(_boundaryData(
+            locationId: 'city-1',
+            locationType: 'city',
+            points: _cityPoints,
+          ));
+
+      await service.markVerified(
+        boundaryId: 'city-boundary-pending',
+        verificationNotes: 'City boundary reviewed',
+      );
+
+      final city = await db.collection('service_cities').doc('city-1').get();
+      expect(city.data()?['verifiedBoundaryId'], 'city-boundary-pending');
+      expect(city.data()?['isServiceActive'], isFalse,
+          reason: 'Verifying a boundary must not activate the service location.');
+      final boundary = await db.collection('service_location_boundaries')
+          .doc('city-boundary-pending').get();
+      expect(boundary.data()?['verificationStatus'], 'verified');
+    });
+
+    test('rejects verification when the owning City document is missing', () async {
+      await db.collection('service_location_boundaries')
+          .doc('orphan-city-boundary')
+          .set(_boundaryData(
+            locationId: 'missing-city',
+            locationType: 'city',
+            points: _cityPoints,
+          ));
+
+      await expectLater(
+        service.markVerified(
+          boundaryId: 'orphan-city-boundary',
+          verificationNotes: 'Owner must exist',
+        ),
+        throwsA(isA<StateError>()),
+      );
+
+      final boundary = await db.collection('service_location_boundaries')
+          .doc('orphan-city-boundary').get();
+      expect(boundary.data()?['verificationStatus'], 'pending');
     });
 
     test('rejects an Area outside City and leaves it pending', () async {
