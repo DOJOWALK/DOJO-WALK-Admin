@@ -8,6 +8,9 @@ India reference-data PR: [#6 — Restore India location reference data](https://
 
 ## Latest verification refresh — 2026-10-18
 
+- Regression found and isolated: CI for intermediate commit `58477adf2da937964985020dbd2bda0b407725aa` failed because the new pipe-character regression test used escaped backslash-n text instead of actual Dart newline escapes. The parser itself analyzed cleanly; the focused suite reported 39 passed / 1 failed, and the full suite stopped at the same test.
+- The current branch version of `test/features/service_location/services/location_csv_preview_parser_test.dart` now contains the correct single-backslash Dart newline escapes. This is a code-state inspection, **not proof of a passing rerun**. A fresh CI run on the latest branch head is required before marking the fix verified.
+
 - Latest previously full-CI-verified code head: `e1fde3a478d587e22238a2c2c06f1762084355e1`.
 - New parser hardening on the review branch: duplicate CSV row keys now use length-prefixed normalized fields instead of a literal pipe delimiter. This prevents false duplicate detection when a valid location name itself contains `|`. Added a regression test with two distinct parent paths. Commits: `6cc3eed86c83c9520b0b2763a95b799550633b37` (parser) and `58477adf2da937964985020dbd2bda0b407725aa` (test).
 - CI for the parser hardening and regression test has **not yet been confirmed**. Do not treat the earlier green checks as validation of these new commits.
