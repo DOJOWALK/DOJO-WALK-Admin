@@ -90,5 +90,43 @@ void main() {
         isFalse,
       );
     });
+
+    test('rejects a self-intersecting child polygon', () {
+      final bowTie = <GeoPoint>[
+        p(1, 1),
+        p(4, 4),
+        p(1, 4),
+        p(4, 1),
+      ];
+      expect(
+        ServiceLocationGeometry.isPolygonContained(
+          parent: city,
+          child: bowTie,
+        ),
+        isFalse,
+      );
+    });
+
+    test('rejects a self-intersecting parent polygon', () {
+      final bowTieCity = <GeoPoint>[
+        p(0, 0),
+        p(10, 10),
+        p(0, 10),
+        p(10, 0),
+      ];
+      final area = <GeoPoint>[
+        p(2, 2),
+        p(2, 3),
+        p(3, 3),
+        p(3, 2),
+      ];
+      expect(
+        ServiceLocationGeometry.isPolygonContained(
+          parent: bowTieCity,
+          child: area,
+        ),
+        isFalse,
+      );
+    });
   });
 }
