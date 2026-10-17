@@ -880,6 +880,113 @@ class _ServiceLocationScreenState
     final controller = TextEditingController();
     final parser = LocationCsvPreviewParser();
     LocationCsvPreview? preview;
+    List<String> mappingReport = [];
+    bool checkingParents = false;
+
+    String normalizeLocationName(String value) =>
+        value.trim().toLowerCase().replaceAll(RegExp(r'\\s+'), ' ');
+
+    Future<void> checkParentMapping(StateSetter setDialogState) async {
+      final currentPreview = preview;
+      if (currentPreview == null || !currentPreview.canProceed) {
+        setDialogState(() {
+          mappingReport = ['Run a clean CSV validation before checking parents.'];
+        });
+        return;
+      }
+
+      setDialogState(() {
+        checkingParents = true;
+        mappingReport = [];
+      });
+
+      try {
+        final states = await _service.watchStates().first;
+        final cities = await _service.watchCities().first;
+        final areas = await _service.watchAreas().first;
+        final report = <String>[];
+        var matched = 0;
+
+        for (final row in currentPreview.rows) {
+          final stateName = row.values['state'] ?? '';
+          final districtName = row.values['district'] ?? '';
+          final cityName = row.values['city'] ?? '';
+          final areaName = row.values['area'] ?? '';
+
+          final stateMatches = states.where(
+            (item) => normalizeLocationName(item.name) ==
+                normalizeLocationName(stateName),
+          ).toList();
+
+          if (stateMatches.length != 1) {
+            report.add(
+              'Line ${row.lineNumber}: State "$stateName" '
+              '${stateMatches.isEmpty ? 'not found' : 'is ambiguous'} '
+              'in existing Service Locations.',
+            );
+            continue;
+          }
+
+          final state = stateMatches.single;
+          final cityMatches = cities.where(
+            (item) =>
+                item.stateId == state.id &&
+                normalizeLocationName(item.name) ==
+                    normalizeLocationName(cityName),
+          ).toList();
+
+          if (cityMatches.length != 1) {
+            report.add(
+              'Line ${row.lineNumber}: City "$cityName" under '
+              '$stateName ${cityMatches.isEmpty ? 'not found' : 'is ambiguous'}.',
+            );
+            continue;
+          }
+
+          final city = cityMatches.single;
+          final areaMatches = areas.where(
+            (item) =>
+                item.cityId == city.id &&
+                normalizeLocationName(item.name) ==
+                    normalizeLocationName(areaName),
+          ).toList();
+
+          if (areaMatches.length != 1) {
+            report.add(
+              'Line ${row.lineNumber}: Area "$areaName" under '
+              '$cityName ${areaMatches.isEmpty ? 'not found' : 'is ambiguous'}.',
+            );
+            continue;
+          }
+
+          matched++;
+        }
+
+        report.insert(
+          0,
+          'Existing parent matches: $matched / ${currentPreview.rows.length} rows.',
+        );
+        report.insert(
+          1,
+          'Schema warning: CSV District "${currentPreview.rows.first.values['district']}" '
+          'is not a separate level in the current Country → State → City → Area '
+          'Firestore hierarchy. District-to-City mapping must be explicitly reviewed '
+          'before import; this check never writes data.',
+        );
+
+        setDialogState(() {
+          mappingReport = report;
+        });
+      } catch (error) {
+        setDialogState(() {
+          mappingReport = ['Could not read existing parent records: $error'];
+        });
+      } finally {
+        setDialogState(() {
+          checkingParents = false;
+        });
+      }
+    }
 
     Future<void> pickCsvFile(StateSetter setDialogState) async {
       try {
@@ -994,6 +1101,36 @@ class _ServiceLocationScreenState
                       const Text(
                         'CSV checks passed. Parent mapping and explicit import confirmation are still required.',
                         style: TextStyle(color: Colors.green),
+                      ),
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      onPressed: checkingParents
+                          ? null
+                          : () => checkParentMapping(setDialogState),
+                      icon: checkingParents
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.account_tree_outlined),
+                      label: Text(
+                        checkingParents
+                            ? 'Checking existing parents…'
+                            : 'Check Existing Parent Mapping',
+                      ),
+                    ),
+                    for (final line in mappingReport)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(
+                          line,
+                          style: TextStyle(
+                            color: line.startsWith('Existing parent matches')
+                                ? Colors.green.shade800
+                                : Colors.deepOrange.shade800,
+                          ),
+                        ),
                       ),
                   ],
                 ],
