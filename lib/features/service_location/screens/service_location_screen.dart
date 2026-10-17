@@ -59,6 +59,9 @@ class _ServiceLocationScreenState
   String _search = '';
 
   GoogleMapController? _mapController;
+  late Future<Set<Polygon>> _activeBoundaryPolygonsFuture;
+  Set<Polygon> _loadedActiveBoundaryPolygons = <Polygon>{};
+  String? _lastFittedPolygonSignature;
 
   static const List<String> _tabNames = [
     'Countries',
@@ -68,6 +71,12 @@ class _ServiceLocationScreenState
     'Localities / Villages',
     'Import History',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _activeBoundaryPolygonsFuture = _loadActiveBoundaryPolygons();
+  }
 
   @override
   void dispose() {
@@ -255,6 +264,119 @@ class _ServiceLocationScreenState
   // MAP PREVIEW
   // ============================================================
 
+  Future<Set<Polygon>> _loadActiveBoundaryPolygons() async {
+    final cities = await _service.watchCities().first;
+    final areas = await _service.watchAreas().first;
+    final polygons = <Polygon>{};
+
+    for (final city in cities.where((item) => item.isServiceActive)) {
+      final boundaryId = city.verifiedBoundaryId.trim();
+      if (boundaryId.isEmpty) continue;
+
+      final boundary = await _boundaryService.getById(boundaryId);
+      if (boundary == null ||
+          !boundary.isVerified ||
+          boundary.locationId != city.id ||
+          boundary.locationType.toLowerCase() != 'city' ||
+          boundary.points.length < 3) {
+        continue;
+      }
+
+      polygons.add(
+        Polygon(
+          polygonId: PolygonId('service-city-${city.id}'),
+          points: boundary.points
+              .map((point) => LatLng(point.latitude, point.longitude))
+              .toList(growable: false),
+          strokeColor: _locationOrange,
+          strokeWidth: 2,
+          fillColor: _locationOrange.withValues(alpha: 0.05),
+          consumeTapEvents: true,
+          onTap: () => _showMessage('Active city boundary: ${city.name}'),
+        ),
+      );
+    }
+
+    for (final area in areas.where((item) => item.isServiceActive)) {
+      final boundaryId = area.verifiedBoundaryId.trim();
+      if (boundaryId.isEmpty) continue;
+
+      final boundary = await _boundaryService.getById(boundaryId);
+      if (boundary == null ||
+          !boundary.isVerified ||
+          boundary.locationId != area.id ||
+          boundary.locationType.toLowerCase() != 'area' ||
+          boundary.points.length < 3) {
+        continue;
+      }
+
+      polygons.add(
+        Polygon(
+          polygonId: PolygonId('service-area-${area.id}'),
+          points: boundary.points
+              .map((point) => LatLng(point.latitude, point.longitude))
+              .toList(growable: false),
+          strokeColor: _locationOrange,
+          strokeWidth: 2,
+          fillColor: _locationOrange.withValues(alpha: 0.18),
+          consumeTapEvents: true,
+          onTap: () => _showMessage('Active service area: ${area.name}'),
+        ),
+      );
+    }
+
+    return polygons;
+  }
+
+  Future<void> _fitMapToActiveBoundaries(Set<Polygon> polygons) async {
+    final controller = _mapController;
+    if (controller == null || polygons.isEmpty) return;
+
+    final ids = polygons.map((polygon) => polygon.polygonId.value).toList()
+      ..sort();
+    final signature = ids.join('|');
+    if (signature == _lastFittedPolygonSignature) return;
+    _lastFittedPolygonSignature = signature;
+
+    final points = polygons.expand((polygon) => polygon.points).toList();
+    if (points.isEmpty) return;
+
+    var minLat = points.first.latitude;
+    var maxLat = minLat;
+    var minLng = points.first.longitude;
+    var maxLng = minLng;
+
+    for (final point in points.skip(1)) {
+      if (point.latitude < minLat) minLat = point.latitude;
+      if (point.latitude > maxLat) maxLat = point.latitude;
+      if (point.longitude < minLng) minLng = point.longitude;
+      if (point.longitude > maxLng) maxLng = point.longitude;
+    }
+
+    if (minLat == maxLat) {
+      minLat -= 0.001;
+      maxLat += 0.001;
+    }
+    if (minLng == maxLng) {
+      minLng -= 0.001;
+      maxLng += 0.001;
+    }
+
+    try {
+      await controller.animateCamera(
+        CameraUpdate.newLatLngBounds(
+          LatLngBounds(
+            southwest: LatLng(minLat, minLng),
+            northeast: LatLng(maxLat, maxLng),
+          ),
+          24,
+        ),
+      );
+    } catch (_) {
+      // A map can still be usable even if the camera cannot fit its bounds.
+    }
+  }
+
   Widget _buildMapPreview() {
     return Container(
       clipBehavior: Clip.antiAlias,
@@ -265,72 +387,128 @@ class _ServiceLocationScreenState
           color: _locationOrange.withValues(alpha: 0.25),
         ),
       ),
-      child: Stack(
-        children: [
-          GoogleMap(
-            initialCameraPosition: const CameraPosition(
-              target: _defaultMapCenter,
-              zoom: 11,
-            ),
-            onMapCreated: (controller) {
-              _mapController = controller;
-            },
-            mapType: MapType.normal,
-            myLocationButtonEnabled: false,
-            myLocationEnabled: false,
-            zoomControlsEnabled: true,
-            compassEnabled: true,
-            mapToolbarEnabled: false,
-          ),
-          Positioned(
-            left: 10,
-            top: 10,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 7,
+      child: FutureBuilder<Set<Polygon>>(
+        future: _activeBoundaryPolygonsFuture,
+        builder: (context, snapshot) {
+          final polygons = snapshot.data ?? <Polygon>{};
+          _loadedActiveBoundaryPolygons = polygons;
+          if (snapshot.hasData && polygons.isNotEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _fitMapToActiveBoundaries(polygons);
+            });
+          }
+
+          return Stack(
+            children: [
+              GoogleMap(
+                initialCameraPosition: const CameraPosition(
+                  target: _defaultMapCenter,
+                  zoom: 11,
+                ),
+                onMapCreated: (controller) {
+                  _mapController = controller;
+                  if (_loadedActiveBoundaryPolygons.isNotEmpty) {
+                    _fitMapToActiveBoundaries(_loadedActiveBoundaryPolygons);
+                  }
+                },
+                polygons: polygons,
+                mapType: MapType.normal,
+                myLocationButtonEnabled: false,
+                myLocationEnabled: false,
+                zoomControlsEnabled: true,
+                compassEnabled: true,
+                mapToolbarEnabled: false,
               ),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.map_outlined,
-                    size: 18,
-                    color: _locationOrange,
+              Positioned(
+                left: 10,
+                top: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
                   ),
-                  SizedBox(width: 6),
-                  Text(
-                    'Location Map',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.map_outlined,
+                        size: 18,
+                        color: _locationOrange,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        snapshot.connectionState == ConnectionState.waiting
+                            ? 'Loading active boundaries…'
+                            : 'Active boundaries: ${polygons.length}',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Material(
+                  color: Colors.white.withValues(alpha: 0.95),
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    tooltip: 'Refresh active boundaries',
+                    onPressed: () {
+                      setState(() {
+                        _lastFittedPolygonSignature = null;
+                        _activeBoundaryPolygonsFuture =
+                            _loadActiveBoundaryPolygons();
+                      });
+                    },
+                    icon: const Icon(Icons.refresh, color: _locationOrange),
+                  ),
+                ),
+              ),
+              if (snapshot.hasError)
+                Positioned(
+                  left: 10,
+                  right: 10,
+                  bottom: 54,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                    child: Text(
+                      'Unable to load active boundaries: ${snapshot.error}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.red.shade700,
+                      ),
                     ),
                   ),
-                ],
+                ),
+              Positioned(
+                left: 10,
+                right: 10,
+                bottom: 10,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                  child: const Text(
+                    'Orange outlines show active verified City/Area boundaries. '
+                    'Tap a polygon to identify it; use Manage Boundary to review details.',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                ),
               ),
-            ),
-          ),
-          Positioned(
-            left: 10,
-            right: 10,
-            bottom: 10,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: const Text(
-                'किसी City या Area की वास्तविक Boundary देखने '
-                'और edit करने के लिए Manage Boundary खोलें।',
-                style: TextStyle(fontSize: 11),
-              ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
