@@ -44,6 +44,31 @@ class ReconcileLgdCsvTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate key"):
             module.compare_csvs(old, new, "Code", ["Name"])
 
+    def test_utf8_bom_header_is_supported(self):
+        old = self.csv("old.csv", "\\ufeffCode,Name\n001,Alpha\n")
+        new = self.csv("new.csv", "Code,Name\n001,Alpha\n")
+        self.assertTrue(module.compare_csvs(old, new, "Code", ["Name"])["passed"])
+
+    def test_duplicate_headers_fail(self):
+        path = self.csv("duplicate.csv", "Code,Name,Name\n1,A,B\n")
+        with self.assertRaisesRegex(ValueError, "duplicate header"):
+            module.read_csv(path, "Code", ["Name"])
+
+    def test_blank_header_fails(self):
+        path = self.csv("blank_header.csv", "Code,,Name\n1,x,A\n")
+        with self.assertRaisesRegex(ValueError, "blank header"):
+            module.read_csv(path, "Code", ["Name"])
+
+    def test_extra_unmapped_row_fields_fail(self):
+        path = self.csv("extra.csv", "Code,Name\n1,A,UNEXPECTED\n")
+        with self.assertRaisesRegex(ValueError, "extra field"):
+            module.read_csv(path, "Code", ["Name"])
+
+    def test_empty_file_fails(self):
+        path = self.csv("empty.csv", "")
+        with self.assertRaisesRegex(ValueError, "no header"):
+            module.read_csv(path, "Code", ["Name"])
+
 
 if __name__ == "__main__":
     unittest.main()
