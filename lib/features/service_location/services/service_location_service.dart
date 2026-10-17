@@ -915,6 +915,7 @@ class ServiceLocationService {
       'City',
     );
 
+    // Defence in depth: validate the complete chain, not only the selected City.
     final countryId = area.countryId.trim().isNotEmpty
         ? area.countryId.trim()
         : cityData['countryId']?.toString() ?? '';
@@ -923,10 +924,23 @@ class ServiceLocationService {
         ? area.stateId.trim()
         : cityData['stateId']?.toString() ?? '';
 
+    final countryData = await _requireDocument(
+      _countries,
+      countryId,
+      'Country',
+    );
+    final stateData = await _requireDocument(
+      _states,
+      stateId,
+      'State',
+    );
+
     if (cityData['countryId'] != countryId ||
-        cityData['stateId'] != stateId) {
+        cityData['stateId'] != stateId ||
+        stateData['countryId'] != countryId ||
+        countryData.isEmpty) {
       throw StateError(
-        'The selected city does not match the country/state.',
+        'The selected City does not match an existing Country/State hierarchy.',
       );
     }
 
@@ -1102,11 +1116,31 @@ class ServiceLocationService {
         ? locality.stateId.trim()
         : areaData['stateId']?.toString() ?? '';
 
+    final countryData = await _requireDocument(
+      _countries,
+      countryId,
+      'Country',
+    );
+    final stateData = await _requireDocument(
+      _states,
+      stateId,
+      'State',
+    );
+    final cityData = await _requireDocument(
+      _cities,
+      cityId,
+      'City',
+    );
+
     if (areaData['cityId'] != cityId ||
         areaData['countryId'] != countryId ||
-        areaData['stateId'] != stateId) {
+        areaData['stateId'] != stateId ||
+        stateData['countryId'] != countryId ||
+        cityData['countryId'] != countryId ||
+        cityData['stateId'] != stateId ||
+        countryData.isEmpty) {
       throw StateError(
-        'The selected Area does not match the location hierarchy.',
+        'The selected Area does not match an existing Country/State/City hierarchy.',
       );
     }
 
