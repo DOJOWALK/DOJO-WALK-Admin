@@ -85,3 +85,12 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - No production code was changed and no tests/build were run in this investigation.
 - Next action before Step 120: implement/review a shared geometry validator with synthetic unit tests (fully inside, shared edge, tiny outside gap, duplicate/degenerate vertices, invalid coordinates), wire it into the appropriate trusted validation path, then run tests and Admin web build. If validation is needed against direct/hostile client writes, enforce it in a trusted backend; Firestore Rules cannot reliably implement arbitrary polygon geometry.
 
+### Step 119 — geometry helper draft on review branch (2026-10-17)
+- Review branch: `step-119-boundary-geometry`.
+- Added `lib/features/service_location/services/service_location_geometry.dart` with coordinate/ring validation, point-in-or-on-polygon checks, child-edge midpoint checks, and proper segment-crossing rejection.
+- Added `test/features/service_location/services/service_location_geometry_test.dart` for fully-inside, shared-edge, tiny-outside-gap, duplicate/degenerate vertices, and invalid-coordinate cases.
+- Commit with helper: `9e4b1e8a95443c11f0024e4f0310cec8dd57202b`.
+- Commit with tests: `5e6cf8767584fa15148048ca7eb8771e87d2dd6b`.
+- **Status: DRAFT / NOT RUN / NOT INTEGRATED.** Tests and Flutter Web build have not been run in this environment. The helper is not yet called by the activation service and is not sufficient to claim complete GIS topology validation; additional concave-polygon/edge-case review is required before production use.
+- Do not merge or deploy until tests pass, geometry edge cases are reviewed, and the trusted activation path is wired to compare Area boundaries against the verified parent City boundary.
+
