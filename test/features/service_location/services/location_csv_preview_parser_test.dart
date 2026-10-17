@@ -151,6 +151,20 @@ void main() {
       expect(result.rows.single.sourceValues['State LGD Code'], '00123');
     });
 
+    test('rejects duplicate optional metadata headers after normalization', () {
+      final result = parser.parse(
+        'State,District,City,Area,State LGD Code,state_lgd-code\\n'
+        'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City,09,10',
+      );
+
+      expect(
+        result.fileErrors,
+        contains('Header row contains duplicate column names.'),
+      );
+      expect(result.rows, isEmpty);
+      expect(result.isSyntacticallyValid, isFalse);
+    });
+
     test('rejects empty and malformed CSV input', () {
       expect(parser.parse('  ').fileErrors, contains('CSV file is empty.'));
       expect(
