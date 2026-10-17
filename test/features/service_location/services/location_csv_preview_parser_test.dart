@@ -67,6 +67,7 @@ void main() {
         'A|B,C,D,E\n'
         'A,B|C,D,E',
       );
+      expect(result.fileErrors, isEmpty);
       expect(result.rows, hasLength(2));
       expect(result.invalidRowCount, 0);
       expect(result.rows.every((row) => row.isValid), isTrue);
