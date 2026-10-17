@@ -1,3 +1,13 @@
+## Step 74 — LGD CSV reconciliation input hardening (2026-10-17)
+
+- [x] Hardened `tool/reconcile_lgd_csv.py`: reject duplicate/blank headers and extra row fields instead of silently accepting malformed CSV.
+- [x] Expanded parser tests from 3 to 8, covering UTF-8 BOM, duplicate/blank headers, extra fields and empty files.
+- [x] Parser commit: `be17d7ae7fca040259f25516a333dc56dc18562d`; test commit: `32bffb7d90ef3fc28b3ef815716a44102d1e09bb`.
+- [x] Report: [Step 74 — CSV reconciliation input hardening](LOCATION_MASTER_STEP_74_CSV_RECONCILIATION_INPUT_HARDENING.md).
+- [ ] New tests are not yet verified by a completed GitHub Actions run; do not mark CI PASS until observed.
+- [ ] Current official LGD export reconciliation, Census-code concordance, missing Kolkata/Mumbai sub-district coverage explanation and authoritative boundary verification remain pending.
+- [ ] No generated reference data changed; no production import, activation, deployment or merge.
+
 
 
 ## Step 73 — Latest available code validation evidence (2026-10-17)
