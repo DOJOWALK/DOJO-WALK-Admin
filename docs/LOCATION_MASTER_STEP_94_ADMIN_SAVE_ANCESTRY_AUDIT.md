@@ -21,12 +21,13 @@ Reviewed `ServiceLocationService.saveState/saveCity/saveArea/saveLocality` and h
 
 ## CI / safety status
 
-- Admin Flutter Web Validation is running for the new commits. Check the latest run before marking this step passed:
-  - Service update commit: `9eb7ea180e424aa5bed3f0f153c02984715ca5ce`
-  - Test update commit: `f3eb438c967a97f4e65ca01011963995a581eebc`
+- Admin Flutter Web Validation run [39027270570](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39027270570) for service commit `9eb7ea180e424aa5bed3f0f153c02984715ca5ce` — PASS.
+- Admin Flutter Web Validation run [39027285485](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39027285485) for test commit `f3eb438c967a97f4e65ca01011963995a581eebc` — PASS.
 - No production Firestore read, write, import, activation, or deployment was performed.
 - Fresh official LGD row-level reconciliation and authoritative contiguous polygon verification remain release gates.
 
 ## Next
+
+Proceed to Step 95: document the safe offline audit input contract and prepare a synthetic-only snapshot template; then confirm Firebase CI before treating that validation as complete.
 
 Verify Admin Flutter Web Validation. Then prepare the snapshot schema and request an authorized read-only export for the existing-data audit; do not access production data without explicit authorization.
