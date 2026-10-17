@@ -1571,13 +1571,7 @@ class _ServiceLocationScreenState
           '${two(local.hour)}:${two(local.minute)}';
     }
 
-    final ordered = boundaries.toList()
-      ..sort((a, b) {
-        final statusOrder = (a.verificationStatus.index)
-            .compareTo(b.verificationStatus.index);
-        if (statusOrder != 0) return statusOrder;
-        return b.updatedAt.compareTo(a.updatedAt);
-      });
+    final ordered = sortBoundariesForChooser(boundaries);
 
     return showDialog<ServiceLocationBoundary>(
       context: context,
