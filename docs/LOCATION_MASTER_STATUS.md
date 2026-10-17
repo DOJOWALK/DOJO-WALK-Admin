@@ -75,3 +75,13 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 ### Release safeguards
 - Official LGD source reconciliation, authoritative boundary confirmation, Admin web build verification, and production activation remain pending.
 - No production Firebase import or service-location activation is authorized by these synthetic tests.
+
+### Step 119 investigation update — 2026-10-17
+- Status remains: **BLOCKED / PENDING — no geometry test run verified**.
+- Inspected `service_location_service.dart`: activation checks that the City/Area has a verified boundary record, but the reviewed activation path does not compare Area polygon coordinates against the parent City polygon.
+- Inspected `service_location_boundary_service.dart` and `service_location_boundary.dart`: validation checks metadata, coordinate ranges and distinct-point count; these checks do not establish polygon containment or detect small geographic gaps.
+- Repository code search did not locate an existing polygon-containment implementation or dedicated containment test file. This is a search finding, not proof that no such code exists anywhere in connected repositories.
+- **Risk identified:** a boundary marked verified can pass the visible Admin activation gate without a demonstrated parent-polygon containment check. Do not use verification status alone as proof of geographic containment.
+- No production code was changed and no tests/build were run in this investigation.
+- Next action before Step 120: implement/review a shared geometry validator with synthetic unit tests (fully inside, shared edge, tiny outside gap, duplicate/degenerate vertices, invalid coordinates), wire it into the appropriate trusted validation path, then run tests and Admin web build. If validation is needed against direct/hostile client writes, enforce it in a trusted backend; Firestore Rules cannot reliably implement arbitrary polygon geometry.
+
