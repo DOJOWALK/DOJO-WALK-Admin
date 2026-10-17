@@ -421,3 +421,15 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - GitHub Actions run `39043147747` (Admin Web Build Check, run #48) was still **IN_PROGRESS** at the latest inspection; dependency installation passed and `flutter build web --release` was still running. No final result claimed.
 - These checks validate the branch build and geometry tests, but do not execute the live deployment workflow or prove production Environment reviewer enforcement. Do not dispatch a live workflow to test it.
 - **Step 145 outcome: GEOMETRY CI PASS; WEB BUILD CI PENDING.**
+
+
+### Step 146 — CI completion and Firebase PR verification (2026-10-17)
+- Admin Web Build Check run `39043147747` (run #48) completed **SUCCESS**. `flutter build web --release` passed on the Admin PR branch after the manual-only live-deployment workflow change.
+- Admin Service Location Geometry Tests run `39043147709` (run #77) completed **SUCCESS**.
+- Firebase PR #1 remains open, draft, unmerged, head `80b9df5602d85fbbeb063071711743d7dfb37b6c`.
+- Firebase Rules CI run `39041653227` (run #144) completed **SUCCESS**, including Actionlint workflow YAML validation and Firestore Rules Emulator tests.
+- Firebase trusted geometry/callable CI run `39041653090` (run #134) completed **SUCCESS**, including Functions build and Firestore Emulator integration tests.
+- Admin PR #7 remains open, draft, unmerged; latest observed head at start of this check was `7ee8b82f69d4e25b54dc30cf8f09dbcda04f6dc5`.
+- The listed Firebase runs are successful historical checks on the reviewed PR head; they do not prove deployment gate execution or production behavior. No live deployment workflow was dispatched.
+- **Step 146 outcome: ADMIN WEB BUILD + GEOMETRY CI PASS; FIREBASE RULES + TRUSTED FUNCTION CI PASS.** Manual deploy source gates are reviewed, but Environment reviewer enforcement remains unverified and both PRs remain draft.
+- No merge, deployment, Rules change, or production location activation/import occurred.
