@@ -93,7 +93,7 @@ void main() {
 
     test('preserves optional source codes and version columns in read-only preview', () {
       final result = parser.parse(
-        'State,District,City,Area,State LGD Code,District LGD Code,Source Version\\n'
+        'State,District,City,Area,State LGD Code,District LGD Code,Source Version\n'
         'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City,09,0123,LGD-2026-10',
       );
 
