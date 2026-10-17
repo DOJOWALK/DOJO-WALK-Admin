@@ -190,3 +190,13 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Existing `test/firestore.rules.test.mjs` covers role authorization, matching verified-boundary references, active parent city, and verified boundary immutability. It does not currently test coordinate ranges, polygon self-intersection, or City/Area containment; those are the missing regression cases.
 - Important limitation: Firestore Rules cannot perform a general-purpose polygon topology validation reliably. Do not try to encode a full geometry engine in Rules. A trusted backend verification design and emulator tests are needed before production.
 - Step 122: CI/deploy pathway and test gaps documented. No Firebase Rules or production resources changed. PR #7 remains unmerged.
+
+
+### Step 123 — trusted boundary verification architecture (2026-10-17)
+- Created a design-only specification in the Firebase repository on branch `step-123-boundary-verification-design`: `docs/TRUSTED_BOUNDARY_VERIFICATION_DESIGN.md`.
+- Proposed trust model: a server-side callable function validates pending geometry and active `super_admin` authorization, rechecks state transactionally, and is the only client-facing route that can mark a boundary verified.
+- Added explicit test cases for authorization, malformed/self-intersecting polygons, Area containment (including tiny outside gaps and concave parent polygons), concurrent changes, and Firestore Rules denial of direct verification writes.
+- Important sequencing constraint: the Admin UI currently needs a coordinated migration to call the trusted function before Firestore Rules direct-verification writes are blocked. Do not tighten the rule alone because that could break the current review flow.
+- This step is **DESIGN ONLY**. No Cloud Function was implemented, no executable tests were run for the design, no rules or production resources changed, and no deployment occurred.
+- Review branch commit: `661c150cb3133d4ec9550f96b3fcaa4d0d92852c`.
+- Next: implement the function and tests on the Firebase feature branch, then coordinate the Admin client change and emulator rules tests. Keep all changes unmerged and undeployed until reviewed and explicitly approved.
