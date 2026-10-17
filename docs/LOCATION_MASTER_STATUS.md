@@ -1,3 +1,13 @@
+
+
+## Step 69 — Consolidated audit status (2026-10-17)
+
+- [x] Consolidated Steps 60 and 63–68 into [Step 69 report](LOCATION_MASTER_STEP_69_CONSOLIDATED_AUDIT_STATUS.md).
+- [x] Recorded structural/internal checks that passed, raw-source exception counts, and outstanding release gates.
+- [ ] Fresh checksum-verifiable official LGD export and row-level reconciliation remain pending.
+- [ ] Kolkata/Mumbai sub-district coverage exceptions, Census-code concordance, authoritative geographic polygons, and Admin Flutter CI after Cloud Functions wiring remain unresolved/pending.
+- [ ] Keep PR #6 open; no production import, activation, deployment, or merge.
+
 # DOJO WALK Location Master — Project Status
 
 ## Step 50 — Trusted City/Area activation callable integration tests: PASS
