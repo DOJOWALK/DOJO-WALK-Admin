@@ -1,0 +1,22 @@
+# Step 100 — Snapshot Metadata Format Validation
+
+Date: 2026-10-17
+
+## Changes
+- Added checks that export timestamps parse as dates and use an ISO-style timestamp prefix.
+- Added checks for unknown collection names and malformed collection-list declarations.
+- Declared counts must be non-negative integers matching the observed snapshot counts.
+- Added a regression test for an invalid timestamp and unknown collection name.
+- Updated Firebase offline audit documentation to explain the new report fields.
+
+## CI
+- Step 99 Rules [39028501969](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028501969) — PASS.
+- Step 99 callable/geometry [39028501939](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028501939) — PASS.
+- Step 100 Rules [39028654624](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028654624) — pending verification.
+- Step 100 callable/geometry [39028654618](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028654618) — pending verification.
+
+## Safety / limitations
+This is still an offline JSON snapshot audit; no Firebase connection or production read/write was performed. Metadata format checks cannot prove export authenticity or completeness. Fresh official LGD row-level reconciliation and authoritative polygon geometry/containment review remain release gates.
+
+## Next
+Confirm Step 100 CI. If successful, continue offline data-quality checks; use real records only after explicit authorization for a read-only export kept outside Git.
