@@ -361,3 +361,16 @@ No source workflow change, merge, deployment, activation or production data oper
 - [ ] Review before merging; no runtime code, release artifact, or deployment changed.
 
 No merge or deployment was performed.
+
+
+## Admin completion progress — Step 135 (2026-10-18)
+
+### Partner PR validation CI result
+
+- GitHub Actions run [39068442507](https://github.com/dojoplatform2026/dojo-partner/actions/runs/39068442507) completed with job conclusion **success**.
+- Confirmed successful: Flutter setup, dependencies, Partner image asset checks, launcher-icon generation, `flutter analyze`, `flutter test`, and `flutter build apk --debug`.
+- Result recorded in [`docs/STEP_134_PARTNER_PR_VALIDATION_WORKFLOW.md`](STEP_134_PARTNER_PR_VALIDATION_WORKFLOW.md), commit `602ce5d8e326a4a3c96662dad4d19f4b1f2d5252`.
+- This validates the workflow's tested revision only; it does not prove production Firebase Rules status or release APK status.
+- [ ] Keep Partner PR #2 in draft until review and required release gates are satisfied.
+
+No merge, release, or deployment occurred.
