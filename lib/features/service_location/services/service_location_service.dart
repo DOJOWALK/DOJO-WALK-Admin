@@ -1093,6 +1093,11 @@ class ServiceLocationService {
         locationType: 'area',
       );
 
+      final city = await _requireDocument(
+        _cities,
+        cityId,
+        'City',
+      );
       final cityBoundaryId =
           city['verifiedBoundaryId']?.toString().trim() ?? '';
       final cityBoundaryPoints = await _requireVerifiedBoundaryPoints(
