@@ -1,11 +1,12 @@
 # DOJO WALK Location Master — Step 113
-## Zero-Length Polygon Edge Rejection — CI Pending
+## Zero-Length Polygon Edge Rejection — PASS
 Date: 2026-10-17
 
 - [x] Geometry validator rejects consecutive duplicate vertices that create zero-length edges.
 - [x] Added regression test for a duplicate consecutive vertex in an otherwise non-zero-area ring.
 - [x] Implementation `afac4a92104de790717065cf07eb22636bbb71df`; test `9904d2a55627a2d9381a4ff0085f136fa45e498a`; Firebase audit documentation `16d7720235037dd4600d050fe44bb2b2adf417e6`.
-- [ ] Rules and Callable/Geometry CI pending verification.
+- [x] Firestore Rules CI PASS: [39032367737](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39032367737).
+- [x] Callable/Geometry CI PASS: [39032367688](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39032367688).
 - [!] Synthetic geometry validation only. No production export/live scan, write, import, activation or deployment. Official LGD reconciliation and authoritative polygon verification remain release gates.
 
 Next: verify Step 113 CI, then continue geometry/callable integrity review.
