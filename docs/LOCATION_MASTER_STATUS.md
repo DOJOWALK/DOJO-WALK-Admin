@@ -461,3 +461,13 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Deployment gate: **NOT AUTHORIZED**. No PR converted to ready, no merge, no workflow dispatch, no production deployment, and no service location activation/import occurred.
 - Safe rollout order remains: (1) verify GitHub protections manually, (2) merge Firebase PR only after explicit user approval, (3) manually dispatch trusted callable deployment only with explicit authorization and smoke-test it, (4) merge Admin PR only after explicit approval, (5) deploy Firestore Rules separately only after compatibility review and explicit authorization, then run customer/partner/admin regression checks.
 - Release decision: hold both Draft PRs. The user has not approved merge or deployment.
+
+
+### Step 150 — deployment guard and rollback review (2026-10-17)
+- Re-read current PR heads and deployment workflow source. Admin PR #7 remains Draft/open/unmerged at `bcfb3a5405bcfdc1fecc4eee18ab93b3964da0e7`; Firebase PR #1 remains Draft/open/unmerged at `80b9df5602d85fbbeb063071711743d7dfb37b6c`.
+- Admin Hosting workflow patch removes automatic `push: main` deployment and adds `workflow_dispatch`, exact confirmation `DEPLOY_DOJO_ADMIN_LIVE`, exact project guard `dojo-platform-b68a3`, main-ref guard, production Environment, and non-cancelling concurrency.
+- Firebase callable and Rules workflows are each manual-only, main-ref/project/confirmation guarded, use production Environment, and run Emulator tests before their scoped deploy. Callable workflow deploys only the three trusted location callables; Rules workflow deploys only Firestore Rules.
+- **Compatibility warning:** Firebase Rules patch tightens writes to service-location hierarchy and boundary review transitions. Client-side Admin code that previously directly wrote verification/rejection fields or expected to create active hierarchy records may fail until it uses the trusted callable/new inactive-draft flow. Confirm Admin and any existing clients are compatible before Rules deployment.
+- Rollback guidance: keep Functions and Rules as separate releases; if a post-Rules regression occurs, pause further rollout and restore the previously reviewed compatible Admin/Rules versions together as needed. Do not blindly roll Rules back without checking whether new data or trusted callable behavior depends on them.
+- Governance remains a release blocker: branch protection and production Environment reviewer requirements could not be verified by the integration (403/unsupported endpoint). Admin must confirm settings manually.
+- No deploy workflow dispatched, no merge, no Rules/Functions/Hosting deployment, no service-location activation or import.
