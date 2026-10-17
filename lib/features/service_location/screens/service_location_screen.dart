@@ -1377,7 +1377,6 @@ class _ServiceLocationScreenState
             ),
             FilledButton.icon(
               onPressed: () => setDialogState(() {
-                sourceName = 'Pasted CSV';
                 preview = parser.parse(controller.text);
                 mappingReport = [];
               }),
