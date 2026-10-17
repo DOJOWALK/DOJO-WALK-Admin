@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:crypto/crypto.dart';
 
 import '../models/service_location_models.dart';
@@ -1437,6 +1438,16 @@ class ServiceLocationService {
   Future<String> saveImport(
     ServiceLocationImport importRecord,
   ) async {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (currentUserId == null || currentUserId.trim().isEmpty) {
+      throw StateError('Sign in as an admin before recording an import.');
+    }
+
+    if (importRecord.importedBy.trim() != currentUserId) {
+      throw StateError('The import actor must match the signed-in admin.');
+    }
+
     final id = importRecord.id.trim().isEmpty
         ? _imports.doc().id
         : importRecord.id.trim();
@@ -1456,10 +1467,7 @@ class ServiceLocationService {
         importRecord.status,
         'Import status',
       ),
-      'importedBy': _required(
-        importRecord.importedBy,
-        'Importer ID',
-      ),
+      'importedBy': currentUserId,
       'importedAt': FieldValue.serverTimestamp(),
       'verificationStatus': _required(
         importRecord.verificationStatus,
