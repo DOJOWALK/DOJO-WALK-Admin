@@ -138,6 +138,19 @@ void main() {
       expect(result.rows.last.sourceValues['Source Code'], '002');
     });
 
+    test('handles UTF-8 BOM and Windows CRLF while preserving source codes', () {
+      final result = parser.parse(
+        '\uFEFFState,District,City,Area,State LGD Code\\r\\n'
+        'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City,00123\\r\\n',
+      );
+
+      expect(result.fileErrors, isEmpty);
+      expect(result.isSyntacticallyValid, isTrue);
+      expect(result.rows, hasLength(1));
+      expect(result.rows.single.values['state'], 'Uttar Pradesh');
+      expect(result.rows.single.sourceValues['State LGD Code'], '00123');
+    });
+
     test('rejects empty and malformed CSV input', () {
       expect(parser.parse('  ').fileErrors, contains('CSV file is empty.'));
       expect(
