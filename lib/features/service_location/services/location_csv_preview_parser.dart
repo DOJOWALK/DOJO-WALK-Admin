@@ -5,13 +5,22 @@
 /// is case-insensitive and ignores spaces, underscores, and hyphens.
 class LocationCsvRow {
   final int lineNumber;
+  /// Backward-compatible State/District/City/Area name mapping.
   final Map<String, String> values;
+
+  /// Every source column, keyed by its original trimmed header.
+  ///
+  /// Optional LGD/source-code/version columns are retained for read-only
+  /// preview. This parser still performs no writes and does not validate
+  /// source codes against an authoritative dataset.
+  final Map<String, String> sourceValues;
   final List<String> errors;
 
   const LocationCsvRow({
     required this.lineNumber,
     required this.values,
     required this.errors,
+    this.sourceValues = const <String, String>{},
   });
 
   bool get isValid => errors.isEmpty;
@@ -118,6 +127,10 @@ class LocationCsvPreviewParser {
         errors.add('Expected ${headers.length} columns but found ${values.length}.');
       }
       final mapped = <String, String>{};
+      final sourceMapped = <String, String>{
+        for (var column = 0; column < headers.length; column++)
+          headers[column]: column < values.length ? values[column].trim() : '',
+      };
       for (final required in requiredHeaders) {
         final index = indexes[required]!;
         final value = index < values.length ? values[index].trim() : '';
@@ -142,6 +155,7 @@ class LocationCsvPreviewParser {
       rows.add(LocationCsvRow(
         lineNumber: i + 1,
         values: mapped,
+        sourceValues: sourceMapped,
         errors: errors,
       ));
     }
