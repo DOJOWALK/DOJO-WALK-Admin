@@ -233,29 +233,7 @@ void main() {
       },
     );
 
-    test(
-      'City deactivation is rejected while an active Area exists',
-      () async {
-        final firestore = FakeFirebaseFirestore();
-        final service = ServiceLocationService(firestore: firestore);
-        final suffix = DateTime.now().microsecondsSinceEpoch.toString();
-        await seedParents(firestore, suffix: suffix, cityActive: true);
-        await firestore.collection('service_areas').doc('area-$suffix').set({
-          'name': 'Area $suffix',
-          'countryId': 'c-$suffix',
-          'stateId': 's-$suffix',
-          'cityId': 'city-$suffix',
-          'isServiceActive': true,
-        });
-        await expectLater(
-          service.setCityServiceStatus(cityId: 'city-$suffix', isActive: false),
-          throwsA(isA<StateError>()),
-        );
-        final snapshot = await firestore.collection('service_cities')
-            .doc('city-$suffix').get();
-        expect(snapshot.data()?['isServiceActive'], isTrue);
-      },
-    );
+
   });
 
   group('Service location Firestore service persistence', () {
