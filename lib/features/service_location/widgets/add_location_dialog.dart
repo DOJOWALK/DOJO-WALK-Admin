@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/location_selection_state.dart';
 import '../models/service_location_models.dart';
 import '../services/service_location_service.dart';
 
@@ -29,10 +30,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
   int _level = 0;
 
-  String? _countryId;
-  String? _stateId;
-  String? _cityId;
-  String? _areaId;
+  LocationSelectionState _selection = const LocationSelectionState();
 
   bool _saving = false;
 
@@ -78,7 +76,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
         case 1:
           await widget.service.saveState(
             ServiceState(
-              countryId: _countryId!,
+              countryId: _selection.countryId!,
               name: name,
               isActive: false,
             ),
@@ -88,8 +86,8 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
         case 2:
           await widget.service.saveCity(
             ServiceCity(
-              countryId: _countryId!,
-              stateId: _stateId!,
+              countryId: _selection.countryId!,
+              stateId: _selection.stateId!,
               name: name,
               isServiceActive: false,
             ),
@@ -97,7 +95,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
           break;
 
         case 3:
-          final city = await widget.service.getCity(_cityId!);
+          final city = await widget.service.getCity(_selection.cityId!);
 
           if (city == null) {
             throw StateError(
@@ -117,7 +115,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
           break;
 
         case 4:
-          final city = await widget.service.getCity(_cityId!);
+          final city = await widget.service.getCity(_selection.cityId!);
 
           if (city == null) {
             throw StateError(
@@ -130,7 +128,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
               countryId: city.countryId,
               stateId: city.stateId,
               cityId: city.id,
-              areaId: _areaId!,
+              areaId: _selection.areaId!,
               name: name,
               pincode: _pincodeController.text.trim(),
               isServiceActive: false,
@@ -233,7 +231,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
         return _dropdown<String>(
           label: 'Country',
-          value: _countryId,
+          value: _selection.countryId,
           items: countries
               .map(
                 (country) => DropdownMenuItem<String>(
@@ -246,10 +244,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
               .toList(),
           onChanged: (value) {
             setState(() {
-              _countryId = value;
-              _stateId = null;
-              _cityId = null;
-              _areaId = null;
+              _selection = _selection.selectCountry(value);
             });
           },
         );
@@ -258,7 +253,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
   }
 
   Widget _buildStateDropdown() {
-    if (_countryId == null) {
+    if (_selection.countryId == null) {
       return _dropdown<String>(
         label: 'State',
         value: null,
@@ -268,7 +263,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     }
 
     return StreamBuilder<List<ServiceState>>(
-      stream: widget.service.watchStates(countryId: _countryId!),
+      stream: widget.service.watchStates(countryId: _selection.countryId!),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return _dropdownStatus('Unable to load states: ${snapshot.error}');
@@ -280,7 +275,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
         return _dropdown<String>(
           label: 'State',
-          value: _stateId,
+          value: _selection.stateId,
           items: states
               .map(
                 (state) => DropdownMenuItem<String>(
@@ -291,9 +286,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
               .toList(),
           onChanged: (value) {
             setState(() {
-              _stateId = value;
-              _cityId = null;
-              _areaId = null;
+              _selection = _selection.selectState(value);
             });
           },
         );
@@ -302,7 +295,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
   }
 
   Widget _buildCityDropdown() {
-    if (_countryId == null || _stateId == null) {
+    if (_selection.countryId == null || _selection.stateId == null) {
       return _dropdown<String>(
         label: 'City / District',
         value: null,
@@ -313,8 +306,8 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
     return StreamBuilder<List<ServiceCity>>(
       stream: widget.service.watchCities(
-        countryId: _countryId,
-        stateId: _stateId,
+        countryId: _selection.countryId,
+        stateId: _selection.stateId,
       ),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
@@ -327,7 +320,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
         return _dropdown<String>(
           label: 'City / District',
-          value: _cityId,
+          value: _selection.cityId,
           items: cities
               .map(
                 (city) => DropdownMenuItem<String>(
@@ -338,8 +331,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
               .toList(),
           onChanged: (value) {
             setState(() {
-              _cityId = value;
-              _areaId = null;
+              _selection = _selection.selectCity(value);
             });
           },
         );
@@ -348,7 +340,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
   }
 
   Widget _buildAreaDropdown() {
-    if (_cityId == null) {
+    if (_selection.cityId == null) {
       return _dropdown<String>(
         label: 'Area / Sub-district',
         value: null,
@@ -358,7 +350,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     }
 
     return StreamBuilder<List<ServiceArea>>(
-      stream: widget.service.watchAreas(cityId: _cityId!),
+      stream: widget.service.watchAreas(cityId: _selection.cityId!),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return _dropdownStatus('Unable to load areas/sub-districts: ${snapshot.error}');
@@ -370,7 +362,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
         return _dropdown<String>(
           label: 'Area / Sub-district',
-          value: _areaId,
+          value: _selection.areaId,
           items: areas
               .map(
                 (area) => DropdownMenuItem<String>(
@@ -380,7 +372,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
               )
               .toList(),
           onChanged: (value) {
-            setState(() => _areaId = value);
+            setState(() => _selection = _selection.selectArea(value));
           },
         );
       },
@@ -420,10 +412,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
                           setState(() {
                             _level = value;
-                            _countryId = null;
-                            _stateId = null;
-                            _cityId = null;
-                            _areaId = null;
+                            _selection = const LocationSelectionState();
 
                             _nameController.clear();
                             _codeController.clear();
