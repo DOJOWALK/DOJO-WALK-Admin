@@ -539,14 +539,17 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.08),
+                    color: _addLocationOrange.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _addLocationOrange.withValues(alpha: 0.18),
+                    ),
                   ),
                   child: const Text(
                     'Safety check: this record is saved as inactive. '
                     'City and Area activation requires a verified geographic boundary. '
                     'Saving here does not verify or activate coverage.',
-                    style: TextStyle(fontSize: 12),
+                    style: TextStyle(fontSize: 12, height: 1.4),
                   ),
                 ),
               ],
@@ -554,3 +557,28 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
           ),
         ),
       ),
+      actions: [
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton.icon(
+          onPressed: _saving ? null : _save,
+          icon: _saving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.save_outlined),
+          label: Text(_saving ? 'Saving...' : 'Save Location'),
+          style: FilledButton.styleFrom(
+            backgroundColor: _addLocationOrange,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(11),
+            ),
+          ),
+        ),
+      ],
+    );
