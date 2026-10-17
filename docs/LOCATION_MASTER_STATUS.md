@@ -1,3 +1,17 @@
+## Latest checkpoint — Step 114 PASS (2026-10-17)
+
+- [x] Added two regression tests for self-touching polygon rings: non-adjacent repeated vertex and non-adjacent vertex-on-edge.
+- [x] Existing deterministic segment-intersection validator rejects both invalid shapes.
+- [x] Firebase test commit: `adcebc7e97f9e0cc875cc00de589a00ab64ad890`.
+- [x] Firestore Rules CI PASS: [39032681538](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39032681538).
+- [x] Trusted Location Geometry and Callable CI PASS: [39032681526](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39032681526).
+- [x] Detailed report: [Step 114](LOCATION_MASTER_STEP_114_SELF_TOUCHING_POLYGON_REGRESSION.md).
+- [!] Automated synthetic geometry only; authoritative/current LGD reconciliation, real contiguous polygons, production data audit, deployment and activation remain unverified/not performed.
+
+Next: Step 115 — audit near-collinear segment handling and the fixed numeric tolerance for geographic coordinates.
+
+---
+
 # DOJO WALK Location Master — Step 113
 ## Zero-Length Polygon Edge Rejection — PASS
 Date: 2026-10-17
