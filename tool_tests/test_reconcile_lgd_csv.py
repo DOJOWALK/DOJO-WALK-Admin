@@ -59,6 +59,16 @@ class ReconcileLgdCsvTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "blank header"):
             module.read_csv(path, "Code", ["Name"])
 
+    def test_header_with_surrounding_whitespace_fails(self):
+        path = self.csv("padded_header.csv", "Code, Name\n1,A\n")
+        with self.assertRaisesRegex(ValueError, "leading/trailing whitespace"):
+            module.read_csv(path, "Code", ["Name"])
+
+    def test_duplicate_headers_with_whitespace_variant_fail(self):
+        path = self.csv("duplicate_padded_header.csv", "Code,Name, Name \n1,A,B\n")
+        with self.assertRaisesRegex(ValueError, "duplicate header"):
+            module.read_csv(path, "Code", ["Name"])
+
     def test_extra_unmapped_row_fields_fail(self):
         path = self.csv("extra.csv", "Code,Name\n1,A,UNEXPECTED\n")
         with self.assertRaisesRegex(ValueError, "extra field"):
