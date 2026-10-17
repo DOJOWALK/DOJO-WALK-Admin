@@ -410,3 +410,11 @@ No merge, release, or deployment occurred.
 - Follow-up run `39069565571`: workflow YAML validation passed; Firestore Emulator tests were still running at the latest check. Trusted Location workflow run `39069565556` was also in progress.
 - Detailed report: `docs/STEP_138_PARTNER_SUBMISSION_NEGATIVE_TESTS.md`, latest update commit `169da8f3d7dd992f2a93ec0ace0996e6e79c0475`.
 - Status remains **pending final CI verification**. No merge/deployment or production Rules changes.
+
+
+### Step 138 final verification (2026-10-18)
+- Firebase Firestore Rules Emulator run `39069565571`: **PASS** after the targeted post-submission update guard.
+- Trusted Location Geometry and Callable integration run `39069565556`: **PASS**.
+- Workflow YAML validation: **PASS**.
+- Step 138 report updated in commit `d30bea6a484b0b039d66c4d14508bfdca704da2c`.
+- Firebase PR #5 remains draft/open and unmerged. CI verification applies to review branch only; production Rules remain unverified/un-deployed.
