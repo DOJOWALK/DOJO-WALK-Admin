@@ -114,3 +114,9 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Latest workflow-file commit: `2973af7833022b75d269ffa3888d9f5c31c76cac`.
 - A new successful run has not yet been observed. Tests remain **NOT VERIFIED** until the new run completes.
 
+### Step 119 — latest CI failure and test correction (2026-10-17)
+- Inspected GitHub Actions runs #11 and #12. Formatting and `git diff --check` passed; focused geometry tests reported 6 passed and 1 failed.
+- Failure cause: the test tried to construct `GeoPoint(91, 2)`, but Firestore's `GeoPoint` constructor itself asserts on out-of-range coordinates before the geometry validator can run. This was a test setup error, not evidence that the validator returned the wrong result.
+- Corrected the test to assert that Firestore `GeoPoint` rejects out-of-range latitude/longitude at construction.
+- Test fix commit: `fa57c9f9c193b9da243f687c8f7ba374d3457f71`.
+- Next: wait for/inspect the new PR CI run. Step 119 remains **PENDING** until the run passes, and the geometry helper is still not integrated into City/Area activation.
