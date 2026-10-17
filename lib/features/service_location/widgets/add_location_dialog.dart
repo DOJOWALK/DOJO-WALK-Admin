@@ -233,7 +233,10 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
         return _dropdown<String>(
           label: 'Country',
-          value: _selection.countryId,
+          value: retainAvailableSelection(
+            _selection.countryId,
+            countries.map((country) => country.id),
+          ),
           items: countries
               .map(
                 (country) => DropdownMenuItem<String>(
@@ -278,7 +281,10 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
         return _dropdown<String>(
           key: ValueKey<String>('state-${_selection.countryId}'),
           label: 'State',
-          value: _selection.stateId,
+          value: retainAvailableSelection(
+            _selection.stateId,
+            states.map((state) => state.id),
+          ),
           items: states
               .map(
                 (state) => DropdownMenuItem<String>(
@@ -326,7 +332,10 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
             'city-${_selection.countryId}-${_selection.stateId}',
           ),
           label: 'City / District',
-          value: _selection.cityId,
+          value: retainAvailableSelection(
+            _selection.cityId,
+            cities.map((city) => city.id),
+          ),
           items: cities
               .map(
                 (city) => DropdownMenuItem<String>(
@@ -369,7 +378,10 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
         return _dropdown<String>(
           key: ValueKey<String>('area-${_selection.cityId}'),
           label: 'Area / Sub-district',
-          value: _selection.areaId,
+          value: retainAvailableSelection(
+            _selection.areaId,
+            areas.map((area) => area.id),
+          ),
           items: areas
               .map(
                 (area) => DropdownMenuItem<String>(
