@@ -740,3 +740,18 @@ Last checked: 2026-10-17.
 Next: Step 62 — retrieve the official current sub-district export through the LGD/OGD download flow, record its retrieval date and SHA-256, then run full reconciliation against the saved CSV and generated Dart.
 
 Last checked: 2026-10-17.
+
+
+## Step 62 — Fresh-data acquisition route and independent count check (2026-10-17)
+
+- [x] Rechecked the official Ministry LGD portal and download page. The all-India directory download flow includes a CAPTCHA, so an automated direct download could not be completed in this pass: [Official LGD download page](https://lgdirectory.gov.in/demo/downloadDirectory.do).
+- [x] Found an OGD catalog record for the LGD directory showing a catalog update date of 09 October 2026; this is catalog metadata, not proof that a specific downloadable sub-district export was retrieved and verified: [OGD LGD catalog](https://www.data.gov.in/catalog/local-government-directory-lgd).
+- [x] Found an independent recent secondary dataset listing a combined LGD-derived roster as of 12 October 2026 with 677,673 village rows and 7,081 distinct sub-district codes: [Dataful dataset](https://dataful.in/datasets/21838/). This is a secondary/derived dataset and its distinct-code count is **not** the same as a directly downloaded official sub-district master export; use it only as a reasonableness signal, not as a replacement source.
+- [x] The Ministry's 2025-26 annual report also gives an LGD dashboard figure of 7,071 sub-districts (dashboard shown in the report); this is a dated aggregate benchmark, not a row-level export: [Ministry annual report PDF](https://cdnbbsr.s3waas.gov.in/s316026d60ff9b54410b3435b403afd226/uploads/2026/02/20260224563334790.pdf).
+- [!] The saved CSV has 7,151 rows. Counts from different snapshots and secondary derived tables are not directly comparable without a matching as-of date and entity definition. The difference is a reconciliation flag, not proof that 80 rows are invalid.
+- [ ] No fresh official sub-district master file has been obtained in a checksum-verifiable form in this step. Official current row-level verification remains **PENDING**.
+- [ ] Keep the 2024 snapshot and generated Dart as historical reference only; do not silently overwrite it from a third-party source. No production import, merge, deployment or service-location activation.
+
+Next: Step 63 — request/obtain a human-downloaded official LGD export (or official OGD resource file) and preserve the exact original file, retrieval date, URL, and SHA-256 before any row-level reconciliation.
+
+Last checked: 2026-10-17.
