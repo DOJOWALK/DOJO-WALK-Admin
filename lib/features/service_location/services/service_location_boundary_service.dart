@@ -430,20 +430,38 @@ class ServiceLocationBoundaryService {
 
       _throwIfInvalid(boundary);
 
-      // Enforce parent containment at the point of verification, not just
-      // in UI code. Read the location and its verified parent boundary
-      // before any transaction writes.
+      // Resolve and read the owning location before any transaction writes.
+      // City/Area activation relies on this document's exact verifiedBoundaryId.
       final locationType = boundary.locationType.trim().toLowerCase();
-      if (locationType == 'area' || locationType == 'locality') {
-        final locationReference = locationType == 'area'
-            ? _firestore.collection('service_areas').doc(boundary.locationId)
-            : _firestore.collection('service_localities').doc(boundary.locationId);
-        final locationSnapshot = await transaction.get(locationReference);
-        if (!locationSnapshot.exists || locationSnapshot.data() == null) {
-          throw StateError('The location linked to this boundary was not found.');
-        }
+      late final DocumentReference<Map<String, dynamic>> locationReference;
+      switch (locationType) {
+        case 'city':
+          locationReference = _firestore
+              .collection('service_cities')
+              .doc(boundary.locationId);
+          break;
+        case 'area':
+          locationReference = _firestore
+              .collection('service_areas')
+              .doc(boundary.locationId);
+          break;
+        case 'locality':
+          locationReference = _firestore
+              .collection('service_localities')
+              .doc(boundary.locationId);
+          break;
+        default:
+          throw StateError('Unsupported boundary location type.');
+      }
 
-        final locationData = locationSnapshot.data()!;
+      final locationSnapshot = await transaction.get(locationReference);
+      if (!locationSnapshot.exists || locationSnapshot.data() == null) {
+        throw StateError('The location linked to this boundary was not found.');
+      }
+
+      final locationData = locationSnapshot.data()!;
+      if (locationType == 'area' || locationType == 'locality') {
+        // Enforce parent containment at verification time, not just in UI.
         final parentType = locationType == 'area' ? 'city' : 'area';
         final parentLocationId = (locationType == 'area'
                 ? locationData['cityId']
@@ -501,6 +519,8 @@ class ServiceLocationBoundaryService {
         }
       }
 
+      // The boundary and the location reference are committed atomically.
+      // Localities do not require their own boundary for service activation.
       transaction.update(reference, {
         'verificationStatus':
             BoundaryVerificationStatus.verified.name,
@@ -509,6 +529,12 @@ class ServiceLocationBoundaryService {
         'verificationNotes': notes,
         'updatedAt': FieldValue.serverTimestamp(),
       });
+      if (locationType == 'city' || locationType == 'area') {
+        transaction.update(locationReference, {
+          'verifiedBoundaryId': snapshot.id,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
     });
   }
 
