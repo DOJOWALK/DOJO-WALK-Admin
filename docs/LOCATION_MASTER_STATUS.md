@@ -648,6 +648,8 @@ Admin branch commits: `61c4d7e48b94c07efbc3040221662f3c4de99e9d`, `18921352195db
 - [x] Confirmed Firestore Rules have no client write grant for `service_location_activation_audit`, so client-side audit forgery is denied by default. Admin SDK callable writes bypass Rules as intended; a future audit viewer would need an explicit read rule.
 - [!] Review finding: City/Area update rules allow an already-active document to remain active while some metadata fields are edited, provided the activation validation passes. Add regression tests and decide which identity/parent/boundary fields must be immutable while active before merge.
 - [!] The callable integration tests verify backend-created audit records, but Rules tests should explicitly assert that clients cannot create/update/delete activation audit records.
-- [ ] Add and pass the remaining Rules regression tests for active-location boundary/parent changes and audit immutability, then re-run both Firebase workflows.
+- [x] Added Firestore Rules restrictions so an already-active City cannot change its country/state/verified boundary reference through client updates, and an already-active Area cannot change its country/state/parent City/verified boundary reference.
+- [x] Added emulator regression tests for active City/Area identity protection and client denial of create/update/delete on `service_location_activation_audit`.
+- [ ] CI for these latest changes is still running; wait for runs on final branch head `42e2dcc648273e04971ab604be68e84451427d61` before calling the fixes PASS.
 - [ ] Official LGD row-level reconciliation and authoritative contiguous boundary verification remain separate production blockers.
 - [ ] No merge, deployment, production import, or real service-location activation performed.
