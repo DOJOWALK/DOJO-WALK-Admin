@@ -14,7 +14,7 @@ Date: 2026-10-17
 - Documentation: `81acb9af53bf2ef8df7925ab2ae4ae2110f467ee`
 
 ## CI
-Pending verification; do not mark PASS until Rules and callable/geometry workflows complete successfully on the latest relevant commit.
+PASS. Rules CI [39029509094](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029509094) and callable/geometry CI [39029509102](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029509102) passed on the documentation commit. Earlier code/test runs [39029493106](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029493106), [39029493153](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029493153), [39029497609](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029497609), and [39029497684](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029497684) also passed.
 
 ## Safety / limitations
 Offline snapshot validation only. No production export, live Firestore scan, source write, import, activation, or deployment was performed. Timestamp format validation does not authenticate the export or prove completeness. Official current LGD reconciliation and authoritative polygon geometry/containment remain release gates.
