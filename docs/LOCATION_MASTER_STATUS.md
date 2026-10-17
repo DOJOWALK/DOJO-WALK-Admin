@@ -394,3 +394,13 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - No code was changed in Step 142; no tests were rerun because only PR descriptions and this status log were updated.
 - Production Environment required-reviewer configuration remains UNVERIFIED. No workflow was dispatched, no deployment occurred, and no production locations were activated/imported.
 - **Step 142 outcome: RELEASE DOCUMENTATION ALIGNED; RELEASE STILL BLOCKED PENDING OWNER REVIEW / ENVIRONMENT VERIFICATION.**
+
+
+### Step 143 — deployment workflow gate audit (2026-10-17)
+- Inspected all workflow files present in the Firebase feature branch: two deployment workflows and two test workflows. Both deploy workflows are `workflow_dispatch` only; each requires the exact intended confirmation string and project ID, checks `github.ref == 'refs/heads/main'`, uses the `production` Environment, has non-cancelling concurrency, runs Firestore Emulator tests, and deploys only its named target (three trusted Functions vs. Firestore Rules only).
+- The Firebase deploy workflows are not yet on main (the Firebase PR is still draft), and no workflow was dispatched. The guards therefore have only source-level review plus existing workflow lint/test evidence; no production-gate behavior was exercised.
+- **Important Admin release risk remains:** Admin `.github/workflows/build_web.yml` uses a `push` trigger on every `main` update and deploys Firebase Hosting channel `live`. This is not confirmation-gated in the inspected file. Merging Admin PR #7 may immediately trigger a live deployment. This is a release blocker unless an owner explicitly approves that deployment or the existing workflow is separately hardened and tested.
+- Attempted to read GitHub branch protection for both repositories; the GitHub integration returned 403 `Resource not accessible by integration`. Production Environment reviewer configuration and branch protection therefore remain **UNVERIFIED**. Do not infer that the Environment gate is enforcing a human approval.
+- No unsafe branch/project/confirmation bypass was found in the source of the two Firebase deploy workflows. This does not prove account-level protections, secrets, IAM, or live deployment behavior are configured correctly.
+- **Step 143 outcome: FIREBASE DEPLOY WORKFLOW SOURCE GATES LOOK CONSISTENT; ADMIN LIVE AUTO-DEPLOY + UNVERIFIED REPOSITORY PROTECTIONS REMAIN RELEASE BLOCKERS.**
+- No code/workflow was changed in Step 143; no tests were rerun; no PR was merged and no deployment or production data change occurred.
