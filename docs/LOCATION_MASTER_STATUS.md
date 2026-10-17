@@ -1,3 +1,16 @@
+## Latest checkpoint — Step 118 PASS (2026-10-17)
+
+- [x] Area sharing part of its parent City boundary is accepted when fully covered.
+- [x] Area extending (1e-9) degrees outside the City boundary is rejected.
+- [x] Geometry/Callable CI PASS: [39034844130](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39034844130).
+- [x] Firestore Rules CI PASS: [39034844159](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39034844159).
+- [x] Detailed report: [Step 118](LOCATION_MASTER_STEP_118_AREA_CITY_CONTAINMENT_SEMANTICS.md).
+- [!] Synthetic geometry only; current/authoritative LGD reconciliation and production validation remain pending. No production scan/export, write, import, activation or deployment was performed.
+
+Next: Step 119 — review parent/child polygon coordinate precision and containment behavior for very small geographic gaps.
+
+---
+
 ## Latest checkpoint — Step 117 PASS (2026-10-17)
 
 - [x] Polygon area calculation now translates coordinates relative to the first vertex before shoelace summation, reducing cancellation for small polygons far from (0, 0).
