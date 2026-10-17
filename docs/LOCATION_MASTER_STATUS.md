@@ -641,15 +641,23 @@ Admin branch commits: `61c4d7e48b94c07efbc3040221662f3c4de99e9d`, `18921352195db
 - [ ] Draft PR #1 still requires human review before merge. These emulator tests do not verify official polygon provenance or real-world boundary accuracy.
 - [ ] No merge, production deployment, import, or real service-location activation performed.
 
-## Step 54 — Final security review before any merge (IN PROGRESS)
+## Step 54 — Final security review before any merge (PASS)
 
-- [x] Confirmed Firebase Draft PR #1 remains open, draft, and unmerged; current head is `ec2a8fdb5add861fdd795589100d2368fa02e146`: [PR #1](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/pull/1).
+- [x] Confirmed Firebase Draft PR #1 remains open and unmerged; latest tested feature-branch head is `42e2dcc648273e04971ab604be68e84451427d61`: [PR #1](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/pull/1).
 - [x] Re-reviewed the callable transaction: it rechecks active super_admin, location/boundary references, polygon geometry, and active parent City before the trusted activation write; the activation audit is written in the same transaction.
 - [x] Confirmed Firestore Rules have no client write grant for `service_location_activation_audit`, so client-side audit forgery is denied by default. Admin SDK callable writes bypass Rules as intended; a future audit viewer would need an explicit read rule.
-- [!] Review finding: City/Area update rules allow an already-active document to remain active while some metadata fields are edited, provided the activation validation passes. Add regression tests and decide which identity/parent/boundary fields must be immutable while active before merge.
-- [!] The callable integration tests verify backend-created audit records, but Rules tests should explicitly assert that clients cannot create/update/delete activation audit records.
+- [x] Addressed the review finding: while active, City country/state/boundary reference and Area country/state/parent City/boundary reference cannot be changed by client updates.
+- [x] Added explicit Rules tests that client create/update/delete attempts on `service_location_activation_audit` are denied.
 - [x] Added Firestore Rules restrictions so an already-active City cannot change its country/state/verified boundary reference through client updates, and an already-active Area cannot change its country/state/parent City/verified boundary reference.
 - [x] Added emulator regression tests for active City/Area identity protection and client denial of create/update/delete on `service_location_activation_audit`.
-- [ ] CI for these latest changes is still running; wait for runs on final branch head `42e2dcc648273e04971ab604be68e84451427d61` before calling the fixes PASS.
+- [x] Both Firebase workflows passed on final tested commit `42e2dcc648273e04971ab604be68e84451427d61`: [Firestore Security Rules run 38984617638](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38984617638) and [Trusted Location Geometry and Callable run 38984617358](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38984617358).
+- [ ] Official LGD row-level reconciliation and authoritative contiguous boundary verification remain separate production blockers.
+- [ ] No merge, deployment, production import, or real service-location activation performed.
+
+
+## Step 55 — Draft PR review and remaining release blockers (IN PROGRESS)
+
+- [x] Verified both Firebase workflows pass on the latest tested feature branch commit.
+- [ ] Re-check PR #1 metadata, changed files, and review status before any merge decision.
 - [ ] Official LGD row-level reconciliation and authoritative contiguous boundary verification remain separate production blockers.
 - [ ] No merge, deployment, production import, or real service-location activation performed.
