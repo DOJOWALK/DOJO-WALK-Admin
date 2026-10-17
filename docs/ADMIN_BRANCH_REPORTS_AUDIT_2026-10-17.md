@@ -59,3 +59,50 @@ The Company Flow master status on `restore/india-location-reference-data` lists 
 ## Safety status
 
 No PR was merged, no production data was imported, no service location was activated, and no Firebase Functions/Rules/Hosting deployment was triggered by this audit.
+
+
+## Refresh — branch audit Step 123 (2026-10-18)
+
+### Live branch inventory recheck
+
+The current GitHub branch search returned four Admin branches:
+- `main`
+- `restore/india-location-reference-data`
+- `audit/zone-service-area-mapping-2026-10-16`
+- `step-119-boundary-geometry`
+
+The review branch remains the best integration candidate for Service Location work. Its comparison to `main` reports 163 commits ahead and 0 behind. The restore branch comparison reports 394 ahead and 8 behind; it carries a large historical sequence of location-master checkpoints through Step 118, including geometry/activation security audit notes. The audit branch comparison reports 72 ahead and 14 behind and contains a separate company-flow/cross-app audit history. These counts are branch-history comparisons, not a recommendation to merge either historical branch wholesale.
+
+### Related Firebase branch and PR findings
+
+Firebase repository branch search returned:
+- `main`
+- `feature/trusted-location-activation`
+- `step-123-boundary-verification-design`
+- `step-124-callable-boundary-verification`
+
+The Step 123 branch contains a design-only document. The Step 124 branch is a small JavaScript callable scaffold that its PR #3 explicitly marks as superseded/closed because the existing Draft PR #1 already has the shared TypeScript Functions workspace, trusted activation/status/review callables, geometry validation, and Rules/Emulator tests. **Do not merge the Step 124 scaffold**; continue review in Firebase PR #1 to avoid duplicate implementations.
+
+Firebase PR #1 remains Draft/open/unmerged. Its stated CI runs passed, but this does not establish production deployment. The manual deployment safeguards described in the PR require a separate review; production Environment required-reviewer settings remain unverified.
+
+### Important cross-workstream findings from the audit branch
+
+The `audit/zone-service-area-mapping-2026-10-16` reports are a separate company-flow workstream, not extra Service Location tests. They identify source-level issues requiring their own acceptance criteria and emulator evidence, including:
+- booking create Rules source versus Customer direct booking writes;
+- booking/walk status transitions and possible dual-write/idempotency risks;
+- authoritative Rules/Functions deployment source not established by inspected repository configs;
+- Partner legacy `zones` usage and compatibility with `service_cities`/`service_areas`;
+- Admin role/scope checks and Super Admin compatibility;
+- privacy protection for pickup-address details and active-walk GPS.
+
+These are repository-source findings only; deployed Firebase Rules/Functions and production behavior remain unverified. Do not represent the overall company-flow workstream as complete because location geometry CI passes.
+
+### Branch-audit decision and next safe work
+
+1. Keep `step-119-boundary-geometry` as the primary Service Location review branch.
+2. Keep `restore/india-location-reference-data` and `audit/zone-service-area-mapping-2026-10-16` as read-only evidence sources until their unique code/tests/docs are individually reconciled.
+3. Keep Firebase PR #1 as the trusted-backend review target; do not merge the superseded Step 124 JavaScript scaffold.
+4. Convert actionable cross-app findings into a tracked acceptance matrix and test plan before marking overall Admin/company flow complete.
+5. Continue resolving District versus City and operational Area versus LGD Sub-district, then reconcile the safe CSV import plan and Partner legacy zone IDs.
+6. No merge, deploy, production scan/export, import, or activation was performed in this refresh.
+
