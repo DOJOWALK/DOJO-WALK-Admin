@@ -1286,9 +1286,32 @@ class _ServiceLocationScreenState
                     if (preview!.rows.length > 20)
                       Text('Showing first 20 of ${preview!.rows.length} rows.'),
                     if (preview!.canProceed)
-                      const Text(
-                        'CSV checks passed. Parent mapping and explicit import confirmation are still required.',
-                        style: TextStyle(color: Colors.green),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: _locationOrange.withValues(alpha: 0.45),
+                          ),
+                        ),
+                        child: const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'CSV syntax validation passed — NOT import approval.',
+                              style: TextStyle(
+                                color: _locationOrange,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              'Import is intentionally disabled. This screen only previews the file and checks existing names; it writes no location records. The current data model has no separate District level, and a trusted, transactional import is not implemented. Do not treat a successful preview or parent-name match as permission to import.',
+                            ),
+                          ],
+                        ),
                       ),
                     const SizedBox(height: 10),
                     OutlinedButton.icon(
