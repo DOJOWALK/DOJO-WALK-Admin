@@ -91,6 +91,20 @@ void main() {
       expect(result.isSyntacticallyValid, isTrue);
     });
 
+    test('normalizes required header case spaces underscores and hyphens', () {
+      final result = parser.parse(
+        ' STATE ,district_name,City-Name,Area\\n'
+        'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City',
+      );
+
+      expect(result.fileErrors, isEmpty);
+      expect(result.isSyntacticallyValid, isTrue);
+      expect(result.rows.single.values['state'], 'Uttar Pradesh');
+      expect(result.rows.single.values['district'], 'Gautam Buddha Nagar');
+      expect(result.rows.single.values['city'], 'Greater Noida');
+      expect(result.rows.single.values['area'], 'Gaur City');
+    });
+
     test('preserves optional source codes and version columns in read-only preview', () {
       final result = parser.parse(
         'State,District,City,Area,State LGD Code,District LGD Code,Source Version\n'
