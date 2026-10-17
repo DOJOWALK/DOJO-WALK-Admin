@@ -200,3 +200,11 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - This step is **DESIGN ONLY**. No Cloud Function was implemented, no executable tests were run for the design, no rules or production resources changed, and no deployment occurred.
 - Review branch commit: `661c150cb3133d4ec9550f96b3fcaa4d0d92852c`.
 - Next: implement the function and tests on the Firebase feature branch, then coordinate the Admin client change and emulator rules tests. Keep all changes unmerged and undeployed until reviewed and explicitly approved.
+
+### Step 124 — existing trusted-backend PR discovery (2026-10-17)
+- Before continuing the new backend work, searched the Firebase repository's open Draft PRs and found existing PR #1: `https://github.com/dojoplatform2026/DOJO-WALK-Firebase/pull/1`.
+- PR #1 already contains a shared TypeScript Functions workspace, `activateServiceLocation` callable, Turf-based polygon/Area-in-City checks, transaction rechecks, Firestore Rules hierarchy/activation changes, and geometry plus Emulator tests. Its latest recorded CI runs on commit `050277fcd2f6a8334aafd0fc66d2959164dd5b5e` were reported successful in runs `39034939438` (geometry/callable tests) and `39034939448` (Rules tests).
+- Scope distinction: the existing callable is for **activation** and does not by itself prove that boundary review/verification writes are forced through a trusted endpoint. The rules in that draft still need explicit review for direct client verification writes.
+- A separate JavaScript scaffold was briefly created on branch `step-124-callable-boundary-verification`; after discovering the existing shared TypeScript implementation, its duplicate Draft PR #3 was closed to avoid conflicting `firebase.json` and `functions/` changes. No deployment or production change occurred.
+- Step 124 status: **PAUSED FOR INTEGRATION REVIEW — do not merge the duplicate scaffold**. Next action is to inspect the existing PR #1's callable, rules, and Admin integration end-to-end, then extend that shared implementation only if a real verification-path gap remains.
+- Existing trusted-backend PR #1 remains open, draft, unmerged, and undeployed. Production activation/import remains unauthorized.
