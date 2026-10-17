@@ -121,6 +121,23 @@ void main() {
       expect(row.values.keys.toSet(), {'state', 'district', 'city', 'area'});
     });
 
+    test('optional source metadata does not bypass duplicate location detection', () {
+      final result = parser.parse(
+        'State,District,City,Area,Source Code\\n'
+        'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City,001\\n'
+        'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City,002',
+      );
+
+      expect(result.rows, hasLength(2));
+      expect(result.rows.first.errors, isEmpty);
+      expect(
+        result.rows.last.errors,
+        contains('Duplicate State/District/City/Area combination in this file.'),
+      );
+      expect(result.rows.first.sourceValues['Source Code'], '001');
+      expect(result.rows.last.sourceValues['Source Code'], '002');
+    });
+
     test('rejects empty and malformed CSV input', () {
       expect(parser.parse('  ').fileErrors, contains('CSV file is empty.'));
       expect(
