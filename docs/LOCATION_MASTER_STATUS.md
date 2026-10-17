@@ -335,3 +335,11 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Remaining release gates: rerun/inspect Admin build and geometry tests, validate the updated Firebase deployment workflow and callable tests on its latest head, and independently confirm required reviewers on GitHub Environment `production` (still **UNVERIFIED**).
 - Both PRs remain draft/open/unmerged. No deployment workflow was dispatched; no Functions/Rules deployed; no production location activated/imported.
 - **Step 135 status: IMPLEMENTED IN DRAFT BRANCH / CI PENDING.**
+
+### Step 136 — fixed Admin analyzer blocker and rechecked CI (2026-10-17)
+- Latest Admin geometry-test workflow run [39041672663](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39041672663) failed at `flutter analyze` because the callable migration left two unused local variables (`verifiedBoundaryId`); geometry tests were skipped as a result. Admin Web Build run [39041672483](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39041672483) passed.
+- Removed only the unused local declarations/assignments from `setCityServiceStatus` and `setAreaServiceStatus` in commit `b5022c8b70e30dda5cdd79a1c580283255e10ddc`. The methods still perform local prechecks and route the actual status change through the trusted Firebase callables.
+- Firebase validation run [39041653227](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39041653227) passed workflow YAML lint and Firestore Rules Emulator tests. Callable/geometry integration run [39041653090](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39041653090) passed on the feature branch. The trusted-callable deployment workflow was updated in Firebase commit `80b9df5602d85fbbeb063071711743d7dfb37b6c` to deploy review, activation, and general status callables together; it has not been dispatched.
+- New Admin CI triggered by the analyzer fix is pending; do not mark Admin geometry tests passed until the new run completes.
+- No PR merged; no deployment workflow dispatched; no Functions/Rules deployed; no production location activated/imported. Production Environment required reviewers remain **UNVERIFIED**.
+- **Step 136 status: ANALYZER FIX COMMITTED / CI PENDING.**
