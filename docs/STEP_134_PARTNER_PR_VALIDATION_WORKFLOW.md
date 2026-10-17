@@ -50,3 +50,20 @@ At the latest check:
 - Overall run: in progress.
 
 These are live intermediate results, not a final CI pass.
+
+## Final CI result — Step 135
+
+Run: https://github.com/dojoplatform2026/dojo-partner/actions/runs/39068442507
+
+Final job conclusion: **success**.
+
+Confirmed completed successfully:
+- [x] Set up Flutter
+- [x] Install dependencies
+- [x] Verify Partner image assets
+- [x] Generate Android launcher icons
+- [x] `flutter analyze`
+- [x] `flutter test`
+- [x] `flutter build apk --debug`
+
+This is evidence for the workflow's tested head revision only. It does not verify production Firebase Rules or a release APK, and it does not authorize merging. PR #2 remains draft pending review.
