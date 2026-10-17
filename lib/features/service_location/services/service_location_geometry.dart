@@ -10,6 +10,12 @@ class ServiceLocationGeometry {
 
   static const double _epsilon = 1e-9;
 
+  /// True when [points] form a valid simple polygon ring.
+  ///
+  /// Rejects invalid coordinates, fewer than three distinct vertices, and
+  /// self-intersections or non-adjacent edge touches.
+  static bool isValidPolygon(List<GeoPoint> points) => _isValidRing(points);
+
   /// True when [child] is a valid polygon contained by [parent].
   ///
   /// Points on the parent edge are accepted (shared borders are allowed).
