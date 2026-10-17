@@ -676,3 +676,14 @@ Admin branch commits: `61c4d7e48b94c07efbc3040221662f3c4de99e9d`, `18921352195db
 - [ ] Next data gate: obtain the latest official state/district/sub-district export through the authorized portal or official downloadable dataset; archive the unmodified source with retrieval date and SHA-256, then run full row-level reconciliation against the Library artifacts.
 - [ ] Restore the three generated Dart files into the repository only after confirming the intended API/integration, then compare their byte counts and SHA-256 against `docs/LOCATION_REFERENCE_CHECKSUMS.md` and run Flutter CI.
 - [ ] No reference-data import to production Firebase, merge, deployment, or real service-location activation performed.
+
+
+## Step 57 — Generated Dart repository integrity and API compatibility audit (IN PROGRESS)
+
+- [x] Polled Admin CI for Step 56 commit `62a9e7fb354c461a94a2afadf6b74c3e1b11d899`: completed successfully. [Actions run 38985313412](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38985313412).
+- [x] Corrected the prior Step 56 path finding after directly checking the current branch tree: the paths do exist, but their contents are inconsistent. `india_states.dart` and `india_districts.dart` are older/different copies; `india_sub_districts.dart` exists but is zero bytes. The earlier statement that all three paths were absent was inaccurate and is superseded by this Step 57 audit.
+- [x] Compared current repository files against the Library manifest: Library artifacts are exactly 6,871 / 215,355 / 1,830,733 bytes with SHA-256 `bb2369850ddb9e78b1fdf0a5a8c1bc5c528d595f84b47d69926e046cfbae8850`, `d667c7a42b702c9c19215e2f3a41e5a5464112fb82c5d018cb1425b5b17d453e`, and `b42f4d9641da427b2a950f34ee5d5dd5bc2c2a1b917f46b44ffb878e22a2ea06` respectively. Library checksums match the existing manifest.
+- [x] Checked `india_location_filters.dart`: it imports district and sub-district files and expects `indiaDistricts` and `indiaSubDistricts`; the empty sub-district file therefore leaves the reference-data integration incomplete.
+- [x] Confirmed the Library artifacts declare APIs including `IndiaState/indiaStates/searchIndiaStates`, `IndiaDistrict/indiaDistricts/districtsForState/searchIndiaDistricts`, and `IndiaSubDistrict/indiaSubDistricts/subDistrictsForDistrict/subDistrictsForState/searchSubDistricts`. The separate filter helper expects `filterDistrictsForStateLgdCode` and `filterSubDistrictsForStateAndDistrict`.
+- [ ] Before restoring, complete an import/API compatibility check against every reference to these symbols in the Admin app and tests. Then restore exact Library bytes, preserve leading-zero strings, verify record counts and SHA-256, and run Flutter analyze/test/build CI.
+- [ ] The data remains a saved snapshot, not a newly verified current official LGD export. No Firebase import, merge, deployment, or real service-location activation performed.
