@@ -16,7 +16,10 @@
 /// - Locality activation does not require its own polygon.
 /// - Legacy Zones are not modified.
 
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -878,6 +881,40 @@ class _ServiceLocationScreenState
     final parser = LocationCsvPreviewParser();
     LocationCsvPreview? preview;
 
+    Future<void> pickCsvFile(StateSetter setDialogState) async {
+      try {
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: const ['csv'],
+          allowMultiple: false,
+          withData: true,
+        );
+        if (result == null || result.files.isEmpty) return;
+
+        final file = result.files.single;
+        final bytes = file.bytes;
+        if (bytes == null) {
+          throw const FormatException(
+            'CSV file bytes are unavailable. Please try another file.',
+          );
+        }
+
+        final contents = utf8.decode(bytes, allowMalformed: false);
+        controller.text = contents;
+        setDialogState(() {
+          preview = parser.parse(contents);
+        });
+      } catch (error) {
+        setDialogState(() {
+          preview = LocationCsvPreview(
+            headers: const [],
+            rows: const [],
+            fileErrors: ['Could not read selected CSV: $error'],
+          );
+        });
+      }
+    }
+
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
@@ -895,6 +932,12 @@ class _ServiceLocationScreenState
                     'This preview does not save or activate any locations.',
                   ),
                   const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () => pickCsvFile(setDialogState),
+                    icon: const Icon(Icons.upload_file_outlined),
+                    label: const Text('Choose CSV file'),
+                  ),
+                  const SizedBox(height: 8),
                   TextField(
                     controller: controller,
                     minLines: 6,
