@@ -1,8 +1,9 @@
-## Latest checkpoint — Step 116 IN PROGRESS (2026-10-17)
+## Latest checkpoint — Step 116 PASS (2026-10-17)
 
 - [x] Ring closure and reverse-winding regression tests added.
 - [x] Antimeridian-crossing rings explicitly rejected until longitude unwrapping is supported.
-- [ ] Rules and Geometry/Callable CI must pass on the latest Firebase audit commit before PASS.
+- [x] Rules CI PASS: [39034401207](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39034401207).
+- [x] Geometry/Callable CI PASS: [39034401203](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39034401203).
 - [x] Detailed report: [Step 116](LOCATION_MASTER_STEP_116_RING_CLOSURE_ORIENTATION_DATELINE.md).
 - [!] Synthetic checks only; official LGD reconciliation, authoritative boundary review and production data audit remain pending. No production export/live scan, write, import, activation or deployment.
 
