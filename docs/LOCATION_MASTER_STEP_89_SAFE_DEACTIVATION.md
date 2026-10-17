@@ -12,7 +12,10 @@ Date: 2026-10-17
 - Updated Admin `ServiceLocationService` to route status changes through the callable; City/Area activation continues through the geometry-validation callable.
 
 ### Validation status
-- [ ] Firebase TypeScript build and callable integration tests: pending.
+- [x] Firebase TypeScript build and existing geometry/callable integration suite passed on commit `3557c8ed121959f9bdb9636cef2ffce74e089402` (run [39025247312](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025247312)).
+- [x] Firestore Rules Emulator suite passed on commit `3557c8ed121959f9bdb9636cef2ffce74e089402` (run [39025247269](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025247269)).
+- [x] Added dedicated callable tests in `functions/test/service_location_status.integration.test.cjs` for authorization, active-child deactivation guards, and State activation parent checks.
+- [ ] CI for the dedicated callable tests is pending on commit `fdfb4f27b1cfbb07208baf4246e1050437e4eefe` (runs [39025322676](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025322676) and [39025322677](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025322677)).
 - [ ] Firestore Rules Emulator tests: pending.
 - [ ] Admin Flutter analyze/tests/Web build after callable wiring: pending.
 - [ ] Race regression test with concurrent parent deactivation and child activation: not yet added.
