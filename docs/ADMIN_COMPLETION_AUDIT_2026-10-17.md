@@ -1,6 +1,6 @@
 # DOJO WALK Admin — Completion Audit
 
-Audit date: 2026-10-17  
+Audit date: 2026-10-18  
 Repository: `dojoplatform2026/DOJO-WALK-Admin`  
 Working branch: `step-119-boundary-geometry`  
 Review PR: [#7 — Step 119 service-location boundary geometry validation](https://github.com/dojoplatform2026/DOJO-WALK-Admin/pull/7)  
@@ -20,7 +20,7 @@ India reference-data PR: [#6 — Restore India location reference data](https://
 
 ## Work completed on the review branch
 
-- Follow-up (2026-10-18): renamed the CSV parser's primary readiness property to `isSyntacticallyValid`; the Admin preview now uses this explicit name. The legacy `canProceed` getter remains deprecated for compatibility and is documented as syntax-only, not import approval. Parser test naming now reinforces that a clean preview does not authorize Firestore writes. Latest code commit: `51edb1fa0e1fc24b4bd3897c2e9cb323d5e53e4b`; CI results for this newest commit were not yet available at audit refresh.
+- Follow-up (2026-10-18): renamed the CSV parser's primary readiness property to `isSyntacticallyValid`; the Admin preview now uses this explicit name. The legacy `canProceed` getter remains deprecated for compatibility and is documented as syntax-only, not import approval. Parser test naming now reinforces that a clean preview does not authorize Firestore writes. Historical note: this parser-readiness change was followed by the preview traceability change and the code head listed in the verification refresh above; use the exact CI run links above for current validation.
 
 - Follow-up safety clarification (2026-10-18): the CSV preview now shows an orange, explicit blocking notice that syntax validation is **not** import approval. It states that the screen performs no location writes, the current hierarchy lacks a separate District level, and a trusted transactional importer is not implemented.
 
