@@ -1,7 +1,7 @@
 # Step 131 — Partner Onboarding Emulator Regression Tests
 
 Date: 2026-10-18  
-Status: **Implemented on a draft Firebase review PR; CI started, final result pending.**
+Status: **Implemented on a draft Firebase review PR; both relevant GitHub Actions workflows passed.**
 
 ## Changes
 
@@ -32,10 +32,10 @@ The change is narrowly scoped; it does not grant Partner control over approval f
 ## CI status at report creation
 
 GitHub Actions runs were started for head commit `e91d7370c28a1eaea77f3906af19b98e294e1e3f`:
-- Test Firestore Security Rules — run `39067829446`: YAML validation passed; Emulator test job was still running at last check.
-- Trusted Location Geometry and Callable Tests — run `39067829625`: integration job was still running at last check.
+- Test Firestore Security Rules — run `39067829446`: **success**. Both workflow YAML validation and the Firestore Rules Emulator test job completed successfully; job step `Run Firestore Emulator tests` passed.
+- Trusted Location Geometry and Callable Tests — run `39067829625`: **success**. The geometry/callable integration job completed successfully.
 
-These are **in progress**, not final PASS results. Follow up on both runs and inspect logs before treating this step as validated.
+These results validate the checked-in review branch at head `e91d7370c28a1eaea77f3906af19b98e294e1e3f`. They do not prove that deployed production Rules match this branch.
 
 ## Not done
 
@@ -46,7 +46,7 @@ These are **in progress**, not final PASS results. Follow up on both runs and in
 
 ## Next checks
 
-- [ ] Read final CI conclusions and logs for both runs.
-- [ ] If any tests fail, inspect logs and correct test/Rules mismatch.
+- [x] Read final CI conclusions and job steps for both runs — both succeeded.
+- [x] No CI failure was reported in these runs.
 - [ ] Confirm the explicit application submission UI writes the expected fields and status transition.
 - [ ] Review Partner app and Firebase PR together before any merge/deploy.
