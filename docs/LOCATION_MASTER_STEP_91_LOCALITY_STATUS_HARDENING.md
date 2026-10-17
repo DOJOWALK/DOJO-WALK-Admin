@@ -18,7 +18,8 @@ Closed the Step 90 gap that allowed direct client writes to `service_localities.
 ### Validation
 - [x] Firebase callable/geometry build and Emulator tests passed on commit `fbe97da47681dbe3516405b0315a1d68168cb622`: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026189293
 - [x] Firestore Rules Emulator tests passed on the same commit: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026189233
-- [ ] Admin Flutter validation run `39026222473` is still running for commit `84329b78dd682b0b16e55e36b9c4d9a0f189d920`: https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39026222473. Final Step 91 PASS depends on this result.
+- [x] Admin analysis passed in run `39026222473`, but unit tests exposed two tests still expecting client-side Locality activation checks; those tests were updated to verify trusted-backend delegation.
+- [ ] Admin Flutter validation rerun `39026320960` is in progress on commit `60894fa037595c916e818ea78fa4948ef2a5158b`: https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39026320960. Final Step 91 PASS depends on this result.
 - [!] No production deployment or production Firestore write was performed.
 
 ### Result
