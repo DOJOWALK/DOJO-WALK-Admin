@@ -727,3 +727,16 @@ Last checked: 2026-10-17.
 Next: Step 61 — audit the current official LGD source/version and reconciliation evidence; keep production use blocked until source provenance is verified.
 
 Last checked: 2026-10-17.
+
+
+## Step 61 — Official LGD source/provenance check (2026-10-17)
+
+- [x] Located the Government of India Ministry of Panchayati Raj LGD portal and its official description of the directory's purpose: [Ministry LGD page](https://panchayat.gov.in/en/lgd/) and [LGD download directory](https://lgdirectory.gov.in/demo/downloadDirectory.do).
+- [x] Located the OGD catalog record for the overall Local Government Directory dataset: [OGD LGD catalog](https://www.data.gov.in/catalog/local-government-directory-lgd). The page identifies the Ministry of Panchayati Raj as contributor and shows an updated-on date in 2026; catalog metadata alone is not a downloaded, checksum-verifiable sub-district file.
+- [!] The OGD sub-district resource route was found, but its page currently exposes no usable downloadable record in the fetched view; the official LGD portal's directory download/report flows require interactive form inputs and CAPTCHA. No current complete sub-district CSV was retrieved in this check.
+- [x] Therefore, source provenance is confirmed at the portal/catalog level only. Current official row-level verification, exact download date, file checksum, row count and record-by-record comparison against a fresh official export remain **PENDING**.
+- [ ] Do not replace the saved 2024-10-07 snapshot or label it current based only on catalog update metadata. Do not merge, deploy, import into production Firebase or activate real service locations until a verifiable current source file is obtained and reconciled.
+
+Next: Step 62 — retrieve the official current sub-district export through the LGD/OGD download flow, record its retrieval date and SHA-256, then run full reconciliation against the saved CSV and generated Dart.
+
+Last checked: 2026-10-17.
