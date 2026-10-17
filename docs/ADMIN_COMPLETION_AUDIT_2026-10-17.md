@@ -346,3 +346,18 @@ Report: [`docs/STEP_133_PARTNER_FLUTTER_CI_AUDIT.md`](STEP_133_PARTNER_FLUTTER_C
 - [ ] Cross-review Partner source and Firebase draft PR #4 before release.
 
 No source workflow change, merge, deployment, activation or production data operation occurred.
+
+
+## Admin completion progress — Step 134 (2026-10-18)
+
+### Partner PR validation workflow added for review
+
+- Partner workflow added at `.github/workflows/partner-pr-validation.yml` on branch `ci/partner-pr-validation`.
+- Draft PR #2: https://github.com/dojoplatform2026/dojo-partner/pull/2
+- Workflow covers Flutter dependency resolution, required image assets, launcher-icon generation, `flutter analyze`, `flutter test`, and debug APK build on relevant PRs to `main`.
+- Release APK packaging remains separate in the existing release workflow.
+- Report: [`docs/STEP_134_PARTNER_PR_VALIDATION_WORKFLOW.md`](STEP_134_PARTNER_PR_VALIDATION_WORKFLOW.md), commit `5b70d6946605d5aad439e72045437e534a17042b`.
+- [ ] Verify first GitHub Actions run; YAML acceptance, analyze, tests and debug build are not yet confirmed.
+- [ ] Review before merging; no runtime code, release artifact, or deployment changed.
+
+No merge or deployment was performed.
