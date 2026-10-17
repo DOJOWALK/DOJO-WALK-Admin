@@ -931,3 +931,28 @@ Last updated: 2026-10-17.
 Next: Step 83 — inspect Firebase CI results and, if green, record the full validation checkpoint before continuing the location data workflow.
 
 Last updated: 2026-10-17.
+
+## Step 84 — Combined boundary transaction regression test (2026-10-17)
+
+- [x] Added a Firebase Rules Emulator test for the Admin-style transaction that verifies a pending City boundary and binds the exact boundary ID to the City document atomically.
+- [x] The test asserts that the City remains inactive after verification; boundary verification is not service activation.
+- [x] The test is an equivalent client transaction under Firestore Rules Emulator, not execution of the Dart/Flutter service itself.
+- [x] Test commit: `8f895ab6e48e6aee0a50eccb95db4254921b5f5d`.
+- [x] Firestore Rules Emulator CI [39020560454](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39020560454) completed successfully.
+- [x] Geometry/callable CI [39020560479](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39020560479) completed successfully.
+- [ ] Admin-side Flutter tests remain the separate coverage for the Dart implementation; official current LGD reconciliation and authoritative contiguous polygon verification remain pending.
+- [ ] No merge, production import, service activation, or deployment performed.
+
+## Step 85 — Combined transaction CI checkpoint (2026-10-17)
+
+- [x] Rechecked both Firebase CI runs against commit `8f895ab6e48e6aee0a50eccb95db4254921b5f5d`.
+- [x] Firestore Rules Emulator workflow: **PASS**, run [39020560454](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39020560454).
+- [x] Trusted Location Geometry and Callable Tests workflow: **PASS**, run [39020560479](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39020560479).
+- [x] The CI results confirm the Firebase-side test suites pass for this commit; they do not establish a full live Admin-to-Firebase end-to-end test, deployment, or production activation.
+- [ ] Continue with the City/Area activation integration audit, especially callable preconditions, verified boundary binding, parent/child containment and inactive-by-default behavior.
+- [ ] Official current LGD row-level reconciliation, authoritative contiguous polygons, PR review/merge and deployment approval remain pending.
+- [ ] No production import, service activation, or deployment performed.
+
+Next: Step 86 — audit the callable activation contract against the Admin activation UI and current Firestore data model, documenting every precondition and any uncovered integration tests.
+
+Last updated: 2026-10-17.
