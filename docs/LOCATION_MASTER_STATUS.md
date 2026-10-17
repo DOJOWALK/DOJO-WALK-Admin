@@ -989,3 +989,18 @@ Last updated: 2026-10-17.
 Next: Step 88 — verify the latest CI results; if they pass, audit activation/deactivation races and ancestor deactivation constraints; if they fail, fix the exact regression before proceeding.
 
 Last updated: 2026-10-17.
+
+## Step 88 — Activation/deactivation race audit (2026-10-17)
+
+- [x] Reviewed Admin deactivation methods and Firebase Firestore Rules for Country, State, City, and Area.
+- [x] Admin service methods call `_ensureNoActiveChildren` before deactivation, but the child query and parent update are separate operations rather than one transaction.
+- [!] **Server-side enforcement gap:** Firestore Rules permit Admin updates setting Country/State inactive and permit City/Area service deactivation without an atomic check for active descendants. Rules also allow the parent/child state to race with a concurrent activation callable. The client-side guard alone cannot guarantee hierarchy integrity.
+- [ ] Add a trusted backend status callable for deactivation, or an equivalent server-enforced atomic protocol, that re-reads the target and checks active descendants before changing status.
+- [ ] Prevent direct client updates to deactivation status fields in Firestore Rules once the callable exists; keep safe metadata/boundary edits separate from service-status transitions.
+- [ ] Add emulator tests for parent deactivation with active children and concurrent/transactional activation-vs-deactivation behavior.
+- [ ] Re-run Firebase Rules and callable CI plus Admin Flutter tests.
+- [ ] Official current LGD row-level reconciliation, authoritative contiguous polygon validation, review/merge and deployment remain pending. No production activation or deployment performed.
+
+Next: Step 89 — design and implement a server-enforced deactivation contract with descendant checks and regression tests.
+
+Last updated: 2026-10-17.
