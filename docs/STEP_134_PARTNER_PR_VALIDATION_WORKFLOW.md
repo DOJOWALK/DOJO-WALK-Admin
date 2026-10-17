@@ -38,3 +38,15 @@ The existing release workflow remains separate and still owns release APK packag
 - [ ] Review and merge only after actual CI results and code review.
 
 No CI PASS is claimed yet because no run result has been inspected. Do not merge this draft until the first run and review are complete.
+
+## First run status update
+
+GitHub Actions run: [39068442507](https://github.com/dojoplatform2026/dojo-partner/actions/runs/39068442507)
+
+At the latest check:
+- Setup, checkout, Flutter setup, dependency install, required asset checks, and launcher-icon generation: **success**.
+- `flutter analyze`: **in progress**.
+- `flutter test` and debug APK build: pending.
+- Overall run: in progress.
+
+These are live intermediate results, not a final CI pass.
