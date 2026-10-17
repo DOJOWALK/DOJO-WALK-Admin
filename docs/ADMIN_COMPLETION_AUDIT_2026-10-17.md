@@ -418,3 +418,12 @@ No merge, release, or deployment occurred.
 - Workflow YAML validation: **PASS**.
 - Step 138 report updated in commit `d30bea6a484b0b039d66c4d14508bfdca704da2c`.
 - Firebase PR #5 remains draft/open and unmerged. CI verification applies to review branch only; production Rules remain unverified/un-deployed.
+
+
+### Step 139 — Partner post-submission profile/KYC audit (2026-10-18)
+- Reviewed review-branch Rules: normal owner edits require `applicationSubmitted == false`; explicit submission is a separate constrained transition.
+- Added emulator test that submits first, then asserts edits to `documents` and `fullName` are denied.
+- Firebase PR #5 remains draft/open. Latest test commit `e88f5bdc5433d724470a2e4fa3adc458b2f28a4b`.
+- New CI runs #148 (Rules Emulator) and #137 (geometry/callable) were in progress at the time of report creation; final verification pending.
+- Step 139 report: `docs/STEP_139_POST_SUBMISSION_PROFILE_KYC_AUDIT.md`, commit `862bbb8eee4d7de0006a430e9ef164262feffa1f`.
+- No merge/deployment; production Rules remain unverified.
