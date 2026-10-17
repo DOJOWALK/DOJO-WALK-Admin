@@ -1,3 +1,21 @@
+# DOJO WALK Location Master — Step 107
+## Gregorian Leap-Year Timestamp Edge Cases — CI Pending
+Date: 2026-10-17
+
+- [x] Fixed month-length calculation to use Gregorian leap-year rules directly, avoiding JavaScript `Date.UTC` year 0–99 coercion.
+- [x] Added regression tests: year 0000 and 2000 accepted as leap years; 1900 rejected as a leap year.
+- [x] Firebase core commit: `bf12862e4df7f7193801f21e95bc44235969cd0c`.
+- [x] Regression test commit: `7e5ff7939b36470184c8d640bcc5a139abdaa743`.
+- [x] Audit documentation commit: `843c86b0b2159e9a58b708d9078b3eeef6ab416f`.
+- [ ] CI pending verification: Rules [39030551185](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39030551185), [39030540422](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39030540422); callable/geometry [39030551387](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39030551387), [39030540431](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39030540431).
+- [!] Offline-only validation; no production export/live scan, write, import, activation or deployment. Current official LGD reconciliation and authoritative polygon validation remain release gates.
+
+Next: verify Step 107 CI; do not mark PASS until required workflows succeed.
+
+Last updated: 2026-10-17.
+
+---
+
 # DOJO WALK Location Master — Step 106
 ## Timezone Offset Range Validation — PASS
 Date: 2026-10-17
