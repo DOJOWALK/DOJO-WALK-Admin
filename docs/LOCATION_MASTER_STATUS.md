@@ -1,15 +1,15 @@
 # DOJO WALK Location Master — Step 104
-## Explicit Snapshot Timestamp Timezone — CI Pending
+## Explicit Snapshot Timestamp Timezone — PASS
 Date: 2026-10-17
 
 - [x] Step 103 Rules and callable/geometry CI verified PASS: [39029364150](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029364150), [39029364139](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029364139); code/test runs [39029341173](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029341173), [39029341055](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029341055), [39029346477](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029346477), [39029346474](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029346474) — PASS.
 - [x] Export timestamps now require seconds and explicit `Z` or UTC offset.
 - [x] Added tests: timestamp without timezone is rejected; valid +05:30 offset is accepted.
 - [x] Updated offline audit documentation.
-- [ ] Step 104 CI pending after code/test/documentation commits.
+- [x] Step 104 Rules CI [39029509094](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029509094) and callable/geometry CI [39029509102](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029509102) — PASS on documentation commit. Earlier code/test runs also PASS: [39029493106](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029493106), [39029493153](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029493153), [39029497609](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029497609), [39029497684](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029497684).
 - [!] Offline-only validation. No production export/live scan, write, import, activation, or deployment. Official current LGD reconciliation and authoritative polygon validity/containment remain release gates.
 
-Next: verify Step 104 CI before continuing.
+Next: Step 105 — reject impossible calendar/time components in snapshot timestamps.
 
 Last updated: 2026-10-17.
 ---
