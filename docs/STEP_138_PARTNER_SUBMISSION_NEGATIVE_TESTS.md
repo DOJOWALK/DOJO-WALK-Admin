@@ -38,3 +38,14 @@ Run: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/3906936
 - [ ] Production Rules state/release separately reviewed.
 
 No production Rules were changed, no merge/deployment occurred, and no production data was touched.
+
+
+## Follow-up check and fix
+
+The first CI run failed 1 of 55 tests (54 passed). The failure was meaningful: a second submission update succeeded because the ordinary owner-update rule still allowed edits when `applicationSubmitted` was already true. The invalid-status and unauthorized-extra-field tests both passed.
+
+A targeted fix was committed on the same Firebase review branch:
+- Rules commit: `998ae64552d795ced708832f06f5925048bdc3c9`
+- Added a guard so ordinary owner draft updates require `resource.data.applicationSubmitted == false`. The dedicated first-submission transition remains separately guarded.
+- No production deployment or merge occurred.
+- CI for the fix must be rechecked; do not mark this resolved until the rerun confirms the emulator suite passes.
