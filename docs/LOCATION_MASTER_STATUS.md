@@ -530,3 +530,12 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Commits: UI `f4b384f62fd61f0dd3c54b03c3cb5691531b7dfc`; UI cleanup `745a762306a1ce8ea7dfc4b5c755c424d6b66ebf`; CI coverage `13e8ef2ef1deb2a9fc5ab389ea084f1e3bd0e288` and `c2c7e74c0d1a62762b1b93d8916f67e650c9a650`.
 - **Validation status: pending for the updated workflow.** The earlier run `39046266700` passed geometry checks only; it is not evidence that the new parser/UI compile or tests pass. Check a new run after the latest workflow commit.
 - PR #7 remains Draft/open/unmerged. No data import, activation, merge, or deployment occurred.
+
+### Step 158 — CSV file selection for read-only preview (2026-10-17)
+- Added the `file_picker` dependency and a **Choose CSV file** action to the existing Service Locations → Import History → CSV Import Preview dialog.
+- Selected `.csv` files are read as UTF-8, copied into the existing preview text area, and immediately passed through the same read-only parser. Manual paste and Validate CSV remain available.
+- File selection/read errors are surfaced in the preview as file-level errors. File bytes are requested explicitly so the flow can work across Flutter web and supported mobile platforms.
+- Commits: dependency `7e829a49a70967a5561c4bc2e95603f816300381`; UI `5680971b66cd0b4c6ed819f65d13754e82d598ef`.
+- Safety boundary unchanged: selecting a file does not write Firestore data, create import-history records, resolve parent IDs, or activate locations. Parent mapping and explicit confirmation remain future steps.
+- Validation: pending fresh CI after the dependency and UI commits. Do not call the new file-picker code PASS until the updated workflow and Admin Web Build Check complete successfully.
+- Admin PR #7 remains Draft/open/unmerged. No merge, deployment, import, or activation occurred.
