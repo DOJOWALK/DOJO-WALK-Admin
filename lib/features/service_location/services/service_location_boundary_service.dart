@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/service_location_boundary.dart';
@@ -408,47 +409,20 @@ class ServiceLocationBoundaryService {
       verificationNotes,
       'Verification notes',
     );
-
     final id = _required(boundaryId, 'Boundary ID');
-    final reference = _boundaries.doc(id);
 
-    await _firestore.runTransaction((transaction) async {
-      final snapshot = await transaction.get(reference);
+    // Trusted backend is authoritative for role checks, geometry, parent
+    // containment, pending status and server-generated verification metadata.
+    final callable = FirebaseFunctions.instanceFor(
+      region: 'asia-south1',
+    ).httpsCallable('reviewServiceLocationBoundary');
 
-      if (!snapshot.exists) {
-        throw StateError('Boundary not found.');
-      }
-
-      final data = snapshot.data()!;
-
-      if (data['verificationStatus'] !=
-          BoundaryVerificationStatus.pending.name) {
-        throw StateError(
-          'Only pending boundaries can be verified.',
-        );
-      }
-
-      final boundary = ServiceLocationBoundary.fromMap(
-        snapshot.id,
-        data,
-      );
-
-      _throwIfInvalid(boundary);
-
-      transaction.update(reference, {
-        'verificationStatus':
-            BoundaryVerificationStatus.verified.name,
-        'verifiedBy': uid,
-        'verifiedAt': FieldValue.serverTimestamp(),
-        'verificationNotes': notes,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+    await callable.call(<String, dynamic>{
+      'boundaryId': id,
+      'decision': 'verified',
+      'notes': notes,
     });
   }
-
-  // ============================================================
-  // REJECT BOUNDARY
-  // ============================================================
 
   Future<void> rejectBoundary({
     required String boundaryId,
@@ -467,32 +441,15 @@ class ServiceLocationBoundaryService {
 
     final rejectionReason = _required(reason, 'Rejection reason');
     final id = _required(boundaryId, 'Boundary ID');
-    final reference = _boundaries.doc(id);
 
-    await _firestore.runTransaction((transaction) async {
-      final snapshot = await transaction.get(reference);
+    final callable = FirebaseFunctions.instanceFor(
+      region: 'asia-south1',
+    ).httpsCallable('reviewServiceLocationBoundary');
 
-      if (!snapshot.exists) {
-        throw StateError('Boundary not found.');
-      }
-
-      final data = snapshot.data()!;
-
-      if (data['verificationStatus'] !=
-          BoundaryVerificationStatus.pending.name) {
-        throw StateError(
-          'Only pending boundaries can be rejected.',
-        );
-      }
-
-      transaction.update(reference, {
-        'verificationStatus':
-            BoundaryVerificationStatus.rejected.name,
-        'verifiedBy': uid,
-        'verifiedAt': null,
-        'verificationNotes': rejectionReason,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+    await callable.call(<String, dynamic>{
+      'boundaryId': id,
+      'decision': 'rejected',
+      'notes': rejectionReason,
     });
   }
 
