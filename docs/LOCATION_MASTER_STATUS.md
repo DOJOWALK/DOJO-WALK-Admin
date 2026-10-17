@@ -140,3 +140,11 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Removed the unused wrapper (it only delegated to `_requireDocument` and had no callers).
 - Fix commit: `49718dbf8eb496fdefae380c8bb56ba81c86cc30`.
 - Step remains **PENDING** until CI analyzer and geometry tests pass.
+
+
+### Step 119 — integrated geometry CI passed (2026-10-17)
+- GitHub Actions run #27 completed with conclusion **SUCCESS**: formatting, patch whitespace check, `flutter analyze` for the activation service, and focused geometry unit tests all passed.
+- Run: https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39037478245
+- This verifies the current draft branch's targeted checks. It does **not** establish full Flutter Web release-build success, complete GIS/topology correctness, or protection against direct Firestore writes that bypass the Admin service.
+- Step 119 targeted CI: **PASS**. Overall production readiness: **NOT APPROVED / PENDING**.
+- Next review: confirm whether geometry enforcement must also be placed in a trusted backend callable/server path, inspect direct write paths and security rules, and run a full Admin web release build before considering merge. Do not import data or activate production locations.
