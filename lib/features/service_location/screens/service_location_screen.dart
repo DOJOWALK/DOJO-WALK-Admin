@@ -22,6 +22,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../models/service_location_boundary.dart';
 import '../models/service_location_models.dart';
+import '../services/location_csv_preview_parser.dart';
 import '../services/service_location_boundary_service.dart';
 import '../services/service_location_service.dart';
 import '../widgets/add_location_dialog.dart';
@@ -869,6 +870,120 @@ class _ServiceLocationScreenState
   }
 
   // ============================================================
+  // READ-ONLY CSV PREVIEW
+  // ============================================================
+
+  Future<void> _showCsvPreviewDialog() async {
+    final controller = TextEditingController();
+    final parser = LocationCsvPreviewParser();
+    LocationCsvPreview? preview;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Preview location CSV'),
+          content: SizedBox(
+            width: 760,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Paste CSV text below. Required columns: State, District, City, Area. '
+                    'This preview does not save or activate any locations.',
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controller,
+                    minLines: 6,
+                    maxLines: 12,
+                    keyboardType: TextInputType.multiline,
+                    decoration: const InputDecoration(
+                      hintText: 'State,District,City,Area\n'
+                          'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City',
+                      border: OutlineInputBorder(),
+                      alignLabelWithHint: true,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (preview != null) ...[
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        Chip(label: Text('Rows: ${preview!.rows.length}')),
+                        Chip(label: Text('Valid: ${preview!.validRowCount}')),
+                        Chip(label: Text('Invalid: ${preview!.invalidRowCount}')),
+                      ],
+                    ),
+                    for (final error in preview!.fileErrors)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          error,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    for (final row in preview!.rows.take(20))
+                      Card(
+                        margin: const EdgeInsets.only(top: 6),
+                        child: ListTile(
+                          dense: true,
+                          leading: Icon(
+                            row.isValid ? Icons.check_circle_outline : Icons.error_outline,
+                            color: row.isValid ? Colors.green : Colors.red,
+                          ),
+                          title: Text(
+                            'Line ${row.lineNumber}: ${row.values['state']} · '
+                            '${row.values['district']} · ${row.values['city']} · '
+                            '${row.values['area']}',
+                          ),
+                          subtitle: row.errors.isEmpty
+                              ? const Text('Validation passed')
+                              : Text(row.errors.join('\n')),
+                        ),
+                      ),
+                    if (preview!.rows.length > 20)
+                      Text('Showing first 20 of ${preview!.rows.length} rows.'),
+                    if (preview!.canProceed)
+                      const Text(
+                        'CSV checks passed. Parent mapping and explicit import confirmation are still required.',
+                        style: TextStyle(color: Colors.green),
+                      ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => setDialogState(() {
+                controller.clear();
+                preview = null;
+              }),
+              child: const Text('Clear'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Close'),
+            ),
+            FilledButton.icon(
+              onPressed: () => setDialogState(() {
+                preview = parser.parse(controller.text);
+              }),
+              icon: const Icon(Icons.fact_check_outlined),
+              label: const Text('Validate CSV'),
+            ),
+          ],
+        ),
+      ),
+    );
+    controller.dispose();
+  }
+
+  // ============================================================
   // IMPORT HISTORY
   // ============================================================
 
@@ -895,10 +1010,65 @@ class _ServiceLocationScreenState
             )
             .toList();
 
-        if (items.isEmpty) {
-          return _emptyState('No import records found.');
-        }
-
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          children: [
+            Card(
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'CSV Import Preview',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Validate State, District, City and Area rows before any future import. '
+                      'Preview only — no Firestore writes or activation.',
+                    ),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: FilledButton.icon(
+                        onPressed: _showCsvPreviewDialog,
+                        icon: const Icon(Icons.preview_outlined),
+                        label: const Text('Paste CSV and Preview'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: _locationOrange,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (items.isEmpty)
+              const Padding(
+                padding: EdgeInsets.only(top: 16),
+                child: Text('No import history records found yet.'),
+              ),
+            for (final item in items)
+              Card(
+                color: Colors.white,
+                child: ListTile(
+                  leading: const Icon(Icons.file_present, color: _locationOrange),
+                  title: Text(item.fileName),
+                  subtitle: Text(
+                    'ID: ${item.id}\n'
+                    'Source: ${item.source}\n'
+                    'Status: ${item.status}\n'
+                    'Verification: ${item.verificationStatus}',
+                  ),
+                  isThreeLine: true,
+                ),
+              ),
+          ],
+        );
+/* OLD IMPORT LIST LOOP REMOVED
         return ListView.builder(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           itemCount: items.length,
@@ -924,6 +1094,7 @@ class _ServiceLocationScreenState
             );
           },
         );
+*/
       },
     );
   }
