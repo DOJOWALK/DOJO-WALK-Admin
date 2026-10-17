@@ -107,4 +107,5 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Added two focused tests: self-intersecting child ring and self-intersecting parent ring.
 - Commits: helper `26e7dbb6d40b031ca1bec808deb71180ccbec199`; tests `9f9a3e1c3b8c2339ed6b6712289a229216daf204`.
 - Verification status: source/test files still need CI execution; no passing run has been confirmed. This is a focused guard, not complete GIS validation. Activation integration remains pending.
+- CI run detected after the latest source/test commits: run #8, currently `in_progress`; Flutter setup is running, formatting and unit tests have not reported results yet. Run: https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39036067381
 
