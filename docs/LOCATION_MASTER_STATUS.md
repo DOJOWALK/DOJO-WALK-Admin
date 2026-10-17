@@ -1090,3 +1090,17 @@ Last updated: 2026-10-17.
 Next: Step 94 — review the Admin-side create/save workflow against the new parent checks, then prepare a read-only audit using an authorized location export. No live database scan or deployment without approval.
 
 Last updated: 2026-10-17.
+
+## Step 94 — Admin Save Workflow Ancestry Audit (2026-10-17)
+
+- [x] Audited State/City/Area/Locality save workflows.
+- [x] Added defense-in-depth full-ancestor document existence/linkage checks to Area and Locality saves.
+- [x] Added regression tests for Area with missing State and Locality with missing City ancestor.
+- [ ] Admin Flutter Web Validation for latest Step 94 commits: pending verification.
+- [ ] Existing-data audit still requires an authorized JSON snapshot/export; no production data was read or changed.
+- [ ] Official current LGD row-level reconciliation and authoritative contiguous polygon verification remain pending.
+- [x] No production import, activation, or deployment performed.
+
+Next: Verify latest Admin CI; then arrange an authorized read-only location export and run the offline integrity audit.
+
+Last updated: 2026-10-17.
