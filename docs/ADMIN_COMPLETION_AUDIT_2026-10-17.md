@@ -44,6 +44,37 @@ Add/execute read-only contract tests and Firebase Emulator tests for:
 
 No production Rules or Functions deployment is part of this step.
 
+## Admin completion progress — Step 124 (2026-10-18)
+
+### Branch review followed by schema compatibility check
+
+The branch report was refreshed in commit `3a2cfeceb1efa68eb52ffb95b0d7812869b1a4d5`. The review confirmed that Admin branch history and company-flow audit reports are separate workstreams; neither historical branch should be merged wholesale.
+
+The schema check then compared the current Admin model, the District/City proposal, Firebase PR #1 Rules/callables, and Partner's checked-in Rules.
+
+**Confirmed compatibility blocker:**
+- Current Admin model uses `service_states`, `service_cities` (City/District combined), and `service_areas` (Area/Sub-district combined). Current State/City/Area models do not include LGD code fields.
+- The Admin proposal recommends a distinct logical `District` between State and operational `Service City`, with operational `Service Area` kept distinct from official LGD Sub-district.
+- Firebase PR #1 callables and Rules currently validate the combined City/Area collections and their parent fields; a new District collection or district parent relationship is not implemented in that branch.
+- Partner source Rules include legacy `zones` and walker profile paths. No safe legacy-zone-to-new-area ID mapping has been established. The reviewed Partner Rules file is not proof of deployed production Rules.
+- Therefore the CSV fields `State, District, City, Area` cannot safely be written into the current hierarchy by name matching or by silently treating District as City and Area as LGD Sub-district.
+
+### Decision for implementation sequence
+
+1. Keep CSV import preview-only and preserve the current no-write guard.
+2. Define and approve the cross-repository logical contract: LGD State/District reference entities; separate operational Service City and Service Area; official Sub-district retained as reference data rather than silently reused as a service area.
+3. Decide stable document IDs, parent references, legacy ID preservation, and a backward-compatible read/mapping strategy for Partner's existing `zones` and `walkers/{uid}` records.
+4. Update Admin models/services/UI and trusted Firebase callable validation/Rules together, then add emulator tests for old records, new hierarchy, invalid parent chains, permissions, activation, and no direct client verification.
+5. Only after that, implement transactional import with dry-run, idempotency, duplicate/source reconciliation, rollback/audit metadata, and explicit import approval.
+
+### Step 124 status
+
+- Cross-branch report/status audit: **PASS — refreshed**.
+- Cross-repository schema compatibility audit: **PASS — blocker documented**.
+- Schema implementation: **NOT STARTED; requires one consistent contract before code changes**.
+- CSV transactional import: **NOT IMPLEMENTED**.
+- Production data, deployment, activation and merges: **NOT performed**.
+
 ## Admin completion progress — Step 122 (2026-10-18)
 
 ### PR #6 unique test/tool asset compatibility review
