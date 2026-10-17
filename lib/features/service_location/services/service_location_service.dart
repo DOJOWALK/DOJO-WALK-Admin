@@ -1228,7 +1228,14 @@ class ServiceLocationService {
         areaId,
       ],
       isNew: oldId.isEmpty,
-      data: savedLocality.toMap(),
+      data: {
+        ...savedLocality.toMap(),
+        // Direct client writes cannot change service activation status.
+        // New Localities always start inactive; existing status is preserved.
+        'isServiceActive': existingSnapshot.exists
+            ? existingSnapshot.data()?['isServiceActive'] == true
+            : false,
+      },
     );
   }
 
@@ -1238,39 +1245,13 @@ class ServiceLocationService {
   }) async {
     final id = _required(localityId, 'Locality ID');
 
-    final locality = await _requireDocument(
-      _localities,
-      id,
-      'Locality',
+    // Backend transaction validates the complete ancestry and uses ancestor
+    // guard writes so concurrent Area deactivation cannot race activation.
+    await _changeLocationStatus(
+      locationType: 'locality',
+      locationId: id,
+      isActive: isActive,
     );
-
-    if (isActive) {
-      final countryId =
-          locality['countryId']?.toString() ?? '';
-
-      final stateId =
-          locality['stateId']?.toString() ?? '';
-
-      final cityId =
-          locality['cityId']?.toString() ?? '';
-
-      final areaId =
-          locality['areaId']?.toString() ?? '';
-
-      await _requireActiveCountry(countryId);
-
-      await _requireActiveState(stateId, countryId);
-
-      await _requireActiveCity(cityId, stateId);
-
-      await _requireActiveArea(areaId, cityId);
-    }
-
-    // No locality polygon requirement.
-    await _localities.doc(id).update({
-      'isServiceActive': isActive,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
   }
 
   // ==========================================================
