@@ -19,6 +19,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -1071,6 +1072,7 @@ class _ServiceLocationScreenState
     LocationCsvPreview? preview;
     List<String> mappingReport = [];
     bool checkingParents = false;
+    String sourceName = 'Pasted CSV';
 
     String normalizeLocationName(String value) =>
         value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
@@ -1197,6 +1199,7 @@ class _ServiceLocationScreenState
         final contents = utf8.decode(bytes, allowMalformed: false);
         controller.text = contents;
         setDialogState(() {
+          sourceName = file.name;
           preview = parser.parse(contents);
         });
       } catch (error) {
@@ -1235,6 +1238,13 @@ class _ServiceLocationScreenState
                   const SizedBox(height: 8),
                   TextField(
                     controller: controller,
+                    onChanged: (_) {
+                      setDialogState(() {
+                        sourceName = 'Pasted CSV';
+                        preview = null;
+                        mappingReport = [];
+                      });
+                    },
                     minLines: 6,
                     maxLines: 12,
                     keyboardType: TextInputType.multiline,
@@ -1247,6 +1257,11 @@ class _ServiceLocationScreenState
                   ),
                   const SizedBox(height: 12),
                   if (preview != null) ...[
+                    SelectableText('Source: $sourceName'),
+                    SelectableText(
+                      'SHA-256: ${sha256.convert(utf8.encode(controller.text))}',
+                    ),
+                    const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -1362,7 +1377,9 @@ class _ServiceLocationScreenState
             ),
             FilledButton.icon(
               onPressed: () => setDialogState(() {
+                sourceName = 'Pasted CSV';
                 preview = parser.parse(controller.text);
+                mappingReport = [];
               }),
               icon: const Icon(Icons.fact_check_outlined),
               label: const Text('Validate CSV'),
