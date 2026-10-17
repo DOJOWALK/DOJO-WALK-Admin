@@ -451,3 +451,13 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - The GitHub integration does not permit reading the repository Environments endpoint; production Environment required-reviewer settings remain **UNVERIFIED**.
 - Release gate: before merge/deployment, an authorized repository admin should manually inspect Settings → Rules/Branches and Settings → Environments → production for both repositories. Ensure main has suitable required reviews/status checks and the production Environment requires an authorized reviewer. Do not treat the `environment: production` workflow declaration alone as proof of an approval gate.
 - Both PRs remain Draft/open/unmerged. No workflow was dispatched; no merge, deployment, activation, or location import occurred.
+
+
+### Step 149 — release readiness checklist (2026-10-17)
+- Refreshed PR metadata: Admin PR #7 is open/Draft/unmerged at head `2d5717750deccdd976f9b666a3abd4e5d2b458d6`; Firebase PR #1 is open/Draft/unmerged at head `80b9df5602d85fbbeb063071711743d7dfb37b6c`.
+- Latest Admin-head CI: Geometry Tests run #80 and Admin Web Build Check (No Deploy) run #51 both completed successfully.
+- Firebase-head CI remains successful for Firestore Security Rules run #144 and Trusted Location Geometry/Callable Tests run #134.
+- Code/test gate: **PASS for the currently reported checks**. Governance gate: **BLOCKED / UNVERIFIED** until a repository admin verifies main-branch review/status-check protections and production Environment required reviewers directly in GitHub settings.
+- Deployment gate: **NOT AUTHORIZED**. No PR converted to ready, no merge, no workflow dispatch, no production deployment, and no service location activation/import occurred.
+- Safe rollout order remains: (1) verify GitHub protections manually, (2) merge Firebase PR only after explicit user approval, (3) manually dispatch trusted callable deployment only with explicit authorization and smoke-test it, (4) merge Admin PR only after explicit approval, (5) deploy Firestore Rules separately only after compatibility review and explicit authorization, then run customer/partner/admin regression checks.
+- Release decision: hold both Draft PRs. The user has not approved merge or deployment.
