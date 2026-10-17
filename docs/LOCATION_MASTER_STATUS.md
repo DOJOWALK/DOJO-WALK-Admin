@@ -9,7 +9,8 @@ Date: 2026-10-17
 - [x] Admin service routes Locality activation/deactivation through the callable; Locality saves preserve existing status and new records start inactive.
 - [x] Firebase callable/geometry CI passed: [39026189293](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026189293).
 - [x] Firebase Rules Emulator CI passed: [39026189233](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026189233).
-- [ ] Admin Flutter CI [39026222473](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39026222473) is pending on commit `84329b78dd682b0b16e55e36b9c4d9a0f189d920`; Step 91 final validation remains pending.
+- [x] Admin analysis passed in run [39026222473](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39026222473), but two unit tests still expected client-side Locality checks and failed after the intentional backend-delegation change.
+- [ ] Admin Flutter CI rerun [39026320960](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39026320960) is in progress after updating those tests; Step 91 final validation remains pending.
 - [!] No production deployment, production Firestore write, or live location activation was performed.
 - [!] Official LGD row-level reconciliation and authoritative contiguous polygon verification remain release gates.
 - [x] Details: [Step 91 report](LOCATION_MASTER_STEP_91_LOCALITY_STATUS_HARDENING.md).
