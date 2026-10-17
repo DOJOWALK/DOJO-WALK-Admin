@@ -49,3 +49,13 @@ A targeted fix was committed on the same Firebase review branch:
 - Added a guard so ordinary owner draft updates require `resource.data.applicationSubmitted == false`. The dedicated first-submission transition remains separately guarded.
 - No production deployment or merge occurred.
 - CI for the fix must be rechecked; do not mark this resolved until the rerun confirms the emulator suite passes.
+
+
+## Final CI verification — PASS
+
+Rechecked on 2026-10-18:
+- Firestore Rules Emulator workflow run `39069565571`: **success**. The `Run Firestore Emulator tests` step completed successfully after the ordinary owner-update rule was guarded against post-submission edits.
+- Trusted Location Geometry and Callable workflow run `39069565556`: **success**; build, geometry and callable integration tests passed.
+- Workflow YAML validation: **success**.
+
+The Step 138 test/fix is now CI-verified on the Firebase review branch. This does not mean production Rules are deployed or verified. Draft PR #5 remains unmerged; no production deployment or data changes occurred.
