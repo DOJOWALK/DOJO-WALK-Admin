@@ -909,7 +909,6 @@ class _ServiceLocationScreenState
 
         for (final row in currentPreview.rows) {
           final stateName = row.values['state'] ?? '';
-          final districtName = row.values['district'] ?? '';
           final cityName = row.values['city'] ?? '';
           final areaName = row.values['area'] ?? '';
 
@@ -1470,7 +1469,7 @@ class _ServiceLocationScreenState
 
                         if (!isVerified) ...[
                           DropdownButtonFormField<BoundarySourceType>(
-                            value: sourceType,
+                            initialValue: sourceType,
                             decoration: const InputDecoration(
                               labelText: 'Boundary source type',
                               border: OutlineInputBorder(),
