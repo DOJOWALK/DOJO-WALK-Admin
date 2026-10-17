@@ -167,7 +167,23 @@ void main() {
       'Locality can activate without its own polygon when its parent Area is active',
       () async {
         final firestore = FakeFirebaseFirestore();
-        final service = ServiceLocationService(firestore: firestore);
+        var delegated = false;
+        final service = ServiceLocationService(
+          firestore: firestore,
+          changeLocationStatus: ({
+            required String locationType,
+            required String locationId,
+            required bool isActive,
+          }) async {
+            delegated = true;
+            expect(locationType, 'locality');
+            expect(locationId, startsWith('locality-'));
+            expect(isActive, isTrue);
+            await firestore.collection('service_localities').doc(locationId).update({
+              'isServiceActive': isActive,
+            });
+          },
+        );
         final suffix = DateTime.now().microsecondsSinceEpoch.toString();
         await seedParents(firestore, suffix: suffix, cityActive: true);
         await firestore.collection('service_areas').doc('area-$suffix').set({
@@ -194,6 +210,7 @@ void main() {
         final snapshot = await firestore.collection('service_localities')
             .doc('locality-$suffix').get();
         expect(snapshot.data()?['isServiceActive'], isTrue);
+        expect(delegated, isTrue, reason: 'Locality status must delegate to the trusted backend.');
       },
     );
 
@@ -201,7 +218,16 @@ void main() {
       'Locality activation is rejected when parent Area is inactive',
       () async {
         final firestore = FakeFirebaseFirestore();
-        final service = ServiceLocationService(firestore: firestore);
+        final service = ServiceLocationService(
+          firestore: firestore,
+          changeLocationStatus: ({
+            required String locationType,
+            required String locationId,
+            required bool isActive,
+          }) async {
+            throw StateError('Backend rejected Locality activation because parent Area is inactive.');
+          },
+        );
         final suffix = DateTime.now().microsecondsSinceEpoch.toString();
         await seedParents(firestore, suffix: suffix, cityActive: true);
         await firestore.collection('service_areas').doc('area-$suffix').set({
