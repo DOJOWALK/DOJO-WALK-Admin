@@ -404,3 +404,13 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - No unsafe branch/project/confirmation bypass was found in the source of the two Firebase deploy workflows. This does not prove account-level protections, secrets, IAM, or live deployment behavior are configured correctly.
 - **Step 143 outcome: FIREBASE DEPLOY WORKFLOW SOURCE GATES LOOK CONSISTENT; ADMIN LIVE AUTO-DEPLOY + UNVERIFIED REPOSITORY PROTECTIONS REMAIN RELEASE BLOCKERS.**
 - No code/workflow was changed in Step 143; no tests were rerun; no PR was merged and no deployment or production data change occurred.
+
+
+### Step 144 — Admin live Hosting deployment gate hardened (2026-10-17)
+- Updated `.github/workflows/build_web.yml` on the draft PR branch to remove automatic `push: main` deployments. Live Hosting deployment is now `workflow_dispatch` only.
+- The deployment job requires branch `refs/heads/main`, exact confirmation `DEPLOY_DOJO_ADMIN_LIVE`, and exact target project `dojo-platform-b68a3`; it declares the `production` Environment, read-only repository contents permission, a non-cancelling concurrency group, a 25-minute timeout, and explicitly checks out `main`.
+- Deployment still targets Firebase Hosting `live` and still uses the existing `FIREBASE_SERVICE_ACCOUNT_DOJO_PLATFORM_B68A3` secret. No deployment was triggered. Actual Environment reviewer enforcement remains unverified due to prior GitHub API 403.
+- Verified the workflow content after commit. Admin PR #7 remains open, draft, and unmerged; its head is now `fb035904ad3f10ee96daa5c0d58aa4e6146a5f17`.
+- Validation limitation: this change has source-level verification only at this point; the updated workflow has not yet had a new Actions run or a real dispatch test. Do not dispatch the workflow as a test because that could deploy to live production.
+- **Step 144 outcome: AUTO-DEPLOY REMOVED FROM PR BRANCH; MANUAL PROJECT/CONFIRMATION/MAIN GATES ADDED. CI VALIDATION PENDING.**
+- No production deployment, Rules deployment, location activation/import, or PR merge occurred.
