@@ -539,3 +539,12 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Safety boundary unchanged: selecting a file does not write Firestore data, create import-history records, resolve parent IDs, or activate locations. Parent mapping and explicit confirmation remain future steps.
 - Validation: pending fresh CI after the dependency and UI commits. Do not call the new file-picker code PASS until the updated workflow and Admin Web Build Check complete successfully.
 - Admin PR #7 remains Draft/open/unmerged. No merge, deployment, import, or activation occurred.
+
+### Step 159 — read-only existing-parent mapping check (2026-10-17)
+- Added a **Check Existing Parent Mapping** action to the CSV preview dialog. It reads current Service Location states, cities and areas and checks exact normalized name matches along the parent chain: State → City (under that State) → Area (under that City).
+- Reports missing or ambiguous state/city/area matches by CSV line and displays the count of rows whose current State/City/Area parent chain matches.
+- **Important schema mismatch surfaced:** CSV requires a separate District column, but the current Firestore hierarchy is Country → State → City/District → Area; there is no separate District collection/entity. The dialog now explicitly warns that District-to-City mapping must be reviewed before import. A name match is not treated as authorization to import.
+- This is read-only. It does not create records, write import history, persist parent IDs, activate service locations, or import rows. Explicit mapping policy and a confirmed import flow remain pending.
+- Code commit: `c1202afd969f505ddce8cb0419296e9684479e93`.
+- Step 158 fresh validation completed successfully before this change: Geometry/CSV CI run `39047198738` PASS; Admin Web Build Check (No Deploy) run `39047198713` PASS. Step 159 changes require their own fresh CI runs; do not claim this new code passes until those runs finish.
+- Admin PR #7 remains Draft/open/unmerged. No merge, deployment, production import, or activation occurred.
