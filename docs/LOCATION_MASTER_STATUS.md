@@ -174,3 +174,11 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Run: https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39037970687
 - Security audit note: `ServiceLocationBoundaryService` checks that a user is signed in, but its client code alone does not establish that the user has reviewer/admin privileges. Firestore Rules must enforce role-based authorization and protect verified records against direct writes; rules were not verified in this Admin repository. Treat backend/rules authorization as **PENDING**, not passed.
 - Step 120 targeted validation: **PASS**. Merge/production readiness: **PENDING** until trusted Firestore Rules/backend enforcement and broader release review are verified.
+
+
+### Step 121 — Firestore Rules cross-repository review (2026-10-17)
+- Located the active-looking rules source in `dojoplatform2026/DOJO-WALK-Firebase/firestore.rules` (Firebase config points to `firestore.rules`). This is a source review only; deployed Firebase rules were not queried or verified.
+- The rules define `isAdmin()` as an active `admin_users/{uid}` document with role `super_admin`; service-location collections and boundary create/update operations are gated by `isAdmin()`. Verified boundary records cannot be deleted, and verification changes are restricted to pending records with field invariants.
+- Gap found: rules validate that boundary `points` is a list with 3–10,000 entries and source metadata, but do not validate coordinate ranges, distinct vertices, self-intersection, or City/Area polygon containment. Thus authorized direct Firestore writes can bypass the new Dart polygon checks and still submit geometrically invalid points for review/verification if other rule conditions pass. Activation rules validate verified-boundary linkage and active parent City but not polygon containment.
+- Recommendation: add a trusted server-side boundary validation/verification path (or other enforceable policy) and test rule behavior in the Firebase Emulator before production. Do not assume a Cloud Function/backend currently exists; none was confirmed in this audit.
+- Step 121: **AUDIT FINDING RECORDED**. Production safety remains **PENDING**; no deployed rules changed, no production data imported/activated, PR remains unmerged.
