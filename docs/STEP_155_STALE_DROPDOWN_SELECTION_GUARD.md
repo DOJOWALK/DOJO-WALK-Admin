@@ -30,12 +30,12 @@ The selection-state test file now contains eight tests.
 
 ## CI for Step 155
 
-New Admin Web Build Check runs were triggered for the helper, tests, and dialog wiring. At the time of this report, they were still in progress:
+The three Admin Web Build Check runs have now all completed successfully:
 - Helper: https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39071837290
 - Tests: https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39071839272
 - Dialog wiring: https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39071856637
 
-These new changes are not yet confirmed CI-passing.
+The final dialog-wiring run completed all stages successfully: dependency installation, full `flutter analyze`, full `flutter test`, and Flutter Web release build.
 
 ## Scope and safety
 
