@@ -255,3 +255,23 @@ class ServiceLocationBoundary {
     return errors.toSet().toList(growable: false);
   }
 }
+
+/// Selects the boundary record that should open first in the Admin manager.
+///
+/// Pending replacements must be reachable for review even when an older
+/// verified boundary remains attached to the same location.
+ServiceLocationBoundary? selectBoundaryForManagement(
+  Iterable<ServiceLocationBoundary> boundaries,
+) {
+  final items = boundaries.toList(growable: false);
+  for (final status in const [
+    BoundaryVerificationStatus.pending,
+    BoundaryVerificationStatus.rejected,
+    BoundaryVerificationStatus.verified,
+  ]) {
+    for (final boundary in items) {
+      if (boundary.verificationStatus == status) return boundary;
+    }
+  }
+  return items.isEmpty ? null : items.first;
+}
