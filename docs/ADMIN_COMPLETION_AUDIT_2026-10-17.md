@@ -44,6 +44,30 @@ Add/execute read-only contract tests and Firebase Emulator tests for:
 
 No production Rules or Functions deployment is part of this step.
 
+## Admin completion progress — Step 128 (2026-10-18)
+
+### Partner and Customer compatibility audit
+
+Added [`docs/STEP_128_PARTNER_CUSTOMER_LOCATION_COMPATIBILITY_AUDIT.md`](STEP_128_PARTNER_CUSTOMER_LOCATION_COMPATIBILITY_AUDIT.md) in commit `3dd9ceb953adc022d83ebc7134cf8a91397e2084`.
+
+Read-only findings:
+- Partner onboarding reads active legacy `zones`, derives dropdowns from city/area text, and stores legacy zone document IDs in `walkers/{uid}.zones`.
+- Partner Rules ordinary owner-update allowlist includes `city`, `area`, and `zones`, but not every field Work Location updates on an existing draft (including `state`, `zoneName`, `zoneNames`, `travelMode`). This is a source-level risk that needs an Emulator reproduction; production behavior is not asserted.
+- Customer saved addresses and booking confirmation use free-text address fields/snapshots; no authoritative Service City/Area ID is established by the inspected address model.
+- Historical zones, saved addresses and bookings must be preserved; a reviewed explicit zone-ID mapping is required before any adapter/migration.
+
+### Step 128 status
+
+- [x] Partner legacy zone reads and walker zone-ID writes documented.
+- [x] Rules allowlist compatibility risk recorded.
+- [x] Customer free-text address and booking snapshot behavior documented.
+- [ ] Verify exact Partner existing-draft update with Emulator tests and deployed Rules.
+- [ ] Approve shared schema and legacy zone mapping.
+- [ ] Implement cross-app adapter and tests.
+- [ ] Integrated CI and release review.
+
+No application code, Firestore data, Rules, production configuration, import, activation, deployment or merge was changed.
+
 ## Admin completion progress — Step 127 (2026-10-18)
 
 ### Firebase Rules / trusted callable impact audit
