@@ -1,11 +1,11 @@
 # DOJO WALK Location Master — Step 101
-## Malformed Snapshot Metadata List Hardening — CI Pending
+## Malformed Snapshot Metadata List Hardening — PASS
 Date: 2026-10-17
 
 - [x] Fixed a false-completeness risk: non-array `collectionsIncluded` or `completeCollections` values are now marked malformed rather than silently converted into empty arrays.
 - [x] Added regression tests for object/string collection-list values.
 - [x] Step 100 CI confirmed PASS: [Rules 39028867035](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028867035), [callable/geometry 39028867024](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028867024).
-- [ ] Step 101 CI pending for commits `3b68cca15cf56699f5405ff92f3c67d660836109` and `b8b0918abfac44b232478165702287b24bdb84eb`.
+- [x] Step 101 Rules CI [39029040141](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029040141) — PASS; callable/geometry CI [39029039892](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029039892) — PASS.
 - [x] Saved [Step 101 report](LOCATION_MASTER_STEP_101_MALFORMED_SNAPSHOT_METADATA.md).
 - [!] No production export/live scan, write, import, activation, or deployment. Snapshot metadata declarations cannot prove export authenticity/completeness.
 - [!] Official current LGD row-level reconciliation and authoritative polygon validity/containment remain release gates.
