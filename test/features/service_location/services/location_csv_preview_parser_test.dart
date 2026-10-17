@@ -140,8 +140,8 @@ void main() {
 
     test('handles UTF-8 BOM and Windows CRLF while preserving source codes', () {
       final result = parser.parse(
-        '\uFEFFState,District,City,Area,State LGD Code\\r\\n'
-        'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City,00123\\r\\n',
+        '\uFEFFState,District,City,Area,State LGD Code\r\n'
+        'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City,00123\r\n',
       );
 
       expect(result.fileErrors, isEmpty);
