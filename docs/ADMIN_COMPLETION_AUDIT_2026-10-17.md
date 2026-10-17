@@ -44,6 +44,31 @@ Add/execute read-only contract tests and Firebase Emulator tests for:
 
 No production Rules or Functions deployment is part of this step.
 
+## Admin completion progress — Step 127 (2026-10-18)
+
+### Firebase Rules / trusted callable impact audit
+
+Added [`docs/STEP_127_FIREBASE_RULES_CALLABLE_IMPACT_AUDIT.md`](STEP_127_FIREBASE_RULES_CALLABLE_IMPACT_AUDIT.md) in commit `f2fd1c96c7c1612628af0a2a398e2756cfce05f2`.
+
+Read-only review of the Firebase branch identified:
+- strict Rules allowlists currently do not include the proposed State LGD code, City `districtId`, or new District collection;
+- City and Area ancestry helpers enforce the existing Country/State/City shape;
+- trusted activation and status callables assume Country → State → City → Area → Locality;
+- District support must be implemented together in Rules, trusted Functions, descendant/deactivation guards and Emulator tests;
+- legacy Cities without `districtId` must remain readable without guessed mapping.
+
+No Firebase code or deployed configuration was changed.
+
+### Step 127 status
+
+- [x] Rules allowlist impact documented.
+- [x] Trusted callable and hierarchy assumptions documented.
+- [x] Legacy compatibility and Emulator test matrix recorded.
+- [ ] Schema decisions approved.
+- [ ] Coordinated Admin/Firebase implementation.
+- [ ] Partner/Customer compatibility tests.
+- [ ] Full CI and release review.
+
 ## Admin completion progress — Step 126 (2026-10-18)
 
 ### Schema compatibility matrix added
