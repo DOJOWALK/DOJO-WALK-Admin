@@ -94,3 +94,10 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - **Status: DRAFT / NOT RUN / NOT INTEGRATED.** Tests and Flutter Web build have not been run in this environment. The helper is not yet called by the activation service and is not sufficient to claim complete GIS topology validation; additional concave-polygon/edge-case review is required before production use.
 - Do not merge or deploy until tests pass, geometry edge cases are reviewed, and the trusted activation path is wired to compare Area boundaries against the verified parent City boundary.
 
+### Step 119 — focused CI added (2026-10-17)
+- Added `.github/workflows/service-location-geometry-tests.yml` on the review branch.
+- Workflow runs Flutter dependency setup, formatting check, and the focused geometry unit-test file on matching pushes/PRs.
+- Workflow file commit: `83be0ea755ca4dd9e0b5347e2c0fc32bc18263cf`.
+- CI outcome: **NOT VERIFIED YET**. The presence of a workflow file is not evidence that the run started or passed. No passing run URL has been confirmed.
+- Geometry helper remains unintegrated into City/Area activation. Do not merge/deploy or mark Step 119 PASS until the workflow succeeds and parent/child boundary validation is integrated and reviewed.
+
