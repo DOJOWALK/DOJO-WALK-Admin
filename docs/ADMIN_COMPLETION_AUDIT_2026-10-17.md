@@ -12,6 +12,8 @@ India reference-data PR: [#6 — Restore India location reference data](https://
 
 ## Work completed on the review branch
 
+- Follow-up safety clarification (2026-10-18): the CSV preview now shows an orange, explicit blocking notice that syntax validation is **not** import approval. It states that the screen performs no location writes, the current hierarchy lacks a separate District level, and a trusted transactional importer is not implemented.
+
 - Restored the exact India reference-data blobs from PR #6 into the review branch:
   - `india_states.dart`
   - `india_districts.dart`
