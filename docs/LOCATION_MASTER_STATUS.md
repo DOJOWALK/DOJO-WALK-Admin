@@ -1,11 +1,12 @@
 # DOJO WALK Location Master — Step 111
-## Verified-Boundary Timestamp Type Validation — CI Pending
+## Verified-Boundary Timestamp Type Validation — PASS
 Date: 2026-10-17
 
 - [x] City/Area activation now rejects malformed `verifiedAt` values; valid Date/Firestore Timestamp-like values are accepted.
 - [x] Added emulator regression test proving a string timestamp is rejected and the City stays inactive.
 - [x] Implementation `64cee68cb982d17dcbb56989b1350f6fce838922`; test `8d911cab611060f62abaf68414ac7091d980574e`; Firebase audit documentation `9a88be252a89dc4d25f481a74869d5ee87218f77`.
-- [ ] Rules and Callable/Geometry CI pending verification.
+- [x] Firestore Rules CI PASS: [39032065551](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39032065551).
+- [x] Callable/Geometry CI PASS: [39032065414](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39032065414).
 - [!] Metadata type validation is not source authenticity. No production export/live scan, write, import, activation or deployment. Official LGD reconciliation and authoritative polygon verification remain release gates.
 
 Next: verify Step 111 CI, then continue the callable integrity review.
