@@ -443,3 +443,11 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - CI checks previously verified on the reviewed heads are passing (Admin build + geometry; Firebase Rules + trusted Functions). These checks are not a substitute for a real production deployment test.
 - **Pre-merge status: CODE/WORKFLOW REVIEWED; DO NOT MERGE OR DEPLOY YET.** Production Environment reviewer settings and branch protection remain unverified because the GitHub integration returned 403. The user has not approved either merge or any deployment.
 - No files outside the Admin PR branch status log/workflow were changed in this step; no production action occurred.
+
+
+### Step 148 — repository protection verification (2026-10-17)
+- Queried GitHub branch protection for `main` in both Admin and Firebase repositories; both endpoints returned HTTP 403 `Resource not accessible by integration`. Therefore required reviews/status checks cannot be verified through the connected integration.
+- Queried repository rulesets for both repositories; both returned an empty list (`[]`) to this integration. This does not establish whether branch protection exists through another mechanism, so protection status remains **UNVERIFIED**.
+- The GitHub integration does not permit reading the repository Environments endpoint; production Environment required-reviewer settings remain **UNVERIFIED**.
+- Release gate: before merge/deployment, an authorized repository admin should manually inspect Settings → Rules/Branches and Settings → Environments → production for both repositories. Ensure main has suitable required reviews/status checks and the production Environment requires an authorized reviewer. Do not treat the `environment: production` workflow declaration alone as proof of an approval gate.
+- Both PRs remain Draft/open/unmerged. No workflow was dispatched; no merge, deployment, activation, or location import occurred.
