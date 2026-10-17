@@ -91,6 +91,22 @@ void main() {
       expect(result.isSyntacticallyValid, isTrue);
     });
 
+    test('preserves optional source codes and version columns in read-only preview', () {
+      final result = parser.parse(
+        'State,District,City,Area,State LGD Code,District LGD Code,Source Version\\n'
+        'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City,09,0123,LGD-2026-10',
+      );
+
+      expect(result.isSyntacticallyValid, isTrue);
+      final row = result.rows.single;
+      // Existing callers still receive exactly the four location-name fields.
+      expect(row.values.keys.toSet(), {'state', 'district', 'city', 'area'});
+      // Extra source columns survive as strings, including leading zeroes.
+      expect(row.sourceValues['State LGD Code'], '09');
+      expect(row.sourceValues['District LGD Code'], '0123');
+      expect(row.sourceValues['Source Version'], 'LGD-2026-10');
+    });
+
     test('rejects empty and malformed CSV input', () {
       expect(parser.parse('  ').fileErrors, contains('CSV file is empty.'));
       expect(
