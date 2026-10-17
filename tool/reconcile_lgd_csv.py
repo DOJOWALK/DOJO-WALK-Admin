@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Compare an existing LGD CSV snapshot with a freshly downloaded official CSV.
 
-This tool deliberately does not guess column names. Pass the exact header names
-from each CSV with --key and --compare, so code/parent fields are compared
-explicitly. Files are read as UTF-8 (BOM accepted); values are trimmed but
-otherwise preserved. It writes a JSON report and exits non-zero on duplicate
-keys or any record differences.
+Pass exact header names with --key and --compare. CSV is read as UTF-8 (BOM
+accepted); values are trimmed but otherwise preserved. Duplicate headers,
+missing required columns, empty keys, duplicate keys, and rows with extra
+unmapped fields are rejected rather than silently ignored.
 """
 from __future__ import annotations
 
@@ -23,11 +22,17 @@ def read_csv(path: str, key_column: str, compare_columns: list[str]) -> dict[str
         reader = csv.DictReader(handle)
         if not reader.fieldnames:
             raise ValueError(f"{path}: CSV has no header")
+        if any(not name or not name.strip() for name in reader.fieldnames):
+            raise ValueError(f"{path}: CSV contains a blank header name")
+        if len(set(reader.fieldnames)) != len(reader.fieldnames):
+            raise ValueError(f"{path}: CSV contains duplicate header names")
         required = [key_column, *compare_columns]
         missing = [column for column in required if column not in reader.fieldnames]
         if missing:
             raise ValueError(f"{path}: missing column(s): {', '.join(missing)}")
         for line_number, raw in enumerate(reader, start=2):
+            if None in raw:
+                raise ValueError(f"{path}:{line_number}: row has extra field(s) beyond the header")
             row = {str(k): (v or "").strip() for k, v in raw.items() if k is not None}
             key = row.get(key_column, "")
             if not key:
