@@ -773,9 +773,16 @@ class ServiceLocationService {
       'Country',
     );
 
-    final id = state.id.trim().isEmpty
-        ? _states.doc().id
-        : state.id.trim();
+    final oldId = state.id.trim();
+    final id = oldId.isEmpty ? _states.doc().id : oldId;
+
+    if (oldId.isNotEmpty) {
+      final existing = await _states.doc(id).get();
+      if (existing.exists &&
+          existing.data()?['countryId']?.toString() != countryId) {
+        throw StateError('A State parent cannot be changed after creation. Create a new State under the correct Country.');
+      }
+    }
 
     await _saveUniqueNamedDocument(
       collection: _states,
