@@ -8,12 +8,13 @@ India reference-data PR: [#6 — Restore India location reference data](https://
 
 ## Latest verification refresh — 2026-10-18
 
-- Latest full CI-verified code head: `e1fde3a478d587e22238a2c2c06f1762084355e1`.
-- Follow-up code change on 2026-10-18: commit `9fc4a819398067eae26483d34e33b86ae2a92d04` clears stale parent-mapping results when a different CSV is selected, a file read fails, or the preview is cleared. CI for this follow-up commit is **pending/not yet returned**; do not treat the previous green CI as validation of this newest code change.
-- Admin Web Build Check (No Deploy), run [39056623516](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39056623516): **SUCCESS** — dependency install, full-project `flutter analyze`, full `flutter test`, and `flutter build web --release` all passed. No deployment was performed.
-- Service Location Geometry Tests, run [39056623398](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39056623398): **SUCCESS** — formatting, whitespace, focused analysis, geometry/parser tests, and reference-data integrity checks passed.
+- Latest previously full-CI-verified code head: `e1fde3a478d587e22238a2c2c06f1762084355e1`.
+- New parser hardening on the review branch: duplicate CSV row keys now use length-prefixed normalized fields instead of a literal pipe delimiter. This prevents false duplicate detection when a valid location name itself contains `|`. Added a regression test with two distinct parent paths. Commits: `6cc3eed86c83c9520b0b2763a95b799550633b37` (parser) and `58477adf2da937964985020dbd2bda0b407725aa` (test).
+- CI for the parser hardening and regression test has **not yet been confirmed**. Do not treat the earlier green checks as validation of these new commits.
+- Admin Web Build Check (No Deploy), run [39056623516](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39056623516): **SUCCESS** at the previously verified head — dependency install, full-project `flutter analyze`, full `flutter test`, and `flutter build web --release` all passed. No deployment was performed.
+- Service Location Geometry Tests, run [39056623398](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39056623398): **SUCCESS** at the previously verified head — formatting, whitespace, focused analysis, geometry/parser tests, and reference-data integrity checks passed.
 - PR #7 remains Draft/open/unmerged. Firebase companion PR #1 remains Draft/open/unmerged.
-- Next safe task: run/confirm CI on the latest CSV-preview UX fix, then continue read-only validation coverage without introducing Firestore writes or guessing the District/City schema. Full transactional import remains blocked on the schema decision and trusted backend support.
+- Next safe task: verify CI on the new parser/test commits, then continue read-only validation coverage without introducing Firestore writes or guessing the District/City schema. Full transactional import remains blocked on the schema decision and trusted backend support.
 
 ## Current decision
 
