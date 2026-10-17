@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 
 import '../models/service_location_models.dart';
+import 'service_location_geometry.dart';
 
 /// ===========================================================
 /// DOJO WALK ADMIN
@@ -597,6 +598,36 @@ class ServiceLocationService {
     return boundaryId;
   }
 
+  Future<List<GeoPoint>> _requireVerifiedBoundaryPoints({
+    required String boundaryId,
+    required String locationId,
+    required String locationType,
+  }) async {
+    final id = _required(boundaryId, 'Verified boundary ID');
+    final snapshot = await _boundaries.doc(id).get();
+
+    if (!snapshot.exists) {
+      throw StateError('The verified $locationType boundary was not found.');
+    }
+
+    final data = snapshot.data()!;
+    if (data['locationId']?.toString() != locationId ||
+        data['locationType']?.toString().toLowerCase() !=
+            locationType.toLowerCase() ||
+        data['verificationStatus'] != 'verified') {
+      throw StateError(
+        'The selected boundary is not verified for this $locationType.',
+      );
+    }
+
+    final points = _readPoints(data['points']);
+    if (!_hasValidPolygon(points)) {
+      throw StateError('The verified $locationType boundary polygon is invalid.');
+    }
+
+    return points;
+  }
+
   // ==========================================================
   // COUNTRIES
   // ==========================================================
@@ -1061,6 +1092,28 @@ class ServiceLocationService {
         locationId: id,
         locationType: 'area',
       );
+
+      final cityBoundaryId =
+          city['verifiedBoundaryId']?.toString().trim() ?? '';
+      final cityBoundaryPoints = await _requireVerifiedBoundaryPoints(
+        boundaryId: cityBoundaryId,
+        locationId: cityId,
+        locationType: 'city',
+      );
+      final areaBoundaryPoints = await _requireVerifiedBoundaryPoints(
+        boundaryId: verifiedBoundaryId,
+        locationId: id,
+        locationType: 'area',
+      );
+
+      if (!ServiceLocationGeometry.isPolygonContained(
+        parent: cityBoundaryPoints,
+        child: areaBoundaryPoints,
+      )) {
+        throw StateError(
+          'The Area boundary must be fully inside or on the parent City boundary.',
+        );
+      }
     }
 
     final existingSnapshot = await _areas.doc(id).get();
