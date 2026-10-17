@@ -1,18 +1,17 @@
-## Step 89 — Server-enforced service status changes (CI PENDING)
+## Step 89 — Server-enforced service status changes — CI PASS
 
-- [x] Added `setServiceLocationStatus` callable for Country/State activation and Country/State/City/Area deactivation, with active-admin authorization and descendant checks.
+- [x] Added `setServiceLocationStatus` callable for trusted Country/State/City/Area status transitions with active-admin authorization and active-descendant checks.
 - [x] Restricted Firestore Rules against direct client status flips; Country/State direct creation must start inactive.
-- [x] Updated Admin service to use the callable for status transitions; City/Area activation still uses the verified-boundary callable.
-- [x] Added Rules Emulator tests for direct status-flip attempts and active Country/State creation attempts.
-- [x] Baseline Firebase CI passed: [39025247269](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025247269) and [39025247312](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025247312).
-- [x] Dedicated Rules test run passed: [39025322676](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025322676).
-- [x] Dedicated callable suite passed after fixture correction: [39025447018](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025447018).
-- [x] Added concurrent Country-deactivation vs State-activation regression test; both Firebase workflows passed: [39025527213](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025527213) and [39025527220](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025527220).
-- [x] Removed unused client-side guard helper; subsequent tests revealed old unit tests still expected the removed local guard. Those tests are being migrated to verify callable delegation while backend emulator tests cover the real guard.
-- [ ] Admin Flutter CI after test migration pending: [39025598444](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39025598444).
-- [ ] Add/verify explicit concurrency regression coverage before declaring the Step 88 race fully closed; Admin Flutter analysis/tests/Web build also remain pending.
-- [!] No production deployment, merge, or real service-location activation. This step is implementation-in-progress, not PASS.
+- [x] Updated Admin status transitions to use the callable; City/Area activation still uses the verified-boundary activation callable.
+- [x] Added Firebase Emulator tests for authorization, child guards, ancestor checks, and concurrent Country deactivation vs State activation.
+- [x] Firebase callable/geometry CI passed: [39025527213](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025527213).
+- [x] Firebase Firestore Rules CI passed: [39025527220](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025527220).
+- [x] Admin Flutter analysis, tests, Firestore Emulator smoke test, and Flutter Web release build passed: [39025598444](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39025598444).
+- [!] CI PASS is not deployment or production validation. Current official LGD row-level reconciliation, authoritative contiguous polygon verification, PR review/merge, and deployment approval remain pending.
+- [!] No production deployment, merge, production import, or real service-location activation was performed.
 - [x] Details: [Step 89 report](LOCATION_MASTER_STEP_89_SAFE_DEACTIVATION.md).
+
+Next: Step 90 — audit callable transaction semantics and remaining release gates.
 
 Last updated: 2026-10-17.
 
