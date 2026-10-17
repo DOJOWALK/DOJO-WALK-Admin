@@ -687,3 +687,14 @@ Admin branch commits: `61c4d7e48b94c07efbc3040221662f3c4de99e9d`, `18921352195db
 - [x] Confirmed the Library artifacts declare APIs including `IndiaState/indiaStates/searchIndiaStates`, `IndiaDistrict/indiaDistricts/districtsForState/searchIndiaDistricts`, and `IndiaSubDistrict/indiaSubDistricts/subDistrictsForDistrict/subDistrictsForState/searchSubDistricts`. The separate filter helper expects `filterDistrictsForStateLgdCode` and `filterSubDistrictsForStateAndDistrict`.
 - [ ] Before restoring, complete an import/API compatibility check against every reference to these symbols in the Admin app and tests. Then restore exact Library bytes, preserve leading-zero strings, verify record counts and SHA-256, and run Flutter analyze/test/build CI.
 - [ ] The data remains a saved snapshot, not a newly verified current official LGD export. No Firebase import, merge, deployment, or real service-location activation performed.
+
+
+## Step 58 — `review/lgd_exports` repository audit (IN PROGRESS)
+
+- [x] Checked the folder on repository `main`: `review/lgd_exports/states.csv`, `districts.csv`, and `sub_districts.csv` exist there. The folder is not present on `restore/india-location-reference-data`, so do not assume this branch includes those exports.
+- [x] `states.csv`: 36 data rows, 36 unique state codes and names, 28 marked State and 8 marked Union Territory, no blank required state code/name/type fields. Git blob: `433c0a067bd9c2895dc47e0948d6dab0035e188b`.
+- [x] `districts.csv`: 785 data rows, 785 unique state+district pairs, zero duplicate pairs, 785 distinct district codes, all 36 state codes represented, no blank required state/district/name fields. Git blob: `bf8762566f28ef1f8286dfc9447ef29f0e756ad3`.
+- [!] `sub_districts.csv` is empty (0 bytes/0 rows), despite its filename. It cannot be used as sub-district source data. Git blob: `c85a7c81db1673f5dfcbf4646ed692778441ece2`.
+- [x] The CSV structural checks above are not proof of current official LGD accuracy or provenance. The States file contains a UTF-8 BOM in its first header; preserve/handle it explicitly in parsers. District local-name fields include space-padded values; trim only for comparison/display, not by silently altering the archived raw file.
+- [ ] Next: locate or obtain the actual non-empty sub-district export from an authorized official source, save it unchanged with retrieval date and SHA-256, then run schema, duplicate, parent-reference, code-format, and Library reconciliation checks.
+- [ ] No production import, merge, deployment, or service-location activation performed.
