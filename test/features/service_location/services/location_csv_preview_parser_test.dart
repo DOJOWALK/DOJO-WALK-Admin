@@ -63,6 +63,17 @@ void main() {
       expect(result.isSyntacticallyValid, isFalse);
     });
 
+    test('does not confuse pipe characters across different parent fields', () {
+      final result = parser.parse(
+        'State,District,City,Area\\n'
+        'A|B,C,D,E\\n'
+        'A,B|C,D,E',
+      );
+      expect(result.rows, hasLength(2));
+      expect(result.invalidRowCount, 0);
+      expect(result.rows.every((row) => row.isValid), isTrue);
+    });
+
     test('rejects empty and malformed CSV input', () {
       expect(parser.parse('  ').fileErrors, contains('CSV file is empty.'));
       expect(
