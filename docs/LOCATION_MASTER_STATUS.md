@@ -1,3 +1,21 @@
+# DOJO WALK Location Master — Step 96
+## Offline Audit Input Hardening
+Date: 2026-10-17
+
+- [x] Step 95 Firebase Firestore Rules CI [39027503974](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027503974) — PASS.
+- [x] Step 95 Firebase callable/geometry CI [39027503976](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39027503976) — PASS.
+- [x] Hardened offline audit core to reject a non-object JSON root and null/array document values with a clear collection/document reference instead of an unsafe property-access failure.
+- [x] Added regression tests for malformed root and malformed document values.
+- [ ] CI for Step 96's latest commits has not yet been confirmed. A commit-run lookup did not return PR-triggered workflow runs; this is not a pass. Check the repository Actions page/commit statuses before closing Step 96.
+- [!] No production export or live Firestore scan has been performed. No production writes, import, activation, or deployment.
+- [!] Fresh official LGD row-level reconciliation and authoritative contiguous polygon verification remain release gates.
+
+Next: verify CI for Step 96, then request an explicitly authorized read-only snapshot for the actual-data audit.
+
+Last updated: 2026-10-17.
+
+---
+
 # DOJO WALK Location Master — Step 95
 ## Offline Integrity Audit Input Contract and Safe Snapshot Template
 Date: 2026-10-17
