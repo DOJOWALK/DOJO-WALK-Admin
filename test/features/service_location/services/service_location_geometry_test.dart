@@ -18,6 +18,19 @@ void main() {
       );
     });
 
+    test('rejects consecutive duplicate vertices that create a zero-length edge', () {
+      expect(
+        ServiceLocationGeometry.isValidPolygon([
+          p(0, 0),
+          p(0, 0),
+          p(0, 2),
+          p(2, 2),
+          p(2, 0),
+        ]),
+        isFalse,
+      );
+    });
+
     test('rejects a self-intersecting polygon', () {
       expect(
         ServiceLocationGeometry.isValidPolygon([
