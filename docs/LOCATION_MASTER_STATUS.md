@@ -1,3 +1,16 @@
+## Latest checkpoint — Step 117 PASS (2026-10-17)
+
+- [x] Polygon area calculation now translates coordinates relative to the first vertex before shoelace summation, reducing cancellation for small polygons far from (0, 0).
+- [x] Added a regression test for a small polygon near 28.6139 latitude, 77.2090 longitude.
+- [x] Firebase Rules CI PASS: [39034649437](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39034649437).
+- [x] Firebase Geometry/Callable CI PASS: [39034649439](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39034649439).
+- [x] Detailed report: [Step 117](LOCATION_MASTER_STEP_117_OFFSET_POLYGON_AREA_STABILITY.md).
+- [!] Synthetic automated tests only; authoritative/current LGD reconciliation, real boundary accuracy, production data audit, deployment and activation remain unverified/not performed.
+
+Next: Step 118 — review numerical stability and boundary semantics in area-within-city containment checks.
+
+---
+
 ## Latest checkpoint — Step 115 PASS (2026-10-17)
 
 - [x] Removed fixed coordinate padding from segment bounding checks.
