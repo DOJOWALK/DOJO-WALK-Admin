@@ -1509,9 +1509,19 @@ class _ServiceLocationScreenState
           .where((boundary) => boundary.isVerified)
           .toList();
 
-      // Keep replacement records reachable for review while preserving the
-      // old verified record.
-      final existing = selectBoundaryForManagement(boundaries);
+      // When more than one record exists, let the administrator explicitly
+      // choose which boundary to inspect/edit/review instead of silently
+      // selecting the first record by status.
+      final existing = boundaries.length <= 1
+          ? (boundaries.isEmpty ? null : boundaries.single)
+          : await _chooseBoundaryRecord(
+              locationName: locationName,
+              boundaries: boundaries,
+            );
+
+      // A null result means the chooser was cancelled. For a location with
+      // no records, null is the intentional "create first boundary" state.
+      if (boundaries.length > 1 && existing == null) return;
 
       final initialPoints = existing == null
           ? <LatLng>[]
@@ -1535,6 +1545,88 @@ class _ServiceLocationScreenState
     } catch (error) {
       await _showError(error);
     }
+  }
+
+  Future<ServiceLocationBoundary?> _chooseBoundaryRecord({
+    required String locationName,
+    required List<ServiceLocationBoundary> boundaries,
+  }) {
+    String statusLabel(BoundaryVerificationStatus status) {
+      switch (status) {
+        case BoundaryVerificationStatus.pending:
+          return 'Pending review';
+        case BoundaryVerificationStatus.verified:
+          return 'Verified · read-only';
+        case BoundaryVerificationStatus.rejected:
+          return 'Rejected · can edit/resubmit';
+        case BoundaryVerificationStatus.notAvailable:
+          return 'Status unavailable';
+      }
+    }
+
+    String dateLabel(DateTime value) {
+      final local = value.toLocal();
+      String two(int n) => n.toString().padLeft(2, '0');
+      return '${local.year}-${two(local.month)}-${two(local.day)} '
+          '${two(local.hour)}:${two(local.minute)}';
+    }
+
+    final ordered = boundaries.toList()
+      ..sort((a, b) {
+        final statusOrder = (a.verificationStatus.index)
+            .compareTo(b.verificationStatus.index);
+        if (statusOrder != 0) return statusOrder;
+        return b.updatedAt.compareTo(a.updatedAt);
+      });
+
+    return showDialog<ServiceLocationBoundary>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Choose Boundary · $locationName'),
+        content: SizedBox(
+          width: 620,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'एक रिकॉर्ड चुनें। Verified रिकॉर्ड read-only है; '
+                  'पुराना Verified रिकॉर्ड हटाया या बदला नहीं जाएगा।',
+                ),
+                const SizedBox(height: 10),
+                for (final boundary in ordered)
+                  Card(
+                    child: ListTile(
+                      leading: Icon(
+                        boundary.isVerified
+                            ? Icons.verified_outlined
+                            : boundary.verificationStatus ==
+                                    BoundaryVerificationStatus.rejected
+                                ? Icons.error_outline
+                                : Icons.map_outlined,
+                      ),
+                      title: Text(statusLabel(boundary.verificationStatus)),
+                      subtitle: Text(
+                        'Updated: ${dateLabel(boundary.updatedAt)}\n'
+                        'Source: ${boundary.sourceName.isEmpty ? "Not specified" : boundary.sourceName}\n'
+                        'ID: ${boundary.id}',
+                      ),
+                      isThreeLine: true,
+                      onTap: () => Navigator.of(dialogContext).pop(boundary),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _showBoundaryEditor({
