@@ -317,3 +317,12 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - **Release blocker 3 — Rules workflow hardening:** the existing Rules deploy workflow uses `actions/checkout@v4` and `actions/setup-node@v4`, and it has no explicit GitHub Environment approval gate or confirmation string. Treat it as unsafe for this coordinated rollout until an owner-reviewed deployment guard is in place.
 - CI remains draft-branch evidence only. Admin PR #7 and Firebase PR #1 remain draft/unmerged; production Environment required reviewers remain **UNVERIFIED**. No workflow was dispatched, no PR was merged, no Functions/Rules were deployed, and no location was activated/imported.
 - **Step 133 outcome: BLOCKED — deployment architecture needs changes/review before release.** Next: migrate Admin activation to the trusted callable (or document and prove an approved alternative), define which Functions must deploy, gate Rules deployment behind manual confirmation and production approvals, then test the full ordered rollout and rollback plan on reviewed commits. Do not merge or deploy as part of this step.
+
+
+### Step 134 — Firestore Rules deployment workflow hardened on draft branch (2026-10-17)
+- Updated Firebase feature-branch `.github/workflows/deploy-firestore-rules.yml` in commit `85c85c02b464994a58eee68cfe779b6c83a65674`.
+- Removed automatic `push` deployment trigger. Deployment now requires manual `workflow_dispatch` with exact confirmation `DEPLOY_FIRESTORE_RULES`, target project `dojo-platform-b68a3`, and ref `main`.
+- Added `environment: production`, concurrency protection, Node 22 / Java 21 setup, Firestore Rules Emulator tests before deploy, and deploy command restricted to `firestore:rules`. Workflow uses checkout/setup actions v5.
+- This is a draft-branch code change only. It does **not** prove that GitHub Environment `production` has required reviewers enabled; that remains **UNVERIFIED**. The workflow has not been dispatched and no deployment occurred.
+- Validation status for this latest workflow revision: **PENDING CI** until actionlint and Rules Emulator jobs complete on the current head.
+- The Admin activation-service / backend callable mismatch identified in Step 133 is still open and must be resolved before release. Do not merge either PR or deploy production yet.
