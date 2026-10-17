@@ -123,8 +123,8 @@ void main() {
 
     test('optional source metadata does not bypass duplicate location detection', () {
       final result = parser.parse(
-        'State,District,City,Area,Source Code\\n'
-        'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City,001\\n'
+        'State,District,City,Area,Source Code\n'
+        'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City,001\n'
         'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City,002',
       );
 
