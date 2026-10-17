@@ -52,3 +52,26 @@ Commit: `c572371cfd74a9888a66b2e51e7af1e20c627b62`
 ## Next planned step
 
 Restore the exact three generated Dart files from the Library to `lib/data/reference/india_locations/`, confirm no conflicting names/imports, then run formatting, analysis/tests, and the web build. No production Firebase import or boundary activation is authorized by this status note.
+
+## Boundary precision progress — 2026-10-17
+
+### Step 118 (reported by project operator)
+- Reported result: City/Area containment synthetic tests passed.
+- Reported CI: Geometry & Callable Tests and Firestore Security Rules passed.
+- Evidence limitation: the Step 118 run links and commit SHA were not available during this status update, so these results are recorded as operator-reported, not independently verified here.
+
+### Step 119 — Geographic gap / boundary precision
+- Status: **PENDING — NOT VERIFIED**.
+- Reviewed the current Admin boundary model and boundary service source.
+- The model validates coordinate ranges and requires at least three distinct points, but this alone does not prove polygon containment, gap tolerance, polygon topology, or edge-case behavior.
+- No Step 119 test run or CI result was retrieved during this update.
+- No boundary code was changed as part of this status-only update.
+- Required next checks: locate the existing geometry/containment implementation and tests; add focused synthetic cases for tiny gaps, shared edges, just-outside points, duplicate vertices, and invalid coordinates; run the targeted tests and applicable CI; record run URL and commit SHA.
+
+### Step 120 — planned
+- Do not start or mark Step 120 PASS until Step 119 has reproducible test evidence.
+- After Step 119 passes, test polygon minimum area/degenerate shapes and boundary-edge precision without changing production location data.
+
+### Release safeguards
+- Official LGD source reconciliation, authoritative boundary confirmation, Admin web build verification, and production activation remain pending.
+- No production Firebase import or service-location activation is authorized by these synthetic tests.
