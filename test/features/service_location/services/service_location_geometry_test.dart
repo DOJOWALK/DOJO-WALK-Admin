@@ -31,6 +31,30 @@ void main() {
       );
     });
 
+    test('rejects a polygon whose distinct vertices are all collinear', () {
+      expect(
+        ServiceLocationGeometry.isValidPolygon([
+          p(0, 0),
+          p(0, 1),
+          p(0, 2),
+          p(0, 3),
+        ]),
+        isFalse,
+      );
+    });
+
+    test('rejects a polygon with negligible enclosed area', () {
+      expect(
+        ServiceLocationGeometry.isValidPolygon([
+          p(0, 0),
+          p(0, 0.000001),
+          p(0.000001, 0.000002),
+          p(0.000002, 0.000001),
+        ]),
+        isFalse,
+      );
+    });
+
     test('rejects a self-intersecting polygon', () {
       expect(
         ServiceLocationGeometry.isValidPolygon([
