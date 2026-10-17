@@ -569,3 +569,12 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Four-column service CSV (`State, District, City, Area`) is not interchangeable with the three LGD administrative datasets. No City/service-area polygon dataset was found in `review/lgd_exports/`.
 - Remaining design gate: decide whether to explicitly type District records in the existing City collection or introduce a separate District entity, then audit compatibility across Admin, Customer, Partner, and Firebase before implementing any transformer.
 - No Firestore writes/imports, activation, PR merge, or deployment occurred.
+
+
+### Step 162 — Existing Admin schema compatibility audit (2026-10-17)
+- Reviewed Admin `ServiceState`, `ServiceCity`, `ServiceArea`, and `ServiceLocality` models plus Service Location collection/service definitions.
+- Current City records only identify their State parent; no explicit record level or LGD District source code exists. Area records reference City and likewise have no LGD Sub-District source code.
+- City/Area activation depends on verified DOJO boundary records; LGD names/codes do not provide these service polygons.
+- Decision: block direct LGD District → `service_cities` and Sub-District → `service_areas` import until typed source metadata and downstream compatibility are designed. Structural parent IDs alone are insufficient.
+- Updated `docs/LOCATION_LGD_MAPPING_POLICY.md` with schema findings and a read-only staging recommendation.
+- Cross-repository Customer/Partner/rules compatibility is not yet fully verified; it remains a required audit before implementation. No Firestore writes/imports, activation, PR merge, or deployment occurred.
