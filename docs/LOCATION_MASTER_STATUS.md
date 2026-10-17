@@ -102,4 +102,9 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Geometry helper remains unintegrated into City/Area activation. Do not merge/deploy or mark Step 119 PASS until the workflow succeeds and parent/child boundary validation is integrated and reviewed.
 - Draft review PR opened against `main`: #7 — https://github.com/dojoplatform2026/DOJO-WALK-Admin/pull/7. It is **open, draft, and not merged**.
 - After opening the PR, the workflow-run lookup still returned no run; CI remains **pending/unverified**, not PASS.
+### Step 119 — polygon ring self-intersection guard (2026-10-17)
+- Updated the draft geometry helper to reject self-intersecting polygon rings, including non-adjacent edge crossings/touches.
+- Added two focused tests: self-intersecting child ring and self-intersecting parent ring.
+- Commits: helper `26e7dbb6d40b031ca1bec808deb71180ccbec199`; tests `9f9a3e1c3b8c2339ed6b6712289a229216daf204`.
+- Verification status: source/test files still need CI execution; no passing run has been confirmed. This is a focused guard, not complete GIS validation. Activation integration remains pending.
 
