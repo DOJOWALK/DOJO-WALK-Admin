@@ -109,7 +109,7 @@ void main() {
 
     test('preserves quoted optional source metadata values', () {
       final result = parser.parse(
-        'State,District,City,Area,Source Name,Source Note\\n'
+        'State,District,City,Area,Source Name,Source Note\n'
         'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City,'
         '"LGD, 2026","Source said ""verified""; preview only"',
       );
