@@ -1,3 +1,20 @@
+# DOJO WALK Location Master — Step 102
+## Snapshot Record-Count Metadata Schema — CI Pending
+Date: 2026-10-17
+
+- [x] Auditor now flags non-object/array recordCounts and unknown count-map keys.
+- [x] Added regression tests for a string count map and an unknown collection key.
+- [x] Updated Firebase offline audit documentation for malformedRecordCounts and unknownRecordCountKeys.
+- [ ] Step 102 Rules CI [39029175469](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029175469) and callable/geometry CI [39029175515](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39029175515) — pending.
+- [x] Saved [Step 102 report](LOCATION_MASTER_STEP_102_RECORD_COUNT_METADATA.md).
+- [!] No production export/live scan, write, import, activation, or deployment. Snapshot metadata declarations cannot prove export authenticity/completeness.
+- [!] Official current LGD row-level reconciliation and authoritative polygon validity/containment remain release gates.
+
+Next: verify Step 102 CI; then continue offline snapshot input validation.
+
+Last updated: 2026-10-17.
+---
+
 # DOJO WALK Location Master — Step 101
 ## Malformed Snapshot Metadata List Hardening — PASS
 Date: 2026-10-17
