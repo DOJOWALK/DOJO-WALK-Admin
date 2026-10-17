@@ -27,15 +27,24 @@ typedef ServiceLocationActivation = Future<void> Function({
   required String locationId,
 });
 
+typedef ServiceLocationStatusChange = Future<void> Function({
+  required String locationType,
+  required String locationId,
+  required bool isActive,
+});
+
 class ServiceLocationService {
   final FirebaseFirestore _firestore;
   final ServiceLocationActivation _activateLocation;
+  final ServiceLocationStatusChange _changeLocationStatus;
 
   ServiceLocationService({
     FirebaseFirestore? firestore,
     ServiceLocationActivation? activateLocation,
+    ServiceLocationStatusChange? changeLocationStatus,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _activateLocation = activateLocation ?? _activateWithCloudFunction;
+        _activateLocation = activateLocation ?? _activateWithCloudFunction,
+        _changeLocationStatus = changeLocationStatus ?? _setStatusWithCloudFunction;
 
   static Future<void> _activateWithCloudFunction({
     required String locationType,
@@ -46,6 +55,20 @@ class ServiceLocationService {
         .call({
       'locationType': locationType,
       'locationId': locationId,
+    });
+  }
+
+  static Future<void> _setStatusWithCloudFunction({
+    required String locationType,
+    required String locationId,
+    required bool isActive,
+  }) async {
+    await FirebaseFunctions.instanceFor(region: 'asia-south1')
+        .httpsCallable('setServiceLocationStatus')
+        .call({
+      'locationType': locationType,
+      'locationId': locationId,
+      'isActive': isActive,
     });
   }
 
@@ -668,18 +691,7 @@ class ServiceLocationService {
   }) async {
     final id = _required(countryId, 'Country ID');
 
-    if (!isActive) {
-      await _ensureNoActiveChildren(
-        parentCollection: 'service_countries',
-        parentId: id,
-        label: 'country',
-      );
-    }
-
-    await _countries.doc(id).update({
-      'isActive': isActive,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+    await _changeLocationStatus(locationType: 'country', locationId: id, isActive: isActive);
   }
 
   // ==========================================================
@@ -767,28 +779,7 @@ class ServiceLocationService {
   }) async {
     final id = _required(stateId, 'State ID');
 
-    if (isActive) {
-      final state = await _requireDocument(
-        _states,
-        id,
-        'State',
-      );
-
-      await _requireActiveCountry(
-        state['countryId']?.toString() ?? '',
-      );
-    } else {
-      await _ensureNoActiveChildren(
-        parentCollection: 'service_states',
-        parentId: id,
-        label: 'state',
-      );
-    }
-
-    await _states.doc(id).update({
-      'isActive': isActive,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+    await _changeLocationStatus(locationType: 'state', locationId: id, isActive: isActive);
   }
 
   // ==========================================================
@@ -965,47 +956,7 @@ class ServiceLocationService {
       return;
     }
 
-    final city = await _requireDocument(
-      _cities,
-      id,
-      'City',
-    );
-
-    String? verifiedBoundaryId;
-
-    if (isActive) {
-      final countryId =
-          city['countryId']?.toString() ?? '';
-
-      final stateId =
-          city['stateId']?.toString() ?? '';
-
-      await _requireActiveCountry(countryId);
-
-      await _requireActiveState(stateId, countryId);
-
-      verifiedBoundaryId = await _requireVerifiedBoundary(
-        locationId: id,
-        locationType: 'city',
-      );
-    } else {
-      await _ensureNoActiveChildren(
-        parentCollection: 'service_cities',
-        parentId: id,
-        label: 'city',
-      );
-    }
-
-    final update = <String, dynamic>{
-      'isServiceActive': isActive,
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-
-    if (verifiedBoundaryId != null) {
-      update['verifiedBoundaryId'] = verifiedBoundaryId;
-    }
-
-    await _cities.doc(id).update(update);
+    await _changeLocationStatus(locationType: 'city', locationId: id, isActive: false);
   }
 
   // ==========================================================
@@ -1163,52 +1114,7 @@ class ServiceLocationService {
       return;
     }
 
-    final area = await _requireDocument(
-      _areas,
-      id,
-      'Area',
-    );
-
-    String? verifiedBoundaryId;
-
-    if (isActive) {
-      final countryId =
-          area['countryId']?.toString() ?? '';
-
-      final stateId =
-          area['stateId']?.toString() ?? '';
-
-      final cityId =
-          area['cityId']?.toString() ?? '';
-
-      await _requireActiveCountry(countryId);
-
-      await _requireActiveState(stateId, countryId);
-
-      await _requireActiveCity(cityId, stateId);
-
-      verifiedBoundaryId = await _requireVerifiedBoundary(
-        locationId: id,
-        locationType: 'area',
-      );
-    } else {
-      await _ensureNoActiveChildren(
-        parentCollection: 'service_areas',
-        parentId: id,
-        label: 'area',
-      );
-    }
-
-    final update = <String, dynamic>{
-      'isServiceActive': isActive,
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-
-    if (verifiedBoundaryId != null) {
-      update['verifiedBoundaryId'] = verifiedBoundaryId;
-    }
-
-    await _areas.doc(id).update(update);
+    await _changeLocationStatus(locationType: 'area', locationId: id, isActive: false);
   }
 
   // ==========================================================
