@@ -1,21 +1,26 @@
 # DOJO WALK Location Master — Project Status
 
-Last updated: 2026-10-16
+Last updated: 2026-10-17
 
-## Current status
+> **Current status source:** `docs/ADMIN_COMPLETION_AUDIT_2026-10-17.md`. The long step-by-step entries below are historical work logs; older “pending/absent” notes describe the state at the time they were written and are not the current branch snapshot.
 
-- [x] Previous structural audit recorded in the ChatGPT Library.
-- [x] Boundary dialog metadata omission fixed in commit `c572371cfd74a9888a66b2e51e7af1e20c627b62`.
-- [x] Project file structure documented in `docs/PROJECT_FILE_STRUCTURE.md`.
-- [x] Generated Dart reference files located, record counts verified, and SHA-256 integrity manifest committed at `docs/LOCATION_REFERENCE_CHECKSUMS.md`.
-- [x] Expected repository paths checked; all three generated reference files are still absent.
-- [ ] Restore the exact three generated India reference Dart files into this repository; checksum manifest is ready.
-- [ ] Verify all imports and model/API compatibility after restoring the files.
-- [ ] Run `flutter pub get` and `flutter build web --release`; record the actual CI/build result.
-- [ ] Reconcile reference counts and records against a current official LGD snapshot.
-- [ ] Complete UP/NCR targeted review.
-- [ ] Verify location boundaries and activation rules in the admin UI.
-- [ ] Do not import reference data into production Firebase until the above checks pass.
+## Current status — review branch only
+
+- [x] Admin Service Location screen and hierarchy controls exist.
+- [x] CSV parser/preview validates required State, District, City and Area columns, malformed quoting, duplicate headers/combinations and row widths.
+- [x] India reference Dart files and reference-data integrity tests are present on `step-119-boundary-geometry`; they are not yet on `main`.
+- [x] Focused geometry/parser/reference-data CI passed at commit `8ab91b4e828d6fb276f2000895c8ddb80dcf8a10`.
+- [x] Polygon validator now rejects zero-length edges created by consecutive duplicate vertices.
+- [x] CSV parent-mapping status now explicitly states that District is not validated by the current schema.
+- [x] Add Location parent dropdowns now show loading/error states.
+- [ ] Latest full-project `flutter analyze`, `flutter test` and no-deploy `flutter build web --release` must all pass on the latest branch head.
+- [ ] Complete the safe CSV import design after the District-versus-City schema is resolved across Admin, Firebase Rules/callables and dependent apps.
+- [ ] Reconcile reference data against a fresh official LGD release and verify UP/NCR boundary sources.
+- [ ] Confirm trusted backend deployment and production review settings before production use.
+
+**Merge status:** Admin PR #7 is still Draft/open/unmerged. PR #6 remains open but is non-mergeable; its exact India reference-data blobs have been copied into PR #7's review branch to avoid losing them. Do not merge PR #6 separately without reconciling duplicate files and conflicting edits.
+
+**Production safety:** No production Firebase import, service-location activation, Functions/Rules deployment, Hosting deployment or PR merge has been performed or authorized.
 
 ## Reference data currently in the Library
 
@@ -29,17 +34,17 @@ Folder: `/DOJO WALK Location Master/02_GENERATED_DART/`
 
 These are the previously audited local counts. They are **not** a claim that the records have been reconciled against the latest official LGD export. The source snapshot currently available for sub-districts is dated 2024-10-07, and a fresh official-source reconciliation remains pending.
 
-## Restore and compatibility check
+## Historical restore and compatibility notes — superseded
 
-Integrity manifest: [`docs/LOCATION_REFERENCE_CHECKSUMS.md`](LOCATION_REFERENCE_CHECKSUMS.md). It records measured counts, byte sizes, and SHA-256 hashes for the exact Library files. This makes it possible to verify byte-for-byte restoration.
+Integrity manifest: [`docs/LOCATION_REFERENCE_CHECKSUMS.md`](LOCATION_REFERENCE_CHECKSUMS.md). The notes below describe the earlier audit state before the reference files were restored on the review branch.
 
-The following expected paths were checked on the default branch and were not found:
+At the time of the earlier check, the following paths were absent from the default branch `main`:
 
 - `lib/data/reference/india_locations/india_states.dart`
 - `lib/data/reference/india_locations/india_districts.dart`
 - `lib/data/reference/india_locations/india_sub_districts.dart`
 
-The generated files were materialized from the Library for inspection. Their top-level names are `IndiaState/indiaStates`, `IndiaDistrict/indiaDistricts`, and `IndiaSubDistrict/indiaSubDistricts`. Repository code search did not return usages of those identifiers, so imports and integration still need an explicit check after restoration. No reference file has been committed back to the repository yet.
+The exact files and related filters/integrity test are now present on `step-119-boundary-geometry`; they have not been merged into `main`. Current build/test status must be taken from the latest CI run and the current completion audit, not from the historical entries below.
 
 Do not recreate the 7,151 records by hand or replace them with sample/partial data. Preserve the exact Library files and official codes when restoring.
 
