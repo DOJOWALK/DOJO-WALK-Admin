@@ -126,9 +126,16 @@ class LocationCsvPreviewParser {
           errors.add('Required value missing: ${required.toUpperCase()}.');
         }
       }
+      // Length-prefix each normalized field so a literal "|" inside a
+      // location name cannot make two different parent paths collide.
       final duplicateKey = requiredHeaders
-          .map((header) => mapped[header]!.toLowerCase().replaceAll(RegExp(r'\s+'), ' '))
-          .join('|');
+          .map((header) {
+            final value = mapped[header]!
+                .toLowerCase()
+                .replaceAll(RegExp(r'\s+'), ' ');
+            return '${value.length}:$value';
+          })
+          .join();
       if (!seen.add(duplicateKey)) {
         errors.add('Duplicate State/District/City/Area combination in this file.');
       }
