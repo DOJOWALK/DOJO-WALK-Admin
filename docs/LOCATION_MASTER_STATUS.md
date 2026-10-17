@@ -870,3 +870,22 @@ Last updated: 2026-10-17.
 Next: Step 81 — inspect completed CI results and fix any failures before moving to the next release gate.
 
 Last updated: 2026-10-17.
+
+
+## Step 81 — CI validation and Firebase contract review (2026-10-17)
+
+- [x] Admin validation workflow completed successfully for boundary ID fix/test commit: [run 39019692718](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39019692718).
+- [x] Python LGD CSV reconciliation tests passed in that run.
+- [x] Flutter dependency install and `flutter analyze` passed.
+- [x] `flutter test` passed.
+- [x] Firestore Emulator persistence smoke test passed.
+- [x] Flutter Web release build passed; workflow explicitly does not deploy.
+- [x] Reviewed Firebase branch tests: geometry/callable integration run [38984617358](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38984617358) and Firestore Rules emulator run [38984617638](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38984617638) completed successfully on Firebase feature branch commit `42e2dcc648273e04971ab604be68e84451427d61`.
+- [!] Firebase tests are on a separate draft feature branch and do not mean the backend has been merged or deployed.
+- [ ] Review/merge of both open PRs and deployment approval remain outstanding.
+- [ ] Official current LGD export reconciliation and authoritative contiguous polygon verification remain pending.
+- [ ] No production import, activation, or deployment performed.
+
+Next: Step 82 — audit the end-to-end Admin boundary workflow and Firestore rule compatibility for the new City/Area verifiedBoundaryId transaction, including the screen's save/verify/reload path.
+
+Last updated: 2026-10-17.
