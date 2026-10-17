@@ -836,3 +836,20 @@ Last checked: 2026-10-17.
 Next: Step 63 — request/obtain a human-downloaded official LGD export (or official OGD resource file) and preserve the exact original file, retrieval date, URL, and SHA-256 before any row-level reconciliation.
 
 Last checked: 2026-10-17.
+
+
+## Step 79 — Boundary ID integration audit (2026-10-17)
+
+- [x] Audited Admin boundary save and verification code against the Firebase activation callable contract.
+- [x] Confirmed the screen awaits `saveDraft` without retaining the returned boundary ID.
+- [x] Confirmed the inspected `verifyBoundary` transaction marks the boundary verified but does not visibly bind that boundary ID to the owning City/Area document.
+- [x] Documented the integration gap and a safe transactional fix/test plan in [Step 79 report](LOCATION_MASTER_STEP_79_BOUNDARY_ID_INTEGRATION_AUDIT.md).
+- [!] Source-code finding is confirmed; a live Firestore runtime failure has **not** been reproduced.
+- [ ] Apply transactional boundary-to-location reference binding and regression tests.
+- [ ] Run Admin Flutter analysis/tests/Web build and Firebase Emulator tests/CI.
+- [ ] Current official LGD export reconciliation and authoritative contiguous polygon verification remain pending.
+- [ ] No production import, service activation, deployment, or merge performed.
+
+Next: Step 80 — implement the verified-boundary ID binding and tests; keep production activation blocked until release gates pass.
+
+Last updated: 2026-10-17.
