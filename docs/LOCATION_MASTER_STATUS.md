@@ -120,3 +120,11 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Corrected the test to assert that Firestore `GeoPoint` rejects out-of-range latitude/longitude at construction.
 - Test fix commit: `fa57c9f9c193b9da243f687c8f7ba374d3457f71`.
 - Next: wait for/inspect the new PR CI run. Step 119 remains **PENDING** until the run passes, and the geometry helper is still not integrated into City/Area activation.
+
+### Step 119 — CI pass and City/Area activation integration draft (2026-10-17)
+- Focused geometry CI run #14 completed successfully: formatting, whitespace check, and geometry unit tests all passed. Run: https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39037054280
+- Integrated a fail-closed Area activation check in `service_location_service.dart`: it loads the saved verified City boundary and verified Area boundary and calls `ServiceLocationGeometry.isPolygonContained`; activation is rejected if containment fails.
+- Integration commit: `9a739f411dc432dae4c20859f7b1e7e94aa3c648`.
+- Updated focused CI workflow to format and analyze the activation service and to trigger when that service changes. Workflow commits: `c98e3350444f35d790639ea4187bbfdea6203fd9`, `d118d4ec17bdae004dc7fe6801d7089949f2979a`, `10f7a6c471aeade54861c60eb36c4588e3b4f8bc`.
+- **Integration verification: PENDING.** The successful run #14 tested the geometry helper only; it predates the activation-service integration. Await a new CI run with Flutter analysis and geometry tests before claiming the integrated change passes.
+- Scope limitation: this is Admin service-layer validation only. It does not protect against direct Firestore writes that bypass this service. Do not merge/deploy or activate production locations until trusted backend enforcement/security review and a full Admin web build are addressed.
