@@ -1,16 +1,14 @@
-# DOJO WALK Location Master — Step 108
-## Negative Timezone Bounds and Fractional Seconds — PASS
+# DOJO WALK Location Master — Step 109
+## Fractional Timestamp Precision Boundaries — CI Pending
 Date: 2026-10-17
 
-- [x] Added regression coverage accepting `-14:00`, rejecting `-14:01` and `-15:00`, and accepting fractional seconds with explicit UTC timezone.
-- [x] Test commit: `449664e5a61817be170aa214d8de0a0884272e83`.
-- [x] Audit documentation commit: `623a2b969fc4c7d051896d15e4180f038138cef3`.
-- [x] Firestore Rules CI PASS: [39030731889](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39030731889).
-- [x] Callable/Geometry CI PASS: [39030731778](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39030731778).
-- [x] Both workflows completed successfully on the audit/documentation commit.
-- [!] Offline-only timestamp validation; no production export/live scan, write, import, activation or deployment. Official LGD reconciliation and authoritative polygon validation remain release gates.
+- [x] Added regression cases accepting fractional seconds with one digit and nine digits; rejects a decimal point with no following digits.
+- [x] Firebase test commit: `0928fac721b299bbe0c307fb2762799c7f04e8ba`.
+- [x] Firebase audit-doc commit: `6d345056bdd6e01cd2e98da1ad131cab88af3ee3`.
+- [ ] Firestore Rules and Callable/Geometry CI pending verification against the latest test/documentation commit.
+- [!] Offline-only parser tests; no production export/live scan, write, import, activation or deployment. Official LGD reconciliation and authoritative polygon validation remain release gates.
 
-Next: Step 109 — inspect timestamp parser and export-metadata edge cases for a specific untested correctness gap before changing code.
+Next: verify Step 109 CI and resolve any failure before continuing.
 
 Last updated: 2026-10-17.
 
