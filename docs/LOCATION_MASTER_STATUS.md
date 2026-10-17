@@ -578,3 +578,13 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Decision: block direct LGD District → `service_cities` and Sub-District → `service_areas` import until typed source metadata and downstream compatibility are designed. Structural parent IDs alone are insufficient.
 - Updated `docs/LOCATION_LGD_MAPPING_POLICY.md` with schema findings and a read-only staging recommendation.
 - Cross-repository Customer/Partner/rules compatibility is not yet fully verified; it remains a required audit before implementation. No Firestore writes/imports, activation, PR merge, or deployment occurred.
+
+
+### Step 163 — Customer / Partner / Firebase compatibility audit (2026-10-17)
+Read-only source review:
+- Customer `AddressService` saves addresses under `users/{uid}/addresses`; `SavedAddress` currently stores free-text `area`, `city`, `pincode` and optional latitude/longitude. The pickup-address selector displays those strings. It does not currently depend on Service Location document IDs in the reviewed files.
+- Partner `WorkLocationScreen` reads active legacy `zones` and derives city/area/state names from zone fields. It saves selected `city`, `state`, `area`, and zone IDs to the walker profile. It is not yet consuming `service_cities` / `service_areas` in this screen.
+- Firebase Rules on `feature/trusted-location-activation` define parent validation against `service_states`, `service_cities`, and `service_areas`, and have explicit rules for boundaries, States, Cities, Areas, Localities, and import records. These rules expect the current ID-based parent hierarchy.
+- Compatibility risk: replacing the Partner's legacy `zones` query with Service Locations is a migration, not just a CSV import. Customer's free-text addresses also need an optional future mapping strategy if coverage validation is desired. Existing address strings should not be silently rewritten.
+- Step 163 decision: preserve the current production-facing legacy reads until a separately tested migration is planned. Keep LGD administrative records in read-only staging with source level/codes and parent source codes; do not create/activate service locations from LGD rows alone.
+- Scope limitation: source files were reviewed, but no emulator/integration tests were run in this step. No Firestore writes/imports, activation, PR merge, or deployment occurred.
