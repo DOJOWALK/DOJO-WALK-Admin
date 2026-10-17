@@ -393,3 +393,12 @@ No merge, release, or deployment occurred.
 - Coverage gap: tests do not yet exercise a full UI-created KYC/address profile end-to-end or additional-key rejection on submission. UI validation is not a substitute for server-side approval review.
 - Report: docs/STEP_137_PARTNER_FIREBASE_PAYLOAD_CROSS_CHECK.md, commit `ad951f3f9365bdde60d313961ea61aadea3a2725`.
 - Firebase review branch only; production Rules remain unverified, and legacy `zones` migration remains open. No source/Rules changes, merge, or deployment occurred.
+
+
+## Step 138 — Partner submission negative emulator tests (2026-10-18)
+
+- Added tests for invalid target status, unauthorized extra submission field, and duplicate submission attempt in Firebase review branch.
+- Draft Firebase PR #5: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/pull/5; commit `ae535891560a240d34387ed607f0e84453ed5eed`.
+- CI run `39069361083` was in progress at latest inspection; no final PASS/FAIL claimed.
+- Detailed report: docs/STEP_138_PARTNER_SUBMISSION_NEGATIVE_TESTS.md, commit `65bbdadd6e13c60593e8945b2e3addd2d7a39b30`.
+- Test-only change; production Rules unchanged; no merge or deployment.
