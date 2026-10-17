@@ -853,3 +853,20 @@ Last checked: 2026-10-17.
 Next: Step 80 — implement the verified-boundary ID binding and tests; keep production activation blocked until release gates pass.
 
 Last updated: 2026-10-17.
+
+
+## Step 80 — Verified Boundary ID binding fix and regression tests (2026-10-17)
+
+- [x] Updated boundary verification to read the owning City/Area/Locality document before transaction writes and reject missing owners.
+- [x] City/Area verification now atomically marks the boundary verified and writes that exact boundary document ID to the owning location's `verifiedBoundaryId`.
+- [x] Locality parent-Area containment remains enforced; Locality does not require its own verifiedBoundaryId for activation.
+- [x] Added regression assertions for Area ID binding, City ID binding without accidental activation, and missing owner rejection.
+- [x] Details: [Step 80 report](LOCATION_MASTER_STEP_80_VERIFIED_BOUNDARY_ID_BINDING.md).
+- [!] Admin CI run [39019692718](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39019692718) was still **in progress** at report time; no CI PASS claim until the completed run is checked.
+- [ ] Inspect Admin analyze/tests/Firestore Emulator smoke test/Web build result; resolve failures if any.
+- [ ] Official current LGD export reconciliation and authoritative polygon verification remain pending.
+- [ ] No merge, production import, deployment, or service activation performed.
+
+Next: Step 81 — inspect completed CI results and fix any failures before moving to the next release gate.
+
+Last updated: 2026-10-17.
