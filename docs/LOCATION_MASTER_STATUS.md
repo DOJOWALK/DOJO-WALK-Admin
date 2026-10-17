@@ -1,3 +1,21 @@
+# DOJO WALK Location Master — Step 98
+## Offline Audit Report Summaries
+Date: 2026-10-17
+
+- [x] Step 97 Firebase Rules CI [39028120030](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028120030) — PASS.
+- [x] Step 97 Firebase callable/geometry CI [39028120018](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028120018) — PASS.
+- [x] Offline audit report now includes issue counts grouped by issue code and record type, making it easier to prioritize data cleanup without exposing full records.
+- [x] Added regression test for report summaries and consistency between issueCount and the issues array.
+- [ ] Step 98 Firebase Rules CI [39028290445](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028290445) and callable/geometry CI [39028290666](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028290666) are running; wait for success before marking complete.
+- [!] This remains an offline audit utility. No production export or live Firestore scan, import, activation, write, or deployment has been performed.
+- [!] Authoritative polygon verification and fresh official LGD row-level reconciliation remain release gates.
+
+Next: confirm Step 98 CI, then improve export completeness/scope reporting. Actual-data audit needs explicit authorization for a read-only export kept outside Git.
+
+Last updated: 2026-10-17.
+
+---
+
 # DOJO WALK Location Master — Step 97
 ## Offline Verified-Boundary Integrity Checks
 Date: 2026-10-17
