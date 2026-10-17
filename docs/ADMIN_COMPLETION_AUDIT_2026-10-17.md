@@ -444,3 +444,11 @@ No merge, release, or deployment occurred.
 - New CI runs #149 and #138 were in progress at report creation; do not mark this latest refinement passed until checked.
 - Step 140 report commit `bccdfd722c6841d867fe04af316f0e11a59cacd1`.
 - No merge/deployment. Correction-after-review workflow remains an open product decision.
+
+
+#### Step 140 final CI result (2026-10-18)
+- Rules Emulator run #150 PASS: 57 tests, 57 passed, 0 failed, including the actual nested `kyc.documents` edit attempt after submission.
+- Geometry/Callable integration run #139 PASS.
+- CI: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39070246822 and https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39070246869.
+- Step 140 report updated in commit `54b5fb21e8ef367547366c86516c7f27f633f28f`.
+- PR #5 remains draft/open/unmerged. No production deployment.
