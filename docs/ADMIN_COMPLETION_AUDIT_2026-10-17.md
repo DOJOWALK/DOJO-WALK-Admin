@@ -44,6 +44,32 @@ Add/execute read-only contract tests and Firebase Emulator tests for:
 
 No production Rules or Functions deployment is part of this step.
 
+## Admin completion progress — Step 126 (2026-10-18)
+
+### Schema compatibility matrix added
+
+Added [`docs/STEP_126_SCHEMA_COMPATIBILITY_MATRIX.md`](STEP_126_SCHEMA_COMPATIBILITY_MATRIX.md) in commit `8890bee3c9bb45aeb240b18c13f6ab0e7f73fa15`.
+
+The matrix records:
+- current versus proposed collection/field semantics;
+- exact import mapping rules for State, District, operational Service City and Service Area;
+- stable ID and official source-provenance requirements;
+- backward compatibility for legacy Cities without `districtId`, existing Areas, Partner `zones`, bookings and walker zone IDs;
+- coordinated Admin/Firebase/Partner/Customer test requirements;
+- explicit no-write/no-activation/no-merge gates.
+
+### Step 126 status
+
+- [x] Cross-app schema compatibility matrix documented.
+- [x] Unsafe name-only mapping and silent District/City or Area/Sub-District equivalence prohibited in the design.
+- [ ] Product/schema decisions approved.
+- [ ] Admin and Firebase schema changes implemented together.
+- [ ] Partner/Customer compatibility verified with tests.
+- [ ] CSV write path implemented and tested.
+- [ ] Full CI and final review.
+
+No application code, Rules, production data, imports, activations, deployments or merges were changed in this step.
+
 ## Admin completion progress — Step 125 (2026-10-18)
 
 ### Cross-repository schema blocker tracked
