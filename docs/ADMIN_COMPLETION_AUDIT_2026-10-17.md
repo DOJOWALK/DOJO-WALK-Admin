@@ -374,3 +374,13 @@ No merge or deployment was performed.
 - [ ] Keep Partner PR #2 in draft until review and required release gates are satisfied.
 
 No merge, release, or deployment occurred.
+
+
+## Step 136 — Partner CI cross-review (2026-10-18)
+
+- Reviewed the new PR validation workflow and existing release workflow.
+- CI run 39068442507 completed successfully, including Flutter analyze, tests, and debug APK build.
+- Workflow uses read-only repository permissions and does not use secrets; release workflow remains separate.
+- Detailed report: docs/STEP_136_PARTNER_CI_CROSS_REVIEW.md (commit 65eed5a46696d28926ca329a9eb60a0b2412a52b).
+- Partner PR #2 remains draft pending human review. Production Firebase Rules and release APK remain separate checks.
+- No merge, release, or deployment occurred.
