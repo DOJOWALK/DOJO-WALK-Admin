@@ -4,7 +4,7 @@
 Pass exact header names with --key and --compare. CSV is read as UTF-8 (BOM
 accepted); values are trimmed but otherwise preserved. Duplicate headers,
 missing required columns, empty keys, duplicate keys, and rows with extra
-unmapped fields are rejected rather than silently ignored.
+or missing fields are rejected rather than silently accepted.
 """
 from __future__ import annotations
 
@@ -36,6 +36,8 @@ def read_csv(path: str, key_column: str, compare_columns: list[str]) -> dict[str
         for line_number, raw in enumerate(reader, start=2):
             if None in raw:
                 raise ValueError(f"{path}:{line_number}: row has extra field(s) beyond the header")
+            if any(value is None for value in raw.values()):
+                raise ValueError(f"{path}:{line_number}: row has missing field(s) before the end of the header")
             row = {str(k): (v or "").strip() for k, v in raw.items() if k is not None}
             key = row.get(key_column, "")
             if not key:
