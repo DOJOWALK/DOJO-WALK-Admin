@@ -18,9 +18,10 @@ Location documents were protected against direct status flips, but metadata edit
 - City/Area/Locality save-time active checks now use persisted activation state, rather than trusting the incoming model's status field.
 
 ### Validation
-- [ ] Firebase Rules CI [39026587203](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026587203) running for Rules tests including new reparent tests.
-- [ ] Firebase callable/geometry CI [39026587210](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026587210) running.
-- [ ] Admin Flutter CI [39026612586](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39026612586) running on latest service changes.
+- [!] Initial Rules run [39026587203](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026587203) exposed a misplaced Locality rule condition in the new regression test. The rule placement was corrected in Firebase commit `7fcede8b73ddfa7b0c1eee298df589f2ec53ef20`.
+- [ ] Latest Firebase Rules CI [39026678657](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026678657) is running with the corrected Rules.
+- [ ] Firebase callable/geometry CI [39026678719](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026678719) is running on the corrected Firebase commit.
+- [ ] Admin Flutter CI [39026612586](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39026612586) is running on the Admin service changes.
 - [!] CI results must be rechecked before Step 92 is marked PASS.
 - [!] This is source/rules/test hardening, not proof that every existing database record is consistent. A one-time live data integrity scan is still needed before launch.
 - [!] No production deployment, production Firestore write, import, or live service activation was performed.
