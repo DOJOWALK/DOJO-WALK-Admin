@@ -44,6 +44,22 @@ Add/execute read-only contract tests and Firebase Emulator tests for:
 
 No production Rules or Functions deployment is part of this step.
 
+## Admin completion progress — Step 130 (2026-10-18)
+
+### Partner onboarding Emulator test readiness
+
+Added [`docs/STEP_130_PARTNER_EMULATOR_TEST_READINESS.md`](STEP_130_PARTNER_EMULATOR_TEST_READINESS.md), commit `73d2a2e5e1906c458ed9f60cdd40ef67ab0318db`.
+
+- Confirmed Firebase repo source contains a Node test runner using `@firebase/rules-unit-testing`; `npm test` runs `node --test test/firestore.rules.test.mjs`.
+- Existing inspected tests cover Service Location Rules, but no Partner walker-create/draft-onboarding tests were found in that test file.
+- Defined cases for initial walker creation, owner isolation, existing `in_progress` draft updates, personal-only updates, privilege-field protection, application state guards and type validation.
+- The field mismatch was not fixed by this step. No Emulator tests were run and no fix is claimed.
+- [ ] Add Partner-specific fixtures/tests to the appropriate Firebase review branch.
+- [ ] Run Emulator suite and preserve actual results.
+- [ ] Verify deployed Rules revision and implement approved least-privilege contract.
+
+No application code, Rules, Firestore records, production configuration, imports, activation, deployment or merge was changed.
+
 ## Admin completion progress — Step 129 (2026-10-18)
 
 ### Partner onboarding / Firestore Rules field audit
