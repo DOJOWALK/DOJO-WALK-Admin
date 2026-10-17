@@ -711,3 +711,19 @@ Admin branch commits: `61c4d7e48b94c07efbc3040221662f3c4de99e9d`, `18921352195db
 - [ ] No merge, deployment, production import, or real service-location activation performed.
 
 Last checked: 2026-10-17.
+
+
+## Step 60 — Exact CSV-to-GitHub Dart reconciliation (2026-10-17)
+
+- [x] Read all 7,151 data rows from Library source file `/DOJO WALK Location Master/01_RAW_SOURCE/lgd_subdistricts_source_7151.csv` in eight sequential line ranges; CSV header excluded from data-row count.
+- [x] Read the actual Git blob for `lib/data/reference/india_locations/india_sub_districts.dart` on branch `restore/india-location-reference-data` (blob `68b5ee024f021cb025ea3ee5700780cbd9845d87`).
+- [x] Parsed and compared all generated Dart records against the source CSV using the composite key `state_code + district_code + subdistrict_code`.
+- [x] Result: source CSV rows **7,151**; parsed Dart records **7,151**; unique source keys **7,151**; unique Dart keys **7,151**; source keys missing from Dart **0**; extra Dart keys **0**; compared field differences **0** across state name, district name, sub-district name, local name, Census sub-district code and last-updated date.
+- [x] This verifies the saved source snapshot and generated Dart file agree record-by-record for the compared fields. It does **not** prove the 2024-10-07 snapshot is the latest official LGD dataset, nor independently reconcile every other source field omitted from the Dart model.
+- [x] Checked validation workflow for parent commit `d0cb5d8d1465c137cf66a7260732d908a5c715b3`: run [39009334738](https://github.com/dojoplatform2026/dojo-admin/actions/runs/39009334738) completed successfully.
+- [ ] Remaining: obtain/verify a current official LGD source and document its retrieval date and source checksum before marking official verification complete.
+- [ ] No merge, deployment, production Firebase import, or real service-location activation performed.
+
+Next: Step 61 — audit the current official LGD source/version and reconciliation evidence; keep production use blocked until source provenance is verified.
+
+Last checked: 2026-10-17.
