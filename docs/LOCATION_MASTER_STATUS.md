@@ -889,3 +889,19 @@ Last updated: 2026-10-17.
 Next: Step 82 — audit the end-to-end Admin boundary workflow and Firestore rule compatibility for the new City/Area verifiedBoundaryId transaction, including the screen's save/verify/reload path.
 
 Last updated: 2026-10-17.
+
+
+## Step 82 — Boundary workflow / Rules compatibility audit (2026-10-17)
+
+- [x] Admin screen selects the current boundary for a location and verifies the latest persisted boundary ID; successful verification closes the editor and explicitly says activation is separate.
+- [x] Draft save persists location ID/type and returns the boundary document ID. The UI does not need to retain the return value for verification because it reloads the location's boundary list and later verifies `existingBoundary.id`.
+- [x] Firebase Firestore Rules allow inactive City/Area records to receive a verified boundary reference while preserving restrictions on direct activation and changing the reference of an already active City/Area.
+- [x] Added Firebase Rules Emulator regression tests for binding verified references to inactive City/Area and rejecting a client-side rebind of an active City.
+- [!] Firebase PR test workflows for these new tests are still running at report time; final result must be inspected before declaring Rules tests PASS.
+- [ ] Confirm the new Rules tests pass and ensure the combined Admin client transaction succeeds under the same rules.
+- [ ] Current official LGD reconciliation, authoritative contiguous polygons, PR review/merge, and production deployment remain pending.
+- [ ] No production import, activation, or deployment performed.
+
+Next: Step 83 — inspect Firebase CI results and, if green, record the full validation checkpoint before continuing the location data workflow.
+
+Last updated: 2026-10-17.
