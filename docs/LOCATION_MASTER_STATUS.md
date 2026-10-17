@@ -657,7 +657,10 @@ Admin branch commits: `61c4d7e48b94c07efbc3040221662f3c4de99e9d`, `18921352195db
 
 ## Step 55 — Draft PR review and remaining release blockers (IN PROGRESS)
 
-- [x] Verified both Firebase workflows pass on the latest tested feature branch commit.
-- [ ] Re-check PR #1 metadata, changed files, and review status before any merge decision.
-- [ ] Official LGD row-level reconciliation and authoritative contiguous boundary verification remain separate production blockers.
+- [x] Verified both Firebase workflows pass on the latest tested feature branch commit `42e2dcc648273e04971ab604be68e84451427d61`.
+- [x] Re-checked Draft PR #1 metadata: still open, draft, unmerged; 10 changed files; GitHub reports mergeable, which is not approval to merge: [PR #1](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/pull/1).
+- [x] Admin validation workflow passed on status-report commit `3e90d66d787f70aac7bff16057510010d6ffb2ca`: [Actions run 38984805219](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38984805219).
+- [x] Reviewed callable and City/Area Firestore Rules paths. Client activation remains blocked; trusted callable requires active super_admin and verified matching geometry; active City/Area identity references are protected against client edits. Geometry containment is computational validation only, not proof that a polygon is an authoritative real-world boundary.
+- [ ] Official LGD row-level reconciliation and authoritative contiguous boundary verification remain separate production blockers. Do not activate real service locations until these are completed.
+- [ ] Draft PR still requires explicit human review/approval; no merge decision made.
 - [ ] No merge, deployment, production import, or real service-location activation performed.
