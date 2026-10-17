@@ -384,3 +384,12 @@ No merge, release, or deployment occurred.
 - Detailed report: docs/STEP_136_PARTNER_CI_CROSS_REVIEW.md (commit 65eed5a46696d28926ca329a9eb60a0b2412a52b).
 - Partner PR #2 remains draft pending human review. Production Firebase Rules and release APK remain separate checks.
 - No merge, release, or deployment occurred.
+
+
+## Step 137 — Partner/Firebase onboarding payload cross-check (2026-10-18)
+
+- Static comparison of Partner draft creation, location updates, final submission payload, and Firebase review-branch Rules found the field names and submission transition keys aligned.
+- Existing Firebase emulator tests cover initial draft creation, location updates, status escalation rejection, and explicit submission transition.
+- Coverage gap: tests do not yet exercise a full UI-created KYC/address profile end-to-end or additional-key rejection on submission. UI validation is not a substitute for server-side approval review.
+- Report: docs/STEP_137_PARTNER_FIREBASE_PAYLOAD_CROSS_CHECK.md, commit `ad951f3f9365bdde60d313961ea61aadea3a2725`.
+- Firebase review branch only; production Rules remain unverified, and legacy `zones` migration remains open. No source/Rules changes, merge, or deployment occurred.
