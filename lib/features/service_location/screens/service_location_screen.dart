@@ -1068,33 +1068,7 @@ class _ServiceLocationScreenState
               ),
           ],
         );
-/* OLD IMPORT LIST LOOP REMOVED
-        return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            final item = items[index];
 
-            return Card(
-              color: Colors.white,
-              child: ListTile(
-                leading: const Icon(
-                  Icons.file_present,
-                  color: _locationOrange,
-                ),
-                title: Text(item.fileName),
-                subtitle: Text(
-                  'ID: ${item.id}\n'
-                  'Source: ${item.source}\n'
-                  'Status: ${item.status}\n'
-                  'Verification: ${item.verificationStatus}',
-                ),
-                isThreeLine: true,
-              ),
-            );
-          },
-        );
-*/
       },
     );
   }
