@@ -1,3 +1,13 @@
+## Step 76 — Fresh official LGD export access recheck (2026-10-17)
+
+- [x] Rechecked the official OGD LGD Districts resource: metadata displays “Updated On 08/10/2026”; this is catalog metadata, not a row-level export.
+- [x] Confirmed the official LGD Download Directory uses an interactive CAPTCHA in its normal download workflow; no bypass attempted.
+- [x] Verified latest run [39014213756](https://github.com/dojoplatform2026/dojo-admin/actions/runs/39014213756), run #354, completed successfully on commit `baa05d463e44c1cc3cb3f0be5802709e3fef15a5`. Python CSV tests, Flutter dependency installation, analysis, unit tests, Firestore Emulator smoke test, and Web release build all passed.
+- [ ] Fresh official Sub-district export and row-level reconciliation still await the original downloaded file.
+- [ ] Census-code concordance, Kolkata/Mumbai sub-district coverage explanation, and authoritative contiguous map boundaries remain unresolved.
+- [ ] PR #6 remains open. No merge, deployment, production import, or service-location activation.
+- [x] Details: [Step 76 — Official export access recheck](LOCATION_MASTER_STEP_76_OFFICIAL_EXPORT_ACCESS_RECHECK.md).
+
 ## Step 75 — CSV hardening CI verification (2026-10-17) — PASS
 
 - [x] Latest workflow run [39011329151](https://github.com/dojoplatform2026/dojo-admin/actions/runs/39011329151) completed successfully on commit `f520ce83cf3ee77f07f53f4736eabb0472064522`.
