@@ -1,14 +1,16 @@
 # DOJO WALK Location Master — Step 110
-## Invalid Polygon Regression Coverage — CI Pending
+## Invalid Polygon Regression Coverage — PASS
 Date: 2026-10-17
 
-- [x] Added synthetic geometry tests rejecting a self-intersecting bow-tie ring and collinear/zero-area ring.
-- [x] Firebase geometry test commit: `7b85fe002dc5f3b3a98d474b7e25568475f06c03`.
-- [x] Firebase audit documentation commit: `420646538d25584b8ba5b05b60b7eb03310e28de`.
-- [ ] Verify Firestore Rules and Callable/Geometry CI on the latest audit documentation commit before PASS.
-- [!] Synthetic geometry tests only. They do not establish real-world boundary authority, contiguous coverage, official LGD alignment, or production behavior. No production export/live scan, write, import, activation or deployment.
+- [x] Added regression tests rejecting a self-intersecting bow-tie ring and collinear/zero-area ring.
+- [x] Geometry fix: explicit shoelace-area and non-adjacent segment-intersection validation before Turf validation; commit `86437086137d509d138bbfd57b0aa52dbb84bdc0`.
+- [x] Firestore Rules CI PASS: [39031799876](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39031799876).
+- [x] Callable/Geometry CI PASS: [39031799961](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39031799961).
+- [x] Saved [Step 110 report](LOCATION_MASTER_STEP_110_INVALID_POLYGON_REGRESSION.md).
+- [!] Synthetic tests do not establish real-world boundary authority, contiguous coverage, official LGD alignment, or production behavior. No production export/live scan, write, import, activation, or deployment.
+- [!] Official current LGD row-level reconciliation and authoritative polygon verification remain release gates.
 
-Next: verify Step 110 CI; fix any failing test before proceeding.
+Next: Step 111 — inspect trusted-location callable validation for concrete gaps and add focused regression coverage.
 
 Last updated: 2026-10-17.
 
