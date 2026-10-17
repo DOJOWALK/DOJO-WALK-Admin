@@ -698,3 +698,16 @@ Admin branch commits: `61c4d7e48b94c07efbc3040221662f3c4de99e9d`, `18921352195db
 - [x] The CSV structural checks above are not proof of current official LGD accuracy or provenance. The States file contains a UTF-8 BOM in its first header; preserve/handle it explicitly in parsers. District local-name fields include space-padded values; trim only for comparison/display, not by silently altering the archived raw file.
 - [ ] Next: locate or obtain the actual non-empty sub-district export from an authorized official source, save it unchanged with retrieval date and SHA-256, then run schema, duplicate, parent-reference, code-format, and Library reconciliation checks.
 - [ ] No production import, merge, deployment, or service-location activation performed.
+
+
+## Step 59 — Sub-District record-count verification and Step 58 correction (PASS for saved artifacts)
+
+- [x] Rechecked the Library raw source `01_RAW_SOURCE/lgd_subdistricts_source_7151.csv`: it has a header plus 7,151 data rows (7,152 total lines). Saved source rows are dated 2024-10-07.
+- [x] Rechecked Library generated `02_GENERATED_DART/india_sub_districts.dart`: file size 1,830,733 bytes; manifest SHA-256 `b42f4d9641da427b2a950f34ee5d5dd5bc2c2a1b917f46b44ffb878e22a2ea06`; prior source-vs-Dart audit recorded 7,151 records, 7,151 unique keys, zero duplicate keys and zero compared field differences.
+- [x] Read the actual Git blob for `lib/data/reference/india_locations/india_sub_districts.dart` on `restore/india-location-reference-data` (blob `68b5ee024f021cb025ea3ee5700780cbd9845d87`, tree size 1,830,733 bytes). The blob is non-empty; programmatic content check found 7,152 occurrences of `IndiaSubDistrict(`, comprising the class constructor declaration plus 7,151 data records. The ordinary file-fetch response returned empty content for this oversized file, so the Git blob endpoint was used instead.
+- [x] Confirmed GitHub Actions run [38985865101](https://github.com/dojoplatform2026/dojo-admin/actions/runs/38985865101) completed successfully: Python LGD reconciliation tests, Flutter analyze, unit tests, Firestore Emulator persistence smoke test and Flutter Web release build all passed.
+- [!] Correction/clarification to Step 58: the empty file is specifically `review/lgd_exports/sub_districts.csv` on `main`; it does not mean the saved 7,151-row source in Library or the large generated Dart file on the working branch is empty. These are separate artifacts. The working branch does not contain the `review/lgd_exports` folder.
+- [ ] Remaining: current official LGD row-level reconciliation is still pending. The saved 2024 snapshot is not verified as current official data. Do not mark as verified for production or import into Firebase.
+- [ ] No merge, deployment, production import, or real service-location activation performed.
+
+Last checked: 2026-10-17.
