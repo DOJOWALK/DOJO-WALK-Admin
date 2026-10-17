@@ -435,3 +435,12 @@ No merge, release, or deployment occurred.
 - CI links: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39069915280 and https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39069915211.
 - Step 139 report updated in commit `db6d19e866b979bbebdb7bbcc942664fdbde9f76`.
 - Next: compare Partner app submission/navigation behavior against this Rules contract and check for stale/legacy app path behavior. Keep all PRs draft pending human review.
+
+
+### Step 140 — Partner submission flow cross-check (2026-10-18)
+- Compared Partner work-location, personal-details, review-submit and account-check behavior with the Firebase review-branch Rules.
+- Submission code re-reads the latest document and updates only the explicit submission transition fields. Work-location and personal-details screens block submitted documents; Rules enforce this against races.
+- Refined post-submission negative test to use the app's actual nested `kyc.documents` payload shape. Commit `23ecbec506a9f52f05071d0e054c4a62d035ec9e`.
+- New CI runs #149 and #138 were in progress at report creation; do not mark this latest refinement passed until checked.
+- Step 140 report commit `bccdfd722c6841d867fe04af316f0e11a59cacd1`.
+- No merge/deployment. Correction-after-review workflow remains an open product decision.
