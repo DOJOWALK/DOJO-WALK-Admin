@@ -128,3 +128,9 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Updated focused CI workflow to format and analyze the activation service and to trigger when that service changes. Workflow commits: `c98e3350444f35d790639ea4187bbfdea6203fd9`, `d118d4ec17bdae004dc7fe6801d7089949f2979a`, `10f7a6c471aeade54861c60eb36c4588e3b4f8bc`.
 - **Integration verification: PENDING.** The successful run #14 tested the geometry helper only; it predates the activation-service integration. Await a new CI run with Flutter analysis and geometry tests before claiming the integrated change passes.
 - Scope limitation: this is Admin service-layer validation only. It does not protect against direct Firestore writes that bypass this service. Do not merge/deploy or activate production locations until trusted backend enforcement/security review and a full Admin web build are addressed.
+
+### Step 119 — integration analyzer caught and fix applied (2026-10-17)
+- New CI run #21 failed at `flutter analyze`: the Area activation integration referenced `city['verifiedBoundaryId']` without loading the parent City document in that method. Formatting and whitespace checks passed; geometry tests were skipped because analysis failed.
+- Fixed by loading the parent City through `_requireDocument(_cities, cityId, 'City')` before reading its verified boundary ID.
+- Fix commit: `dfca25aee7144648dc88fdce6636a6c9e96fbb73`.
+- Step 119 remains **PENDING** until a new run passes analyzer and unit tests. Production activation remains unauthorized.
