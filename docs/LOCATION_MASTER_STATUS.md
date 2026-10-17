@@ -631,10 +631,20 @@ Admin branch commits: `61c4d7e48b94c07efbc3040221662f3c4de99e9d`, `18921352195db
 - [ ] This is branch CI validation only. The separate Firebase callable's latest revision still requires its own CI/review and integration confirmation before merge/deployment.
 - [x] No production deployment, production data import, or real location activation performed.
 
-## Step 53 — Firebase callable integration and cross-repository verification (NEXT)
+## Step 53 — Firebase callable integration and cross-repository verification (PASS)
 
-- [ ] Inspect the latest Actions runs and PR status in `dojoplatform2026/DOJO-WALK-Firebase` branch `feature/trusted-location-activation` / draft PR #1.
-- [ ] Verify callable tests cover active admin authorization, missing/invalid boundary, inactive parent, valid City/Area activation, and direct-write rejection in emulator.
-- [ ] Confirm Admin and Functions agree on boundary schema and collection/field names.
-- [ ] Record the real CI results before declaring Step 53 PASS.
+- [x] Added Firestore Emulator integration cases for invalid callable arguments, missing boundary reference, wrong boundary location type, inactive parent City, Area outside the parent City polygon, and activation audit record.
+- [x] Existing integration coverage also checks unauthenticated and ordinary users, inactive super_admin, invalid polygon rejection, valid City activation, and Area activation inside an active City.
+- [x] Trusted Location Geometry and Callable Tests passed on commit `ec2a8fdb5add861fdd795589100d2368fa02e146`: [Actions run 38984196627](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38984196627).
+- [x] Firestore Security Rules Emulator tests passed on the same commit: [Actions run 38984196510](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/38984196510).
+- [x] Cross-repository schema check confirms Admin boundary GeoPoint format is supported by the callable's geometry parser; City/Area activation delegates to the trusted callable in `asia-south1`.
+- [ ] Draft PR #1 still requires human review before merge. These emulator tests do not verify official polygon provenance or real-world boundary accuracy.
+- [ ] No merge, production deployment, import, or real service-location activation performed.
+
+## Step 54 — Final security review before any merge (NEXT)
+
+- [ ] Review Firestore Rules and callable together for every write path, including deactivation and boundary lifecycle changes.
+- [ ] Review transaction/race behavior and audit record permissions/schema.
+- [ ] Verify Draft PR #1 is still unmerged and inspect the latest branch CI status before making a merge recommendation.
+- [ ] Keep official LGD row-level reconciliation and authoritative contiguous boundary verification as separate production blockers.
 - [ ] No merge or deployment without review and explicit approval; no production import or activation.
