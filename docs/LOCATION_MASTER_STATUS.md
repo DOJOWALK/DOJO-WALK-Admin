@@ -18,6 +18,16 @@ Next: Step 92 — audit location create/edit/reparent paths for hierarchy consis
 
 Last updated: 2026-10-17.
 
+## Step 90 — Status Callable Transaction and Rules-Boundary Audit
+Date: 2026-10-17
+
+- [x] Audited trusted status transitions and City/Area activation transaction behavior.
+- [x] Confirmed Country/State/City/Area direct client status flips were blocked and child-deactivation guards existed.
+- [x] Found a critical gap: Locality status could be directly changed in Firestore Rules, and Locality activation did not use ancestor guard transactions.
+- [x] Details: [Step 90 report](LOCATION_MASTER_STEP_90_STATUS_TRANSACTION_AUDIT.md).
+- [!] Step 90's hierarchy safety review was not fully closed until Step 91 addressed this gap.
+
+
 ## Step 89 — Server-enforced service status changes — CI PASS
 
 - [x] Added `setServiceLocationStatus` callable for trusted Country/State/City/Area status transitions with active-admin authorization and active-descendant checks.
