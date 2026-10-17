@@ -237,3 +237,12 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - **Deployment blocker found:** `.github/workflows/deploy-firestore-rules.yml` runs `firebase deploy --only firestore:rules` only. It does not deploy the new Cloud Functions. Deploying Rules that block direct client verification before `reviewServiceLocationBoundary` is deployed and callable could break the Admin review flow.
 - Required rollout order: review/approve code; deploy Functions and verify callable health first; deploy the Rules change only after callable availability is confirmed; then release the Admin client. Prepare a rollback plan and verify deployed versions before activating any real locations.
 - Step 125 status: **REVIEW FINDING RECORDED — rollout not ready**. No PR merged, no workflow dispatched, no Functions/Rules deployed, and no production locations activated/imported.
+
+
+### Step 126 — manual deployment guardrails drafted (2026-10-17)
+- Defined the intended release sequence: review both PRs together; deploy only `reviewServiceLocationBoundary`; verify the callable in `asia-south1` with non-production requests; deploy Firestore Rules only after callable health is confirmed; then release the Admin client.
+- Rollback guardrail: if the callable deploy/health check fails, do not deploy the Rules change. If Rules are already deployed and callable health fails, use a separately reviewed Rules rollback rather than bypassing security with client writes.
+- Production GitHub Environment approval must be configured in repository settings; merely referencing an environment does not enforce reviewer approval.
+- **Automation status:** attempted to add a manual-only function deployment workflow and a separate Firebase runbook, but the repository write action was blocked by the tool safety check. No workflow/runbook file was created by that attempt. Therefore deployment automation is **NOT IMPLEMENTED**; the safe sequence is documented here only.
+- No workflow was dispatched, no PR merged, no function/rules deployed, and no real location activated or imported.
+- Next: implement and review a narrowly scoped manual workflow in GitHub, then test its YAML and build/test gates without dispatching it or deploying production resources.
