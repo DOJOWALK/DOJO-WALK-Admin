@@ -44,6 +44,40 @@ Add/execute read-only contract tests and Firebase Emulator tests for:
 
 No production Rules or Functions deployment is part of this step.
 
+## Admin completion progress — Step 121 (2026-10-18)
+
+### Latest branch-head CI recheck
+
+The current PR #7 head is documentation commit `1cf8768583b76bcfe8d01caceb2189c346052077`. Both PR workflows completed successfully on that exact head:
+- Admin Web Build Check (No Deploy): [run 39065771483](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39065771483) — success.
+- Service Location Geometry Tests: [run 39065771496](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39065771496) — success.
+
+The checks are non-deploying validation only. PR #7 is still Draft/open/unmerged.
+
+### PR #6 vs PR #7 reconciliation
+
+The file-level comparison found **16 overlapping paths** between PR #6 and PR #7, including the four India reference-data Dart files, reference-data integrity tests, Service Location screen/service/boundary dialog files, walker details, bookings/coupons screens, pubspec, and location status/source discovery docs. These should not be merged as two independent changes without resolving the overlap.
+
+PR #6 also contains additional unique test/validation assets not present in PR #7's changed-file list, including:
+- Firestore Emulator smoke/integration tests and hierarchy guard tests;
+- boundary geometry and verification tests;
+- LGD compatibility tests and CSV reconciliation Python tests;
+- additional CI workflow and location-master audit records.
+
+**Disposition:** do not merge PR #6 separately yet. Before closing or superseding it, port/reconcile the unique test assets that remain relevant into PR #7 and run the full Admin CI. The overlapping implementation files require patch-by-patch comparison; file-name overlap alone does not prove that PR #7 contains every useful change from PR #6.
+
+### Current completion state
+
+- Admin full analysis/tests/release build on current PR #7 head: **PASS**.
+- Focused geometry/parser/reference-data CI on current PR #7 head: **PASS**.
+- PR overlap reconciliation: **AUDIT STARTED; UNIQUE TEST ASSETS STILL NEED REVIEW/PORTING**.
+- District/City schema: **BLOCKED pending approved cross-repository contract**.
+- CSV transactional import: **NOT IMPLEMENTED**.
+- Production LGD/GIS source reconciliation: **PENDING**.
+- Firebase/Partner migration, production settings, merge and deployment: **NOT COMPLETE / NOT AUTHORIZED**.
+
+No production data writes, activation, migration, deployment, or merge were performed in this step.
+
 ## Current decision
 
 **Do not merge yet.** Admin work is progressing on the review branch, but a production-ready completion gate has not been met. No merge, deployment, production import, or location activation was performed.
