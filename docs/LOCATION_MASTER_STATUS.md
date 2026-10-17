@@ -1,5 +1,17 @@
 
 
+## Step 70 — Official LGD export access check (2026-10-17)
+
+- [x] Rechecked official OGD LGD Districts catalog metadata; it displays Updated On 08/10/2026.
+- [x] Checked the official LGD download route and confirmed interactive CAPTCHA remains part of the download flow; no bypass attempted.
+- [x] Recorded that catalog metadata and historical aggregate counts are not row-level reconciliation evidence.
+- [ ] A fresh, checksum-verifiable official Sub-District export remains needed; the local 2024-10-07 snapshot remains the last verified raw source.
+- [ ] Next action: download the official export normally and upload the untouched file for checksum and record-level comparison.
+- [ ] No reference-data edits, production import, activation, deployment, or merge.
+- [x] Details: [Step 70 report](LOCATION_MASTER_STEP_70_OFFICIAL_EXPORT_ACCESS_CHECK_2026-10-17.md).
+
+
+
 ## Step 69 — Consolidated audit status (2026-10-17)
 
 - [x] Consolidated Steps 60 and 63–68 into [Step 69 report](LOCATION_MASTER_STEP_69_CONSOLIDATED_AUDIT_STATUS.md).
