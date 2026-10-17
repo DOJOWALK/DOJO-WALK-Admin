@@ -448,61 +448,6 @@ class ServiceLocationService {
     }
   }
 
-  Future<bool> _hasActiveChild({
-    required String parentCollection,
-    required String parentId,
-  }) async {
-    Query<Map<String, dynamic>> query;
-
-    switch (parentCollection) {
-      case 'service_countries':
-        query = _states
-            .where('countryId', isEqualTo: parentId)
-            .where('isActive', isEqualTo: true);
-        break;
-
-      case 'service_states':
-        query = _cities
-            .where('stateId', isEqualTo: parentId)
-            .where('isServiceActive', isEqualTo: true);
-        break;
-
-      case 'service_cities':
-        query = _areas
-            .where('cityId', isEqualTo: parentId)
-            .where('isServiceActive', isEqualTo: true);
-        break;
-
-      case 'service_areas':
-        query = _localities
-            .where('areaId', isEqualTo: parentId)
-            .where('isServiceActive', isEqualTo: true);
-        break;
-
-      default:
-        return false;
-    }
-
-    final result = await query.limit(1).get();
-
-    return result.docs.isNotEmpty;
-  }
-
-  Future<void> _ensureNoActiveChildren({
-    required String parentCollection,
-    required String parentId,
-    required String label,
-  }) async {
-    if (await _hasActiveChild(
-      parentCollection: parentCollection,
-      parentId: parentId,
-    )) {
-      throw StateError(
-        'Deactivate active child locations before deactivating $label.',
-      );
-    }
-  }
-
   Future<void> _ensureNoChildrenForReparent({
     required String parentCollection,
     required String parentId,
