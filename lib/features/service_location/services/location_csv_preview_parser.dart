@@ -30,7 +30,16 @@ class LocationCsvPreview {
 
   int get validRowCount => rows.where((row) => row.isValid).length;
   int get invalidRowCount => rows.length - validRowCount;
-  bool get canProceed => fileErrors.isEmpty && rows.isNotEmpty && invalidRowCount == 0;
+
+  /// True only when the CSV passes syntax and row-level validation.
+  /// This is not permission to write Firestore records or activate locations.
+  bool get isSyntacticallyValid =>
+      fileErrors.isEmpty && rows.isNotEmpty && invalidRowCount == 0;
+
+  /// Kept temporarily for compatibility with older preview callers.
+  /// Prefer [isSyntacticallyValid] to avoid implying import approval.
+  @Deprecated('Use isSyntacticallyValid; preview validation is not import approval.')
+  bool get canProceed => isSyntacticallyValid;
 }
 
 class LocationCsvPreviewParser {
