@@ -1,34 +1,22 @@
-# DOJO WALK Location Master — Step 90
-## Status Callable Transaction and Rules-Boundary Audit
+# DOJO WALK Location Master — Step 91
+## Locality Status Transition Hardening
 Date: 2026-10-17
 
-### Audit scope
-Reviewed Firebase `setServiceLocationStatus`, the City/Area activation transaction, Firestore Rules for Country/State/City/Area/Locality, status callable emulator tests, and Admin's status-callable integration.
+- [x] Added Locality support to trusted `setServiceLocationStatus` callable.
+- [x] Locality activation checks active Country → State → City → Area ancestry and verifies parent IDs.
+- [x] Locality activation guard-writes all ancestors in the same transaction to serialize against concurrent Area/City/State/Country deactivation.
+- [x] Firestore Rules reject already-active Locality creation and direct client changes to `isServiceActive`.
+- [x] Admin service routes Locality activation/deactivation through the callable; Locality saves preserve existing status and new records start inactive.
+- [x] Firebase callable/geometry CI passed: [39026189293](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026189293).
+- [x] Firebase Rules Emulator CI passed: [39026189233](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39026189233).
+- [ ] Admin Flutter CI [39026222473](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39026222473) is pending on commit `84329b78dd682b0b16e55e36b9c4d9a0f189d920`; Step 91 final validation remains pending.
+- [!] No production deployment, production Firestore write, or live location activation was performed.
+- [!] Official LGD row-level reconciliation and authoritative contiguous polygon verification remain release gates.
+- [x] Details: [Step 91 report](LOCATION_MASTER_STEP_91_LOCALITY_STATUS_HARDENING.md).
 
-### Confirmed protections
-- Status callable requires a signed-in active `super_admin`, rechecks actor and target inside the transaction, rejects deactivation when active direct children are found, and records an audit event.
-- City/Area activation is a separate callable that validates the verified boundary and active hierarchy; its transaction touches ancestor guard documents to serialize competing changes.
-- Country, State, City, and Area direct client status flips are blocked by Rules.
-- Existing emulator regression test exercises competing Country deactivation and State activation and asserts the hierarchy invariant.
+Next: Step 92 — audit location create/edit/reparent paths for hierarchy consistency.
 
-### Gap found — Locality status bypass
-- Firestore Rules for `service_localities` currently allow an active admin to set `isServiceActive` directly on create/update; unlike Country/State/City/Area, the rule does not enforce inactive-on-create or unchanged status on update.
-- `setServiceLocationStatus` currently accepts only Country/State/City/Area, so Locality status changes are not routed through the trusted callable.
-- Area deactivation checks for active Localities, but that check cannot fully protect the invariant against a concurrent/direct Locality activation while the parent Area is being deactivated because Locality writes do not participate in the ancestor-guard transaction protocol.
-- This is a source/rules audit finding; no production exploit or live Firestore incident was tested.
-
-### Result
-Step 90 audit is complete, but the status-transition safety review is **NOT fully closed** because of the Locality path. Do not mark the whole hierarchy release-ready yet.
-
-### Next — Step 91
-- Extend the trusted status transition contract to Locality, or otherwise ensure Locality service-status changes cannot bypass the parent Area guard.
-- Restrict direct client Locality status flips in Firestore Rules and enforce inactive-on-create if status must be enabled only through the callable.
-- Add Emulator tests for direct Locality status-change rejection, Locality activation requiring active ancestors, and concurrent Area deactivation vs Locality activation.
-- Run Firebase Rules and callable CI, then Admin Flutter validation if its service contract changes.
-
-### Remaining release gates
-Current official LGD row-level reconciliation, authoritative contiguous polygon verification, PR review/merge and deployment approval remain pending. No merge, deployment, production import, or real location activation was performed.
-
+Last updated: 2026-10-17.
 
 ## Step 89 — Server-enforced service status changes — CI PASS
 
