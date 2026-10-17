@@ -275,3 +275,33 @@ ServiceLocationBoundary? selectBoundaryForManagement(
   }
   return items.isEmpty ? null : items.first;
 }
+
+/// Orders boundary records for the explicit Admin chooser.
+///
+/// Pending and rejected replacements appear before verified records, and
+/// newer records appear first within each status. The input is not mutated.
+List<ServiceLocationBoundary> sortBoundariesForChooser(
+  Iterable<ServiceLocationBoundary> boundaries,
+) {
+  final items = boundaries.toList();
+  int priority(BoundaryVerificationStatus status) {
+    switch (status) {
+      case BoundaryVerificationStatus.pending:
+        return 0;
+      case BoundaryVerificationStatus.rejected:
+        return 1;
+      case BoundaryVerificationStatus.verified:
+        return 2;
+      case BoundaryVerificationStatus.notAvailable:
+        return 3;
+    }
+  }
+
+  items.sort((a, b) {
+    final statusOrder = priority(a.verificationStatus)
+        .compareTo(priority(b.verificationStatus));
+    if (statusOrder != 0) return statusOrder;
+    return b.updatedAt.compareTo(a.updatedAt);
+  });
+  return List<ServiceLocationBoundary>.unmodifiable(items);
+}
