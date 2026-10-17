@@ -265,3 +265,11 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Combined with Step 127's manual-only Function deployment workflow, this should cause workflow lint and Rules Emulator tests to run on the PR when the relevant changes are proposed. Actual run status has **not yet been checked**, so YAML validation and Emulator regression status remain **PENDING**.
 - The deploy workflow itself was not dispatched. No Function or Rules deployed, no PR merged, and no production location activated/imported.
 - Follow-up: inspect the CI run and correct any workflow lint/test failures. Also verify GitHub Environment `production` has required reviewers configured before any future deployment approval.
+
+
+### Step 128 — CI finding and actionlint fix (2026-10-17)
+- Workflow validation run [39040494568](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39040494568) exposed a configuration issue: `reviewdog/action-actionlint@v1` no longer accepts `fail_on_error`; it also reported existing Node 20 deprecation warnings from older `@v4` actions.
+- Changed the actionlint input to the current `fail_level: error` in Firebase commit `b93f3f4848c0c467c07741298054739cf5a83a6c`. This should allow non-fatal deprecation warnings while still failing on actual actionlint errors; **the fix has not yet been validated by a new CI run**.
+- In the same run, Firestore Rules Emulator tests completed successfully, and the trusted-location geometry/callable integration workflow [39040494595](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39040494595) completed successfully. These results do not validate the updated actionlint input.
+- Current status: Rules Emulator **PASS for run 39040494568**; callable/geometry **PASS for run 39040494595**; workflow lint **FIX COMMITTED / RE-RUN NOT VERIFIED**.
+- No production deployment workflow was dispatched. No PR merged, no Functions/Rules deployed, and no production location activated/imported.
