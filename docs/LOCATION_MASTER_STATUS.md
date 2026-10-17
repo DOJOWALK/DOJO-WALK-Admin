@@ -273,3 +273,12 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - In the same run, Firestore Rules Emulator tests completed successfully, and the trusted-location geometry/callable integration workflow [39040494595](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39040494595) completed successfully. These results do not validate the updated actionlint input.
 - Current status: Rules Emulator **PASS for run 39040494568**; callable/geometry **PASS for run 39040494595**; workflow lint **FIX COMMITTED / RE-RUN NOT VERIFIED**.
 - No production deployment workflow was dispatched. No PR merged, no Functions/Rules deployed, and no production location activated/imported.
+
+
+### Step 129 — CI lint failure diagnosed; Node-compatible action versions updated (2026-10-17)
+- Inspected the failed workflow-lint job from Rules run [39040550514](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39040550514). The Rules Emulator job passed, but actionlint treated Node 20 runtime deprecation notices from existing `actions/checkout@v4`, `actions/setup-node@v4`, and `actions/setup-java@v4` references as errors. Changing `fail_on_error` to `fail_level: error` alone did not fix it.
+- Updated all three Firebase workflows to Node 24-compatible action major versions: checkout `@v5`, setup-node `@v5`, and setup-java `@v5`. This includes the manual-only deployment workflow's YAML, but the workflow was not dispatched.
+- Commits: Rules workflow `0e12d48077a5972e7ade726080047acd0051c22a`; geometry workflow `da82b79be7d60bc8b463965579e1a0e76c874cd9`; manual deployment workflow `c2654d51e493da58cf77d8f4c035f9b805bf487b`.
+- New CI runs triggered: Rules run [39040781225](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39040781225) and callable/geometry run [39040781251](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39040781251). At the time of this update, workflow lint was **IN PROGRESS** and the Rules Emulator/callable jobs were **QUEUED or IN PROGRESS**; no result is marked PASS yet.
+- No PR merged, no workflow dispatched, no Functions/Rules deployed, and no production location activated/imported.
+- Next: inspect the new runs after completion. Only mark workflow lint fixed after its job passes; keep the two PRs draft and unmerged.
