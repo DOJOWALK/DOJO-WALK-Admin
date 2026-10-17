@@ -1939,6 +1939,26 @@ class _ServiceLocationScreenState
                       ),
                     ),
 
+                  if (isVerified)
+                    OutlinedButton.icon(
+                      onPressed: isSaving
+                          ? null
+                          : () async {
+                              Navigator.of(dialogContext).pop();
+                              await Future<void>.delayed(Duration.zero);
+                              if (!mounted) return;
+                              await _showBoundaryEditor(
+                                locationId: locationId,
+                                locationName: locationName,
+                                locationType: locationType,
+                                existingBoundary: null,
+                                initialPoints: const <LatLng>[],
+                              );
+                            },
+                      icon: const Icon(Icons.add_location_alt_outlined),
+                      label: const Text('Create replacement boundary'),
+                    ),
+
                   TextButton(
                     onPressed: isSaving
                         ? null
