@@ -75,7 +75,7 @@ class ReconcileLgdCsvTests(unittest.TestCase):
             module.read_csv(path, "Code", ["Name"])
 
     def test_short_row_with_missing_fields_fails(self):
-        path = self.csv("short.csv", "Code,Name,Parent\\n1,Alpha\\n")
+        path = self.csv("short.csv", "Code,Name,Parent\n1,Alpha\n")
         with self.assertRaisesRegex(ValueError, "missing field"):
             module.read_csv(path, "Code", ["Name", "Parent"])
 
