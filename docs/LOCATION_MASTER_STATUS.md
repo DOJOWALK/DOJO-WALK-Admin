@@ -471,3 +471,13 @@ Restore the exact three generated Dart files from the Library to `lib/data/refer
 - Rollback guidance: keep Functions and Rules as separate releases; if a post-Rules regression occurs, pause further rollout and restore the previously reviewed compatible Admin/Rules versions together as needed. Do not blindly roll Rules back without checking whether new data or trusted callable behavior depends on them.
 - Governance remains a release blocker: branch protection and production Environment reviewer requirements could not be verified by the integration (403/unsupported endpoint). Admin must confirm settings manually.
 - No deploy workflow dispatched, no merge, no Rules/Functions/Hosting deployment, no service-location activation or import.
+
+
+### Step 151 — Admin / Firebase callable compatibility audit (2026-10-17)
+- Read the Admin boundary service, service-location service, Firebase callable source, Rules patch, and callable integration test from their current PR branches.
+- **Boundary review compatibility: PASS by source inspection.** Admin verification and rejection both call `reviewServiceLocationBoundary` in `asia-south1` with the expected `boundaryId`, `decision` (`verified`/`rejected`), and `notes` fields. Firebase callable validates sign-in, active `admin_users/{uid}` with role `super_admin`, request fields, and rechecks review state/geometry/parent containment in its transaction.
+- **City/Area activation compatibility: PASS by source inspection.** Admin calls `activateServiceLocation`; generic status changes call `setServiceLocationStatus`. Backend refuses direct City/Area activation through the status callable and requires the dedicated verified-boundary activation flow.
+- **Rules alignment: PASS for the reviewed paths.** Client boundary update Rules allow eligible draft updates only; verification/rejection writes are performed by the Admin-SDK callable. Admin's generic location save path remains subject to stricter Rules (new hierarchy records must start inactive and parent links must match). It does not bypass the Rules.
+- Integration test source exists for boundary review, including authentication/authorization cases. This audit is source review plus previously passing CI; no production callable has been invoked, and no deployed behavior was smoke-tested.
+- Remaining release blockers: manually verify GitHub branch protection/production reviewers, obtain explicit user approval before changing either Draft PR or dispatching any deployment, and execute post-deploy smoke/regression tests in the authorized sequence.
+- No code behavior changed in this step; only this status report was updated. No merge/deploy/activation/import occurred.
