@@ -452,3 +452,11 @@ No merge, release, or deployment occurred.
 - CI: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39070246822 and https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39070246869.
 - Step 140 report updated in commit `54b5fb21e8ef367547366c86516c7f27f633f28f`.
 - PR #5 remains draft/open/unmerged. No production deployment.
+
+
+### Step 141 — Partner KYC Storage Rules audit (2026-10-18)
+- Partner selfie/KYC screens upload Storage objects before writing private paths to Firestore.
+- Reviewed Firebase repo root and `firebase.json`: only Firestore Rules are configured in this repository snapshot; no `storage.rules` file or Storage Rules deployment path was found.
+- This is an evidence/configuration gap, not proof of deployed Storage Rules being absent/open. Actual deployed Storage policy remains unknown.
+- Treat KYC Storage authorization as a release blocker until the actual rules source is found, reviewed and emulator-tested for owner/path access, private reads, overwrite, content type, and size limits.
+- Report commit `2cf2fb5a6394edff63c907aea42f8bb9795b2f22`; no deployment or production change.
