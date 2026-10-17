@@ -59,5 +59,44 @@ void main() {
     test('returns null when no boundaries exist', () {
       expect(selectBoundaryForManagement(const []), isNull);
     });
+
+    test('sorts pending then rejected before verified boundaries', () {
+      final ordered = sortBoundariesForChooser([
+        boundary('verified', BoundaryVerificationStatus.verified),
+        boundary('rejected', BoundaryVerificationStatus.rejected),
+        boundary('pending', BoundaryVerificationStatus.pending),
+        boundary('unknown', BoundaryVerificationStatus.notAvailable),
+      ]);
+
+      expect(
+        ordered.map((item) => item.id).toList(),
+        ['pending', 'rejected', 'verified', 'unknown'],
+      );
+    });
+
+    test('sorts newest first within the same status without mutating input', () {
+      final older = boundary('older', BoundaryVerificationStatus.pending);
+      final newer = ServiceLocationBoundary(
+        id: 'newer',
+        locationId: older.locationId,
+        locationType: older.locationType,
+        points: older.points,
+        sourceType: older.sourceType,
+        sourceName: older.sourceName,
+        sourceReference: older.sourceReference,
+        verificationStatus: older.verificationStatus,
+        verifiedBy: older.verifiedBy,
+        verifiedAt: older.verifiedAt,
+        verificationNotes: older.verificationNotes,
+        createdAt: older.createdAt,
+        updatedAt: DateTime.utc(2026, 2, 1),
+      );
+      final input = [newer, older];
+
+      final ordered = sortBoundariesForChooser(input);
+
+      expect(ordered.map((item) => item.id).toList(), ['newer', 'older']);
+      expect(input.map((item) => item.id).toList(), ['newer', 'older']);
+    });
   });
 }
