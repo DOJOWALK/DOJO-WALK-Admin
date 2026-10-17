@@ -1,16 +1,16 @@
-# DOJO WALK Location Master — Step 100
-## Snapshot Metadata Format Validation — PASS
+# DOJO WALK Location Master — Step 101
+## Malformed Snapshot Metadata List Hardening — CI Pending
 Date: 2026-10-17
 
-- [x] Added ISO-style export timestamp parsing, unknown collection-name detection, malformed collection-list detection, and non-negative/matching record-count checks.
-- [x] Corrected the timestamp-validation regex after the first Rules run exposed a regression.
-- [x] Step 100 Firebase Rules CI [39028867035](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028867035) — PASS.
-- [x] Step 100 callable/geometry CI [39028867024](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028867024) — PASS.
-- [x] Saved [Step 100 report](LOCATION_MASTER_STEP_100_SNAPSHOT_METADATA_VALIDATION.md).
-- [!] No production export/live scan, write, import, activation, or deployment. Metadata checks do not prove export authenticity or completeness.
-- [!] Current official LGD row-level reconciliation and authoritative polygon validation/containment remain release gates.
+- [x] Fixed a false-completeness risk: non-array `collectionsIncluded` or `completeCollections` values are now marked malformed rather than silently converted into empty arrays.
+- [x] Added regression tests for object/string collection-list values.
+- [x] Step 100 CI confirmed PASS: [Rules 39028867035](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028867035), [callable/geometry 39028867024](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39028867024).
+- [ ] Step 101 CI pending for commits `3b68cca15cf56699f5405ff92f3c67d660836109` and `b8b0918abfac44b232478165702287b24bdb84eb`.
+- [x] Saved [Step 101 report](LOCATION_MASTER_STEP_101_MALFORMED_SNAPSHOT_METADATA.md).
+- [!] No production export/live scan, write, import, activation, or deployment. Snapshot metadata declarations cannot prove export authenticity/completeness.
+- [!] Official current LGD row-level reconciliation and authoritative polygon validity/containment remain release gates.
 
-Next: Step 101 — harden malformed snapshot metadata list declarations.
+Next: verify Step 101 CI, then continue offline snapshot validation.
 
 Last updated: 2026-10-17.
 ---
