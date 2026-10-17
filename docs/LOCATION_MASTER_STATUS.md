@@ -981,8 +981,9 @@ Last updated: 2026-10-17.
 - [x] Expanded callable integration fixtures and added negative tests for a missing State reference, inactive State, and State linked to a different Country.
 - [x] Firebase source commit: `cfedba1c9787dd4f3e10a4800dc7ee55bab44199`.
 - [x] Integration fixture update: `e15601baa9fa44585fac842d93987c31f60d10ef` (geometry/callable CI passed).
-- [ ] Latest regression-test commit: `780737b51c4dda419ade4314811f71adb79c8743`; geometry/callable run [39021142915](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39021142915) and Firestore Rules run [39021142926](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39021142926) were still running at checkpoint.
-- [ ] Do not call Step 87 fully validated until both latest runs finish successfully.
+- [x] Latest regression-test commit: `780737b51c4dda419ade4314811f71adb79c8743`; geometry/callable run [39021142915](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39021142915) — **PASS**.
+- [x] Firestore Rules run [39021142926](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39021142926) — **PASS** on the same commit.
+- [x] Step 87 validation checkpoint complete; the CI confirms Firebase test suites pass, not production deployment or live customer activation.
 - [ ] Official current LGD row-level reconciliation, authoritative contiguous polygon validation, review/merge and deployment remain pending. No production activation or deployment performed.
 
 Next: Step 88 — verify the latest CI results; if they pass, audit activation/deactivation races and ancestor deactivation constraints; if they fail, fix the exact regression before proceeding.
