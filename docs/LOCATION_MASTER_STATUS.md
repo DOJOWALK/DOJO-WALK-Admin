@@ -1,3 +1,16 @@
+## Step 83 — Firebase boundary workflow Rules/Callable CI validation (2026-10-17) — PASS
+
+- [x] Firebase Firestore Rules Emulator workflow [39019936397](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39019936397) completed successfully on commit `855dfc731910b110c00ea7dd30cf1cec038d7eaa`.
+- [x] Firebase geometry/callable integration workflow [39019936431](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39019936431) completed successfully on the same commit.
+- [x] Rules Emulator job completed its dependency install and Firestore Emulator test step successfully, including the new inactive City/Area boundary-reference cases and active City rebind rejection.
+- [x] Geometry/callable job completed its build and Firestore Emulator integration test step successfully.
+- [!] This validates the Firebase-side Rules and callable test suites separately. It does not prove the complete Admin client transaction has been run end-to-end against the same Emulator configuration or production Firestore.
+- [ ] Next: add/execute a combined Admin boundary-verification transaction test against Firestore Emulator, then re-run Admin CI if code changes.
+- [ ] Fresh official LGD row-level reconciliation and authoritative contiguous polygon verification remain pending. No merge, production import, service activation, or deployment was performed.
+- [x] Details: [Step 83 report](LOCATION_MASTER_STEP_83_FIREBASE_RULES_VALIDATION.md).
+
+Last updated: 2026-10-17.
+
 ## Step 76 — Fresh official LGD export access recheck (2026-10-17)
 
 - [x] Rechecked the official OGD LGD Districts resource: metadata displays “Updated On 08/10/2026”; this is catalog metadata, not a row-level export.
