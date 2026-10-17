@@ -202,7 +202,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: DropdownButtonFormField<T>(
-        value: value,
+        initialValue: value,
         isExpanded: true,
         decoration: InputDecoration(
           labelText: label,
@@ -400,7 +400,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<int>(
-                  value: _level,
+                  initialValue: _level,
                   isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Location type',
