@@ -1,3 +1,16 @@
+## Step 89 — Server-enforced service status changes (CI PENDING)
+
+- [x] Added `setServiceLocationStatus` callable for Country/State activation and Country/State/City/Area deactivation, with active-admin authorization and descendant checks.
+- [x] Restricted Firestore Rules against direct client status flips; Country/State direct creation must start inactive.
+- [x] Updated Admin service to use the callable for status transitions; City/Area activation still uses the verified-boundary callable.
+- [x] Added Rules Emulator tests for direct status-flip attempts and active Country/State creation attempts.
+- [ ] Firebase CI runs [39025247269](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025247269) and [39025247312](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025247312) were still in progress at update time; inspect final results.
+- [ ] Add/verify explicit concurrency regression coverage before declaring the Step 88 race fully closed; Admin Flutter analysis/tests/Web build also remain pending.
+- [!] No production deployment, merge, or real service-location activation. This step is implementation-in-progress, not PASS.
+- [x] Details: [Step 89 report](LOCATION_MASTER_STEP_89_SAFE_DEACTIVATION.md).
+
+Last updated: 2026-10-17.
+
 ## Step 84 — Combined Admin-style boundary verification transaction test (CI PENDING)
 
 - [x] Audited Admin `markVerified()`: reads the pending boundary and owning location, checks parent boundary containment for Area/Locality, then atomically updates the boundary verification fields and City/Area `verifiedBoundaryId`.
