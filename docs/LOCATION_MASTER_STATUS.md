@@ -6,8 +6,10 @@
 - [x] Added Rules Emulator tests for direct status-flip attempts and active Country/State creation attempts.
 - [x] Baseline Firebase CI passed: [39025247269](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025247269) and [39025247312](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025247312).
 - [x] Dedicated Rules test run passed: [39025322676](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025322676).
-- [!] Dedicated callable run [39025322677](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025322677) exposed one test-fixture issue (already-active State was expected to reject reactivation); corrected in Firebase commit `7c3eaef3bce1b58a77fd7d30caac527be3b186b0`; rerun [39025447018](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025447018) pending.
-- [!] Admin Flutter validation found unused legacy helper; removed in Admin commit `f0731f1cb1ebed91cba526febba13589d7435ccb`; rerun [39025473065](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39025473065) pending.
+- [x] Dedicated callable suite passed after fixture correction: [39025447018](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025447018).
+- [x] Added concurrent Country-deactivation vs State-activation regression test; both Firebase workflows passed: [39025527213](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025527213) and [39025527220](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39025527220).
+- [x] Removed unused client-side guard helper; subsequent tests revealed old unit tests still expected the removed local guard. Those tests are being migrated to verify callable delegation while backend emulator tests cover the real guard.
+- [ ] Admin Flutter CI after test migration pending: [39025598444](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39025598444).
 - [ ] Add/verify explicit concurrency regression coverage before declaring the Step 88 race fully closed; Admin Flutter analysis/tests/Web build also remain pending.
 - [!] No production deployment, merge, or real service-location activation. This step is implementation-in-progress, not PASS.
 - [x] Details: [Step 89 report](LOCATION_MASTER_STEP_89_SAFE_DEACTIVATION.md).
