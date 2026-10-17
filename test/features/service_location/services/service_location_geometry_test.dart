@@ -76,19 +76,10 @@ void main() {
       );
     });
 
-    test('rejects invalid coordinate ranges', () {
-      final invalid = <GeoPoint>[
-        p(1, 1),
-        p(1, 2),
-        p(91, 2),
-      ];
-      expect(
-        ServiceLocationGeometry.isPolygonContained(
-          parent: city,
-          child: invalid,
-        ),
-        isFalse,
-      );
+    test('Firestore GeoPoint rejects out-of-range coordinates at construction',
+        () {
+      expect(() => p(91, 2), throwsAssertionError);
+      expect(() => p(1, 181), throwsAssertionError);
     });
 
     test('rejects a self-intersecting child polygon', () {
