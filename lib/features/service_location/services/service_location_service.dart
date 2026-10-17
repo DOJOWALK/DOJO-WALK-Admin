@@ -1232,9 +1232,8 @@ class ServiceLocationService {
         ...savedLocality.toMap(),
         // Direct client writes cannot change service activation status.
         // New Localities always start inactive; existing status is preserved.
-        'isServiceActive': existingSnapshot.exists
-            ? existingSnapshot.data()?['isServiceActive'] == true
-            : false,
+        'isServiceActive': existingSnapshot.exists &&
+                (existingSnapshot.data() ?? const <String, dynamic>{})['isServiceActive'] == true,
       },
     );
   }
