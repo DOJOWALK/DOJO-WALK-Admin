@@ -612,9 +612,9 @@ class ServiceLocationService {
       );
     }
 
-    final id = country.id.trim().isEmpty
-        ? _countries.doc().id
-        : country.id.trim();
+    final isNew = country.id.trim().isEmpty;
+    final id = isNew ? _countries.doc().id : country.id.trim();
+    final existingSnapshot = await _countries.doc(id).get();
 
     await _saveUniqueNamedDocument(
       collection: _countries,
@@ -625,7 +625,8 @@ class ServiceLocationService {
       data: {
         'name': name,
         'code': code,
-        'isActive': country.isActive,
+        'isActive': existingSnapshot.exists &&
+            existingSnapshot.data()?['isActive'] == true,
       },
     );
   }
@@ -685,22 +686,13 @@ class ServiceLocationService {
 
     final oldId = state.id.trim();
     final id = oldId.isEmpty ? _states.doc().id : oldId;
+    final existingSnapshot = await _states.doc(id).get();
 
-    // A State with child Cities must not be reparented: their saved
-    // country/state chain would otherwise become inconsistent.
-    if (oldId.isNotEmpty) {
-      final existingSnapshot = await _states.doc(id).get();
-      if (existingSnapshot.exists) {
-        final oldCountryId =
-            existingSnapshot.data()?['countryId']?.toString() ?? '';
-        if (oldCountryId != countryId) {
-          await _ensureNoChildrenForReparent(
-            parentCollection: 'service_states',
-            parentId: id,
-            label: 'state',
-          );
-        }
-      }
+    if (existingSnapshot.exists &&
+        existingSnapshot.data()?['countryId']?.toString() != countryId) {
+      throw StateError(
+        'A State parent Country cannot be changed after creation. Create a new State instead.',
+      );
     }
 
     await _saveUniqueNamedDocument(
@@ -713,7 +705,8 @@ class ServiceLocationService {
         'countryId': countryId,
         'name': name,
         'lgdCode': state.lgdCode,
-        'isActive': state.isActive,
+        'isActive': existingSnapshot.exists &&
+            existingSnapshot.data()?['isActive'] == true,
       },
     );
   }
@@ -814,6 +807,7 @@ class ServiceLocationService {
     final oldId = city.id.trim();
 
     final id = oldId.isEmpty ? _cities.doc().id : oldId;
+    final existingSnapshot = await _cities.doc(id).get();
 
     await _requireDocument(
       _countries,
@@ -835,7 +829,8 @@ class ServiceLocationService {
 
     String verifiedBoundaryId = city.verifiedBoundaryId.trim();
 
-    if (city.isServiceActive) {
+    if (existingSnapshot.exists &&
+        existingSnapshot.data()?['isServiceActive'] == true) {
       await _requireActiveCountry(countryId);
 
       await _requireActiveState(stateId, countryId);
@@ -846,19 +841,11 @@ class ServiceLocationService {
       );
     }
 
-    final existingSnapshot = await _cities.doc(id).get();
-
     if (existingSnapshot.exists) {
       final oldData = existingSnapshot.data()!;
-
-      final oldStateId =
-          oldData['stateId']?.toString() ?? '';
-
-      if (oldStateId != stateId) {
-        await _ensureNoChildrenForReparent(
-          parentCollection: 'service_cities',
-          parentId: id,
-          label: 'city',
+      if (oldData['countryId'] != countryId || oldData['stateId'] != stateId) {
+        throw StateError(
+          'A City parent Country/State cannot be changed after creation. Create a new City instead.',
         );
       }
     }
@@ -879,6 +866,8 @@ class ServiceLocationService {
       isNew: oldId.isEmpty,
       data: {
         ...savedCity.toMap(),
+        'isServiceActive': existingSnapshot.exists &&
+            existingSnapshot.data()?['isServiceActive'] == true,
         // Merge writes must explicitly clear a stale reference code.
         'lgdCode': savedCity.lgdCode,
       },
@@ -966,6 +955,7 @@ class ServiceLocationService {
     final oldId = area.id.trim();
 
     final id = oldId.isEmpty ? _areas.doc().id : oldId;
+    final existingSnapshot = await _areas.doc(id).get();
 
     final cityData = await _requireDocument(
       _cities,
@@ -990,7 +980,8 @@ class ServiceLocationService {
 
     String verifiedBoundaryId = area.verifiedBoundaryId.trim();
 
-    if (area.isServiceActive) {
+    if (existingSnapshot.exists &&
+        existingSnapshot.data()?['isServiceActive'] == true) {
       await _requireActiveCountry(countryId);
 
       await _requireActiveState(stateId, countryId);
@@ -1003,19 +994,13 @@ class ServiceLocationService {
       );
     }
 
-    final existingSnapshot = await _areas.doc(id).get();
-
     if (existingSnapshot.exists) {
       final oldData = existingSnapshot.data()!;
-
-      final oldCityId =
-          oldData['cityId']?.toString() ?? '';
-
-      if (oldCityId != cityId) {
-        await _ensureNoChildrenForReparent(
-          parentCollection: 'service_areas',
-          parentId: id,
-          label: 'area',
+      if (oldData['countryId'] != countryId ||
+          oldData['stateId'] != stateId ||
+          oldData['cityId'] != cityId) {
+        throw StateError(
+          'An Area parent Country/State/City cannot be changed after creation. Create a new Area instead.',
         );
       }
     }
@@ -1037,6 +1022,8 @@ class ServiceLocationService {
       isNew: oldId.isEmpty,
       data: {
         ...savedArea.toMap(),
+        'isServiceActive': existingSnapshot.exists &&
+            existingSnapshot.data()?['isServiceActive'] == true,
         // Merge writes must explicitly clear a stale reference code.
         'lgdCode': savedArea.lgdCode,
       },
@@ -1143,6 +1130,7 @@ class ServiceLocationService {
     final id = oldId.isEmpty
         ? _localities.doc().id
         : oldId;
+    final existingSnapshot = await _localities.doc(id).get();
 
     final areaData = await _requireDocument(
       _areas,
@@ -1170,7 +1158,8 @@ class ServiceLocationService {
       );
     }
 
-    if (locality.isServiceActive) {
+    if (existingSnapshot.exists &&
+        existingSnapshot.data()?['isServiceActive'] == true) {
       await _requireActiveCountry(countryId);
 
       await _requireActiveState(stateId, countryId);
@@ -1191,19 +1180,14 @@ class ServiceLocationService {
       }
     }
 
-    final existingSnapshot = await _localities.doc(id).get();
-
     if (existingSnapshot.exists) {
       final oldData = existingSnapshot.data()!;
-
-      final oldAreaId =
-          oldData['areaId']?.toString() ?? '';
-
-      if (oldAreaId != areaId) {
-        await _ensureNoChildrenForReparent(
-          parentCollection: 'service_localities',
-          parentId: id,
-          label: 'locality',
+      if (oldData['countryId'] != countryId ||
+          oldData['stateId'] != stateId ||
+          oldData['cityId'] != cityId ||
+          oldData['areaId'] != areaId) {
+        throw StateError(
+          'A Locality parent Country/State/City/Area cannot be changed after creation. Create a new Locality instead.',
         );
       }
     }
