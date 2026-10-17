@@ -20,6 +20,8 @@ on:
       - 'lib/features/service_location/services/service_location_geometry.dart'
       - 'lib/features/service_location/services/service_location_service.dart'
       - 'lib/features/service_location/services/service_location_boundary_service.dart'
+      - 'lib/features/service_location/services/location_csv_preview_parser.dart'
+      - 'test/features/service_location/services/location_csv_preview_parser_test.dart'
       - 'test/features/service_location/services/service_location_geometry_test.dart'
       - '.github/workflows/service-location-geometry-tests.yml'
       - 'pubspec.yaml'
