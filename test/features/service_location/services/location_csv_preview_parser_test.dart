@@ -12,7 +12,7 @@ void main() {
       expect(result.fileErrors, isEmpty);
       expect(result.validRowCount, 1);
       expect(result.invalidRowCount, 0);
-      expect(result.canProceed, isTrue);
+      expect(result.isSyntacticallyValid, isTrue);
     });
 
     test('supports quoted commas and escaped quotes', () {
@@ -21,14 +21,14 @@ void main() {
       );
       expect(result.rows.single.values['city'], 'Greater Noida, West');
       expect(result.rows.single.values['area'], 'Area "A"');
-      expect(result.canProceed, isTrue);
+      expect(result.isSyntacticallyValid, isTrue);
     });
 
     test('reports missing headers without producing rows', () {
       final result = parser.parse('State,City,Area\nUP,Noida,Sector 1');
       expect(result.fileErrors, contains('Required column missing: DISTRICT.'));
       expect(result.rows, isEmpty);
-      expect(result.canProceed, isFalse);
+      expect(result.isSyntacticallyValid, isFalse);
     });
 
     test('reports missing cells, wrong field counts, and duplicate combinations', () {
@@ -39,7 +39,7 @@ void main() {
       expect(result.rows[0].errors, contains('Required value missing: AREA.'));
       expect(result.rows[2].errors, contains('Expected 4 columns but found 5.'));
       expect(result.rows[2].errors, contains('Duplicate State/District/City/Area combination in this file.'));
-      expect(result.canProceed, isFalse);
+      expect(result.isSyntacticallyValid, isFalse);
     });
 
     test('rejects duplicate and empty headers', () {
@@ -60,7 +60,7 @@ void main() {
         ),
       );
       expect(result.rows, isEmpty);
-      expect(result.canProceed, isFalse);
+      expect(result.isSyntacticallyValid, isFalse);
     });
 
     test('rejects empty and malformed CSV input', () {
