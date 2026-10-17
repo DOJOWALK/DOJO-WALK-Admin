@@ -1219,7 +1219,7 @@ class _ServiceLocationScreenState
     String rowPreviewSubtitle(LocationCsvRow row) {
       final validation = row.errors.isEmpty
           ? 'Validation passed'
-          : row.errors.join('\\n');
+          : row.errors.join('\n');
       final metadata = row.sourceValues.entries
           .where((entry) {
             final normalized = entry.key
@@ -1234,7 +1234,7 @@ class _ServiceLocationScreenState
           .join(' · ');
       return metadata.isEmpty
           ? validation
-          : '$validation\\nSource metadata: $metadata';
+          : '$validation\nSource metadata: $metadata';
     }
 
     Future<void> checkParentMapping(StateSetter setDialogState) async {
