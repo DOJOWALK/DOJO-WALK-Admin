@@ -192,6 +192,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
   }
 
   Widget _dropdown<T>({
+    Key? key,
     required String label,
     required T? value,
     required List<DropdownMenuItem<T>> items,
@@ -200,6 +201,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: DropdownButtonFormField<T>(
+        key: key,
         initialValue: value,
         isExpanded: true,
         decoration: InputDecoration(
@@ -274,6 +276,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
         final states = snapshot.data!;
 
         return _dropdown<String>(
+          key: ValueKey<String>('state-${_selection.countryId}'),
           label: 'State',
           value: _selection.stateId,
           items: states
@@ -319,6 +322,9 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
         final cities = snapshot.data!;
 
         return _dropdown<String>(
+          key: ValueKey<String>(
+            'city-${_selection.countryId}-${_selection.stateId}',
+          ),
           label: 'City / District',
           value: _selection.cityId,
           items: cities
@@ -361,6 +367,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
         final areas = snapshot.data!;
 
         return _dropdown<String>(
+          key: ValueKey<String>('area-${_selection.cityId}'),
           label: 'Area / Sub-district',
           value: _selection.areaId,
           items: areas
