@@ -24,4 +24,4 @@ Firebase commit: `0775875a59a931024701ad648a0eb28cac8e7215`
 - Trusted Location Geometry and Callable Tests: run [39166935906](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39166935906)
 - Test Firestore Security Rules: run [39166935871](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39166935871)
 
-CI was in progress when this report was written; final results must be verified before marking this step fully validated.
+Final CI results: both workflows completed successfully (conclusion: success).
