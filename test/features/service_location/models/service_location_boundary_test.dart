@@ -70,7 +70,7 @@ void main() {
         id: valid.id,
         locationId: valid.locationId,
         locationType: valid.locationType,
-        points: const [
+        points: [
           GeoPoint(91, 77),
           GeoPoint(28, 181),
           GeoPoint(28.1, 77.1),
