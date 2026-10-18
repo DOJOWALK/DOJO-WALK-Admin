@@ -119,6 +119,21 @@ void main() {
       expect(result.rows.single.values['area'], 'Gaur City');
     });
 
+    test('supports legacy CR-only line endings', () {
+      final result = parser.parse(
+        'State,District,City,Area\r'
+        'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City\r'
+        'Rajasthan,Jaipur,Jaipur,Malviya Nagar',
+      );
+
+      expect(result.fileErrors, isEmpty);
+      expect(result.rows, hasLength(2));
+      expect(result.invalidRowCount, 0);
+      expect(result.rows.first.values['state'], 'Uttar Pradesh');
+      expect(result.rows.last.values['area'], 'Malviya Nagar');
+      expect(result.isSyntacticallyValid, isTrue);
+    });
+
     test('preserves optional source codes and version columns in read-only preview', () {
       final result = parser.parse(
         'State,District,City,Area,State LGD Code,District LGD Code,Source Version\n'
