@@ -49,6 +49,20 @@ void main() {
       expect(empty.fileErrors, contains('Header row contains an empty column name.'));
     });
 
+    test('rejects required headers that collide after normalization', () {
+      final result = parser.parse(
+        'State,S-T-A-T-E,District,City,Area\\n'
+        'UP,UP,GBN,Noida,Sector 1',
+      );
+
+      expect(
+        result.fileErrors,
+        contains('Header row contains duplicate column names.'),
+      );
+      expect(result.rows, isEmpty);
+      expect(result.isSyntacticallyValid, isFalse);
+    });
+
     test('rejects a quote inside an unquoted field', () {
       final result = parser.parse(
         'State,District,City,Area\nUP,GB"N,Noida,Sector 1',
