@@ -61,6 +61,36 @@ void main() {
       );
     });
 
+    test('rejects non-finite and out-of-range coordinates', () {
+      final valid = boundary(
+        'invalid-coordinates',
+        BoundaryVerificationStatus.pending,
+      );
+      final invalid = ServiceLocationBoundary(
+        id: valid.id,
+        locationId: valid.locationId,
+        locationType: valid.locationType,
+        points: [
+          const GeoPoint(double.nan, 77.0),
+          const GeoPoint(28.0, double.infinity),
+          const GeoPoint(91.0, 181.0),
+        ],
+        sourceType: valid.sourceType,
+        sourceName: valid.sourceName,
+        sourceReference: valid.sourceReference,
+        verificationStatus: valid.verificationStatus,
+        verifiedBy: null,
+        verifiedAt: null,
+        verificationNotes: null,
+        createdAt: valid.createdAt,
+        updatedAt: valid.updatedAt,
+      );
+
+      expect(invalid.validate(), contains('Boundary point 1 is invalid.'));
+      expect(invalid.validate(), contains('Boundary point 2 is invalid.'));
+      expect(invalid.validate(), contains('Boundary point 3 is invalid.'));
+    });
+
     test('accepts coordinates at valid latitude and longitude limits', () {
       final valid = boundary(
         'coordinate-limits',
