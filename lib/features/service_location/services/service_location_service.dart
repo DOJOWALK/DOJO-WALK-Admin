@@ -201,11 +201,12 @@ class ServiceLocationService {
       'locality': const ['countryId', 'stateId', 'cityId', 'areaId'],
     };
     final parentFields = parentFieldsByType[locationType]!;
-    if (parentFields.length != parentIds.length) {
-      throw StateError('The supplied service location hierarchy is invalid.');
-    }
-    for (var i = 0; i < parentFields.length; i++) {
-      payload[parentFields[i]] = parentIds[i];
+    for (final field in parentFields) {
+      final parentId = payload[field]?.toString().trim() ?? '';
+      if (parentId.isEmpty) {
+        throw StateError('The supplied service location hierarchy is invalid: $field is required.');
+      }
+      payload[field] = parentId;
     }
 
     final callable = _functions.httpsCallable('saveServiceLocationWithNameIndex');
@@ -220,44 +221,6 @@ class ServiceLocationService {
     }
   }
 
-  List<String> _parentIdsFromDocument(
-    String collectionPath,
-    Map<String, dynamic> data,
-  ) {
-    switch (collectionPath) {
-      case 'service_countries':
-        return const [];
-
-      case 'service_states':
-        return [
-          data['countryId']?.toString() ?? '',
-        ];
-
-      case 'service_cities':
-        return [
-          data['countryId']?.toString() ?? '',
-          data['stateId']?.toString() ?? '',
-        ];
-
-      case 'service_areas':
-        return [
-          data['countryId']?.toString() ?? '',
-          data['stateId']?.toString() ?? '',
-          data['cityId']?.toString() ?? '',
-        ];
-
-      case 'service_localities':
-        return [
-          data['countryId']?.toString() ?? '',
-          data['stateId']?.toString() ?? '',
-          data['cityId']?.toString() ?? '',
-          data['areaId']?.toString() ?? '',
-        ];
-
-      default:
-        return const [];
-    }
-  }
 
   // ==========================================================
   // DOCUMENT / HIERARCHY VALIDATION
