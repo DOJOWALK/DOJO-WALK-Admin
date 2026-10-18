@@ -105,7 +105,7 @@ class ServiceLocationBoundaryService {
 
     if (!_isSupportedLocationType(boundary.locationType)) {
       errors.add(
-        'Location type must be city, area, or locality.',
+        'Location type must be city or area.',
       );
     }
 
