@@ -4,13 +4,12 @@ Date: 2026-10-18
 Branch: `step-119-boundary-geometry`
 
 ## Change
-Added a parser regression test proving required headers are recognized when case, surrounding spaces, underscores, or hyphens vary (for example, ` STATE `, `district_name`, and `City-Name`). The fixture uses a real Dart newline escape.
-
-Test commit: `269a95ba0e143e2b50a9544e5dd57cf38290689c`.
+Added a parser regression test proving required headers normalize to the required keys when case, spaces, underscores, and hyphens vary. The fixture uses `S-T-A-T-E`, `D I S T R I C T`, `C-i-t-y`, and `A_r_e_a`, which normalize to State, District, City, and Area.
 
 ## Verification
-Step 189 Geometry Unit Tests passed. Its Web Build was still running at the last poll.
-CI for this Step 190 head must complete before the new test is marked PASS.
+The latest observed CI for branch head `406a65a004bd479e4d4b9f1b5698275bd64974cc` passed:
+- Geometry Unit Tests: PASS — https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39080600851
+- Admin Web Build: PASS — https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39080600852
 
 ## Safety
-Test-only change. No schema changes, Firebase writes, production imports, activation/deactivation, deployment, or Partner/Customer migration. Admin PR #7 remains Draft.
+Test and documentation only. No schema changes, Firebase writes, production imports, activation/deactivation, deployment, or Partner/Customer migration. Admin PR #7 remains Draft.
