@@ -1120,7 +1120,7 @@ class _ServiceLocationScreenState
                       .where(
                         (item) => _matches(
                           '${item.id} ${item.name} '
-                          '${city.id} ${city.name}',
+                          '${city.id} ${city.name} ${city.districtId}',
                         ),
                       )
                       .toList();
@@ -1138,7 +1138,8 @@ class _ServiceLocationScreenState
                           title: item.name,
                           subtitle:
                               'ID: ${item.id}\n'
-                              'City/District: ${city.name}\n'
+                              'City: ${city.name}\n'
+                              '${city.districtId.isEmpty ? "District: Legacy City (not linked)" : "District ID: ${city.districtId}"}\n'
                               'Legacy boundary points: '
                               '${item.boundary.length} · '
                               'Legacy verified: '
