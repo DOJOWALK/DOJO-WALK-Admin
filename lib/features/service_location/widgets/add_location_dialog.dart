@@ -37,7 +37,8 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
   static const List<String> _locationTypes = [
     'Country',
     'State',
-    'City / District',
+    'District',
+    'City',
     'Area / Sub-district',
     'Locality / Village',
   ];
@@ -84,17 +85,29 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
           break;
 
         case 2:
+          await widget.service.saveDistrict(
+            ServiceDistrict(
+              countryId: _selection.countryId!,
+              stateId: _selection.stateId!,
+              name: name,
+              isActive: false,
+            ),
+          );
+          break;
+
+        case 3:
           await widget.service.saveCity(
             ServiceCity(
               countryId: _selection.countryId!,
               stateId: _selection.stateId!,
+              districtId: _selection.districtId!,
               name: name,
               isServiceActive: false,
             ),
           );
           break;
 
-        case 3:
+        case 5:
           final city = await widget.service.getCity(_selection.cityId!);
 
           if (city == null) {
@@ -303,10 +316,10 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     );
   }
 
-  Widget _buildCityDropdown() {
+  Widget _buildDistrictDropdown() {
     if (_selection.countryId == null || _selection.stateId == null) {
       return _dropdown<String>(
-        label: 'City / District',
+        label: 'District',
         value: null,
         items: const [],
         onChanged: (_) {},
@@ -314,40 +327,79 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     }
 
     return StreamBuilder<List<ServiceCity>>(
+      stream: widget.service.watchDistricts(
+        countryId: _selection.countryId,
+        stateId: _selection.stateId,
+      ),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return _dropdownStatus('Unable to load Districts: ${snapshot.error}');
+        }
+        if (!snapshot.hasData) {
+          return _dropdownStatus('Loading Districts…', loading: true);
+        }
+        final districts = snapshot.data!;
+
+        return _dropdown<String>(
+          key: ValueKey<String>(
+            'district-${_selection.countryId}-${_selection.stateId}',
+          ),
+          label: 'District',
+          value: retainAvailableSelection(
+            _selection.districtId,
+            districts.map((district) => district.id),
+          ),
+          items: districts
+              .map((district) => DropdownMenuItem<String>(
+                    value: district.id,
+                    child: Text(district.name),
+                  ))
+              .toList(),
+          onChanged: (value) {
+            setState(() {
+              _selection = _selection.selectDistrict(value);
+            });
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildCityDropdown() {
+    if (_selection.countryId == null || _selection.stateId == null ||
+        _selection.districtId == null) {
+      return _dropdown<String>(
+        label: 'City',
+        value: null,
+        items: const [],
+        onChanged: (_) {},
+      );
+    }
+    return StreamBuilder<List<ServiceCity>>(
       stream: widget.service.watchCities(
         countryId: _selection.countryId,
         stateId: _selection.stateId,
       ),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return _dropdownStatus('Unable to load cities/districts: ${snapshot.error}');
+          return _dropdownStatus('Unable to load Cities: ${snapshot.error}');
         }
         if (!snapshot.hasData) {
-          return _dropdownStatus('Loading cities/districts…', loading: true);
+          return _dropdownStatus('Loading Cities…', loading: true);
         }
-        final cities = snapshot.data!;
-
+        final cities = snapshot.data!
+            .where((city) => city.districtId == _selection.districtId)
+            .toList();
         return _dropdown<String>(
-          key: ValueKey<String>(
-            'city-${_selection.countryId}-${_selection.stateId}',
-          ),
-          label: 'City / District',
-          value: retainAvailableSelection(
-            _selection.cityId,
-            cities.map((city) => city.id),
-          ),
-          items: cities
-              .map(
-                (city) => DropdownMenuItem<String>(
-                  value: city.id,
-                  child: Text(city.name),
-                ),
-              )
-              .toList(),
+          key: ValueKey<String>('city-${_selection.districtId}'),
+          label: 'City',
+          value: retainAvailableSelection(_selection.cityId, cities.map((c) => c.id)),
+          items: cities.map((city) => DropdownMenuItem<String>(
+            value: city.id,
+            child: Text(city.name),
+          )).toList(),
           onChanged: (value) {
-            setState(() {
-              _selection = _selection.selectCity(value);
-            });
+            setState(() => _selection = _selection.selectCity(value));
           },
         );
       },
@@ -483,8 +535,8 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
                 if (_level >= 2) _buildStateDropdown(),
 
+                if (_level >= 2) _buildDistrictDropdown(),
                 if (_level >= 3) _buildCityDropdown(),
-
                 if (_level >= 4) _buildAreaDropdown(),
 
                 const SizedBox(height: 4),
@@ -521,7 +573,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                   ),
                 ],
 
-                if (_level == 4) ...[
+                if (_level == 5) ...[
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _pincodeController,
