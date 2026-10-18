@@ -212,7 +212,7 @@ class _LiveOperationsScreenState
                   const PolylineId('live_route'),
               points: points,
               width: 5,
-              color: const Color(0xFFFF6A00),
+              color: const Color(0xFFFF7900),
             ),
           };
         } else {
@@ -248,7 +248,7 @@ class _LiveOperationsScreenState
 
     return Scaffold(
       backgroundColor:
-          const Color(0xFFF7F7F7),
+          const Color(0xFFFFFAF5),
       body: Stack(
         children: [
           // ======================================================
@@ -299,7 +299,7 @@ class _LiveOperationsScreenState
                       const Icon(
                         Icons.location_on,
                         color:
-                            Color(0xFFFF6A00),
+                            Color(0xFFFF7900),
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -400,7 +400,7 @@ class _WalkerDetailsCard extends StatelessWidget {
                 CircleAvatar(
                   radius: 25,
                   backgroundColor:
-                      const Color(0xFFFF6A00),
+                      const Color(0xFFFF7900),
                   child: const Icon(
                     Icons.person,
                     color: Colors.white,
@@ -516,7 +516,7 @@ class _WalkerDetailsCard extends StatelessWidget {
                         ElevatedButton.styleFrom(
                       backgroundColor:
                           const Color(
-                        0xFFFF6A00,
+                        0xFFFF7900,
                       ),
                       foregroundColor:
                           Colors.white,
@@ -560,7 +560,7 @@ class _InfoChip extends StatelessWidget {
         vertical: 7,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F7F7),
+        color: const Color(0xFFFFFAF5),
         borderRadius:
             BorderRadius.circular(10),
       ),
@@ -571,7 +571,7 @@ class _InfoChip extends StatelessWidget {
             icon,
             size: 15,
             color: const Color(
-              0xFFFF6A00,
+              0xFFFF7900,
             ),
           ),
           const SizedBox(width: 5),
