@@ -124,6 +124,35 @@ void main() {
       );
     });
 
+    test('rejects child edges that cross a concave parent notch', () {
+      // The parent is a U-shaped polygon. Every child vertex is inside one
+      // arm, but the horizontal child edges bridge the open notch.
+      final concaveCity = <GeoPoint>[
+        p(0, 0),
+        p(0, 6),
+        p(6, 6),
+        p(6, 0),
+        p(4, 0),
+        p(4, 4),
+        p(2, 4),
+        p(2, 0),
+      ];
+      final area = <GeoPoint>[
+        p(1, 1),
+        p(1, 5),
+        p(3, 5),
+        p(3, 1),
+      ];
+
+      expect(
+        ServiceLocationGeometry.isPolygonContained(
+          parent: concaveCity,
+          child: area,
+        ),
+        isFalse,
+      );
+    });
+
     test('rejects a polygon with fewer than three distinct vertices', () {
       final invalid = <GeoPoint>[
         p(1, 1),
