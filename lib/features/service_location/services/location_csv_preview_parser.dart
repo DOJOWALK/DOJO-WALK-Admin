@@ -63,7 +63,9 @@ class LocationCsvPreviewParser {
       .replaceAll('\uFEFF', '')
       .trim()
       .toLowerCase()
-      .replaceAll(RegExp(r'[\s_-]+'), '');
+      .replaceAll(RegExp(r'\s+'), '')
+      .replaceAll('_', '')
+      .replaceAll('-', '');
 
   LocationCsvPreview parse(String input) {
     final source = input.replaceFirst('\uFEFF', '');
