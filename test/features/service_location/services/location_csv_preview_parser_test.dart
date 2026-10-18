@@ -107,18 +107,6 @@ void main() {
 
     test('normalizes required header case spaces underscores and hyphens', () {
       final result = parser.parse(
-        ' STATE ,dis-trict,C_i_t_y,Area\\n'
-        'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City',
-      );
-
-      expect(result.fileErrors, isEmpty);
-      expect(result.isSyntacticallyValid, isTrue);
-      expect(result.rows.single.values['state'], 'Uttar Pradesh');
-      expect(result.rows.single.values['district'], 'Gautam Buddha Nagar');
-      expect(result.rows.single.values['city'], 'Greater Noida');
-      expect(result.rows.single.values['area'], 'Gaur City');
-    });
-      final result = parser.parse(
         ' STATE ,dis-trict,C_i_t_y,Area\n'
         'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City',
       );
