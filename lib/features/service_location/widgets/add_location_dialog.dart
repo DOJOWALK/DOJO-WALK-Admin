@@ -107,7 +107,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
           );
           break;
 
-        case 5:
+        case 4:
           final city = await widget.service.getCity(_selection.cityId!);
 
           if (city == null) {
@@ -127,7 +127,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
           );
           break;
 
-        case 4:
+        case 5:
           final city = await widget.service.getCity(_selection.cityId!);
 
           if (city == null) {
@@ -326,7 +326,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
       );
     }
 
-    return StreamBuilder<List<ServiceCity>>(
+    return StreamBuilder<List<ServiceDistrict>>(
       stream: widget.service.watchDistricts(
         countryId: _selection.countryId,
         stateId: _selection.stateId,
