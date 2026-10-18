@@ -35,6 +35,42 @@ void main() {
       expect(next.areaId, isNull);
     });
 
+    test('changing state clears District, City, and Area', () {
+      const current = LocationSelectionState(
+        countryId: 'country',
+        stateId: 'old-state',
+        districtId: 'district',
+        cityId: 'city',
+        areaId: 'area',
+      );
+
+      final next = current.selectState('new-state');
+
+      expect(next.countryId, 'country');
+      expect(next.stateId, 'new-state');
+      expect(next.districtId, isNull);
+      expect(next.cityId, isNull);
+      expect(next.areaId, isNull);
+    });
+
+    test('changing District preserves State and clears City and Area', () {
+      const current = LocationSelectionState(
+        countryId: 'country',
+        stateId: 'state',
+        districtId: 'old-district',
+        cityId: 'city',
+        areaId: 'area',
+      );
+
+      final next = current.selectDistrict('new-district');
+
+      expect(next.countryId, 'country');
+      expect(next.stateId, 'state');
+      expect(next.districtId, 'new-district');
+      expect(next.cityId, isNull);
+      expect(next.areaId, isNull);
+    });
+
     test('changing city preserves country and state and clears area', () {
       const current = LocationSelectionState(
         countryId: 'country',
