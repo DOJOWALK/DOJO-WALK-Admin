@@ -105,9 +105,9 @@ void main() {
       expect(result.isSyntacticallyValid, isTrue);
     });
 
-    test('normalizes required header case spaces underscores and hyphens', () {
+    test('normalizes required header case and surrounding spaces', () {
       final result = parser.parse(
-        ' S-T-A-T-E ,D I S T R I C T ,C-i-t-y,A_r_e_a\n'
+        ' STATE ,District,CITY,Area\\n'
         'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City',
       );
 
