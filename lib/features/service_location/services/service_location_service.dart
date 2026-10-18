@@ -1,9 +1,6 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:crypto/crypto.dart';
 
 import '../models/service_location_models.dart';
 import 'service_location_geometry.dart';
@@ -21,7 +18,7 @@ import 'service_location_geometry.dart';
 ///
 /// Locality activation does not require its own polygon.
 ///
-/// Unique names are enforced through transactional name indexes.
+/// Unique names are enforced by the trusted server callable.
 /// ===========================================================
 
 class ServiceLocationService {
@@ -80,9 +77,6 @@ class ServiceLocationService {
   CollectionReference<Map<String, dynamic>> get _imports =>
       _firestore.collection('service_location_imports');
 
-  CollectionReference<Map<String, dynamic>> get _nameIndexes =>
-      _firestore.collection('service_location_name_indexes');
-
   CollectionReference<Map<String, dynamic>> get _boundaries =>
       _firestore.collection('service_location_boundaries');
 
@@ -101,27 +95,6 @@ class ServiceLocationService {
     }
 
     return result;
-  }
-
-  String _normalizeName(String value) {
-    return value
-        .trim()
-        .toLowerCase()
-        .replaceAll(RegExp(r'\s+'), ' ');
-  }
-
-  String _nameIndexId({
-    required String collectionPath,
-    required List<String> parentIds,
-    required String name,
-  }) {
-    final normalized = jsonEncode([
-      collectionPath,
-      parentIds.map((id) => id.trim()).toList(),
-      _normalizeName(name),
-    ]);
-
-    return sha256.convert(utf8.encode(normalized)).toString();
   }
 
   List<GeoPoint> _readPoints(dynamic value) {
@@ -184,9 +157,7 @@ class ServiceLocationService {
     required CollectionReference<Map<String, dynamic>> collection,
     required String documentId,
     required String name,
-    required List<String> parentIds,
     required Map<String, dynamic> data,
-    required bool isNew,
   }) async {
     // Name-index writes are now server-owned. Keep this shared method as the
     // single route for Country/State/City/Area/Locality saves.
@@ -605,8 +576,6 @@ class ServiceLocationService {
       collection: _countries,
       documentId: id,
       name: name,
-      parentIds: const [],
-      isNew: country.id.trim().isEmpty,
       data: {
         'name': name,
         'code': code,
@@ -699,8 +668,6 @@ class ServiceLocationService {
       collection: _states,
       documentId: id,
       name: name,
-      parentIds: [countryId],
-      isNew: state.id.trim().isEmpty,
       data: {
         'countryId': countryId,
         'name': name,
@@ -888,8 +855,6 @@ class ServiceLocationService {
       collection: _cities,
       documentId: id,
       name: name,
-      parentIds: [countryId, stateId],
-      isNew: oldId.isEmpty,
       data: savedCity.toMap(),
     );
   }
@@ -1100,8 +1065,6 @@ class ServiceLocationService {
       collection: _areas,
       documentId: id,
       name: name,
-      parentIds: [countryId, stateId, cityId],
-      isNew: oldId.isEmpty,
       data: savedArea.toMap(),
     );
   }
@@ -1321,13 +1284,6 @@ class ServiceLocationService {
       collection: _localities,
       documentId: id,
       name: name,
-      parentIds: [
-        countryId,
-        stateId,
-        cityId,
-        areaId,
-      ],
-      isNew: oldId.isEmpty,
       data: savedLocality.toMap(),
     );
   }
