@@ -65,6 +65,9 @@ class ServiceLocationService {
   CollectionReference<Map<String, dynamic>> get _states =>
       _firestore.collection('service_states');
 
+  CollectionReference<Map<String, dynamic>> get _districts =>
+      _firestore.collection('service_districts');
+
   CollectionReference<Map<String, dynamic>> get _cities =>
       _firestore.collection('service_cities');
 
@@ -164,6 +167,7 @@ class ServiceLocationService {
     final locationTypeByCollection = <String, String>{
       'service_countries': 'country',
       'service_states': 'state',
+      'service_districts': 'district',
       'service_cities': 'city',
       'service_areas': 'area',
       'service_localities': 'locality',
@@ -176,7 +180,8 @@ class ServiceLocationService {
     final allowedFieldsByType = <String, Set<String>>{
       'country': {'name', 'code'},
       'state': {'countryId', 'name'},
-      'city': {'countryId', 'stateId', 'name'},
+      'district': {'countryId', 'stateId', 'name'},
+      'city': {'countryId', 'stateId', 'districtId', 'name'},
       'area': {'countryId', 'stateId', 'cityId', 'name'},
       'locality': {
         'countryId', 'stateId', 'cityId', 'areaId', 'name', 'pincode',
@@ -196,11 +201,15 @@ class ServiceLocationService {
     final parentFieldsByType = <String, List<String>>{
       'country': const [],
       'state': const ['countryId'],
+      'district': const ['countryId', 'stateId'],
       'city': const ['countryId', 'stateId'],
       'area': const ['countryId', 'stateId', 'cityId'],
       'locality': const ['countryId', 'stateId', 'cityId', 'areaId'],
     };
-    final parentFields = parentFieldsByType[locationType]!;
+    final parentFields = locationType == 'city' &&
+            payload['districtId']?.toString().trim().isNotEmpty == true
+        ? const ['countryId', 'stateId', 'districtId']
+        : parentFieldsByType[locationType]!;
     for (final field in parentFields) {
       final parentId = payload[field]?.toString().trim() ?? '';
       if (parentId.isEmpty) {
@@ -671,6 +680,89 @@ class ServiceLocationService {
   }
 
   // ==========================================================
+  // DISTRICTS
+  // ==========================================================
+
+  Stream<List<ServiceDistrict>> watchDistricts({
+    String? countryId,
+    String? stateId,
+    bool? activeOnly,
+  }) {
+    Query<Map<String, dynamic>> query = _districts;
+    if (countryId != null && countryId.trim().isNotEmpty) {
+      query = query.where('countryId', isEqualTo: countryId.trim());
+    }
+    if (stateId != null && stateId.trim().isNotEmpty) {
+      query = query.where('stateId', isEqualTo: stateId.trim());
+    }
+    if (activeOnly == true) {
+      query = query.where('isActive', isEqualTo: true);
+    }
+    return query.orderBy('name').snapshots().map(
+      (snapshot) => snapshot.docs
+          .map((doc) => ServiceDistrict.fromMap(doc.id, doc.data()))
+          .toList(),
+    );
+  }
+
+  Future<ServiceDistrict?> getDistrict(String districtId) async {
+    final id = _required(districtId, 'District ID');
+    final snapshot = await _districts.doc(id).get();
+    if (!snapshot.exists || snapshot.data() == null) return null;
+    return ServiceDistrict.fromMap(snapshot.id, snapshot.data()!);
+  }
+
+  Future<void> saveDistrict(ServiceDistrict district) async {
+    final countryId = _required(district.countryId, 'Country ID');
+    final stateId = _required(district.stateId, 'State ID');
+    final name = _required(district.name, 'District name');
+    if (district.id.trim().isEmpty && district.isActive) {
+      throw StateError('Create a District as inactive, then activate it separately.');
+    }
+    await _requireDocument(_countries, countryId, 'Country');
+    final state = await _requireDocument(_states, stateId, 'State');
+    if (state['countryId']?.toString() != countryId) {
+      throw StateError('The State does not belong to the selected Country.');
+    }
+    final id = district.id.trim().isEmpty
+        ? _districts.doc().id
+        : district.id.trim();
+    if (district.id.trim().isNotEmpty) {
+      final old = await _districts.doc(id).get();
+      if (old.exists &&
+          (old.data()?['countryId']?.toString() != countryId ||
+              old.data()?['stateId']?.toString() != stateId)) {
+        throw StateError('A District parent cannot be changed after creation.');
+      }
+    }
+    await _saveUniqueNamedDocument(
+      collection: _districts,
+      documentId: id,
+      name: name,
+      data: {'countryId': countryId, 'stateId': stateId, 'name': name},
+    );
+  }
+
+  Future<void> setDistrictStatus({
+    required String districtId,
+    required bool isActive,
+  }) async {
+    final id = _required(districtId, 'District ID');
+    if (isActive) {
+      final district = await _requireDocument(_districts, id, 'District');
+      final countryId = district['countryId']?.toString() ?? '';
+      final stateId = district['stateId']?.toString() ?? '';
+      await _requireActiveCountry(countryId);
+      await _requireActiveState(stateId, countryId);
+    }
+    await _setTrustedStatus(
+      locationType: 'district',
+      locationId: id,
+      isActive: isActive,
+    );
+  }
+
+  // ==========================================================
   // SINGLE CITY LOOKUP
   // ==========================================================
 
@@ -753,6 +845,15 @@ class ServiceLocationService {
     );
 
     final name = _required(city.name, 'City name');
+    final districtId = city.districtId.trim();
+
+    if (districtId.isNotEmpty) {
+      final district = await _requireDocument(_districts, districtId, 'District');
+      if (district['countryId']?.toString() != countryId ||
+          district['stateId']?.toString() != stateId) {
+        throw StateError('The District does not belong to the selected Country and State.');
+      }
+    }
 
     final oldId = city.id.trim();
 
@@ -800,6 +901,14 @@ class ServiceLocationService {
 
       final oldCountryId = oldData['countryId']?.toString() ?? '';
       final oldStateId = oldData['stateId']?.toString() ?? '';
+      final oldDistrictId = oldData['districtId']?.toString() ?? '';
+
+      if ((oldDistrictId.isEmpty) != districtId.isEmpty) {
+        throw StateError('Adding or removing a City District requires a separate migration.');
+      }
+      if (oldDistrictId.isNotEmpty && oldDistrictId != districtId) {
+        throw StateError('A City District cannot be changed after creation.');
+      }
 
       if (oldCountryId != countryId || oldStateId != stateId) {
         throw StateError('A City parent cannot be changed after creation. Create a new City under the correct State.');
@@ -810,6 +919,7 @@ class ServiceLocationService {
       id: id,
       countryId: countryId,
       stateId: stateId,
+      districtId: districtId,
       name: name,
       verifiedBoundaryId: verifiedBoundaryId,
     );
