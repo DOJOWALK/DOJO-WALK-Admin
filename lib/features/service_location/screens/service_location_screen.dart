@@ -68,7 +68,8 @@ class _ServiceLocationScreenState
   static const List<String> _tabNames = [
     'Countries',
     'States',
-    'Cities / Districts',
+    'Districts',
+    'Cities',
     'Areas / Sub-districts',
     'Localities / Villages',
     'Import History',
@@ -693,12 +694,14 @@ class _ServiceLocationScreenState
       case 1:
         return _buildStates();
       case 2:
-        return _buildCities();
+        return _buildDistricts();
       case 3:
-        return _buildAreas();
+        return _buildCities();
       case 4:
-        return _buildLocalities();
+        return _buildAreas();
       case 5:
+        return _buildLocalities();
+      case 6:
         return _buildImports();
       default:
         return _buildCountries();
@@ -867,6 +870,65 @@ class _ServiceLocationScreenState
                         ),
                     ],
                   );
+                },
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ============================================================
+  // DISTRICTS
+  // ============================================================
+
+  Widget _buildDistricts() {
+    return StreamBuilder<List<ServiceDistrict>>(
+      stream: _service.watchDistricts(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return _emptyState('Unable to load Districts: ${snapshot.error}');
+        }
+        if (!snapshot.hasData) return _loadingState();
+
+        final districts = snapshot.data!
+            .where((district) => _matches(
+                  '${district.id} ${district.name} ${district.stateId} ${district.countryId}',
+                ))
+            .toList();
+
+        if (districts.isEmpty) {
+          return _emptyState(
+            _search.isEmpty
+                ? 'No Districts yet. Use Add Location to create a District under a State.'
+                : 'No Districts match your search.',
+          );
+        }
+
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          children: [
+            _sectionTitle('Districts · ${districts.length}'),
+            for (final district in districts)
+              _locationCard(
+                title: district.name,
+                subtitle: 'State ID: ${district.stateId}\\n'
+                    'Country ID: ${district.countryId}\\n'
+                    'Service: ${district.isActive ? "Active" : "Inactive"}',
+                active: district.isActive,
+                icon: Icons.map_outlined,
+                onToggle: (value) async {
+                  try {
+                    await _service.setDistrictStatus(
+                      districtId: district.id,
+                      isActive: value,
+                    );
+                    _showMessage(
+                      value ? 'District activated.' : 'District deactivated.',
+                    );
+                  } catch (error) {
+                    await _showError(error);
+                  }
                 },
               ),
           ],
