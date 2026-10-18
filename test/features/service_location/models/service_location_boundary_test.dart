@@ -61,6 +61,63 @@ void main() {
       );
     });
 
+    test('rejects coordinates outside latitude and longitude ranges', () {
+      final valid = boundary(
+        'out-of-range-point',
+        BoundaryVerificationStatus.pending,
+      );
+      final invalid = ServiceLocationBoundary(
+        id: valid.id,
+        locationId: valid.locationId,
+        locationType: valid.locationType,
+        points: const [
+          GeoPoint(91, 77),
+          GeoPoint(28, 181),
+          GeoPoint(28.1, 77.1),
+        ],
+        sourceType: valid.sourceType,
+        sourceName: valid.sourceName,
+        sourceReference: valid.sourceReference,
+        verificationStatus: valid.verificationStatus,
+        verifiedBy: null,
+        verifiedAt: null,
+        verificationNotes: null,
+        createdAt: valid.createdAt,
+        updatedAt: valid.updatedAt,
+      );
+
+      expect(invalid.validate(), contains('Boundary point 1 is invalid.'));
+      expect(invalid.validate(), contains('Boundary point 2 is invalid.'));
+    });
+
+    test('rejects unsupported location type and missing location ID', () {
+      final valid = boundary(
+        'bad-location-owner',
+        BoundaryVerificationStatus.pending,
+      );
+      final invalid = ServiceLocationBoundary(
+        id: valid.id,
+        locationId: ' ',
+        locationType: 'district',
+        points: valid.points,
+        sourceType: valid.sourceType,
+        sourceName: valid.sourceName,
+        sourceReference: valid.sourceReference,
+        verificationStatus: valid.verificationStatus,
+        verifiedBy: null,
+        verifiedAt: null,
+        verificationNotes: null,
+        createdAt: valid.createdAt,
+        updatedAt: valid.updatedAt,
+      );
+
+      expect(invalid.validate(), contains('Location ID is required.'));
+      expect(
+        invalid.validate(),
+        contains('Location type must be city, area, or locality.'),
+      );
+    });
+
     test('requires a source name and source reference', () {
       final valid = boundary(
         'missing-source-metadata',
