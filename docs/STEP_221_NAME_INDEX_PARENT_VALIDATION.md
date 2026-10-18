@@ -18,8 +18,9 @@ Draft PR: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/pull/6
 
 ## CI status at report time
 - Workflow YAML validation for run #156: success.
-- Firestore Rules Emulator Tests for run #156: still running; result not yet confirmed.
-- Trusted Location Geometry and Callable Tests for run #145: still running; result not yet confirmed.
+- Firestore Rules Emulator Tests for run #156: test step completed successfully; workflow cleanup was still in progress at the last check.
+- Trusted Location Geometry and Callable Tests for run #145: success.
+- Workflow YAML validation for run #156: success.
 
 ## Remaining security limitation
 Rules still cannot verify that the document ID is the SHA-256 of the normalized tuple. The Admin client computes it; consider moving authoritative index writes behind a trusted callable/server path before production rollout.
