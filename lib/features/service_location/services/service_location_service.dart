@@ -188,106 +188,65 @@ class ServiceLocationService {
     required Map<String, dynamic> data,
     required bool isNew,
   }) async {
-    final normalizedName = _normalizeName(
-      _required(name, 'Name'),
-    );
+    // Name-index writes are now server-owned. Keep this shared method as the
+    // single route for Country/State/City/Area/Locality saves.
+    final locationTypeByCollection = <String, String>{
+      'service_countries': 'country',
+      'service_states': 'state',
+      'service_cities': 'city',
+      'service_areas': 'area',
+      'service_localities': 'locality',
+    };
+    final locationType = locationTypeByCollection[collection.path];
+    if (locationType == null) {
+      throw StateError('Unsupported service location collection.');
+    }
 
-    final target = collection.doc(documentId);
-
-    final newIndexId = _nameIndexId(
-      collectionPath: collection.path,
-      parentIds: parentIds,
-      name: normalizedName,
-    );
-
-    final newIndex = _nameIndexes.doc(newIndexId);
-
-    await _firestore.runTransaction((transaction) async {
-      final targetSnapshot = await transaction.get(target);
-      final newIndexSnapshot = await transaction.get(newIndex);
-
-      DocumentReference<Map<String, dynamic>>? oldIndex;
-      DocumentSnapshot<Map<String, dynamic>>? oldIndexSnapshot;
-
-      if (targetSnapshot.exists) {
-        final oldData = targetSnapshot.data()!;
-
-        final oldName = oldData['name']?.toString() ?? '';
-
-        final oldParentIds = _parentIdsFromDocument(
-          collection.path,
-          oldData,
-        );
-
-        final oldIndexId = _nameIndexId(
-          collectionPath: collection.path,
-          parentIds: oldParentIds,
-          name: oldName,
-        );
-
-        if (oldIndexId != newIndexId) {
-          oldIndex = _nameIndexes.doc(oldIndexId);
-          oldIndexSnapshot = await transaction.get(oldIndex);
-        }
+    final allowedFieldsByType = <String, Set<String>>{
+      'country': {'name', 'code'},
+      'state': {'countryId', 'name'},
+      'city': {'countryId', 'stateId', 'name'},
+      'area': {'countryId', 'stateId', 'cityId', 'name'},
+      'locality': {
+        'countryId', 'stateId', 'cityId', 'areaId', 'name', 'pincode',
+      },
+    };
+    final allowedFields = allowedFieldsByType[locationType]!;
+    final payload = <String, dynamic>{};
+    for (final entry in data.entries) {
+      if (allowedFields.contains(entry.key)) {
+        payload[entry.key] = entry.value;
       }
+    }
+    payload['name'] = _required(name, 'Name');
 
-      if (newIndexSnapshot.exists) {
-        final indexData = newIndexSnapshot.data()!;
+    // Parent IDs remain explicit in the payload so the server can validate
+    // the full hierarchy and recompute the canonical SHA-256 index.
+    final parentFieldsByType = <String, List<String>>{
+      'country': const [],
+      'state': const ['countryId'],
+      'city': const ['countryId', 'stateId'],
+      'area': const ['countryId', 'stateId', 'cityId'],
+      'locality': const ['countryId', 'stateId', 'cityId', 'areaId'],
+    };
+    final parentFields = parentFieldsByType[locationType]!;
+    if (parentFields.length != parentIds.length) {
+      throw StateError('The supplied service location hierarchy is invalid.');
+    }
+    for (var i = 0; i < parentFields.length; i++) {
+      payload[parentFields[i]] = parentIds[i];
+    }
 
-        final indexedDocumentId =
-            indexData['documentId']?.toString() ?? '';
-
-        if (indexedDocumentId != documentId) {
-          throw StateError(
-            '"$name" already exists at this hierarchy level.',
-          );
-        }
-      }
-
-      if (isNew && targetSnapshot.exists) {
-        throw StateError(
-          'This service location already exists.',
-        );
-      }
-
-      // Complete all transaction reads before writing.
-
-      if (oldIndex != null &&
-          oldIndexSnapshot != null &&
-          oldIndexSnapshot.exists) {
-        final oldIndexData = oldIndexSnapshot.data()!;
-
-        if (oldIndexData['documentId'] == documentId) {
-          transaction.delete(oldIndex);
-        }
-      }
-
-      transaction.set(
-        newIndex,
-        {
-          'collectionPath': collection.path,
-          'documentId': documentId,
-          'name': normalizedName,
-          'parentIds': parentIds,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
-
-      final saveData = Map<String, dynamic>.from(data);
-
-      if (!targetSnapshot.exists) {
-        saveData['createdAt'] = FieldValue.serverTimestamp();
-      }
-
-      saveData['updatedAt'] = FieldValue.serverTimestamp();
-
-      transaction.set(
-        target,
-        saveData,
-        SetOptions(merge: true),
-      );
+    final callable = _functions.httpsCallable('saveServiceLocationWithNameIndex');
+    final result = await callable.call<Map<String, dynamic>>({
+      'locationType': locationType,
+      'locationId': documentId,
+      'payload': payload,
     });
+    final savedId = result.data['locationId']?.toString();
+    if (savedId != documentId) {
+      throw StateError('The trusted service returned an unexpected location ID.');
+    }
   }
 
   List<String> _parentIdsFromDocument(
