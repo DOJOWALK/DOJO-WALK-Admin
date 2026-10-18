@@ -16,8 +16,8 @@ This is a backend compatibility step only. It permits *new* City records to be c
 - No production data was imported and no deployment or PR merge was performed.
 
 ## CI
-At report creation, Firebase CI is running for commit `8ae4dbd9f111dfb79a5f5fdfc1f9318585f01666`:
-- Security Rules run: [39165756237](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39165756237)
-- Trusted Location Geometry and Callable Tests run: [39165756183](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39165756183)
+A first CI attempt failed because the City index helper and allowed-payload schema had not both landed in the tested branch state. The source was corrected and the tests were rerun. Latest commit: `7d2e4910c40b8b212c6b9e45ef112567c645821d`.
+- Security Rules run: [39166053879](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39166053879) — in progress at last check.
+- Trusted Location Geometry and Callable Tests run: [39166053885](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39166053885) — in progress at last check.
 
-Update the status only after both runs finish.
+Do not mark Step 137 validated until both latest runs complete successfully.
