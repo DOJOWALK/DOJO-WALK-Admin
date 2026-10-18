@@ -29,6 +29,8 @@ import '../widgets/service_boundary_editor.dart';
 
 const Color _locationOrange = Color(0xFFFF7900);
 const Color _locationBackground = Color(0xFFFFFAF5);
+const Color _locationInk = Color(0xFF28231F);
+const Color _locationSoftShadow = Color(0x1AFF7900);
 
 const LatLng _defaultMapCenter = LatLng(28.4744, 77.5040);
 
@@ -178,7 +180,7 @@ class _ServiceLocationScreenState
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
                 ),
               ),
@@ -203,11 +205,28 @@ class _ServiceLocationScreenState
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _locationOrange.withValues(alpha: 0.20),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFF5EC)],
         ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: _locationOrange.withValues(alpha: 0.22),
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: _locationSoftShadow,
+            blurRadius: 24,
+            offset: Offset(0, 10),
+          ),
+          BoxShadow(
+            color: Colors.white,
+            blurRadius: 0,
+            spreadRadius: 1,
+            offset: Offset(-1, -1),
+          ),
+        ],
       ),
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,11 +274,22 @@ class _ServiceLocationScreenState
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _locationOrange.withValues(alpha: 0.25),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFF7F0)],
         ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: _locationOrange.withValues(alpha: 0.28),
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: _locationSoftShadow,
+            blurRadius: 22,
+            offset: Offset(0, 9),
+          ),
+        ],
       ),
       child: Stack(
         children: [
