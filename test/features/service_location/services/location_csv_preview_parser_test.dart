@@ -107,7 +107,7 @@ void main() {
 
     test('normalizes required header case spaces underscores and hyphens', () {
       final result = parser.parse(
-        ' STATE ,dis-trict,C_i_t_y,Area\n'
+        ' STATE ,D-i-s-t-r-i-c-t,C_i_t_y,Area\\n'
         'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City',
       );
 
