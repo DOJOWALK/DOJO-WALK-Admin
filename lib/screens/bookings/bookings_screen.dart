@@ -72,7 +72,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFFF7F7F7),
+      color: const Color(0xFFFFFAF5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -104,8 +104,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: Color(0xFFFFE1C8)),
                     ),
                   ),
                 ),
@@ -117,7 +117,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
                   items: _statuses.map((status) {
@@ -157,7 +157,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
                     child: CircularProgressIndicator(
-                      color: Color(0xFFFF6A00),
+                      color: Color(0xFFFF7900),
                     ),
                   );
                 }
@@ -272,7 +272,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                               children: [
                                 const Icon(
                                   Icons.receipt_long_outlined,
-                                  color: Color(0xFFFF6A00),
+                                  color: Color(0xFFFF7900),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
