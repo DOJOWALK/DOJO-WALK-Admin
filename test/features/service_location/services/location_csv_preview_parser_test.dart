@@ -51,7 +51,7 @@ void main() {
 
     test('rejects required headers that collide after normalization', () {
       final result = parser.parse(
-        'State,S-T-A-T-E,District,City,Area\\n'
+        'State,S-T-A-T-E,District,City,Area\n'
         'UP,UP,GBN,Noida,Sector 1',
       );
 
