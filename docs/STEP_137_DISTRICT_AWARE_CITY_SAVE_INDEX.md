@@ -17,7 +17,7 @@ This is a backend compatibility step only. It permits *new* City records to be c
 
 ## CI
 A first CI attempt failed because the City index helper and allowed-payload schema had not both landed in the tested branch state. The source was corrected and the tests were rerun. Latest commit: `7d2e4910c40b8b212c6b9e45ef112567c645821d`.
-- Security Rules run: [39166053879](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39166053879) — in progress at last check.
+- Security Rules run: [39166053879](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39166053879) — **PASS**.
 - Trusted Location Geometry and Callable Tests run: [39166053885](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39166053885) — in progress at last check.
 
-Do not mark Step 137 validated until both latest runs complete successfully.
+Both latest CI runs completed successfully for the source commit. City District activation enforcement and Area/Locality ancestry migration remain separate pending steps.
