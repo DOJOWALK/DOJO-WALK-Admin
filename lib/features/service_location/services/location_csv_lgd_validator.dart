@@ -21,7 +21,7 @@ class LgdStateDistrictMatch {
 }
 
 String _normalizeLgdLocationName(String value) =>
-    value.trim().toLowerCase().replaceAll(RegExp(r'\\s+'), ' ');
+    value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
 
 /// Matches State and District names within the same parent chain.
 /// A match confirms consistency with this bundled reference snapshot only;
