@@ -12,16 +12,16 @@ Reviewed the trusted Firebase workflows for District-aware City creation/save, a
 
 ## Firebase changes
 Branch: `fix/location-index-import-rules`
-Latest test commit: `11ab0a83cb7572d39917c71156652a16816dda7c0`
+Latest test commit: `1c6342e644821a381d568e7cfdac8f978ed6e844`
 Changed test files:
 - `functions/test/district_status.integration.test.cjs`
 - `functions/test/activate_service_location.integration.test.cjs`
 
 ## CI
-- Trusted Location Geometry and Callable Tests: [run 39168022015](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39168022015)
-- Test Firestore Security Rules: [run 39168022367](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39168022367)
+- Trusted Location Geometry and Callable Tests: [run 39168174566](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39168174566) — **PASS**
+- Test Firestore Security Rules: [run 39168174564](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39168174564) — **PASS**
 
-CI was still running at report creation; verify the final conclusions before marking this audit validated.
+The first CI attempt exposed a test-fixture issue (the callable correctly requires an existing location when a locationId is supplied). The fixture was corrected to create the City through the callable, and both workflows on the latest commit completed successfully.
 
 ## Safety boundary
 No Customer/Partner repo changes, PR merge, production deployment, or production data import.
