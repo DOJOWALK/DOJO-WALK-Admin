@@ -27,6 +27,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/service_location_boundary.dart';
 import '../models/service_location_models.dart';
 import '../services/location_csv_preview_parser.dart';
+import '../services/location_csv_lgd_validator.dart';
 import '../services/service_location_boundary_service.dart';
 import '../services/service_location_service.dart';
 import '../widgets/add_location_dialog.dart';
@@ -1257,8 +1258,16 @@ class _ServiceLocationScreenState
         final areas = await _service.watchAreas().first;
         final report = <String>[];
         var matched = 0;
+        var lgdMatched = 0;
 
         for (final row in currentPreview.rows) {
+          final lgdMatch = matchCsvStateDistrictToLgd(row);
+          if (lgdMatch.isMatched) {
+            lgdMatched++;
+          } else {
+            report.add('Line ${row.lineNumber}: LGD check — ${lgdMatch.message}');
+          }
+
           final stateName = row.values['state'] ?? '';
           final cityName = row.values['city'] ?? '';
           final areaName = row.values['area'] ?? '';
@@ -1314,14 +1323,15 @@ class _ServiceLocationScreenState
 
         report.insert(
           0,
-          'Existing State/City/Area name matches: $matched / ${currentPreview.rows.length} rows. District is not validated.',
+          'LGD State/District reference matches: $lgdMatched / ${currentPreview.rows.length} rows. This uses the bundled reference snapshot only.',
         );
         report.insert(
           1,
-          'Schema warning: CSV District "${currentPreview.rows.first.values['district']}" '
-          'is not a separate level in the current Country → State → City → Area '
-          'Firestore hierarchy. District-to-City mapping must be explicitly reviewed '
-          'before import; this check never writes data.',
+          'Existing Service State/City/Area name matches: $matched / ${currentPreview.rows.length} rows.',
+        );
+        report.insert(
+          2,
+          'Schema warning: District is now checked against the bundled LGD reference, but the live Firestore hierarchy still has no separate District level. District-to-Service-City mapping remains unresolved; this check never writes data.',
         );
 
         setDialogState(() {
