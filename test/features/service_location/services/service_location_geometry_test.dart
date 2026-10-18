@@ -31,6 +31,19 @@ void main() {
       );
     });
 
+    test('rejects a ring that repeats a non-consecutive vertex', () {
+      expect(
+        ServiceLocationGeometry.isValidPolygon([
+          p(0, 0),
+          p(0, 3),
+          p(3, 3),
+          p(0, 0),
+          p(3, 0),
+        ]),
+        isFalse,
+      );
+    });
+
     test('rejects a polygon whose distinct vertices are all collinear', () {
       expect(
         ServiceLocationGeometry.isValidPolygon([
