@@ -29,6 +29,64 @@ ServiceLocationBoundary boundary(
 }
 
 void main() {
+  group('ServiceLocationBoundary.validate', () {
+    test('rejects fewer than three distinct polygon vertices', () {
+      final valid = boundary(
+        'duplicate-points',
+        BoundaryVerificationStatus.pending,
+      );
+      final invalid = ServiceLocationBoundary(
+        id: valid.id,
+        locationId: valid.locationId,
+        locationType: valid.locationType,
+        points: const [
+          GeoPoint(28.0, 77.0),
+          GeoPoint(28.1, 77.0),
+          GeoPoint(28.0, 77.0),
+        ],
+        sourceType: valid.sourceType,
+        sourceName: valid.sourceName,
+        sourceReference: valid.sourceReference,
+        verificationStatus: valid.verificationStatus,
+        verifiedBy: valid.verifiedBy,
+        verifiedAt: valid.verifiedAt,
+        verificationNotes: valid.verificationNotes,
+        createdAt: valid.createdAt,
+        updatedAt: valid.updatedAt,
+      );
+
+      expect(
+        invalid.validate(),
+        contains('A polygon must contain at least three distinct points.'),
+      );
+    });
+
+    test('requires a source name and source reference', () {
+      final valid = boundary(
+        'missing-source-metadata',
+        BoundaryVerificationStatus.pending,
+      );
+      final invalid = ServiceLocationBoundary(
+        id: valid.id,
+        locationId: valid.locationId,
+        locationType: valid.locationType,
+        points: valid.points,
+        sourceType: valid.sourceType,
+        sourceName: ' ',
+        sourceReference: '',
+        verificationStatus: valid.verificationStatus,
+        verifiedBy: valid.verifiedBy,
+        verifiedAt: valid.verifiedAt,
+        verificationNotes: valid.verificationNotes,
+        createdAt: valid.createdAt,
+        updatedAt: valid.updatedAt,
+      );
+
+      expect(invalid.validate(), contains('Boundary source name is required.'));
+      expect(invalid.validate(), contains('Boundary source reference is required.'));
+    });
+  });
+
   group('selectBoundaryForManagement', () {
     test('prefers pending replacement over existing verified boundary', () {
       final selected = selectBoundaryForManagement([
