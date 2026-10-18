@@ -167,12 +167,13 @@ class WalkerAdminCard extends StatelessWidget {
     final safeLocation = location?.trim();
 
     return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 4,
+      shadowColor: const Color(0x1AFF7900),
+      margin: const EdgeInsets.only(bottom: 14),
       color: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: walkerAdminBorder),
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: Color(0xFFFFE1C8)),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
