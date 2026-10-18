@@ -19,4 +19,4 @@ Firebase commit: `5012aeba6bb2c8be989dce3315588e769413f1f9`
 - Trusted Location Geometry and Callable Tests: [run 39167606630](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39167606630)
 - Test Firestore Security Rules: [run 39167606561](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39167606561)
 
-CI was still running when this report was created; confirm final conclusions before treating Step 139 as validated. No merge, deployment, or production data import was performed.
+Final CI results: both workflows completed successfully (conclusion: success). No merge, deployment, or production data import was performed.
