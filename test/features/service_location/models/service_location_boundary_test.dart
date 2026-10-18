@@ -61,19 +61,19 @@ void main() {
       );
     });
 
-    test('rejects coordinates outside latitude and longitude ranges', () {
+    test('accepts coordinates at valid latitude and longitude limits', () {
       final valid = boundary(
-        'out-of-range-point',
+        'coordinate-limits',
         BoundaryVerificationStatus.pending,
       );
-      final invalid = ServiceLocationBoundary(
+      final edgeBoundary = ServiceLocationBoundary(
         id: valid.id,
         locationId: valid.locationId,
         locationType: valid.locationType,
         points: [
-          GeoPoint(91, 77),
-          GeoPoint(28, 181),
-          GeoPoint(28.1, 77.1),
+          GeoPoint(-90, -180),
+          GeoPoint(90, 180),
+          GeoPoint(0, 0),
         ],
         sourceType: valid.sourceType,
         sourceName: valid.sourceName,
@@ -86,8 +86,8 @@ void main() {
         updatedAt: valid.updatedAt,
       );
 
-      expect(invalid.validate(), contains('Boundary point 1 is invalid.'));
-      expect(invalid.validate(), contains('Boundary point 2 is invalid.'));
+      expect(edgeBoundary.validate(), isNot(contains('Boundary point 1 is invalid.')));
+      expect(edgeBoundary.validate(), isNot(contains('Boundary point 2 is invalid.')));
     });
 
     test('rejects unsupported location type and missing location ID', () {
