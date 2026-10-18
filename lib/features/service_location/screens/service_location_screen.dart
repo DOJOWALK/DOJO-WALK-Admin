@@ -982,28 +982,36 @@ class _ServiceLocationScreenState
         if (countrySnapshot.hasError) {
           return _emptyState('${countrySnapshot.error}');
         }
+        if (!countrySnapshot.hasData) return _loadingState();
 
-        if (!countrySnapshot.hasData) {
-          return _loadingState();
-        }
+        return StreamBuilder<List<ServiceState>>(
+          stream: _service.watchStates(),
+          builder: (context, stateSnapshot) {
+            if (stateSnapshot.hasError) {
+              return _emptyState('${stateSnapshot.error}');
+            }
+            if (!stateSnapshot.hasData) return _loadingState();
 
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          children: [
-            for (final country in countrySnapshot.data!)
-              StreamBuilder<List<ServiceState>>(
-                stream: _service.watchStates(
-                  countryId: country.id,
-                ),
-                builder: (context, stateSnapshot) {
-                  if (stateSnapshot.hasError ||
-                      !stateSnapshot.hasData) {
-                    return const SizedBox.shrink();
-                  }
+            return StreamBuilder<List<ServiceDistrict>>(
+              stream: _service.watchDistricts(),
+              builder: (context, districtSnapshot) {
+                if (districtSnapshot.hasError) {
+                  return _emptyState('${districtSnapshot.error}');
+                }
+                if (!districtSnapshot.hasData) return _loadingState();
 
-                  return Column(
-                    children: [
-                      for (final state in stateSnapshot.data!)
+                final districtsById = {
+                  for (final district in districtSnapshot.data!)
+                    district.id: district,
+                };
+
+                return ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  children: [
+                    for (final country in countrySnapshot.data!)
+                      for (final state in stateSnapshot.data!.where(
+                        (item) => item.countryId == country.id,
+                      ))
                         StreamBuilder<List<ServiceCity>>(
                           stream: _service.watchCities(
                             countryId: country.id,
@@ -1015,53 +1023,46 @@ class _ServiceLocationScreenState
                               return const SizedBox.shrink();
                             }
 
-                            final cities = citySnapshot.data!
-                                .where(
-                                  (item) => _matches(
-                                    '${item.id} ${item.name} '
-                                    '${state.id} ${state.name} '
-                                    '${country.id} ${country.name}',
-                                  ),
-                                )
-                                .toList();
+                            final cities = citySnapshot.data!.where((item) {
+                              final district = districtsById[item.districtId];
+                              return _matches(
+                                '${item.id} ${item.name} '
+                                '${state.id} ${state.name} '
+                                '${country.id} ${country.name} '
+                                '${item.districtId} ${district?.name ?? "Legacy City"}',
+                              );
+                            }).toList();
 
                             if (cities.isEmpty) {
                               return const SizedBox.shrink();
                             }
 
                             return Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _sectionTitle(
-                                  '${state.name} · ${country.name}',
-                                ),
+                                _sectionTitle('${state.name} · ${country.name}'),
                                 for (final item in cities)
                                   _locationCard(
                                     title: item.name,
                                     subtitle:
-                                        'ID: ${item.id}\n'
-                                        'Legacy boundary points: '
-                                        '${item.boundary.length}\n'
-                                        'Legacy verified: '
-                                        '${item.boundaryVerified ? "Yes" : "No"}\n'
+                                        'ID: ${item.id}\\n'
+                                        'District: ${districtsById[item.districtId]?.name ?? (item.districtId.isEmpty ? "Not linked (legacy City)" : "Unknown District")}\\n'
+                                        'Legacy boundary points: ${item.boundary.length}\\n'
+                                        'Legacy verified: ${item.boundaryVerified ? "Yes" : "No"}\\n'
                                         'Service: ${item.isServiceActive ? "Active" : "Inactive"}',
                                     active: item.isServiceActive,
                                     icon: Icons.location_city,
-                                    onManageBoundary: () =>
-                                        _manageBoundary(
+                                    onManageBoundary: () => _manageBoundary(
                                       locationId: item.id,
                                       locationName: item.name,
                                       locationType: 'city',
                                     ),
                                     onToggle: (value) async {
                                       try {
-                                        await _service
-                                            .setCityServiceStatus(
+                                        await _service.setCityServiceStatus(
                                           cityId: item.id,
                                           isActive: value,
                                         );
-
                                         _showMessage(
                                           value
                                               ? 'City service activated.'
@@ -1076,11 +1077,11 @@ class _ServiceLocationScreenState
                             );
                           },
                         ),
-                    ],
-                  );
-                },
-              ),
-          ],
+                  ],
+                );
+              },
+            );
+          },
         );
       },
     );
