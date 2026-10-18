@@ -6,12 +6,14 @@ class LocationSelectionState {
   const LocationSelectionState({
     this.countryId,
     this.stateId,
+    this.districtId,
     this.cityId,
     this.areaId,
   });
 
   final String? countryId;
   final String? stateId;
+  final String? districtId;
   final String? cityId;
   final String? areaId;
 
@@ -21,15 +23,23 @@ class LocationSelectionState {
   LocationSelectionState selectState(String? value) =>
       LocationSelectionState(countryId: countryId, stateId: value);
 
+  LocationSelectionState selectDistrict(String? value) => LocationSelectionState(
+        countryId: countryId,
+        stateId: stateId,
+        districtId: value,
+      );
+
   LocationSelectionState selectCity(String? value) => LocationSelectionState(
         countryId: countryId,
         stateId: stateId,
+        districtId: districtId,
         cityId: value,
       );
 
   LocationSelectionState selectArea(String? value) => LocationSelectionState(
         countryId: countryId,
         stateId: stateId,
+        districtId: districtId,
         cityId: cityId,
         areaId: value,
       );
