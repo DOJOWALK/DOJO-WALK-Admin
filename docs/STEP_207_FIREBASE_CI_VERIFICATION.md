@@ -11,11 +11,15 @@ Commit: `8d09fca9713799e4695cf7b446d575f1de2d9bb6`
 1. [Test Firestore Security Rules — Run #151](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39133139292): **PASS**. Jobs completed successfully:
    - Firestore Rules Emulator Tests
    - Validate GitHub Actions workflow YAML
-2. [Trusted Location Geometry and Callable Tests — Run #140](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39133139279): **IN PROGRESS at check time**. Setup and both dependency-install steps passed; the combined Firestore Emulator command was still running.
+2. [Trusted Location Geometry and Callable Tests — Run #140](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39133139279): **PASS**. The job completed successfully, including:
+   - Node.js and Java setup
+   - Root Rules test dependency installation
+   - Functions dependency installation
+   - Combined root Firestore Rules and Functions tests under the Firestore Emulator
 
 ## Interpretation
 
-The dedicated Firestore Rules Emulator workflow has passed on the updated commit. The newly expanded combined workflow has started and reached the test command, but its final result was not yet available at the time of this report. Do not report the combined Functions + root suite as fully passing until Run #140 completes successfully.
+Both the dedicated Firestore Rules Emulator workflow and the expanded combined workflow passed on the updated commit. This confirms the CI jobs completed successfully for this review-branch commit. It does not prove that production rules match this branch or authorize deployment.
 
 ## Safety
 
