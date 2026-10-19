@@ -197,6 +197,15 @@ class ServiceLocationService {
     }
     payload['name'] = _required(name, 'Name');
 
+    // A blank optional District ID means this is a legacy City. Omit the
+    // field entirely; sending an empty string makes the trusted callable treat
+    // it as a supplied but invalid parent ID.
+    final indexPayload =
+        normalizeServiceLocationIndexPayload(locationType, payload);
+    payload
+      ..clear()
+      ..addAll(indexPayload);
+
     // Parent IDs remain explicit in the payload so the server can validate
     // the full hierarchy and recompute the canonical SHA-256 index.
     final parentFields = serviceLocationIndexParentFields(locationType, payload);
