@@ -1472,6 +1472,21 @@ class ServiceLocationService {
     });
   }
 
+  /// Reads the server-owned run marker for reconciliation. This does not
+  /// resume or mutate an import; callers must still verify the hierarchy.
+  Future<Map<String, dynamic>> inspectImportRun({
+    required String runId,
+    required String inputFingerprint,
+  }) async {
+    final callable = _functions.httpsCallable('manageServiceLocationImportRun');
+    final result = await callable.call<Map<String, dynamic>>({
+      'action': 'inspect',
+      'runId': runId,
+      'inputFingerprint': inputFingerprint,
+    });
+    return Map<String, dynamic>.from(result.data);
+  }
+
   /// Finalizes a previously started run. The server validates actor ownership,
   /// fingerprint and allowed status transitions.
   Future<void> finishImportRun({
