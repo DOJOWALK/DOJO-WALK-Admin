@@ -17,7 +17,15 @@ List<String> serviceLocationIndexParentFields(
     case 'district':
       return const ['countryId', 'stateId'];
     case 'city':
-      final districtId = payload['districtId']?.toString().trim() ?? '';
+      final rawDistrictId = payload['districtId'];
+      if (rawDistrictId != null && rawDistrictId is! String) {
+        throw ArgumentError.value(
+          rawDistrictId,
+          'payload.districtId',
+          'District ID must be a string when provided.',
+        );
+      }
+      final districtId = (rawDistrictId as String?)?.trim() ?? '';
       return districtId.isNotEmpty
           ? const ['countryId', 'stateId', 'districtId']
           : const ['countryId', 'stateId'];
