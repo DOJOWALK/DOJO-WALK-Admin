@@ -23,7 +23,7 @@
 ### Admin — `step-119-boundary-geometry`
 - Geometry tests: run **39245999614**, SHA `8efc042`, **success** (updated 2026-10-19 11:38:29Z).
 - Admin web build/no-deploy check: run **39245999526**, SHA `8efc042`, **success** (updated 2026-10-19 11:39:54Z).
-- Separate main-branch workflow named “DOJO WALK Admin Web Deploy” runs **39248443727** (SHA `210db2e`) and **39248408700** (SHA `70f5218`) show success at ~12:00Z. The actual deployment target/effect has NOT been independently verified in this audit; verify workflow steps and hosting revision before claiming a production deployment or no deployment.
+- **Important deployment finding:** main-branch workflows named “DOJO WALK Admin Web Deploy” runs **39248443727** (SHA `210db2e`) and **39248408700** (SHA `70f5218`) both completed successfully around 12:00Z, and their `build-and-deploy` jobs explicitly show **Build Flutter Web = success** and **Deploy to Firebase Hosting = success**. Therefore Firebase Hosting deployment steps did run on main. The exact public hosting URL/revision and intended approval status have not been independently checked here. Repository admin must verify deployment history and whether these were expected/authorized. Do not claim “no deployment occurred.”
 ### Firebase — `fix/location-index-import-rules`
 - Rules run **39236531337**, SHA `e2f72b7`, **success** (2026-10-19 10:19:26Z).
 - Geometry/callable run **39236530995**, SHA `e2f72b7`, **success** (2026-10-19 10:19:32Z).
@@ -73,7 +73,7 @@ Repository: `dojoplatform2026/DOJO-WALK-Firebase`; default `main` at `e31e625f`.
 - `fix/location-index-import-rules` is 261 commits ahead of `feature/trusted-location-activation` (compare status: ahead, behind 0) and 413 ahead / 3 behind `main`. This is substantial divergence; do not merge the branch directly into main without a deliberate integration review.
 - PR #6 targets the trusted-location branch, not main. Review that base and the complete PR stack before merging.
 - District-aware preflight is currently read-only and not connected to the production save callable. It classifies legacy/district-aware index pairs; it must not be represented as a completed live migration.
-- No production scan, production data migration, or Firebase deployment was verified for this branch in this audit.
+- No production scan or production data migration was verified for this branch in this audit. This is distinct from the Admin Hosting deployments noted above; no Firebase backend/rules deployment is claimed here.
 - Verify Firestore Rules behavior against existing Admin direct verify/reject writes before any deployment.
 - Keep rollback plan and dry-run/reporting stage ahead of any write migration.
 
@@ -152,7 +152,7 @@ PR #5 is 17 commits ahead of PR #4 branch with no behind commits, but that is no
 - Admin main workflow shows successful “Deploy” runs; actual hosting revision and whether production was changed must be checked before the team states deployment status.
 - GitHub branch protection / required-review / production approval settings were previously not verified (403); an authorized repository admin must check them.
 - Customer/Partner/Website runtime, OTP, Firestore and release checks are outside this phase and remain unverified.
-- No branches were deleted, no production data was mutated, and no merge was performed during this report creation.
+- No branches were deleted, no production data was mutated, and no merge was performed during this report creation. However, two Admin main-branch Firebase Hosting deployment jobs did run successfully (run IDs above); investigate/confirm the deployment authorization and live revision.
 
 ## 11. Handoff protocol for every future chat/developer
 Before coding:
