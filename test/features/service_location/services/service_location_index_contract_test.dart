@@ -52,6 +52,46 @@ void main() {
       );
     });
 
+
+    test('blank optional City District ID is omitted from callable payload', () {
+      final normalized = normalizeServiceLocationIndexPayload('city', {
+        'countryId': 'country-1',
+        'stateId': 'state-1',
+        'districtId': '  ',
+        'name': 'Legacy City',
+      });
+
+      expect(normalized.containsKey('districtId'), isFalse);
+      expect(
+        serviceLocationIndexParentFields('city', normalized),
+        ['countryId', 'stateId'],
+      );
+    });
+
+    test('nonblank City District ID is trimmed in callable payload', () {
+      final normalized = normalizeServiceLocationIndexPayload('city', {
+        'countryId': 'country-1',
+        'stateId': 'state-1',
+        'districtId': ' district-1 ',
+        'name': 'District City',
+      });
+
+      expect(normalized['districtId'], 'district-1');
+      expect(
+        serviceLocationIndexParentFields('city', normalized),
+        ['countryId', 'stateId', 'districtId'],
+      );
+    });
+
+    test('non-string optional City District ID fails closed', () {
+      expect(
+        () => normalizeServiceLocationIndexPayload('city', {
+          'districtId': 123,
+        }),
+        throwsArgumentError,
+      );
+    });
+
     test('unsupported type fails closed', () {
       expect(
         () => serviceLocationIndexParentFields('unknown', {}),
