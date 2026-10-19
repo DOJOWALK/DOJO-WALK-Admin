@@ -95,6 +95,15 @@ void main() {
       );
     });
 
+    test('normalizes repeated internal whitespace in path keys', () {
+      expect(
+        LocationImportPlannedNode.pathKey(
+          LocationImportNodeType.state, ['  Uttar   Pradesh  ']),
+        LocationImportPlannedNode.pathKey(
+          LocationImportNodeType.state, ['uttar pradesh']),
+      );
+    });
+
     test('path keys do not collide when a segment contains a delimiter', () {
       final first = LocationImportPlannedNode.pathKey(
         LocationImportNodeType.city, ['A|B', 'C']);
