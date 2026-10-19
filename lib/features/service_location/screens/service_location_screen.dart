@@ -1366,9 +1366,9 @@ class _ServiceLocationScreenState
       );
     } catch (error) {
       final message = error is LocationCsvImportPreflightException
-          ? 'Import stopped during read-only preflight. No import run or location '
-              'records were created, so you can correct the CSV/permissions and try again. '
-              'Details: $error'
+          ? 'Import stopped during read-only preflight; this attempt made no location writes. '
+              'If this run ID was used before, inspect its existing import history before retrying. '
+              'Otherwise correct the CSV/permissions and try again. Details: $error'
           : runId == null
               ? error.toString()
               : 'Import did not complete. Keep run ID "$runId" and use '
