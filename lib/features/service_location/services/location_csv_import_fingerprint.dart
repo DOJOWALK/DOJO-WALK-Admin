@@ -52,4 +52,4 @@ String locationCsvImportFingerprint({
 }
 
 String _normalize(String value) =>
-    value.trim().toLowerCase().replaceAll(RegExp(r'\\s+'), ' ');
+    value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
