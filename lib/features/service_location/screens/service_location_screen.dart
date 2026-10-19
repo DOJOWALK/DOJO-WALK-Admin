@@ -1382,6 +1382,98 @@ class _ServiceLocationScreenState
   // CSV PREVIEW AND VALIDATED IMPORT
   // ============================================================
 
+  /// Reconciles an existing import run against the trusted backend plan.
+  /// This is deliberately read-only: it never retries or repairs hierarchy writes.
+  Future<void> _showImportReconciliationDialog() async {
+    final runIdController = TextEditingController();
+    String? runId;
+    try {
+      runId = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Inspect / Reconcile Import Run'),
+          content: SizedBox(
+            width: 420,
+            child: TextField(
+              controller: runIdController,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Import Run ID',
+                hintText: 'csv-…',
+                helperText: 'Use the run ID shown after import or in its error message.',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final value = runIdController.text.trim();
+                if (value.isNotEmpty) Navigator.pop(dialogContext, value);
+              },
+              child: const Text('Inspect'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || runId == null || runId.isEmpty) return;
+
+      final audit = await FirebaseFirestore.instance
+          .collection('service_location_imports')
+          .doc(runId)
+          .get();
+      final data = audit.data();
+      final fingerprint = data?['inputFingerprint']?.toString().trim() ?? '';
+      if (fingerprint.isEmpty) {
+        throw StateError(
+          'No import audit fingerprint was found for run "$runId". '
+          'This run may have failed before its audit record was written. '
+          'Do not retry it automatically; preserve the run ID for administrator investigation.',
+        );
+      }
+
+      final result = await ServiceLocationService().reconcileImportPlan(
+        runId: runId,
+        inputFingerprint: fingerprint,
+      );
+      if (!mounted) return;
+      final missing = (result['missingIds'] as List<dynamic>? ?? const []).map((e) => e.toString()).toList();
+      final mismatched = (result['mismatchIds'] as List<dynamic>? ?? const []).map((e) => e.toString()).toList();
+      final details = <String>[
+        'Run ID: $runId',
+        'Status: ${result['status'] ?? 'unknown'}',
+        'Read-only: ${result['readOnly'] == true ? 'Yes' : 'Not confirmed'}',
+        'Matching records: ${result['matchingRecords'] ?? 0}',
+        if (missing.isNotEmpty) 'Missing IDs: ${missing.join(', ')}',
+        if (mismatched.isNotEmpty) 'Mismatched IDs: ${mismatched.join(', ')}',
+        if (result['truncated'] == true) 'The issue list is truncated; inspect the backend result for the full count.',
+        '',
+        'This action never resumes, repairs, activates, or deletes locations.',
+      ];
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Import Reconciliation Result'),
+          content: SizedBox(
+            width: 520,
+            child: SingleChildScrollView(child: SelectableText(details.join('\\n'))),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Close')),
+          ],
+        ),
+      );
+    } catch (error) {
+      if (mounted) await _showError(error);
+    } finally {
+      runIdController.dispose();
+    }
+  }
+
   Future<void> _showCsvPreviewDialog() async {
     final controller = TextEditingController();
     final parser = LocationCsvPreviewParser();
@@ -3038,17 +3130,25 @@ class _ServiceLocationScreenState
                       'Preview only — no Firestore writes or activation.',
                     ),
                     const SizedBox(height: 12),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: FilledButton.icon(
-                        onPressed: _showCsvPreviewDialog,
-                        icon: const Icon(Icons.preview_outlined),
-                        label: const Text('Paste CSV and Preview'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: _locationOrange,
-                          foregroundColor: Colors.white,
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 8,
+                      children: [
+                        FilledButton.icon(
+                          onPressed: _showCsvPreviewDialog,
+                          icon: const Icon(Icons.preview_outlined),
+                          label: const Text('Paste CSV and Preview'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: _locationOrange,
+                            foregroundColor: Colors.white,
+                          ),
                         ),
-                      ),
+                        OutlinedButton.icon(
+                          onPressed: _showImportReconciliationDialog,
+                          icon: const Icon(Icons.fact_check_outlined),
+                          label: const Text('Inspect / Reconcile Run'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -4355,17 +4455,25 @@ class _ServiceLocationScreenState
                       'Preview only — no Firestore writes or activation.',
                     ),
                     const SizedBox(height: 12),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: FilledButton.icon(
-                        onPressed: _showCsvPreviewDialog,
-                        icon: const Icon(Icons.preview_outlined),
-                        label: const Text('Paste CSV and Preview'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: _locationOrange,
-                          foregroundColor: Colors.white,
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 8,
+                      children: [
+                        FilledButton.icon(
+                          onPressed: _showCsvPreviewDialog,
+                          icon: const Icon(Icons.preview_outlined),
+                          label: const Text('Paste CSV and Preview'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: _locationOrange,
+                            foregroundColor: Colors.white,
+                          ),
                         ),
-                      ),
+                        OutlinedButton.icon(
+                          onPressed: _showImportReconciliationDialog,
+                          icon: const Icon(Icons.fact_check_outlined),
+                          label: const Text('Inspect / Reconcile Run'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
