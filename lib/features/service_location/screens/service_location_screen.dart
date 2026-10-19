@@ -28,6 +28,7 @@ import '../models/service_location_boundary.dart';
 import '../models/service_location_models.dart';
 import '../services/location_csv_preview_parser.dart';
 import '../services/location_csv_lgd_validator.dart';
+import '../services/location_csv_import_service.dart';
 import '../services/service_location_boundary_service.dart';
 import '../services/service_location_service.dart';
 import '../widgets/add_location_dialog.dart';
@@ -1291,7 +1292,84 @@ class _ServiceLocationScreenState
   }
 
   // ============================================================
-  // READ-ONLY CSV PREVIEW
+  // GUARDED CSV IMPORT
+  // ============================================================
+
+  Future<void> _runValidatedCsvImport({
+    required LocationCsvPreview preview,
+    required String sourceName,
+  }) async {
+    try {
+      final countries = await _service.watchCountries().first;
+      final available = countries.where((country) => country.isActive).toList()
+        ..sort((a, b) => a.name.compareTo(b.name));
+      if (available.isEmpty) {
+        throw StateError(
+          'No active service country exists. Add and activate a country before importing locations.',
+        );
+      }
+
+      final selectedCountryId = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => SimpleDialog(
+          title: const Text('Select target country'),
+          children: [
+            for (final country in available)
+              SimpleDialogOption(
+                onPressed: () => Navigator.of(dialogContext).pop(country.id),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  child: Text('${country.name} (${country.code})'),
+                ),
+              ),
+          ],
+        ),
+      );
+      if (!mounted || selectedCountryId == null) return;
+
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Confirm location import'),
+          content: Text(
+            'Import ${preview.rows.length} CSV rows from "$sourceName"? '
+            'The importer will create missing State → District → City → Area '
+            'records as inactive. It will not create boundaries or activate service. '
+            'A partial run is not automatically retried.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Confirm Import'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || confirmed != true) return;
+
+      final runId = 'csv-${DateTime.now().toUtc().microsecondsSinceEpoch}';
+      final result = await LocationCsvImportService().importPreview(
+        preview: preview,
+        countryId: selectedCountryId,
+        fileName: sourceName,
+        importRunId: runId,
+      );
+      if (!mounted) return;
+      _showMessage(
+        'Import complete: ${result.createdRecords} created, '
+        '${result.reusedRecords} reused. Run ID: $runId',
+      );
+    } catch (error) {
+      await _showError(error);
+    }
+  }
+
+  // ============================================================
+  // CSV PREVIEW AND VALIDATED IMPORT
   // ============================================================
 
   Future<void> _showCsvPreviewDialog() async {
@@ -1301,6 +1379,8 @@ class _ServiceLocationScreenState
     List<String> mappingReport = [];
     bool checkingParents = false;
     String sourceName = 'Pasted CSV';
+    LocationCsvPreview? requestedImport;
+    String requestedImportSource = '';
 
     String normalizeLocationName(String value) =>
         value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
@@ -1650,7 +1730,7 @@ class _ServiceLocationScreenState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'CSV syntax validation passed — NOT import approval.',
+                              'CSV validation passed. Review carefully before importing.',
                               style: TextStyle(
                                 color: _locationOrange,
                                 fontWeight: FontWeight.bold,
@@ -1658,7 +1738,7 @@ class _ServiceLocationScreenState
                             ),
                             SizedBox(height: 6),
                             Text(
-                              'Import is intentionally disabled in this screen. A guarded import executor is being validated separately, but this preview does not call it and writes no location records. Do not treat a successful preview or parent-name match as permission to import. Import UI will remain disabled until authenticated Firebase-emulator tests cover partial writes, retry and immutable audit behavior.',
+                              'Import is restricted to an active super_admin. New records remain inactive and require separate boundary verification and service activation. Each run is audited; uncertain or partial runs must be reconciled and are never automatically retried.',
                             ),
                           ],
                         ),
@@ -1712,6 +1792,16 @@ class _ServiceLocationScreenState
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('Close'),
             ),
+            if (preview?.isSyntacticallyValid == true)
+              FilledButton.icon(
+                onPressed: () {
+                  requestedImport = preview;
+                  requestedImportSource = sourceName;
+                  Navigator.of(dialogContext).pop();
+                },
+                icon: const Icon(Icons.cloud_upload_outlined),
+                label: const Text('Import Inactive Locations'),
+              ),
             FilledButton.icon(
               onPressed: () => setDialogState(() {
                 preview = parser.parse(controller.text);
@@ -1725,6 +1815,13 @@ class _ServiceLocationScreenState
       ),
     );
     controller.dispose();
+    final importPreview = requestedImport;
+    if (importPreview != null) {
+      await _runValidatedCsvImport(
+        preview: importPreview,
+        sourceName: requestedImportSource,
+      );
+    }
   }
 
   // ============================================================
