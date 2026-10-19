@@ -26,7 +26,7 @@ class ServiceBoundaryDialog extends StatefulWidget {
   final String locationId;
   final String locationName;
 
-  /// Examples: city, area, locality, village.
+  /// Supported types: city and area only; locality has no polygon workflow.
   final String locationType;
 
   final List<LatLng> initialPoints;
