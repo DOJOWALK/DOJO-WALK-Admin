@@ -116,6 +116,16 @@ class LocationCsvImportService {
         .get();
     ensureLocationCsvImportRunIsNew(auditRecordExists: priorRun.exists);
 
+    // Persist a trusted run marker before the first hierarchy write. If the
+    // process crashes or a callable times out, the run remains visibly started
+    // and a second attempt is blocked until reconciliation.
+    await _locations.beginImportRun(
+      runId: runId,
+      countryId: country,
+      fileName: sourceFileName,
+      inputFingerprint: inputFingerprint,
+    );
+
     var created = 0;
     var reused = 0;
     var auditWritten = false;
@@ -214,6 +224,15 @@ class LocationCsvImportService {
       ));
       auditWritten = true;
 
+      await _locations.finishImportRun(
+        runId: runId,
+        inputFingerprint: inputFingerprint,
+        status: 'completed',
+        plannedRecords: plan.length,
+        createdRecords: created,
+        reusedRecords: reused,
+      );
+
       return LocationCsvImportResult(
         plannedRecords: plan.length,
         createdRecords: created,
@@ -246,6 +265,25 @@ class LocationCsvImportService {
           _onAuditFailure(auditError, auditStackTrace);
         } catch (_) {
           // A broken telemetry adapter must not mask the original import error.
+        }
+      }
+      try {
+        await _locations.finishImportRun(
+          runId: runId,
+          inputFingerprint: inputFingerprint,
+          status: classifyLocationCsvImportFailure(
+            allLocationWritesCompleted: allLocationWritesCompleted,
+            locationWriteAttempted: locationWriteAttempted,
+          ),
+          plannedRecords: 0,
+          createdRecords: created,
+          reusedRecords: reused,
+        );
+      } catch (runStateError, runStateStackTrace) {
+        try {
+          _onAuditFailure(runStateError, runStateStackTrace);
+        } catch (_) {
+          // Keep the original import error authoritative.
         }
       }
       Error.throwWithStackTrace(error, stackTrace);
