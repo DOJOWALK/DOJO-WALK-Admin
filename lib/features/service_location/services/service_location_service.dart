@@ -1503,6 +1503,21 @@ class ServiceLocationService {
     return Map<String, dynamic>.from(result.data);
   }
 
+  /// Performs a read-only comparison of the recorded import plan against the
+  /// current trusted hierarchy documents. This never resumes or repairs writes.
+  Future<Map<String, dynamic>> reconcileImportPlan({
+    required String runId,
+    required String inputFingerprint,
+  }) async {
+    final callable = _functions.httpsCallable('manageServiceLocationImportRun');
+    final result = await callable.call<Map<String, dynamic>>({
+      'action': 'reconcilePlan',
+      'runId': runId,
+      'inputFingerprint': inputFingerprint,
+    });
+    return Map<String, dynamic>.from(result.data);
+  }
+
   /// Finalizes a previously started run. The server validates actor ownership,
   /// fingerprint and allowed status transitions.
   Future<void> finishImportRun({
