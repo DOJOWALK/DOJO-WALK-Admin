@@ -37,3 +37,30 @@ List<String> serviceLocationIndexParentFields(
       throw ArgumentError.value(locationType, 'locationType', 'Unsupported service location type.');
   }
 }
+
+/// Remove an optional blank City District ID before sending the callable
+/// payload. Firebase treats an explicitly present District ID as a parent
+/// requirement, so an empty string must be represented as an absent field.
+Map<String, dynamic> normalizeServiceLocationIndexPayload(
+  String locationType,
+  Map<String, dynamic> payload,
+) {
+  final normalized = Map<String, dynamic>.from(payload);
+  if (locationType == 'city' && normalized.containsKey('districtId')) {
+    final rawDistrictId = normalized['districtId'];
+    if (rawDistrictId != null && rawDistrictId is! String) {
+      throw ArgumentError.value(
+        rawDistrictId,
+        'payload.districtId',
+        'District ID must be a string when provided.',
+      );
+    }
+    final districtId = (rawDistrictId as String?)?.trim() ?? '';
+    if (districtId.isEmpty) {
+      normalized.remove('districtId');
+    } else {
+      normalized['districtId'] = districtId;
+    }
+  }
+  return normalized;
+}
