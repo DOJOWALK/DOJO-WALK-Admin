@@ -46,6 +46,11 @@ class LocationCsvImportService {
     // Fail before querying or writing anything if the admin is signed out.
     final actor = _currentAdminId;
 
+    // Firestore Rules intentionally limit direct hierarchy reads and import
+    // audit access to super_admin. Enforce that contract before any location
+    // reads/writes; do not rely on the later callable to reject an admin role.
+    await _requireSuperAdmin(actor);
+
     var created = 0;
     var reused = 0;
     var auditWritten = false;
@@ -171,6 +176,17 @@ class LocationCsvImportService {
       throw StateError('Sign in as an admin before importing locations.');
     }
     return id;
+  }
+
+  Future<void> _requireSuperAdmin(String actorId) async {
+    final actor = await _firestore.collection('admin_users').doc(actorId).get();
+    final data = actor.data();
+    if (!actor.exists || data == null || data['isActive'] != true ||
+        data['role'] != 'super_admin') {
+      throw StateError(
+        'CSV location import is restricted to an active super_admin account.',
+      );
+    }
   }
 
   Future<Map<String, String>> _loadExistingPathIds(String countryId) async {
