@@ -1955,6 +1955,56 @@ class _ServiceLocationScreenState
     );
   }
 
+  Future<void> _reconcileImportPlan(ServiceLocationImport item) async {
+    if (item.id.trim().isEmpty || item.inputFingerprint.trim().isEmpty) {
+      _showMessage('इस पुराने import record में reconciliation के लिए आवश्यक fingerprint नहीं है।');
+      return;
+    }
+
+    try {
+      final result = await _service.reconcileImportPlan(
+        runId: item.id,
+        inputFingerprint: item.inputFingerprint,
+      );
+      if (!mounted) return;
+
+      final status = result['status']?.toString() ?? 'unknown';
+      final missing = (result['missingIds'] as List?)?.map((value) => value.toString()).toList() ?? const <String>[];
+      final mismatched = (result['mismatchedIds'] as List?)?.map((value) => value.toString()).toList() ?? const <String>[];
+      final details = <String>[
+        'Run ID: ${item.id}',
+        'Status: $status',
+        'Read-only: ${result['readOnly'] == true ? 'Yes' : 'Not confirmed'}',
+        if (result['expectedRecords'] != null) 'Expected records: ${result['expectedRecords']}',
+        if (result['storedRecords'] != null) 'Stored plan records: ${result['storedRecords']}',
+        if (missing.isNotEmpty) 'Missing IDs: ${missing.take(20).join(', ')}',
+        if (mismatched.isNotEmpty) 'Mismatched IDs: ${mismatched.take(20).join(', ')}',
+        if (result['truncated'] == true) 'More differences exist; the response is truncated.',
+      ];
+
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Import Reconciliation'),
+          content: SizedBox(
+            width: 560,
+            child: SingleChildScrollView(
+              child: SelectableText(details.join('\n')),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (error) {
+      if (mounted) await _showError(error);
+    }
+  }
+
   // ============================================================
   // BOUNDARY MANAGEMENT
   // ============================================================
@@ -2984,6 +3034,13 @@ class _ServiceLocationScreenState
                     'Verification: ${item.verificationStatus}',
                   ),
                   isThreeLine: true,
+                  trailing: item.inputFingerprint.trim().isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: 'Reconcile import plan (read-only)',
+                          icon: const Icon(Icons.fact_check_outlined),
+                          onPressed: () => _reconcileImportPlan(item),
+                        ),
                 ),
               ),
           ],
