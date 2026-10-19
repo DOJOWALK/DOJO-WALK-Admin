@@ -34,8 +34,15 @@ class LocationCsvImportService {
     if (!preview.isSyntacticallyValid) {
       throw ArgumentError('Fix all CSV preview errors before importing.');
     }
+    if (preview.rows.isEmpty) {
+      throw ArgumentError('CSV contains no data rows to import.');
+    }
     final country = countryId.trim();
     if (country.isEmpty) throw ArgumentError('Country ID is required.');
+    final sourceFileName = fileName.trim();
+    if (sourceFileName.isEmpty) {
+      throw ArgumentError('A CSV file name is required for the import audit.');
+    }
     // Fail before querying or writing anything if the admin is signed out.
     final actor = _currentAdminId;
 
@@ -119,7 +126,7 @@ class LocationCsvImportService {
       // by retrying the same CSV (deterministic IDs prevent duplicate paths).
       await _locations.saveImport(ServiceLocationImport(
         source: 'csv',
-        fileName: fileName.trim(),
+        fileName: sourceFileName,
         status: 'completed',
         importedBy: actor,
         verificationStatus: 'pending',
