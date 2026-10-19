@@ -29,3 +29,30 @@ A Git-level integration/rebase or merge of the current `main` into the review br
 
 ## Safety
 No merge, deployment, production data write, service-location activation/deactivation, or District schema change was performed. PR #7 must remain unmerged until integration and CI are actually verified and the user explicitly authorizes merging.
+
+## Step 169 — Current-head CI and Hosting deployment recheck (2026-10-19)
+
+### Exact current Admin PR head
+- PR #7 remains open, Draft, and unmerged.
+- Current head SHA: `f00cbf0ff521030aee86b886b815c0601527bbf5`.
+- Current head CI run `39249499463` — **success**: Admin Web Build Check (No Deploy).
+- Current head CI run `39249499478` — **success**: Service Location Geometry Tests.
+- PR head was updated at 2026-10-19T12:06:30Z. These checks are attached to the exact head SHA above.
+
+### Current merge status
+- GitHub comparison still reports `main...step-119-boundary-geometry` as `diverged`: review branch 525 commits ahead and 3 behind.
+- PR #7 is still Draft/open/unmerged. Passing CI does not resolve the ancestry divergence or approve the District/City schema and backend release gates.
+- PR #6 is open and non-mergeable; its India reference-data files already appear in the PR #7 branch description, so do not merge PR #6 independently without checking exact file overlap.
+- UI-only PRs #9 and #10 remain Draft and report Flutter build/visual validation pending. Do not stack-merge them blindly.
+
+### Hosting deployment finding
+- Workflow runs `39248443727` and `39248408700` both completed successfully and their logs explicitly show `flutter build web --release` followed by Firebase Hosting **production deployment** to project `dojo-platform-b68a3`.
+- The logs report Hosting versions `bf55b22b068a53b3` and `62966ab3a59e2df3` respectively. This confirms production Hosting deployment occurred; it does not independently prove the live site's UI or data workflow is correct.
+- The review-branch `.github/workflows/build_web.yml` now requires manual dispatch, typed confirmation `DEPLOY_DOJO_ADMIN_LIVE`, target project confirmation, and the `production` environment. Confirm the live `main` workflow file and production environment approval settings before treating this safeguard as effective in production.
+
+### Decision / next action
+- Current-head automated checks: **PASS**.
+- Merge readiness: **BLOCKED** by branch divergence, unresolved cross-repo District/City schema and trusted Firebase backend coordination, CSV importer not implemented (preview-only), official LGD source reconciliation, and production/rollout safeguards.
+- Next: perform a Git-level integration of the 3 commits unique to main on a separate integration branch, preserve all Step 119+ audit history and India reference files, then rerun full Admin CI on the integrated candidate. Do not merge/deploy or perform production data writes until the integrated PR is conflict-free and owner release approval is recorded.
+
+No merge, new deployment, production data write, CSV import, or location activation/deactivation was performed as part of this recheck.
