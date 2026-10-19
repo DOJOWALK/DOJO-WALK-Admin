@@ -68,6 +68,20 @@ void main() {
       );
     });
 
+
+    test('accepts valid polygons regardless of winding order', () {
+      final clockwise = <GeoPoint>[
+        p(0, 0),
+        p(0, 2),
+        p(2, 2),
+        p(2, 0),
+      ];
+      final counterClockwise = clockwise.reversed.toList();
+
+      expect(ServiceLocationGeometry.isValidPolygon(clockwise), isTrue);
+      expect(ServiceLocationGeometry.isValidPolygon(counterClockwise), isTrue);
+    });
+
     test('rejects a self-intersecting polygon', () {
       expect(
         ServiceLocationGeometry.isValidPolygon([
