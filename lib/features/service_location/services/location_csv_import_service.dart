@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:crypto/crypto.dart';
 
 import '../models/service_location_models.dart';
 import 'location_csv_import_planner.dart';
@@ -43,7 +40,8 @@ class LocationCsvImportService {
       preview: preview,
       countryId: country,
       existingIdsByPath: existing,
-      allocateId: (pathKey) => _stableIdForPath(country, pathKey),
+      allocateId: (pathKey) =>
+          LocationImportPlannedNode.stableDocumentId(country, pathKey),
     );
 
     var created = 0;
@@ -194,14 +192,7 @@ class LocationCsvImportService {
     return result;
   }
 
-  String _stableIdForPath(String countryId, String pathKey) {
-    // Document IDs must be deterministic within a country, not globally shared
-    // by same-named hierarchies in different countries.
-    final digest = sha256
-        .convert(utf8.encode('${countryId.trim()}|$pathKey'))
-        .toString();
-    return 'csv_${digest.substring(0, 40)}';
-  }
+
 }
 
 class LocationCsvImportResult {
