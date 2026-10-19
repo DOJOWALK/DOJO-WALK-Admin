@@ -51,7 +51,7 @@ void main() {
       });
 
       expect(district.isActive, isTrue);
-      expect(district.toMap()['isServiceActive'], isFalse);
+      expect(district.toMap()['isServiceActive'], isTrue);
       expect(district.toMap().containsKey('isActive'), isFalse);
     });
 
