@@ -46,21 +46,24 @@ class LocationCsvImportService {
     // Fail before querying or writing anything if the admin is signed out.
     final actor = _currentAdminId;
 
-    final existing = await _loadExistingPathIds(country);
-    final plan = _planner.plan(
-      preview: preview,
-      countryId: country,
-      existingIdsByPath: existing,
-      allocateId: (pathKey) =>
-          LocationImportPlannedNode.stableDocumentId(country, pathKey),
-    );
-
     var created = 0;
     var reused = 0;
     var auditWritten = false;
     var allLocationWritesCompleted = false;
 
     try {
+      // Include hierarchy reads and planning in the guarded import flow. If
+      // preflight is denied or finds ambiguous paths, surface the same failure
+      // path instead of escaping before import error handling.
+      final existing = await _loadExistingPathIds(country);
+      final plan = _planner.plan(
+        preview: preview,
+        countryId: country,
+        existingIdsByPath: existing,
+        allocateId: (pathKey) =>
+            LocationImportPlannedNode.stableDocumentId(country, pathKey),
+      );
+
       for (final node in plan) {
         if (node.alreadyExists) {
           reused++;
