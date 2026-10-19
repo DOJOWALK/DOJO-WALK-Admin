@@ -95,6 +95,34 @@ void main() {
       );
     });
 
+
+
+    test('stable IDs are repeatable and isolated by country', () {
+      const path = 'state|2:up';
+      final indiaFirst =
+          LocationImportPlannedNode.stableDocumentId('india', path);
+      final indiaRetry =
+          LocationImportPlannedNode.stableDocumentId(' india ', path);
+      final otherCountry =
+          LocationImportPlannedNode.stableDocumentId('other-country', path);
+
+      expect(indiaFirst, startsWith('csv_'));
+      expect(indiaFirst, indiaRetry);
+      expect(indiaFirst, isNot(otherCountry));
+      expect(indiaFirst, hasLength(44));
+    });
+
+    test('stable ID rejects missing country or path', () {
+      expect(
+        () => LocationImportPlannedNode.stableDocumentId(' ', 'state|2:up'),
+        throwsArgumentError,
+      );
+      expect(
+        () => LocationImportPlannedNode.stableDocumentId('india', ' '),
+        throwsArgumentError,
+      );
+    });
+
     test('normalizes repeated internal whitespace in path keys', () {
       expect(
         LocationImportPlannedNode.pathKey(
