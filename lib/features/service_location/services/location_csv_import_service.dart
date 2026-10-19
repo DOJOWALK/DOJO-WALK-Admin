@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/service_location_models.dart';
@@ -40,13 +41,16 @@ class LocationCsvImportService {
   final ServiceLocationService _locations;
   final LocationCsvImportPlanner _planner;
   final String? Function() _currentAdminIdProvider;
+  final void Function(Object error, StackTrace stackTrace) _onAuditFailure;
 
   LocationCsvImportService({
     FirebaseFirestore? firestore,
     ServiceLocationService? locations,
     LocationCsvImportPlanner? planner,
     String? Function()? currentAdminIdProvider,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+    void Function(Object error, StackTrace stackTrace)? onAuditFailure,
+  })  : _onAuditFailure = onAuditFailure ?? _logAuditFailure,
+        _firestore = firestore ?? FirebaseFirestore.instance,
         _currentAdminIdProvider = currentAdminIdProvider ??
             (() => FirebaseAuth.instance.currentUser?.uid),
         _locations = locations ??
@@ -204,13 +208,23 @@ class LocationCsvImportService {
           importedBy: actor,
           verificationStatus: 'pending',
         ));
-      } catch (_) {
-        // Preserve the original import error. Audit failure is surfaced in
-        // logs/operations separately; the PR remains Draft until this is
-        // covered by authenticated emulator tests.
+      } catch (auditError, auditStackTrace) {
+        // Preserve the original import exception, but do not silently discard
+        // the separate audit-write failure. The default handler logs both;
+        // tests/hosts may inject a durable telemetry adapter.
+        try {
+          _onAuditFailure(auditError, auditStackTrace);
+        } catch (_) {
+          // A broken telemetry adapter must not mask the original import error.
+        }
       }
       Error.throwWithStackTrace(error, stackTrace);
     }
+  }
+
+  static void _logAuditFailure(Object error, StackTrace stackTrace) {
+    debugPrint('DOJO WALK location CSV audit write failed: $error');
+    debugPrintStack(stackTrace: stackTrace);
   }
 
   String get _currentAdminId {
