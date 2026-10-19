@@ -1352,6 +1352,7 @@ class _ServiceLocationScreenState
 
       try {
         final states = await _service.watchStates().first;
+        final districts = await _service.watchDistricts().first;
         final cities = await _service.watchCities().first;
         final areas = await _service.watchAreas().first;
         final report = <String>[];
@@ -1385,17 +1386,45 @@ class _ServiceLocationScreenState
           }
 
           final state = stateMatches.single;
-          final cityMatches = cities.where(
+          final districtName = row.values['district'] ?? '';
+          final districtMatches = districts.where(
+            (item) =>
+                item.stateId == state.id &&
+                normalizeLocationName(item.name) ==
+                    normalizeLocationName(districtName),
+          ).toList();
+
+          if (districtMatches.length != 1) {
+            report.add(
+              'Line ${row.lineNumber}: District "$districtName" under '
+              '$stateName ${districtMatches.isEmpty ? 'not found' : 'is ambiguous'} '
+              'in existing Service Locations.',
+            );
+            continue;
+          }
+
+          final district = districtMatches.single;
+          final sameNameCities = cities.where(
             (item) =>
                 item.stateId == state.id &&
                 normalizeLocationName(item.name) ==
                     normalizeLocationName(cityName),
           ).toList();
+          final cityMatches = sameNameCities.where(
+            (item) => item.districtId == district.id,
+          ).toList();
 
           if (cityMatches.length != 1) {
+            final legacyUnlinked = sameNameCities.any(
+              (item) => item.districtId.trim().isEmpty,
+            );
+            final detail = cityMatches.isEmpty
+                ? (legacyUnlinked
+                    ? 'exists but is not linked to District "$districtName"'
+                    : 'not found under District "$districtName"')
+                : 'is ambiguous under District "$districtName"';
             report.add(
-              'Line ${row.lineNumber}: City "$cityName" under '
-              '$stateName ${cityMatches.isEmpty ? 'not found' : 'is ambiguous'}.',
+              'Line ${row.lineNumber}: City "$cityName" $detail.',
             );
             continue;
           }
@@ -1429,7 +1458,7 @@ class _ServiceLocationScreenState
         );
         report.insert(
           2,
-          'Schema warning: District is now checked against the bundled LGD reference, but the live Firestore hierarchy still has no separate District level. District-to-Service-City mapping remains unresolved; this check never writes data.',
+          'District mapping uses existing Service District records and requires each matched City to carry the matching districtId. Legacy unlinked Cities are reported, not guessed. This check never writes data.',
         );
 
         setDialogState(() {
