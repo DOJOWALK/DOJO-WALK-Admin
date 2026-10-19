@@ -2,6 +2,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dojo_admin/features/service_location/services/location_csv_import_service.dart';
 
 void main() {
+  test('preflight exception explains that location writes were not attempted', () {
+    const error = LocationCsvImportPreflightException('CSV exceeds plan limit');
+    expect(
+      error.toString(),
+      contains('before any location writes: CSV exceeds plan limit'),
+    );
+  });
+
   group('validateLocationCsvImportRunId', () {
     test('trims and preserves a stable valid ID', () {
       expect(validateLocationCsvImportRunId('  import-run-123  '), 'import-run-123');
