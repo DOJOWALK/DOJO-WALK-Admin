@@ -1299,6 +1299,7 @@ class _ServiceLocationScreenState
     required LocationCsvPreview preview,
     required String sourceName,
   }) async {
+    String? runId;
     try {
       final countries = await _service.watchCountries().first;
       final available = countries.where((country) => country.isActive).toList()
@@ -1351,7 +1352,7 @@ class _ServiceLocationScreenState
       );
       if (!mounted || confirmed != true) return;
 
-      final runId = 'csv-${DateTime.now().toUtc().microsecondsSinceEpoch}';
+      runId = 'csv-${DateTime.now().toUtc().microsecondsSinceEpoch}';
       final result = await LocationCsvImportService().importPreview(
         preview: preview,
         countryId: selectedCountryId,
@@ -1364,7 +1365,12 @@ class _ServiceLocationScreenState
         '${result.reusedRecords} reused. Run ID: $runId',
       );
     } catch (error) {
-      await _showError(error);
+      final message = runId == null
+          ? error.toString()
+          : 'Import did not complete. Keep run ID "$runId" and use '
+              '"Inspect / Reconcile Import Run" before attempting anything again. '
+              'The importer does not automatically retry partial runs. Details: $error';
+      await _showError(StateError(message));
     }
   }
 
