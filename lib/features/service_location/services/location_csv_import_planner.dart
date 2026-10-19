@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
+
 /// Pure, side-effect-free planner for a future Service Location CSV importer.
 ///
 /// This file deliberately performs no Firestore writes. The caller must load
@@ -32,6 +36,19 @@ class LocationImportPlannedNode {
     final normalized = segments.map(_normalizeName).toList();
     final encoded = normalized.map((s) => '${s.length}:$s').join();
     return '${type.name}|$encoded';
+  }
+
+
+
+  /// Deterministic Firestore document ID scoped to the country and full path.
+  /// Kept pure so retries and country isolation can be unit-tested without
+  /// constructing Firebase clients.
+  static String stableDocumentId(String countryId, String pathKey) {
+    final country = countryId.trim();
+    if (country.isEmpty) throw ArgumentError('Country ID is required.');
+    if (pathKey.trim().isEmpty) throw ArgumentError('Location path key is required.');
+    final digest = sha256.convert(utf8.encode(country + '|' + pathKey)).toString();
+    return 'csv_' + digest.substring(0, 40);
   }
 
   static String _normalizeName(String value) =>
