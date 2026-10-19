@@ -81,4 +81,63 @@ void main() {
     });
   });
 
-}
+
+  test('reads legacy active status for City, Area, and Locality when canonical status is absent', () {
+    final city = ServiceCity.fromMap('legacy-city', {
+      'countryId': 'country-1',
+      'stateId': 'state-1',
+      'name': 'Legacy City',
+      'isActive': true,
+    });
+    final area = ServiceArea.fromMap('legacy-area', {
+      'countryId': 'country-1',
+      'stateId': 'state-1',
+      'cityId': 'city-1',
+      'name': 'Legacy Area',
+      'isActive': true,
+    });
+    final locality = ServiceLocality.fromMap('legacy-locality', {
+      'countryId': 'country-1',
+      'stateId': 'state-1',
+      'cityId': 'city-1',
+      'areaId': 'area-1',
+      'name': 'Legacy Locality',
+      'isActive': true,
+    });
+
+    expect(city.isServiceActive, isTrue);
+    expect(area.isServiceActive, isTrue);
+    expect(locality.isServiceActive, isTrue);
+  });
+
+  test('canonical inactive status overrides stale legacy active flags for City, Area, and Locality', () {
+    final city = ServiceCity.fromMap('city-1', {
+      'countryId': 'country-1',
+      'stateId': 'state-1',
+      'name': 'City',
+      'isServiceActive': false,
+      'isActive': true,
+    });
+    final area = ServiceArea.fromMap('area-1', {
+      'countryId': 'country-1',
+      'stateId': 'state-1',
+      'cityId': 'city-1',
+      'name': 'Area',
+      'isServiceActive': false,
+      'isActive': true,
+    });
+    final locality = ServiceLocality.fromMap('locality-1', {
+      'countryId': 'country-1',
+      'stateId': 'state-1',
+      'cityId': 'city-1',
+      'areaId': 'area-1',
+      'name': 'Locality',
+      'isServiceActive': false,
+      'isActive': true,
+    });
+
+    expect(city.isServiceActive, isFalse);
+    expect(area.isServiceActive, isFalse);
+    expect(locality.isServiceActive, isFalse);
+  });
+\n}\n
