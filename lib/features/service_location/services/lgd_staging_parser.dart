@@ -50,6 +50,7 @@ class LgdStagingParser {
     if(en==null||en.isEmpty){errors.add(path+' row '+row.toString()+': English name missing.');continue;}
     final pl=level=='district'?'state':level=='sub_district'?'district':null,pc=level=='district'?state:level=='sub_district'?district:null;
     if(pl!=null&&(pc==null||pc.isEmpty)){errors.add(path+' row '+row.toString()+': parent code missing.');continue;}
+    if(level=='sub_district'&&(state==null||state.isEmpty)){errors.add(path+' row '+row.toString()+': state parent code missing.');continue;}
     if(local==null||local.isEmpty)warnings.add(path+' row '+row.toString()+': local-language name missing.');
     final extra=<String,String?>{};
     for(final a in ['State Version','Census 2001 Code','Census 2011 Code','State or UT','state_census2011_code','district_census2011_code','sub_district_census2011_code','subdistrict_census2011_code']){final x=get([a]);if(x!=null)extra[n(a)]=x;}
