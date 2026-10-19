@@ -55,6 +55,20 @@ void main() {
       expect(district.toMap().containsKey('isActive'), isFalse);
     });
 
+
+    test('canonical inactive status takes precedence over stale legacy active flag', () {
+      final district = ServiceDistrict.fromMap('district-1', {
+        'countryId': 'country-1',
+        'stateId': 'state-1',
+        'name': 'Example District',
+        'isServiceActive': false,
+        'isActive': true,
+      });
+
+      expect(district.isActive, isFalse);
+      expect(district.toMap()['isServiceActive'], isFalse);
+    });
+
     test('reads legacy isActive field for existing District records', () {
       final district = ServiceDistrict.fromMap('legacy-district', {
         'countryId': 'country-1',
