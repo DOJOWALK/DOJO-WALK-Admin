@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/service_location_models.dart';
 import 'location_csv_import_planner.dart';
@@ -28,6 +29,7 @@ class LocationCsvImportService {
   Future<LocationCsvImportResult> importPreview({
     required LocationCsvPreview preview,
     required String countryId,
+    required String fileName,
   }) async {
     if (!preview.isSyntacticallyValid) {
       throw ArgumentError('Fix all CSV preview errors before importing.');
@@ -46,68 +48,113 @@ class LocationCsvImportService {
 
     var created = 0;
     var reused = 0;
-    for (final node in plan) {
-      if (node.alreadyExists) {
-        reused++;
-        continue;
+    var auditWritten = false;
+
+    try {
+      for (final node in plan) {
+        if (node.alreadyExists) {
+          reused++;
+          continue;
+        }
+        switch (node.type) {
+          case LocationImportNodeType.state:
+            await _locations.saveState(ServiceState(
+              id: node.id,
+              countryId: country,
+              name: node.name,
+              isActive: false,
+            ));
+            break;
+          case LocationImportNodeType.district:
+            await _locations.saveDistrict(ServiceDistrict(
+              id: node.id,
+              countryId: country,
+              stateId: node.parentId,
+              name: node.name,
+              isActive: false,
+            ));
+            break;
+          case LocationImportNodeType.city:
+            final district = plan.firstWhere((candidate) =>
+                candidate.type == LocationImportNodeType.district &&
+                candidate.id == node.parentId);
+            await _locations.saveCity(ServiceCity(
+              id: node.id,
+              countryId: country,
+              stateId: district.parentId,
+              districtId: node.parentId,
+              name: node.name,
+              isServiceActive: false,
+            ));
+            break;
+          case LocationImportNodeType.area:
+            final city = plan.firstWhere((candidate) =>
+                candidate.type == LocationImportNodeType.city &&
+                candidate.id == node.parentId);
+            final district = plan.firstWhere((candidate) =>
+                candidate.type == LocationImportNodeType.district &&
+                candidate.id == city.parentId);
+            await _locations.saveArea(ServiceArea(
+              id: node.id,
+              countryId: country,
+              stateId: district.parentId,
+              cityId: node.parentId,
+              name: node.name,
+              isServiceActive: false,
+            ));
+            break;
+        }
+        created++;
       }
-      switch (node.type) {
-        case LocationImportNodeType.state:
-          await _locations.saveState(ServiceState(
-            id: node.id,
-            countryId: country,
-            name: node.name,
-            isActive: false,
-          ));
-          break;
-        case LocationImportNodeType.district:
-          final stateId = node.parentId;
-          await _locations.saveDistrict(ServiceDistrict(
-            id: node.id,
-            countryId: country,
-            stateId: stateId,
-            name: node.name,
-            isActive: false,
-          ));
-          break;
-        case LocationImportNodeType.city:
-          final district = plan.firstWhere((candidate) =>
-              candidate.type == LocationImportNodeType.district &&
-              candidate.id == node.parentId);
-          final stateId = district.parentId;
-          await _locations.saveCity(ServiceCity(
-            id: node.id,
-            countryId: country,
-            stateId: stateId,
-            districtId: node.parentId,
-            name: node.name,
-            isServiceActive: false,
-          ));
-          break;
-        case LocationImportNodeType.area:
-          final city = plan.firstWhere((candidate) =>
-              candidate.type == LocationImportNodeType.city &&
-              candidate.id == node.parentId);
-          final district = plan.firstWhere((candidate) =>
-              candidate.type == LocationImportNodeType.district &&
-              candidate.id == city.parentId);
-          await _locations.saveArea(ServiceArea(
-            id: node.id,
-            countryId: country,
-            stateId: district.parentId,
-            cityId: node.parentId,
-            name: node.name,
-            isServiceActive: false,
-          ));
-          break;
+
+      // Audit records are append-only under the current Firestore rules.
+      // Write one immutable final summary instead of trying to update a
+      // "started" record later. If this write fails, the caller is told the
+      // import may have completed without an audit record and can reconcile
+      // by retrying the same CSV (deterministic IDs prevent duplicate paths).
+      final actor = _currentAdminId;
+      await _locations.saveImport(ServiceLocationImport(
+        source: 'csv',
+        fileName: fileName.trim(),
+        status: 'completed',
+        importedBy: actor,
+        verificationStatus: 'pending',
+      ));
+      auditWritten = true;
+
+      return LocationCsvImportResult(
+        plannedRecords: plan.length,
+        createdRecords: created,
+        reusedRecords: reused,
+        auditWritten: auditWritten,
+      );
+    } catch (error) {
+      // Record an immutable failure summary after any partial writes. The
+      // record does not claim rollback: previously saved locations remain
+      // inactive and deterministic IDs make the next attempt reconcilable.
+      try {
+        await _locations.saveImport(ServiceLocationImport(
+          source: 'csv',
+          fileName: fileName.trim(),
+          status: created > 0 ? 'partial_failure' : 'failed',
+          importedBy: _currentAdminId,
+          verificationStatus: 'pending',
+        ));
+      } catch (_) {
+        // Preserve the original import error. Audit failure is surfaced in
+        // logs/operations separately; the PR remains Draft until this is
+        // covered by authenticated emulator tests.
       }
-      created++;
+      Error.throwWithStackTrace(error, StackTrace.current);
     }
-    return LocationCsvImportResult(
-      plannedRecords: plan.length,
-      createdRecords: created,
-      reusedRecords: reused,
-    );
+  }
+
+  String get _currentAdminId {
+    final id = FirebaseAuth.instance.currentUser?.uid.trim() ?? '';
+    if (id.isEmpty) {
+      throw StateError('Sign in as an admin before importing locations.');
+    }
+    return id;
   }
 
   Future<Map<String, String>> _loadExistingPathIds(String countryId) async {
@@ -199,10 +246,12 @@ class LocationCsvImportResult {
   final int plannedRecords;
   final int createdRecords;
   final int reusedRecords;
+  final bool auditWritten;
 
   const LocationCsvImportResult({
     required this.plannedRecords,
     required this.createdRecords,
     required this.reusedRecords,
+    required this.auditWritten,
   });
 }
