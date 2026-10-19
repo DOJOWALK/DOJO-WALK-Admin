@@ -479,7 +479,7 @@ class ServiceArea {
       boundaryVerified: data['boundaryVerified'] == true,
       verifiedBoundaryId:
           data['verifiedBoundaryId']?.toString() ?? '',
-      isServiceActive: data['isServiceActive'] == true,
+      isServiceActive: _readServiceActive(data),
       createdAt: _readLocationDate(data['createdAt']),
       updatedAt: _readLocationDate(data['updatedAt']),
     );
@@ -596,7 +596,7 @@ class ServiceLocality {
       boundary: _readLocationBoundary(data['boundary']),
       boundarySource: data['boundarySource']?.toString() ?? '',
       boundaryVerified: data['boundaryVerified'] == true,
-      isServiceActive: data['isServiceActive'] == true,
+      isServiceActive: _readServiceActive(data),
       createdAt: _readLocationDate(data['createdAt']),
       updatedAt: _readLocationDate(data['updatedAt']),
     );
