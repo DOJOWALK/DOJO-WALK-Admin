@@ -54,6 +54,7 @@ class LocationCsvImportService {
     var created = 0;
     var reused = 0;
     var auditWritten = false;
+    var locationWriteAttempted = false;
     var allLocationWritesCompleted = false;
 
     try {
@@ -74,6 +75,10 @@ class LocationCsvImportService {
           reused++;
           continue;
         }
+        // A callable can commit on the server and still return a client-side
+        // timeout/error. Mark the attempt before awaiting it so the failure
+        // audit never falsely claims "failed with no writes" in that case.
+        locationWriteAttempted = true;
         switch (node.type) {
           case LocationImportNodeType.state:
             await _locations.saveState(ServiceState(
@@ -157,7 +162,7 @@ class LocationCsvImportService {
           fileName: fileName.trim(),
           status: allLocationWritesCompleted
               ? 'audit_failed'
-              : (created > 0 ? 'partial_failure' : 'failed'),
+              : (locationWriteAttempted ? 'partial_failure' : 'failed'),
           importedBy: actor,
           verificationStatus: 'pending',
         ));
