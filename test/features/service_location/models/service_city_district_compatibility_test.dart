@@ -40,4 +40,31 @@ void main() {
       expect(city.copyWith(districtId: 'district-2').districtId, 'district-2');
     });
   });
+
+  group('ServiceDistrict trusted status field compatibility', () {
+    test('reads canonical isServiceActive status written by Firebase', () {
+      final district = ServiceDistrict.fromMap('district-1', {
+        'countryId': 'country-1',
+        'stateId': 'state-1',
+        'name': 'Example District',
+        'isServiceActive': true,
+      });
+
+      expect(district.isActive, isTrue);
+      expect(district.toMap()['isServiceActive'], isFalse);
+      expect(district.toMap().containsKey('isActive'), isFalse);
+    });
+
+    test('reads legacy isActive field for existing District records', () {
+      final district = ServiceDistrict.fromMap('legacy-district', {
+        'countryId': 'country-1',
+        'stateId': 'state-1',
+        'name': 'Legacy District',
+        'isActive': true,
+      });
+
+      expect(district.isActive, isTrue);
+    });
+  });
+
 }
