@@ -1365,11 +1365,15 @@ class _ServiceLocationScreenState
         '${result.reusedRecords} reused. Run ID: $runId',
       );
     } catch (error) {
-      final message = runId == null
-          ? error.toString()
-          : 'Import did not complete. Keep run ID "$runId" and use '
-              '"Inspect / Reconcile Import Run" before attempting anything again. '
-              'The importer does not automatically retry partial runs. Details: $error';
+      final message = error is LocationCsvImportPreflightException
+          ? 'Import stopped during read-only preflight. No import run or location '
+              'records were created, so you can correct the CSV/permissions and try again. '
+              'Details: $error'
+          : runId == null
+              ? error.toString()
+              : 'Import did not complete. Keep run ID "$runId" and use '
+                  '"Inspect / Reconcile Import Run" before attempting anything again. '
+                  'The importer does not automatically retry partial runs. Details: $error';
       await _showError(StateError(message));
     }
   }
