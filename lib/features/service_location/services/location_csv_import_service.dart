@@ -43,8 +43,9 @@ String classifyLocationCsvImportFailure({
 /// Executes a validated State → District → City → Area import.
 ///
 /// Existing records are resolved by their complete parent/name path. New IDs
-/// are deterministic so an interrupted import can be retried without creating
-/// a second set of documents. All writes go through ServiceLocationService,
+/// are deterministic to reduce duplicate-path risk after interruption, but
+/// automatic retries are blocked by immutable audit records until reconciliation
+/// is implemented. All writes go through ServiceLocationService,
 /// which calls the trusted Firebase callable. This class never activates a
 /// location or creates boundaries.
 class LocationCsvImportService {
