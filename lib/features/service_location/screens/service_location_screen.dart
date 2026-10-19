@@ -4238,16 +4238,18 @@ class _ServiceLocationScreenState
           'Expected records: ${result['expectedRecords']}',
         if (result['storedRecords'] != null)
           'Stored plan records: ${result['storedRecords']}',
-        if (result['checkedRecords'] != null)
-          'Checked records: ${result['checkedRecords']}',
+        if (result['matchingRecords'] != null)
+          'Matching records: ${result['matchingRecords']}',
+        if (result['missingCount'] != null)
+          'Missing records: ${result['missingCount']}',
         if (result['mismatchCount'] != null)
-          'Mismatches: ${result['mismatchCount']}',
+          'Mismatched records: ${result['mismatchCount']}',
         if (result['missingIds'] is List &&
             (result['missingIds'] as List).isNotEmpty)
           'Missing IDs: ${(result['missingIds'] as List).join(', ')}',
-        if (result['mismatchedIds'] is List &&
-            (result['mismatchedIds'] as List).isNotEmpty)
-          'Mismatched IDs: ${(result['mismatchedIds'] as List).join(', ')}',
+        if (result['mismatchIds'] is List &&
+            (result['mismatchIds'] as List).isNotEmpty)
+          'Mismatched IDs: ${(result['mismatchIds'] as List).join(', ')}',
         if (result['truncated'] == true)
           'Only the first reported mismatches are shown.',
         'This check is read-only. It does not resume or repair an import.',
