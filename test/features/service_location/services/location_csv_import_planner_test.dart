@@ -146,7 +146,7 @@ void main() {
 
     test('reuses the complete existing hierarchy without allocating new IDs', () {
       final preview = parser.parse(
-        'State,District,City,Area\\n'
+        'State,District,City,Area\n'
         'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City',
       );
       final keys = <String, String>{
@@ -185,8 +185,8 @@ void main() {
 
     test('duplicate source rows produce one deterministic node per full path', () {
       final preview = parser.parse(
-        'State,District,City,Area\\n'
-        'UP,GBN,Greater Noida,Gaur City\\n'
+        'State,District,City,Area\n'
+        'UP,GBN,Greater Noida,Gaur City\n'
         'UP,GBN,Greater Noida,Gaur City',
       );
       final allocatedKeys = <String>[];
@@ -208,8 +208,8 @@ void main() {
 
     test('same area name under different cities remains a separate path', () {
       final preview = parser.parse(
-        'State,District,City,Area\\n'
-        'UP,GBN,Greater Noida,Sector 1\\n'
+        'State,District,City,Area\n'
+        'UP,GBN,Greater Noida,Sector 1\n'
         'UP,GBN,Noida,Sector 1',
       );
       final plan = planner.plan(
