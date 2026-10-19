@@ -20,6 +20,17 @@ String validateLocationCsvImportRunId(String value) {
 /// Classifies an import failure conservatively when remote callable outcomes
 /// may be uncertain. A write attempt is treated as potentially partial even
 /// if the client never received a successful response.
+/// Prevents a reused immutable audit ID from triggering location writes.
+/// A retry with a persisted audit record needs an explicit reconciliation flow.
+void ensureLocationCsvImportRunIsNew({required bool auditRecordExists}) {
+  if (auditRecordExists) {
+    throw StateError(
+      'This import run ID already has an audit record. Existing import runs '
+      'are immutable; reconcile the prior run before starting another attempt.',
+    );
+  }
+}
+
 String classifyLocationCsvImportFailure({
   required bool allLocationWritesCompleted,
   required bool locationWriteAttempted,
@@ -89,6 +100,15 @@ class LocationCsvImportService {
     // audit access to super_admin. Enforce that contract before any location
     // reads/writes; do not rely on the later callable to reject an admin role.
     await _requireSuperAdmin(actor);
+
+    // Check the immutable audit ID before any hierarchy reads or writes. This
+    // prevents a reused run ID from repeating location writes only to fail on
+    // the final append-only audit create. Reconciliation is a separate flow.
+    final priorRun = await _firestore
+        .collection('service_location_imports')
+        .doc(runId)
+        .get();
+    ensureLocationCsvImportRunIsNew(auditRecordExists: priorRun.exists);
 
     var created = 0;
     var reused = 0;
