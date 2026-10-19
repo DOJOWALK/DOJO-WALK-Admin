@@ -10,6 +10,15 @@ import 'service_location_service.dart';
 
 /// Validates a caller-owned ID that must remain unchanged across retries
 /// of the same logical CSV import.
+/// Signals a failure before the durable import run or any hierarchy write exists.
+class LocationCsvImportPreflightException implements Exception {
+  final Object cause;
+  const LocationCsvImportPreflightException(this.cause);
+
+  @override
+  String toString() => 'Import preflight failed before any location writes: $cause';
+}
+
 String validateLocationCsvImportRunId(String value) {
   final id = value.trim();
   if (!RegExp(r'^[A-Za-z0-9_-]{1,150}$').hasMatch(id)) {
@@ -101,39 +110,37 @@ class LocationCsvImportService {
       countryId: country,
       preview: preview,
     );
-    // Fail before querying or writing anything if the admin is signed out.
+    // Complete authorization and read-only preflight before creating a
+    // durable run marker. Failures here mean no location write was attempted.
     final actor = _currentAdminId;
+    late final List<LocationImportPlannedNode> plan;
+    try {
+      await _requireSuperAdmin(actor);
 
-    // Firestore Rules intentionally limit direct hierarchy reads and import
-    // audit access to super_admin. Enforce that contract before any location
-    // reads/writes; do not rely on the later callable to reject an admin role.
-    await _requireSuperAdmin(actor);
+      // Existing audit IDs are immutable and cannot be reused for another run.
+      final priorRun = await _firestore
+          .collection('service_location_imports')
+          .doc(runId)
+          .get();
+      ensureLocationCsvImportRunIsNew(auditRecordExists: priorRun.exists);
 
-    // Check the immutable audit ID before any hierarchy reads or writes. This
-    // prevents a reused run ID from repeating location writes only to fail on
-    // the final append-only audit create. Reconciliation is a separate flow.
-    final priorRun = await _firestore
-        .collection('service_location_imports')
-        .doc(runId)
-        .get();
-    ensureLocationCsvImportRunIsNew(auditRecordExists: priorRun.exists);
-
-    // Complete read-only preflight before creating a durable run marker.
-    // Invalid/oversized plans must not leave an un-reconcilable started run.
-    final existing = await _loadExistingPathIds(country);
-    final plan = _planner.plan(
-      preview: preview,
-      countryId: country,
-      existingIdsByPath: existing,
-      allocateId: (pathKey) =>
-          LocationImportPlannedNode.stableDocumentId(country, pathKey),
-    );
-    if (plan.length > 300) {
-      throw StateError(
-        'This CSV expands to ${plan.length} location records; one import run '
-        'supports at most 300. Split the data into smaller, parent-complete '
-        'CSV imports and use a new import run ID for each file.',
+      final existing = await _loadExistingPathIds(country);
+      plan = _planner.plan(
+        preview: preview,
+        countryId: country,
+        existingIdsByPath: existing,
+        allocateId: (pathKey) =>
+            LocationImportPlannedNode.stableDocumentId(country, pathKey),
       );
+      if (plan.length > 300) {
+        throw StateError(
+          'This CSV expands to ${plan.length} location records; one import run '
+          'supports at most 300. Split the data into smaller, parent-complete '
+          'CSV imports and use a new import run ID for each file.',
+        );
+      }
+    } catch (error) {
+      throw LocationCsvImportPreflightException(error);
     }
 
     // Persist a trusted run marker only after read-only preflight passes and
