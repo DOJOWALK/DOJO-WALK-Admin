@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/service_location_models.dart';
+import 'location_csv_import_fingerprint.dart';
 import 'location_csv_import_planner.dart';
 import 'location_csv_preview_parser.dart';
 import 'service_location_service.dart';
@@ -94,6 +95,10 @@ class LocationCsvImportService {
     // import. Reusing it prevents an ambiguous audit-write timeout from
     // creating a second audit document on retry.
     final runId = validateLocationCsvImportRunId(importRunId);
+    final inputFingerprint = locationCsvImportFingerprint(
+      countryId: country,
+      preview: preview,
+    );
     // Fail before querying or writing anything if the admin is signed out.
     final actor = _currentAdminId;
 
@@ -205,6 +210,7 @@ class LocationCsvImportService {
         status: 'completed',
         importedBy: actor,
         verificationStatus: 'pending',
+        inputFingerprint: inputFingerprint,
       ));
       auditWritten = true;
 
@@ -230,6 +236,7 @@ class LocationCsvImportService {
           ),
           importedBy: actor,
           verificationStatus: 'pending',
+        inputFingerprint: inputFingerprint,
         ));
       } catch (auditError, auditStackTrace) {
         // Preserve the original import exception, but do not silently discard
