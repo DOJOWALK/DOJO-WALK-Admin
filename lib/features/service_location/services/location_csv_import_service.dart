@@ -149,6 +149,23 @@ class LocationCsvImportService {
       );
 
       plannedRecords = plan.length;
+      // The trusted backend records the complete bounded plan before the first
+      // location write. If recording fails or is ambiguous, this run is blocked
+      // for manual reconciliation; the importer never auto-resumes it.
+      await _locations.recordImportPlan(
+        runId: runId,
+        inputFingerprint: inputFingerprint,
+        nodes: plan
+            .map((node) => <String, dynamic>{
+                  'id': node.id,
+                  'type': node.type.name,
+                  'name': node.name,
+                  'parentId': node.parentId,
+                  'alreadyExists': node.alreadyExists,
+                  'sourceLine': node.firstSourceLine,
+                })
+            .toList(growable: false),
+      );
       for (final node in plan) {
         if (node.alreadyExists) {
           reused++;
