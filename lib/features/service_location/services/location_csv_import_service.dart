@@ -61,6 +61,7 @@ class LocationCsvImportService {
             name: node.name,
             isActive: false,
           ));
+          break;
         case LocationImportNodeType.district:
           final stateId = node.parentId;
           await _locations.saveDistrict(ServiceDistrict(
@@ -70,6 +71,7 @@ class LocationCsvImportService {
             name: node.name,
             isActive: false,
           ));
+          break;
         case LocationImportNodeType.city:
           final district = plan.firstWhere((candidate) =>
               candidate.type == LocationImportNodeType.district &&
@@ -83,6 +85,7 @@ class LocationCsvImportService {
             name: node.name,
             isServiceActive: false,
           ));
+          break;
         case LocationImportNodeType.area:
           final city = plan.firstWhere((candidate) =>
               candidate.type == LocationImportNodeType.city &&
@@ -98,6 +101,7 @@ class LocationCsvImportService {
             name: node.name,
             isServiceActive: false,
           ));
+          break;
       }
       created++;
     }
