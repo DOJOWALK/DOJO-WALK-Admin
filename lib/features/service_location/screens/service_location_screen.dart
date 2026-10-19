@@ -4214,6 +4214,67 @@ class _ServiceLocationScreenState
     }
   }
 
+  Future<void> _reconcileImport(ServiceLocationImport item) async {
+    final runId = item.id.trim();
+    final fingerprint = item.inputFingerprint.trim();
+    if (runId.isEmpty || fingerprint.isEmpty) {
+      await _showError(StateError(
+        'This import has no run ID or input fingerprint and cannot be reconciled.',
+      ));
+      return;
+    }
+
+    try {
+      final result = await _service.reconcileImportPlan(
+        runId: runId,
+        inputFingerprint: fingerprint,
+      );
+      if (!mounted) return;
+      final status = result['status']?.toString() ?? 'unknown';
+      final details = <String>[
+        'Run ID: $runId',
+        'Result: $status',
+        if (result['expectedRecords'] != null)
+          'Expected records: ${result['expectedRecords']}',
+        if (result['storedRecords'] != null)
+          'Stored plan records: ${result['storedRecords']}',
+        if (result['checkedRecords'] != null)
+          'Checked records: ${result['checkedRecords']}',
+        if (result['mismatchCount'] != null)
+          'Mismatches: ${result['mismatchCount']}',
+        if (result['missingIds'] is List &&
+            (result['missingIds'] as List).isNotEmpty)
+          'Missing IDs: ${(result['missingIds'] as List).join(', ')}',
+        if (result['mismatchedIds'] is List &&
+            (result['mismatchedIds'] as List).isNotEmpty)
+          'Mismatched IDs: ${(result['mismatchedIds'] as List).join(', ')}',
+        if (result['truncated'] == true)
+          'Only the first reported mismatches are shown.',
+        'This check is read-only. It does not resume or repair an import.',
+      ];
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Import consistency result'),
+          content: SizedBox(
+            width: 560,
+            child: SingleChildScrollView(
+              child: SelectableText(details.join('\n')),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (error) {
+      await _showError(error);
+    }
+  }
+
   Widget _buildImports() {
     return StreamBuilder<List<ServiceLocationImport>>(
       stream: _service.watchImports(),
@@ -4291,6 +4352,13 @@ class _ServiceLocationScreenState
                     'Verification: ${item.verificationStatus}',
                   ),
                   isThreeLine: true,
+                  trailing: item.inputFingerprint.trim().isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: 'Read-only consistency check',
+                          icon: const Icon(Icons.fact_check_outlined),
+                          onPressed: () => _reconcileImport(item),
+                        ),
                 ),
               ),
           ],
