@@ -16,6 +16,22 @@ void main() {
     });
   });
 
+  group('ensureLocationCsvImportRunIsNew', () {
+    test('allows a run ID with no prior audit record', () {
+      expect(
+        () => ensureLocationCsvImportRunIsNew(auditRecordExists: false),
+        returnsNormally,
+      );
+    });
+
+    test('rejects a run ID that already has an immutable audit record', () {
+      expect(
+        () => ensureLocationCsvImportRunIsNew(auditRecordExists: true),
+        throwsStateError,
+      );
+    });
+  });
+
   group('classifyLocationCsvImportFailure', () {
     test('reports failed when no location write was attempted', () {
       expect(
