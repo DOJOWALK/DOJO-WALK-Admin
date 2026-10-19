@@ -110,6 +110,10 @@ void main() {
       expect(indiaFirst, indiaRetry);
       expect(indiaFirst, isNot(otherCountry));
       expect(indiaFirst, hasLength(44));
+      expect(
+        LocationImportPlannedNode.stableDocumentId('a|b', 'c'),
+        isNot(LocationImportPlannedNode.stableDocumentId('a', 'b|c')),
+      );
     });
 
     test('stable ID rejects missing country or path', () {
