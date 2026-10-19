@@ -648,6 +648,8 @@ class ServiceLocationImport {
   final String importedBy;
   final DateTime? importedAt;
   final String verificationStatus;
+  /// Fingerprint of the canonical validated hierarchy input. Empty for legacy audits.
+  final String inputFingerprint;
 
   const ServiceLocationImport({
     this.id = '',
@@ -657,6 +659,7 @@ class ServiceLocationImport {
     required this.importedBy,
     this.importedAt,
     required this.verificationStatus,
+    this.inputFingerprint = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -667,6 +670,8 @@ class ServiceLocationImport {
       'importedBy': importedBy.trim(),
       'importedAt': FieldValue.serverTimestamp(),
       'verificationStatus': verificationStatus.trim(),
+      if (inputFingerprint.trim().isNotEmpty)
+        'inputFingerprint': inputFingerprint.trim(),
     };
   }
 
@@ -681,8 +686,8 @@ class ServiceLocationImport {
       status: data['status']?.toString() ?? '',
       importedBy: data['importedBy']?.toString() ?? '',
       importedAt: _readLocationDate(data['importedAt']),
-      verificationStatus:
-          data['verificationStatus']?.toString() ?? '',
+      verificationStatus: data['verificationStatus']?.toString() ?? '',
+      inputFingerprint: data['inputFingerprint']?.toString() ?? '',
     );
   }
 
@@ -694,6 +699,7 @@ class ServiceLocationImport {
     String? importedBy,
     DateTime? importedAt,
     String? verificationStatus,
+    String? inputFingerprint,
   }) {
     return ServiceLocationImport(
       id: id ?? this.id,
@@ -702,8 +708,8 @@ class ServiceLocationImport {
       status: status ?? this.status,
       importedBy: importedBy ?? this.importedBy,
       importedAt: importedAt ?? this.importedAt,
-      verificationStatus:
-          verificationStatus ?? this.verificationStatus,
+      verificationStatus: verificationStatus ?? this.verificationStatus,
+      inputFingerprint: inputFingerprint ?? this.inputFingerprint,
     );
   }
 }
