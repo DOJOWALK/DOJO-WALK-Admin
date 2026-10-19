@@ -11,8 +11,8 @@ import 'service_location_index_contract.dart';
 /// Service Location Service
 ///
 /// Hierarchy:
-/// Country -> State -> City/District -> Area/Sub-district
-/// -> Locality/Village
+/// Country -> State -> District -> Service City -> Service Area
+/// -> optional Locality/Village. Legacy Cities may omit districtId.
 ///
 /// City and Area activation requires a verified polygon stored
 /// in service_location_boundaries.
