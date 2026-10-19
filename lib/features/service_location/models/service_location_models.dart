@@ -14,6 +14,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// - Locality does not require its own polygon.
 /// ===========================================================
 
+bool _readServiceActive(Map<String, dynamic> data) {
+  // The trusted Firebase field is authoritative whenever it is present.
+  // Fall back to the legacy field only for older documents without it.
+  if (data.containsKey('isServiceActive')) {
+    return data['isServiceActive'] == true;
+  }
+  return data['isActive'] == true;
+}
+
 DateTime? _readLocationDate(dynamic value) {
   if (value is Timestamp) {
     return value.toDate();
@@ -243,9 +252,7 @@ class ServiceDistrict {
         stateId: data['stateId']?.toString() ?? '',
         name: data['name']?.toString() ?? '',
         // Read the trusted callable's canonical field, with legacy fallback.
-        isActive: data.containsKey('isServiceActive')
-            ? data['isServiceActive'] == true
-            : data['isActive'] == true,
+        isActive: _readServiceActive(data),
         createdAt: _readLocationDate(data['createdAt']),
         updatedAt: _readLocationDate(data['updatedAt']),
       );
@@ -353,7 +360,7 @@ class ServiceCity {
       boundaryVerified: data['boundaryVerified'] == true,
       verifiedBoundaryId:
           data['verifiedBoundaryId']?.toString() ?? '',
-      isServiceActive: data['isServiceActive'] == true,
+      isServiceActive: _readServiceActive(data),
       createdAt: _readLocationDate(data['createdAt']),
       updatedAt: _readLocationDate(data['updatedAt']),
     );
