@@ -50,3 +50,31 @@ This is an intentional safety hold, not a claim that bulk import is implemented.
 ## Decision
 
 **PR #11 remains Draft and is not merge-ready.** Geometry tests and Admin build CI passed, but the import implementation and cross-repository/release gates above remain unresolved. No merge, production deployment, CSV import, location activation or production migration was performed.
+
+
+## Step 253 addendum — latest-head CI and full diff inventory
+
+Checked again on 2026-10-19 after the report commit.
+
+- Current PR head: `c8701a05ea9c6c378ddf53e3284350f3cde3c3c4`.
+- PR remains Open + Draft, unmerged; GitHub reports mergeable, which is not equivalent to approval or release readiness.
+- Current PR diff: **228 paths** (212 added, 16 modified, 0 removed/renamed). This supersedes the earlier 227-path snapshot.
+- GitHub compare endpoint reports `530` commits ahead and `0` behind for the current comparison, so the integration history/scope still requires explicit review. The changed-file diff is heavily documentation-weighted; implementation/config/test paths outside `docs/`: 35. Non-doc path grouping: `.github/workflows` 3, `lib/data` 4, `lib/features` 15, `lib/screens` 2, `pubspec.yaml` 1, `test/data` 1, `test/features` 8, `test/reference_data_integrity_test.dart` 1.
+- On the exact current head, both checks completed successfully: [Admin Web Build Check (No Deploy)](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39258961245) and [Service Location Geometry Tests](https://github.com/dojoplatform2026/DOJO-WALK-Admin/actions/runs/39258960988). These are the two workflow runs observed on this head; do not infer other workflow coverage from them.
+- The current Firebase PR #6 is still Open + Draft at head `e2f72b72e97b9bf51d81dddfa366c6986afef811`; its contract remains a cross-repository dependency and was not modified during this Admin-only pass.
+
+### Scope decision
+
+The current diff contains a large sequence of numbered audit/handoff documents plus reference data, Admin source, tests and workflow changes. No file deletions or renames are present in the diff. However, this inventory is not proof that every one of the 228 paths is necessary; a maintainer still needs to approve the accumulated documentation/history scope or split it into a focused PR. Do not merge based only on the green build/geometry checks.
+
+### Final gate status after recheck
+
+- [x] Rechecked PR state/head and exact-head CI for the two observed workflows.
+- [x] Recounted current diff paths and recorded the scope concern.
+- [ ] Authoritative Admin/Firebase `status` and `verificationStatus` allowlists + transition rules.
+- [ ] Emulator positive/negative tests for that shared contract.
+- [ ] Actual staged CSV-to-Firestore import/commit path (current UI remains preview/validation; metadata save alone is not bulk import).
+- [ ] Trusted import idempotency, row-level errors, duplicate handling and retry/partial-failure recovery.
+- [ ] Customer/Partner schema compatibility approval and production Environment reviewer/deployed Rules verification.
+
+**Decision remains HOLD / Draft.** Exact-head build and geometry checks are green, but the Admin PR is not complete or merge-ready because the cross-repository contract and real import path are not implemented/verified, and the 228-path scope has not been approved. No merge, deploy, import or activation was performed.
