@@ -143,5 +143,86 @@ void main() {
         LocationImportNodeType.city, ['A', 'B|C']);
       expect(first, isNot(second));
     });
+
+    test('reuses the complete existing hierarchy without allocating new IDs', () {
+      final preview = parser.parse(
+        'State,District,City,Area\\n'
+        'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City',
+      );
+      final keys = <String, String>{
+        LocationImportPlannedNode.pathKey(
+          LocationImportNodeType.state, ['Uttar Pradesh']): 'state-1',
+        LocationImportPlannedNode.pathKey(
+          LocationImportNodeType.district,
+          ['Uttar Pradesh', 'Gautam Buddha Nagar']): 'district-1',
+        LocationImportPlannedNode.pathKey(
+          LocationImportNodeType.city,
+          ['Uttar Pradesh', 'Gautam Buddha Nagar', 'Greater Noida']): 'city-1',
+        LocationImportPlannedNode.pathKey(
+          LocationImportNodeType.area,
+          ['Uttar Pradesh', 'Gautam Buddha Nagar', 'Greater Noida', 'Gaur City']): 'area-1',
+      };
+
+      var allocationCalls = 0;
+      final plan = planner.plan(
+        preview: preview,
+        countryId: 'india',
+        existingIdsByPath: keys,
+        allocateId: (_) {
+          allocationCalls++;
+          return 'unexpected-new-id';
+        },
+      );
+
+      expect(plan.map((node) => node.id),
+          ['state-1', 'district-1', 'city-1', 'area-1']);
+      expect(plan.every((node) => node.alreadyExists), isTrue);
+      expect(allocationCalls, 0);
+      expect(plan[1].parentId, 'state-1');
+      expect(plan[2].parentId, 'district-1');
+      expect(plan[3].parentId, 'city-1');
+    });
+
+    test('duplicate source rows produce one deterministic node per full path', () {
+      final preview = parser.parse(
+        'State,District,City,Area\\n'
+        'UP,GBN,Greater Noida,Gaur City\\n'
+        'UP,GBN,Greater Noida,Gaur City',
+      );
+      final allocatedKeys = <String>[];
+      final plan = planner.plan(
+        preview: preview,
+        countryId: 'india',
+        existingIdsByPath: const {},
+        allocateId: (key) {
+          allocatedKeys.add(key);
+          return LocationImportPlannedNode.stableDocumentId('india', key);
+        },
+      );
+
+      expect(plan, hasLength(4));
+      expect(allocatedKeys.toSet(), hasLength(4));
+      expect(plan.map((node) => node.id).toSet(), hasLength(4));
+      expect(plan.every((node) => !node.alreadyExists), isTrue);
+    });
+
+    test('same area name under different cities remains a separate path', () {
+      final preview = parser.parse(
+        'State,District,City,Area\\n'
+        'UP,GBN,Greater Noida,Sector 1\\n'
+        'UP,GBN,Noida,Sector 1',
+      );
+      final plan = planner.plan(
+        preview: preview,
+        countryId: 'india',
+        existingIdsByPath: const {},
+        allocateId: (key) => LocationImportPlannedNode.stableDocumentId('india', key),
+      );
+
+      final areas = plan.where((node) => node.type == LocationImportNodeType.area);
+      expect(areas, hasLength(2));
+      expect(areas.map((node) => node.id).toSet(), hasLength(2));
+      expect(areas.map((node) => node.parentId).toSet(), hasLength(2));
+    });
   });
 }
