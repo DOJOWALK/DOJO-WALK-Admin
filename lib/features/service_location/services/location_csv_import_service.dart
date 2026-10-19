@@ -417,8 +417,3 @@ class LocationCsvImportResult {
   });
 }
 
-/// Classifies an import failure conservatively when remote callable outcomes
-/// may be uncertain. A write attempt is treated as potentially partial even
-/// if the client never received a successful response.
-/// Prevents a reused immutable audit ID from triggering location writes.
-/// A retry with a persisted audit record needs an explicit reconciliation flow.
