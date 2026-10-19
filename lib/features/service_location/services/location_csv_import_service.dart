@@ -29,19 +29,28 @@ class LocationCsvImportService {
   final FirebaseFirestore _firestore;
   final ServiceLocationService _locations;
   final LocationCsvImportPlanner _planner;
+  final String? Function() _currentAdminIdProvider;
 
   LocationCsvImportService({
     FirebaseFirestore? firestore,
     ServiceLocationService? locations,
     LocationCsvImportPlanner? planner,
+    String? Function()? currentAdminIdProvider,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _locations = locations ?? ServiceLocationService(),
+        _currentAdminIdProvider = currentAdminIdProvider ??
+            (() => FirebaseAuth.instance.currentUser?.uid),
+        _locations = locations ??
+            ServiceLocationService(
+              currentUserIdProvider: currentAdminIdProvider ??
+                  (() => FirebaseAuth.instance.currentUser?.uid),
+            ),
         _planner = planner ?? LocationCsvImportPlanner();
 
   Future<LocationCsvImportResult> importPreview({
     required LocationCsvPreview preview,
     required String countryId,
     required String fileName,
+    required String importRunId,
   }) async {
     if (!preview.isSyntacticallyValid) {
       throw ArgumentError('Fix all CSV preview errors before importing.');
@@ -54,6 +63,13 @@ class LocationCsvImportService {
     final sourceFileName = fileName.trim();
     if (sourceFileName.isEmpty) {
       throw ArgumentError('A CSV file name is required for the import audit.');
+    }
+    // The caller must persist and reuse this ID when retrying the same logical
+    // import. Reusing it prevents an ambiguous audit-write timeout from
+    // creating a second audit document on retry.
+    final runId = importRunId.trim();
+    if (runId.isEmpty || runId.contains('/')) {
+      throw ArgumentError('A stable, valid import run ID is required.');
     }
     // Fail before querying or writing anything if the admin is signed out.
     final actor = _currentAdminId;
@@ -150,6 +166,7 @@ class LocationCsvImportService {
       // import may have completed without an audit record and can reconcile
       // by retrying the same CSV (deterministic IDs prevent duplicate paths).
       await _locations.saveImport(ServiceLocationImport(
+        id: runId,
         source: 'csv',
         fileName: sourceFileName,
         status: 'completed',
@@ -170,6 +187,7 @@ class LocationCsvImportService {
       // inactive and deterministic IDs make the next attempt reconcilable.
       try {
         await _locations.saveImport(ServiceLocationImport(
+          id: runId,
           source: 'csv',
           fileName: fileName.trim(),
           status: classifyLocationCsvImportFailure(
@@ -189,7 +207,7 @@ class LocationCsvImportService {
   }
 
   String get _currentAdminId {
-    final id = FirebaseAuth.instance.currentUser?.uid.trim() ?? '';
+    final id = _currentAdminIdProvider()?.trim() ?? '';
     if (id.isEmpty) {
       throw StateError('Sign in as an admin before importing locations.');
     }
