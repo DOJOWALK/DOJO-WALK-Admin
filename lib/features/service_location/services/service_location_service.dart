@@ -25,12 +25,16 @@ import 'service_location_index_contract.dart';
 class ServiceLocationService {
   final FirebaseFirestore _firestore;
   final FirebaseFunctions _functions;
+  final String? Function() _currentUserIdProvider;
 
   ServiceLocationService({
     FirebaseFirestore? firestore,
     FirebaseFunctions? functions,
+    String? Function()? currentUserIdProvider,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _functions = functions ?? FirebaseFunctions.instanceFor(region: 'asia-south1');
+        _functions = functions ?? FirebaseFunctions.instanceFor(region: 'asia-south1'),
+        _currentUserIdProvider = currentUserIdProvider ??
+            (() => FirebaseAuth.instance.currentUser?.uid);
 
   Future<void> _setTrustedStatus({
     required String locationType,
@@ -1452,7 +1456,7 @@ class ServiceLocationService {
   Future<String> saveImport(
     ServiceLocationImport importRecord,
   ) async {
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final currentUserId = _currentUserIdProvider();
 
     if (currentUserId == null || currentUserId.trim().isEmpty) {
       throw StateError('Sign in as an admin before recording an import.');
