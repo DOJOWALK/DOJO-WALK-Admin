@@ -140,4 +140,5 @@ void main() {
     expect(area.isServiceActive, isFalse);
     expect(locality.isServiceActive, isFalse);
   });
-\n}\n
+\
+}
