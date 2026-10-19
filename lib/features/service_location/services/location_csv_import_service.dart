@@ -36,6 +36,8 @@ class LocationCsvImportService {
     }
     final country = countryId.trim();
     if (country.isEmpty) throw ArgumentError('Country ID is required.');
+    // Fail before querying or writing anything if the admin is signed out.
+    final actor = _currentAdminId;
 
     final existing = await _loadExistingPathIds(country);
     final plan = _planner.plan(
@@ -112,7 +114,6 @@ class LocationCsvImportService {
       // "started" record later. If this write fails, the caller is told the
       // import may have completed without an audit record and can reconcile
       // by retrying the same CSV (deterministic IDs prevent duplicate paths).
-      final actor = _currentAdminId;
       await _locations.saveImport(ServiceLocationImport(
         source: 'csv',
         fileName: fileName.trim(),
@@ -137,7 +138,7 @@ class LocationCsvImportService {
           source: 'csv',
           fileName: fileName.trim(),
           status: created > 0 ? 'partial_failure' : 'failed',
-          importedBy: _currentAdminId,
+          importedBy: actor,
           verificationStatus: 'pending',
         ));
       } catch (_) {
