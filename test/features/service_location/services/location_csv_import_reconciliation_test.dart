@@ -43,12 +43,6 @@ void main() {
     });
 
     test('recognizes a completed run only when hierarchy matches the plan', () {
-      final common = <String, Object?>{
-        'runRecordExists': true,
-        'priorStatus': 'completed',
-        'priorFingerprint': 'sha256:abc',
-        'requestedFingerprint': 'sha256:abc',
-      };
       expect(
         decideLocationCsvImportRecovery(
           runRecordExists: true,
