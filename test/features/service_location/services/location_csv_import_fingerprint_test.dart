@@ -22,6 +22,21 @@ void main() {
       );
     });
 
+    test('normalizes repeated internal whitespace in hierarchy values', () {
+      final spaced = parser.parse(
+        'State,District,City,Area\\nUttar   Pradesh,Gautam   Buddha Nagar,Greater  Noida,Gaur   City',
+      );
+      final normalized = parser.parse(
+        'State,District,City,Area\\nUttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City',
+      );
+      expect(spaced.isSyntacticallyValid, isTrue);
+      expect(normalized.isSyntacticallyValid, isTrue);
+      expect(
+        locationCsvImportFingerprint(countryId: 'IN', preview: spaced),
+        locationCsvImportFingerprint(countryId: 'IN', preview: normalized),
+      );
+    });
+
     test('changes when country or an imported hierarchy value changes', () {
       final first = parser.parse(
         'State,District,City,Area\nUP,Gautam Budh Nagar,Noida,Area A\n',
