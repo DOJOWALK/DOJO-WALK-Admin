@@ -242,41 +242,41 @@ class LocationCsvImportService {
         auditWritten: auditWritten,
       );
     } catch (error, stackTrace) {
-      // Record an immutable failure summary after any partial writes. The
-      // record does not claim rollback: previously saved locations remain
-      // inactive. Deterministic IDs help identify/reuse existing paths, but a
-      // prior failure audit blocks this run ID until reconciliation is added.
-      try {
-        await _locations.saveImport(ServiceLocationImport(
-          id: runId,
-          source: 'csv',
-          fileName: fileName.trim(),
-          status: classifyLocationCsvImportFailure(
-            allLocationWritesCompleted: allLocationWritesCompleted,
-            locationWriteAttempted: locationWriteAttempted,
-          ),
-          importedBy: actor,
-          verificationStatus: 'pending',
-        inputFingerprint: inputFingerprint,
-        ));
-      } catch (auditError, auditStackTrace) {
-        // Preserve the original import exception, but do not silently discard
-        // the separate audit-write failure. The default handler logs both;
-        // tests/hosts may inject a durable telemetry adapter.
+      // Write a failure audit only when the success audit was not already
+      // committed. A timeout during finalization must not create a conflicting
+      // second immutable audit record for the same run ID.
+      if (!auditWritten) {
         try {
-          _onAuditFailure(auditError, auditStackTrace);
-        } catch (_) {
-          // A broken telemetry adapter must not mask the original import error.
+          await _locations.saveImport(ServiceLocationImport(
+            id: runId,
+            source: 'csv',
+            fileName: sourceFileName,
+            status: classifyLocationCsvImportFailure(
+              allLocationWritesCompleted: allLocationWritesCompleted,
+              locationWriteAttempted: locationWriteAttempted,
+            ),
+            importedBy: actor,
+            verificationStatus: 'pending',
+            inputFingerprint: inputFingerprint,
+          ));
+        } catch (auditError, auditStackTrace) {
+          try {
+            _onAuditFailure(auditError, auditStackTrace);
+          } catch (_) {
+            // A broken telemetry adapter must not mask the original error.
+          }
         }
       }
       try {
         await _locations.finishImportRun(
           runId: runId,
           inputFingerprint: inputFingerprint,
-          status: classifyLocationCsvImportFailure(
-            allLocationWritesCompleted: allLocationWritesCompleted,
-            locationWriteAttempted: locationWriteAttempted,
-          ),
+          status: auditWritten
+              ? 'completed'
+              : classifyLocationCsvImportFailure(
+                  allLocationWritesCompleted: allLocationWritesCompleted,
+                  locationWriteAttempted: locationWriteAttempted,
+                ),
           plannedRecords: plannedRecords,
           createdRecords: created,
           reusedRecords: reused,
