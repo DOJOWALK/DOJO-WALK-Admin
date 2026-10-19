@@ -1472,6 +1472,22 @@ class ServiceLocationService {
     });
   }
 
+  /// Persists the bounded canonical plan on the trusted backend before any
+  /// hierarchy writes. Existing runs with a recorded plan are immutable.
+  Future<void> recordImportPlan({
+    required String runId,
+    required String inputFingerprint,
+    required List<Map<String, dynamic>> nodes,
+  }) async {
+    final callable = _functions.httpsCallable('manageServiceLocationImportRun');
+    await callable.call<Map<String, dynamic>>({
+      'action': 'recordPlan',
+      'runId': runId,
+      'inputFingerprint': inputFingerprint,
+      'nodes': nodes,
+    });
+  }
+
   /// Reads the server-owned run marker for reconciliation. This does not
   /// resume or mutate an import; callers must still verify the hierarchy.
   Future<Map<String, dynamic>> inspectImportRun({
