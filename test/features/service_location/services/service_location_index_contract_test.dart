@@ -98,5 +98,14 @@ void main() {
         throwsArgumentError,
       );
     });
+
+    test('Country State and District use the canonical ancestor fields', () {
+      expect(serviceLocationIndexParentFields('country', {}),
+          isEmpty);
+      expect(serviceLocationIndexParentFields('state', {}),
+          ['countryId']);
+      expect(serviceLocationIndexParentFields('district', {}),
+          ['countryId', 'stateId']);
+    });
   });
 }
