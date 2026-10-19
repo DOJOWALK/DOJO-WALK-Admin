@@ -47,7 +47,9 @@ class LocationImportPlannedNode {
     final country = countryId.trim();
     if (country.isEmpty) throw ArgumentError('Country ID is required.');
     if (pathKey.trim().isEmpty) throw ArgumentError('Location path key is required.');
-    final digest = sha256.convert(utf8.encode(country + '|' + pathKey)).toString();
+    final digest = sha256
+        .convert(utf8.encode(country.length.toString() + ':' + country + pathKey))
+        .toString();
     return 'csv_' + digest.substring(0, 40);
   }
 
