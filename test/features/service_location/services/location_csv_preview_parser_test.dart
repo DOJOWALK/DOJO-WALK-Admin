@@ -105,6 +105,22 @@ void main() {
       expect(result.isSyntacticallyValid, isTrue);
     });
 
+    test('allows same area label under different service cities', () {
+      final result = parser.parse(
+        'State,District,City,Area\n'
+        'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Sector 1\n'
+        'Uttar Pradesh,Gautam Buddha Nagar,Noida,Sector 1',
+      );
+
+      expect(result.fileErrors, isEmpty);
+      expect(result.rows, hasLength(2));
+      expect(result.invalidRowCount, 0);
+      expect(result.rows.first.values['area'], result.rows.last.values['area']);
+      expect(result.rows.first.values['city'], isNot(result.rows.last.values['city']));
+      expect(result.rows.every((row) => row.isValid), isTrue);
+      expect(result.isSyntacticallyValid, isTrue);
+    });
+
     test('normalizes required header case spaces underscores and hyphens', () {
       final result = parser.parse(
         ' STATE ,dis trict,CI_TY,A-r-e-a\n'
