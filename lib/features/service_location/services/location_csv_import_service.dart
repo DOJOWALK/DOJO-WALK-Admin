@@ -142,7 +142,7 @@ class LocationCsvImportService {
         reusedRecords: reused,
         auditWritten: auditWritten,
       );
-    } catch (error) {
+    } catch (error, stackTrace) {
       // Record an immutable failure summary after any partial writes. The
       // record does not claim rollback: previously saved locations remain
       // inactive and deterministic IDs make the next attempt reconcilable.
@@ -161,7 +161,7 @@ class LocationCsvImportService {
         // logs/operations separately; the PR remains Draft until this is
         // covered by authenticated emulator tests.
       }
-      Error.throwWithStackTrace(error, StackTrace.current);
+      Error.throwWithStackTrace(error, stackTrace);
     }
   }
 
