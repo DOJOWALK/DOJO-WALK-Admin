@@ -126,6 +126,7 @@ class LocationCsvImportService {
       inputFingerprint: inputFingerprint,
     );
 
+    var plannedRecords = 0;
     var created = 0;
     var reused = 0;
     var auditWritten = false;
@@ -145,6 +146,7 @@ class LocationCsvImportService {
             LocationImportPlannedNode.stableDocumentId(country, pathKey),
       );
 
+      plannedRecords = plan.length;
       for (final node in plan) {
         if (node.alreadyExists) {
           reused++;
@@ -275,7 +277,7 @@ class LocationCsvImportService {
             allLocationWritesCompleted: allLocationWritesCompleted,
             locationWriteAttempted: locationWriteAttempted,
           ),
-          plannedRecords: 0,
+          plannedRecords: plannedRecords,
           createdRecords: created,
           reusedRecords: reused,
         );
