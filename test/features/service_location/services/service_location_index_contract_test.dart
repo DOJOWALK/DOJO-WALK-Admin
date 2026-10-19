@@ -40,6 +40,18 @@ void main() {
           ['countryId', 'stateId', 'cityId', 'areaId']);
     });
 
+
+    test('rejects a non-string District ID instead of coercing it', () {
+      expect(
+        () => serviceLocationIndexParentFields('city', {
+          'countryId': 'country-1',
+          'stateId': 'state-1',
+          'districtId': 123,
+        }),
+        throwsArgumentError,
+      );
+    });
+
     test('unsupported type fails closed', () {
       expect(
         () => serviceLocationIndexParentFields('unknown', {}),
