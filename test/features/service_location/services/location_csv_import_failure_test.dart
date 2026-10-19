@@ -2,6 +2,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dojo_admin/features/service_location/services/location_csv_import_service.dart';
 
 void main() {
+  group('validateLocationCsvImportRunId', () {
+    test('trims and preserves a stable valid ID', () {
+      expect(validateLocationCsvImportRunId('  import-run-123  '), 'import-run-123');
+    });
+
+    test('rejects an empty ID', () {
+      expect(() => validateLocationCsvImportRunId('  '), throwsArgumentError);
+    });
+
+    test('rejects a slash that is invalid in a Firestore document ID', () {
+      expect(() => validateLocationCsvImportRunId('run/child'), throwsArgumentError);
+    });
+  });
+
   group('classifyLocationCsvImportFailure', () {
     test('reports failed when no location write was attempted', () {
       expect(
