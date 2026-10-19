@@ -1,8 +1,10 @@
-/// Parent-field contract sent to the trusted Firebase name-index callable.
+/// Parent fields sent to the trusted Firebase name-index callable.
 ///
-/// City keeps a backward-compatible two-parent tuple when districtId is
-/// absent. Area and Locality stay on the legacy tuple until the coordinated
-/// dual-index migration is approved and implemented on the server.
+/// City includes districtId when it is explicitly linked and keeps the
+/// backward-compatible two-parent tuple when districtId is absent. Area and
+/// Locality send their legacy parent fields; Firebase derives District
+/// ancestry from trusted Firestore documents and atomically maintains both
+/// legacy and District-aware indexes for District-linked records.
 List<String> serviceLocationIndexParentFields(
   String locationType,
   Map<String, dynamic> payload,
