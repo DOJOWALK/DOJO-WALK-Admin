@@ -118,9 +118,27 @@ class LocationCsvImportService {
         .get();
     ensureLocationCsvImportRunIsNew(auditRecordExists: priorRun.exists);
 
-    // Persist a trusted run marker before the first hierarchy write. If the
-    // process crashes or a callable times out, the run remains visibly started
-    // and a second attempt is blocked until reconciliation.
+    // Complete read-only preflight before creating a durable run marker.
+    // Invalid/oversized plans must not leave an un-reconcilable started run.
+    final existing = await _loadExistingPathIds(country);
+    final plan = _planner.plan(
+      preview: preview,
+      countryId: country,
+      existingIdsByPath: existing,
+      allocateId: (pathKey) =>
+          LocationImportPlannedNode.stableDocumentId(country, pathKey),
+    );
+    if (plan.length > 300) {
+      throw StateError(
+        'This CSV expands to ${plan.length} location records; one import run '
+        'supports at most 300. Split the data into smaller, parent-complete '
+        'CSV imports and use a new import run ID for each file.',
+      );
+    }
+
+    // Persist a trusted run marker only after read-only preflight passes and
+    // before the first plan or hierarchy write. If a callable times out, the
+    // run remains visible and a second attempt is blocked until reconciliation.
     await _locations.beginImportRun(
       runId: runId,
       countryId: country,
@@ -128,7 +146,7 @@ class LocationCsvImportService {
       inputFingerprint: inputFingerprint,
     );
 
-    var plannedRecords = 0;
+    var plannedRecords = plan.length;
     var created = 0;
     var reused = 0;
     var auditWritten = false;
@@ -136,29 +154,7 @@ class LocationCsvImportService {
     var allLocationWritesCompleted = false;
 
     try {
-      // Include hierarchy reads and planning in the guarded import flow. If
-      // preflight is denied or finds ambiguous paths, surface the same failure
-      // path instead of escaping before import error handling.
-      final existing = await _loadExistingPathIds(country);
-      final plan = _planner.plan(
-        preview: preview,
-        countryId: country,
-        existingIdsByPath: existing,
-        allocateId: (pathKey) =>
-            LocationImportPlannedNode.stableDocumentId(country, pathKey),
-      );
-
-      plannedRecords = plan.length;
-      // The trusted callable currently accepts one immutable plan of at most
-      // 300 nodes. Fail before recording the plan or making any hierarchy
-      // writes, with an actionable message rather than a generic callable error.
-      if (plan.length > 300) {
-        throw StateError(
-          'This CSV expands to ${plan.length} location records; one import run '
-          'supports at most 300. Split the data into smaller, parent-complete '
-          'CSV imports and use a new import run ID for each file.',
-        );
-      }
+      // Plan and the 300-record bound were validated before run creation.
       // The trusted backend records the complete bounded plan before the first
       // location write. If recording fails or is ambiguous, this run is blocked
       // for manual reconciliation; the importer never auto-resumes it.
