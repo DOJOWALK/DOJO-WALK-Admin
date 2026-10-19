@@ -33,7 +33,7 @@ void main() {
       );
     });
 
-    test('Area and Locality remain on legacy tuples until coordinated cutover', () {
+    test('Area and Locality send legacy parent fields for server-derived dual indexing', () {
       expect(serviceLocationIndexParentFields('area', {}),
           ['countryId', 'stateId', 'cityId']);
       expect(serviceLocationIndexParentFields('locality', {}),
