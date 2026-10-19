@@ -243,7 +243,9 @@ class ServiceDistrict {
         stateId: data['stateId']?.toString() ?? '',
         name: data['name']?.toString() ?? '',
         // Read the trusted callable's canonical field, with legacy fallback.
-        isActive: data['isServiceActive'] == true || data['isActive'] == true,
+        isActive: data.containsKey('isServiceActive')
+            ? data['isServiceActive'] == true
+            : data['isActive'] == true,
         createdAt: _readLocationDate(data['createdAt']),
         updatedAt: _readLocationDate(data['updatedAt']),
       );
