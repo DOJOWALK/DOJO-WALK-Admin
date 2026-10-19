@@ -6,6 +6,18 @@ import 'location_csv_import_planner.dart';
 import 'location_csv_preview_parser.dart';
 import 'service_location_service.dart';
 
+/// Classifies an import failure conservatively when remote callable outcomes
+/// may be uncertain. A write attempt is treated as potentially partial even
+/// if the client never received a successful response.
+String classifyLocationCsvImportFailure({
+  required bool allLocationWritesCompleted,
+  required bool locationWriteAttempted,
+}) {
+  if (allLocationWritesCompleted) return 'audit_failed';
+  if (locationWriteAttempted) return 'partial_failure';
+  return 'failed';
+}
+
 /// Executes a validated State → District → City → Area import.
 ///
 /// Existing records are resolved by their complete parent/name path. New IDs
@@ -160,9 +172,10 @@ class LocationCsvImportService {
         await _locations.saveImport(ServiceLocationImport(
           source: 'csv',
           fileName: fileName.trim(),
-          status: allLocationWritesCompleted
-              ? 'audit_failed'
-              : (locationWriteAttempted ? 'partial_failure' : 'failed'),
+          status: classifyLocationCsvImportFailure(
+            allLocationWritesCompleted: allLocationWritesCompleted,
+            locationWriteAttempted: locationWriteAttempted,
+          ),
           importedBy: actor,
           verificationStatus: 'pending',
         ));
