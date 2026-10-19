@@ -1453,6 +1453,47 @@ class ServiceLocationService {
         );
   }
 
+  /// Creates the trusted, durable run marker before any location writes.
+  /// The backend rejects reuse of any existing run ID, including matching
+  /// fingerprints, until an authoritative reconciliation workflow is available.
+  Future<void> beginImportRun({
+    required String runId,
+    required String countryId,
+    required String fileName,
+    required String inputFingerprint,
+  }) async {
+    final callable = _functions.httpsCallable('manageServiceLocationImportRun');
+    await callable.call<Map<String, dynamic>>({
+      'action': 'begin',
+      'runId': runId,
+      'countryId': countryId,
+      'fileName': fileName,
+      'inputFingerprint': inputFingerprint,
+    });
+  }
+
+  /// Finalizes a previously started run. The server validates actor ownership,
+  /// fingerprint and allowed status transitions.
+  Future<void> finishImportRun({
+    required String runId,
+    required String inputFingerprint,
+    required String status,
+    required int plannedRecords,
+    required int createdRecords,
+    required int reusedRecords,
+  }) async {
+    final callable = _functions.httpsCallable('manageServiceLocationImportRun');
+    await callable.call<void>({
+      'action': 'finalize',
+      'runId': runId,
+      'inputFingerprint': inputFingerprint,
+      'status': status,
+      'plannedRecords': plannedRecords,
+      'createdRecords': createdRecords,
+      'reusedRecords': reusedRecords,
+    });
+  }
+
   Future<String> saveImport(
     ServiceLocationImport importRecord,
   ) async {
@@ -1491,6 +1532,8 @@ class ServiceLocationService {
         importRecord.verificationStatus,
         'Import verification status',
       ),
+      if (importRecord.inputFingerprint.trim().isNotEmpty)
+        'inputFingerprint': importRecord.inputFingerprint.trim(),
     };
 
     final snapshot = await reference.get();
