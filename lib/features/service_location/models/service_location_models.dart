@@ -5,8 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// Service Location Models
 ///
 /// Hierarchy:
-/// Country -> State -> City/District -> Area/Sub-district
-/// -> Locality/Village
+/// Country -> State -> District -> Service City -> Service Area
+/// -> optional Locality/Village. Legacy Cities may omit districtId.
 ///
 /// Compatibility:
 /// - Legacy embedded boundary fields are retained.
