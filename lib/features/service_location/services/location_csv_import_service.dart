@@ -193,9 +193,10 @@ class LocationCsvImportService {
 
       // Audit records are append-only under the current Firestore rules.
       // Write one immutable final summary instead of trying to update a
-      // "started" record later. If this write fails, the caller is told the
-      // import may have completed without an audit record and can reconcile
-      // by retrying the same CSV (deterministic IDs prevent duplicate paths).
+      // "started" record later. If this write fails or its outcome is
+      // ambiguous, deterministic location IDs reduce duplicate-path risk, but
+      // the import is NOT automatically retryable: audit reconciliation is
+      // still required before reusing this logical run ID.
       await _locations.saveImport(ServiceLocationImport(
         id: runId,
         source: 'csv',
@@ -215,7 +216,8 @@ class LocationCsvImportService {
     } catch (error, stackTrace) {
       // Record an immutable failure summary after any partial writes. The
       // record does not claim rollback: previously saved locations remain
-      // inactive and deterministic IDs make the next attempt reconcilable.
+      // inactive. Deterministic IDs help identify/reuse existing paths, but a
+      // prior failure audit blocks this run ID until reconciliation is added.
       try {
         await _locations.saveImport(ServiceLocationImport(
           id: runId,
