@@ -12,9 +12,11 @@ class ServiceLocationGeometry {
 
   /// True when [points] form a valid simple polygon ring.
   ///
-  /// Rejects invalid coordinates, fewer than three distinct vertices, and
-  /// self-intersections or non-adjacent edge touches.
-  static bool isValidPolygon(List<GeoPoint> points) => _isValidRing(points);
+  /// Accepts either an open ring or a GIS/GeoJSON-style ring whose last point
+  /// repeats its first point. Rejects invalid coordinates, fewer than three
+  /// distinct vertices, and self-intersections or non-adjacent edge touches.
+  static bool isValidPolygon(List<GeoPoint> points) =>
+      _isValidRing(_withoutClosingDuplicate(points));
 
   /// True when [child] is a valid polygon contained by [parent].
   ///
@@ -26,29 +28,43 @@ class ServiceLocationGeometry {
     required List<GeoPoint> parent,
     required List<GeoPoint> child,
   }) {
-    if (!_isValidRing(parent) || !_isValidRing(child)) return false;
+    final parentRing = _withoutClosingDuplicate(parent);
+    final childRing = _withoutClosingDuplicate(child);
+    if (!_isValidRing(parentRing) || !_isValidRing(childRing)) return false;
 
-    for (final point in child) {
+    for (final point in childRing) {
       if (!_pointInOrOnPolygon(point, parent)) return false;
     }
 
-    for (var i = 0; i < child.length; i++) {
-      final a = child[i];
-      final b = child[(i + 1) % child.length];
+    for (var i = 0; i < childRing.length; i++) {
+      final a = childRing[i];
+      final b = childRing[(i + 1) % childRing.length];
       final midpoint = GeoPoint(
         (a.latitude + b.latitude) / 2,
         (a.longitude + b.longitude) / 2,
       );
-      if (!_pointInOrOnPolygon(midpoint, parent)) return false;
+      if (!_pointInOrOnPolygon(midpoint, parentRing)) return false;
 
-      for (var j = 0; j < parent.length; j++) {
-        final c = parent[j];
-        final d = parent[(j + 1) % parent.length];
+      for (var j = 0; j < parentRing.length; j++) {
+        final c = parentRing[j];
+        final d = parentRing[(j + 1) % parentRing.length];
         if (_properSegmentsIntersect(a, b, c, d)) return false;
       }
     }
     return true;
   }
+
+  /// Removes the optional duplicate endpoint used by closed GIS/GeoJSON rings.
+  static List<GeoPoint> _withoutClosingDuplicate(List<GeoPoint> points) {
+    if (points.length > 1 && _samePoint(points.first, points.last)) {
+      return points.sublist(0, points.length - 1);
+    }
+    return points;
+  }
+
+  static bool _samePoint(GeoPoint a, GeoPoint b) =>
+      (a.latitude - b.latitude).abs() <= _epsilon &&
+      (a.longitude - b.longitude).abs() <= _epsilon;
 
   static bool _isValidRing(List<GeoPoint> points) {
     if (points.length < 3) return false;
