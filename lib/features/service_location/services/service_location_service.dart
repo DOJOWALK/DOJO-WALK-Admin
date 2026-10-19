@@ -354,10 +354,20 @@ class ServiceLocationService {
         // not yet carry districtId.
         final activeDistricts = await _districts
             .where('stateId', isEqualTo: parentId)
-            .where('isActive', isEqualTo: true)
+            .where('isServiceActive', isEqualTo: true)
             .limit(1)
             .get();
         if (activeDistricts.docs.isNotEmpty) return true;
+
+        // Backward compatibility: older District records may only have
+        // the pre-callable isActive field. Never treat this as the canonical
+        // field for newly saved Districts.
+        final legacyActiveDistricts = await _districts
+            .where('stateId', isEqualTo: parentId)
+            .where('isActive', isEqualTo: true)
+            .limit(1)
+            .get();
+        if (legacyActiveDistricts.docs.isNotEmpty) return true;
 
         query = _cities
             .where('stateId', isEqualTo: parentId)
@@ -711,7 +721,8 @@ class ServiceLocationService {
       query = query.where('stateId', isEqualTo: stateId.trim());
     }
     if (activeOnly == true) {
-      query = query.where('isActive', isEqualTo: true);
+      // Firebase's trusted status callable writes the canonical field.
+      query = query.where('isServiceActive', isEqualTo: true);
     }
     return query.orderBy('name').snapshots().map(
       (snapshot) => snapshot.docs
