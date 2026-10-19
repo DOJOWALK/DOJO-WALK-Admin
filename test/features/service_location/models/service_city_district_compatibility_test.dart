@@ -140,4 +140,45 @@ void main() {
     expect(area.isServiceActive, isFalse);
     expect(locality.isServiceActive, isFalse);
   });
+
+  test('canonical active status overrides stale legacy inactive flags across location models', () {
+    final district = ServiceDistrict.fromMap('district-1', {
+      'countryId': 'country-1',
+      'stateId': 'state-1',
+      'name': 'District',
+      'isServiceActive': true,
+      'isActive': false,
+    });
+    final city = ServiceCity.fromMap('city-1', {
+      'countryId': 'country-1',
+      'stateId': 'state-1',
+      'districtId': 'district-1',
+      'name': 'City',
+      'isServiceActive': true,
+      'isActive': false,
+    });
+    final area = ServiceArea.fromMap('area-1', {
+      'countryId': 'country-1',
+      'stateId': 'state-1',
+      'cityId': 'city-1',
+      'name': 'Area',
+      'isServiceActive': true,
+      'isActive': false,
+    });
+    final locality = ServiceLocality.fromMap('locality-1', {
+      'countryId': 'country-1',
+      'stateId': 'state-1',
+      'cityId': 'city-1',
+      'areaId': 'area-1',
+      'name': 'Locality',
+      'isServiceActive': true,
+      'isActive': false,
+    });
+
+    expect(district.isActive, isTrue);
+    expect(city.isServiceActive, isTrue);
+    expect(area.isServiceActive, isTrue);
+    expect(locality.isServiceActive, isTrue);
+  });
+
 }
