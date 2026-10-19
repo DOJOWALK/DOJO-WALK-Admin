@@ -183,11 +183,24 @@ void main() {
       expect(plan[3].parentId, 'city-1');
     });
 
-    test('duplicate source rows produce one deterministic node per full path', () {
-      final preview = parser.parse(
-        'State,District,City,Area\n'
-        'UP,GBN,Greater Noida,Gaur City\n'
-        'UP,GBN,Greater Noida,Gaur City',
+    test('planner collapses repeated valid rows to one node per full path', () {
+      // The CSV preview parser flags duplicate source rows for human review.
+      // This planner-level test supplies individually valid rows directly to
+      // verify the planner remains deterministic if an upstream caller has
+      // already reviewed/deduplicated the row warnings.
+      const rowValues = <String, String>{
+        'state': 'UP',
+        'district': 'GBN',
+        'city': 'Greater Noida',
+        'area': 'Gaur City',
+      };
+      final preview = LocationCsvPreview(
+        headers: const ['State', 'District', 'City', 'Area'],
+        rows: const [
+          LocationCsvRow(lineNumber: 2, values: rowValues, errors: []),
+          LocationCsvRow(lineNumber: 3, values: rowValues, errors: []),
+        ],
+        fileErrors: const [],
       );
       final allocatedKeys = <String>[];
       final plan = planner.plan(
@@ -200,6 +213,7 @@ void main() {
         },
       );
 
+      expect(preview.isSyntacticallyValid, isTrue);
       expect(plan, hasLength(4));
       expect(allocatedKeys.toSet(), hasLength(4));
       expect(plan.map((node) => node.id).toSet(), hasLength(4));
