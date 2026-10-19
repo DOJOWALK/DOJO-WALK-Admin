@@ -32,6 +32,7 @@ on:
       - 'lib/features/service_location/services/location_csv_import_planner.dart'
       - 'lib/features/service_location/services/location_csv_import_service.dart'
       - 'test/features/service_location/services/location_csv_import_planner_test.dart'
+      - 'test/features/service_location/services/location_csv_import_failure_test.dart'
       - 'lib/features/service_location/services/lgd_staging_parser.dart'
       - 'test/features/service_location/services/lgd_staging_parser_test.dart'
       - 'test/features/service_location/services/location_csv_preview_parser_test.dart'
