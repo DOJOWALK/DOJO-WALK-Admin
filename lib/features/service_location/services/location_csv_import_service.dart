@@ -12,7 +12,12 @@ import 'service_location_service.dart';
 /// of the same logical CSV import.
 String validateLocationCsvImportRunId(String value) {
   final id = value.trim();
-  if (!RegExp(r'^[A-Za-z0-9_-]{1,150}
+  if (!RegExp(r'^[A-Za-z0-9_-]{1,150}$').hasMatch(id)) {
+    throw ArgumentError(
+      'Import run ID must contain 1–150 letters, numbers, underscores or hyphens.',
+    );
+  }
+  return id;
 }
 
 /// Classifies an import failure conservatively when remote callable outcomes
@@ -410,13 +415,6 @@ class LocationCsvImportResult {
     required this.reusedRecords,
     required this.auditWritten,
   });
-}
-).hasMatch(id)) {
-    throw ArgumentError(
-      'Import run ID must contain 1–150 letters, numbers, underscores or hyphens.',
-    );
-  }
-  return id;
 }
 
 /// Classifies an import failure conservatively when remote callable outcomes
