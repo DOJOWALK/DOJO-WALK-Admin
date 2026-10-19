@@ -35,7 +35,7 @@ class LocationImportPlannedNode {
   }
 
   static String _normalizeName(String value) =>
-      value.trim().toLowerCase().replaceAll(RegExp(r'\\s+'), ' ');
+      value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
 }
 
 /// Builds a deterministic hierarchy plan without making any remote writes.
