@@ -43,7 +43,7 @@ class LocationCsvImportService {
       preview: preview,
       countryId: country,
       existingIdsByPath: existing,
-      allocateId: _stableIdForPath,
+      allocateId: (pathKey) => _stableIdForPath(country, pathKey),
     );
 
     var created = 0;
@@ -194,8 +194,12 @@ class LocationCsvImportService {
     return result;
   }
 
-  String _stableIdForPath(String pathKey) {
-    final digest = sha256.convert(utf8.encode(pathKey)).toString();
+  String _stableIdForPath(String countryId, String pathKey) {
+    // Document IDs must be deterministic within a country, not globally shared
+    // by same-named hierarchies in different countries.
+    final digest = sha256
+        .convert(utf8.encode('${countryId.trim()}|$pathKey'))
+        .toString();
     return 'csv_${digest.substring(0, 40)}';
   }
 }
