@@ -1970,7 +1970,10 @@ class _ServiceLocationScreenState
 
       final status = result['status']?.toString() ?? 'unknown';
       final missing = (result['missingIds'] as List?)?.map((value) => value.toString()).toList() ?? const <String>[];
-      final mismatched = (result['mismatchedIds'] as List?)?.map((value) => value.toString()).toList() ?? const <String>[];
+      // Backend contract uses `mismatchIds`; accept the earlier UI alias too
+      // so a rolling deploy never hides known reconciliation differences.
+      final mismatchValues = result['mismatchIds'] ?? result['mismatchedIds'];
+      final mismatched = (mismatchValues as List?)?.map((value) => value.toString()).toList() ?? const <String>[];
       final details = <String>[
         'Run ID: ${item.id}',
         'Status: $status',
