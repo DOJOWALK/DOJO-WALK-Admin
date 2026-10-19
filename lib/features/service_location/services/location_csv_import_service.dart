@@ -149,6 +149,16 @@ class LocationCsvImportService {
       );
 
       plannedRecords = plan.length;
+      // The trusted callable currently accepts one immutable plan of at most
+      // 300 nodes. Fail before recording the plan or making any hierarchy
+      // writes, with an actionable message rather than a generic callable error.
+      if (plan.length > 300) {
+        throw StateError(
+          'This CSV expands to ${plan.length} location records; one import run '
+          'supports at most 300. Split the data into smaller, parent-complete '
+          'CSV imports and use a new import run ID for each file.',
+        );
+      }
       // The trusted backend records the complete bounded plan before the first
       // location write. If recording fails or is ambiguous, this run is blocked
       // for manual reconciliation; the importer never auto-resumes it.
