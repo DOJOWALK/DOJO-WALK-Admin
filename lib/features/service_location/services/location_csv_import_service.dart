@@ -6,6 +6,16 @@ import 'location_csv_import_planner.dart';
 import 'location_csv_preview_parser.dart';
 import 'service_location_service.dart';
 
+/// Validates a caller-owned ID that must remain unchanged across retries
+/// of the same logical CSV import.
+String validateLocationCsvImportRunId(String value) {
+  final id = value.trim();
+  if (id.isEmpty || id.contains('/')) {
+    throw ArgumentError('A stable, valid import run ID is required.');
+  }
+  return id;
+}
+
 /// Classifies an import failure conservatively when remote callable outcomes
 /// may be uncertain. A write attempt is treated as potentially partial even
 /// if the client never received a successful response.
@@ -67,10 +77,7 @@ class LocationCsvImportService {
     // The caller must persist and reuse this ID when retrying the same logical
     // import. Reusing it prevents an ambiguous audit-write timeout from
     // creating a second audit document on retry.
-    final runId = importRunId.trim();
-    if (runId.isEmpty || runId.contains('/')) {
-      throw ArgumentError('A stable, valid import run ID is required.');
-    }
+    final runId = validateLocationCsvImportRunId(importRunId);
     // Fail before querying or writing anything if the admin is signed out.
     final actor = _currentAdminId;
 
