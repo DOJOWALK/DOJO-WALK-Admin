@@ -69,6 +69,17 @@ void main() {
     });
 
 
+    test('accepts GIS-style closed polygon rings', () {
+      final closed = <GeoPoint>[
+        p(0, 0),
+        p(0, 2),
+        p(2, 2),
+        p(2, 0),
+        p(0, 0),
+      ];
+      expect(ServiceLocationGeometry.isValidPolygon(closed), isTrue);
+    });
+
     test('accepts valid polygons regardless of winding order', () {
       final clockwise = <GeoPoint>[
         p(0, 0),
@@ -102,6 +113,31 @@ void main() {
       p(10, 10),
       p(10, 0),
     ];
+
+    test('accepts GIS-style closed parent and child rings for containment', () {
+      final closedCity = <GeoPoint>[
+        p(0, 0),
+        p(0, 10),
+        p(10, 10),
+        p(10, 0),
+        p(0, 0),
+      ];
+      final closedArea = <GeoPoint>[
+        p(2, 2),
+        p(2, 4),
+        p(4, 4),
+        p(4, 2),
+        p(2, 2),
+      ];
+
+      expect(
+        ServiceLocationGeometry.isPolygonContained(
+          parent: closedCity,
+          child: closedArea,
+        ),
+        isTrue,
+      );
+    });
 
     test('accepts a polygon fully inside the city', () {
       final area = <GeoPoint>[
