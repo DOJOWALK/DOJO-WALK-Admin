@@ -349,8 +349,24 @@ class ServiceLocationService {
         break;
 
       case 'service_states':
+        // New hierarchy: an active District is also a child of the State.
+        // Preserve the legacy direct City lookup for older records that do
+        // not yet carry districtId.
+        final activeDistricts = await _districts
+            .where('stateId', isEqualTo: parentId)
+            .where('isActive', isEqualTo: true)
+            .limit(1)
+            .get();
+        if (activeDistricts.docs.isNotEmpty) return true;
+
         query = _cities
             .where('stateId', isEqualTo: parentId)
+            .where('isServiceActive', isEqualTo: true);
+        break;
+
+      case 'service_districts':
+        query = _cities
+            .where('districtId', isEqualTo: parentId)
             .where('isServiceActive', isEqualTo: true);
         break;
 
