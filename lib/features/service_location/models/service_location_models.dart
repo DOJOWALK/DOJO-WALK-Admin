@@ -231,7 +231,7 @@ class ServiceDistrict {
         'countryId': countryId.trim(),
         'stateId': stateId.trim(),
         'name': name.trim(),
-        'isActive': isActive,
+        'isServiceActive': isActive,
         'updatedAt': FieldValue.serverTimestamp(),
         if (includeCreatedAt) 'createdAt': FieldValue.serverTimestamp(),
       };
@@ -242,7 +242,8 @@ class ServiceDistrict {
         countryId: data['countryId']?.toString() ?? '',
         stateId: data['stateId']?.toString() ?? '',
         name: data['name']?.toString() ?? '',
-        isActive: data['isActive'] == true,
+        // Read the trusted callable's canonical field, with legacy fallback.
+        isActive: data['isServiceActive'] == true || data['isActive'] == true,
         createdAt: _readLocationDate(data['createdAt']),
         updatedAt: _readLocationDate(data['updatedAt']),
       );
