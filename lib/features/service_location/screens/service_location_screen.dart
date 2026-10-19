@@ -1934,6 +1934,18 @@ class _ServiceLocationScreenState
                     'Verification: ${item.verificationStatus}',
                   ),
                   isThreeLine: true,
+                  trailing: IconButton(
+                    tooltip: item.inputFingerprint.trim().isEmpty
+                        ? 'Legacy record cannot be reconciled'
+                        : 'Inspect and reconcile (read-only)',
+                    onPressed: item.inputFingerprint.trim().isEmpty
+                        ? null
+                        : () => _inspectAndReconcileImportRun(item),
+                    icon: const Icon(
+                      Icons.fact_check_outlined,
+                      color: _locationOrange,
+                    ),
+                  ),
                 ),
               ),
           ],
@@ -4072,6 +4084,75 @@ class _ServiceLocationScreenState
   // ============================================================
   // IMPORT HISTORY
   // ============================================================
+
+  Future<void> _inspectAndReconcileImportRun(
+    ServiceLocationImport item,
+  ) async {
+    final fingerprint = item.inputFingerprint.trim();
+    if (fingerprint.isEmpty) {
+      await _showError(StateError(
+        'This is a legacy import record without an input fingerprint. '
+        'It cannot be safely reconciled from the web screen.',
+      ));
+      return;
+    }
+
+    try {
+      final service = ServiceLocationService();
+      final run = await service.inspectImportRun(
+        runId: item.id,
+        inputFingerprint: fingerprint,
+      );
+      final reconciliation = await service.reconcileImportPlan(
+        runId: item.id,
+        inputFingerprint: fingerprint,
+      );
+      if (!mounted) return;
+
+      final missingIds = (reconciliation['missingIds'] as List<dynamic>? ?? const [])
+          .map((value) => value.toString())
+          .toList(growable: false);
+      final mismatchIds = (reconciliation['mismatchIds'] as List<dynamic>? ?? const [])
+          .map((value) => value.toString())
+          .toList(growable: false);
+      final status = reconciliation['status']?.toString() ?? 'unknown';
+      final details = <String>[
+        'Run ID: ${item.id}',
+        'Run status: ${run['status'] ?? 'unknown'}',
+        'Reconciliation: $status',
+        'Planned records: ${reconciliation['plannedRecords'] ?? run['plannedRecords'] ?? 0}',
+        'Matching records: ${reconciliation['matchingRecords'] ?? 0}',
+        'Missing records: ${reconciliation['missingCount'] ?? 0}',
+        'Mismatched records: ${reconciliation['mismatchCount'] ?? 0}',
+        'Read-only: ${reconciliation['readOnly'] == true ? 'Yes' : 'No'}',
+        if (missingIds.isNotEmpty) 'Missing IDs: ${missingIds.join(', ')}',
+        if (mismatchIds.isNotEmpty) 'Mismatched IDs: ${mismatchIds.join(', ')}',
+        if (reconciliation['truncated'] == true)
+          'Only the first 50 missing/mismatched IDs are shown.',
+      ];
+
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Import Run Reconciliation'),
+          content: SizedBox(
+            width: 560,
+            child: SingleChildScrollView(
+              child: SelectableText(details.join('\n')),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (error) {
+      await _showError(error);
+    }
+  }
 
   Widget _buildImports() {
     return StreamBuilder<List<ServiceLocationImport>>(
