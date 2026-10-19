@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/service_location_models.dart';
 import 'service_location_geometry.dart';
+import 'service_location_index_contract.dart';
 
 /// ===========================================================
 /// DOJO WALK ADMIN
@@ -198,18 +199,7 @@ class ServiceLocationService {
 
     // Parent IDs remain explicit in the payload so the server can validate
     // the full hierarchy and recompute the canonical SHA-256 index.
-    final parentFieldsByType = <String, List<String>>{
-      'country': const [],
-      'state': const ['countryId'],
-      'district': const ['countryId', 'stateId'],
-      'city': const ['countryId', 'stateId'],
-      'area': const ['countryId', 'stateId', 'cityId'],
-      'locality': const ['countryId', 'stateId', 'cityId', 'areaId'],
-    };
-    final parentFields = locationType == 'city' &&
-            payload['districtId']?.toString().trim().isNotEmpty == true
-        ? const ['countryId', 'stateId', 'districtId']
-        : parentFieldsByType[locationType]!;
+    final parentFields = serviceLocationIndexParentFields(locationType, payload);
     for (final field in parentFields) {
       final parentId = payload[field]?.toString().trim() ?? '';
       if (parentId.isEmpty) {
