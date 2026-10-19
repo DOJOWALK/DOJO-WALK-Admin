@@ -1658,7 +1658,7 @@ class _ServiceLocationScreenState
                             ),
                             SizedBox(height: 6),
                             Text(
-                              'Import is intentionally disabled. This screen only previews the file and checks existing names; it writes no location records. The current data model has no separate District level, and a trusted, transactional import is not implemented. Do not treat a successful preview or parent-name match as permission to import.',
+                              'Import is intentionally disabled in this screen. A guarded import executor is being validated separately, but this preview does not call it and writes no location records. Do not treat a successful preview or parent-name match as permission to import. Import UI will remain disabled until authenticated Firebase-emulator tests cover partial writes, retry and immutable audit behavior.',
                             ),
                           ],
                         ),
