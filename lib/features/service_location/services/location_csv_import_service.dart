@@ -51,6 +51,7 @@ class LocationCsvImportService {
     var created = 0;
     var reused = 0;
     var auditWritten = false;
+    var allLocationWritesCompleted = false;
 
     try {
       for (final node in plan) {
@@ -109,6 +110,8 @@ class LocationCsvImportService {
         created++;
       }
 
+      allLocationWritesCompleted = true;
+
       // Audit records are append-only under the current Firestore rules.
       // Write one immutable final summary instead of trying to update a
       // "started" record later. If this write fails, the caller is told the
@@ -137,7 +140,9 @@ class LocationCsvImportService {
         await _locations.saveImport(ServiceLocationImport(
           source: 'csv',
           fileName: fileName.trim(),
-          status: created > 0 ? 'partial_failure' : 'failed',
+          status: allLocationWritesCompleted
+              ? 'audit_failed'
+              : (created > 0 ? 'partial_failure' : 'failed'),
           importedBy: actor,
           verificationStatus: 'pending',
         ));
