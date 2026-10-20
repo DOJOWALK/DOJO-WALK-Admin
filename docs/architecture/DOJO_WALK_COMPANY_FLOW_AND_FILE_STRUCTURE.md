@@ -14,9 +14,10 @@ DOJO WALK Company
   │   ├── Admin accounts, roles and permissions
   │   ├── System configuration and audit trail
   │   └── Release / deployment controls
-  ├── Dashboard & Operations
-  │   ├── Live operations
-  │   ├── Booking queue
+  ├── Dashboard & Operations (single command center)
+  │   ├── Company KPIs and booking status
+  │   ├── Live Operations overview + Open Live Operations map
+  │   ├── Recent bookings and operational alerts
   │   └── Walker availability and assignment
   ├── India Location Master
   │   └── Country → State/UT → District → City → Area/Sub-district → Locality/Village
@@ -71,7 +72,9 @@ Each repository has its own Git branch and release pipeline. Coordinate them usi
 ## 4. Recommended file placement
 
 ### Admin — `DOJO-WALK-Admin`
-- `lib/app/`: app composition and shell.
+- `lib/app/`: app composition.
+- `lib/screens/dashboard/admin_shell.dart`: company navigation shell; Dashboard is the primary command center and Live Operations is launched from the Dashboard action instead of occupying a separate sidebar item.
+- `lib/screens/dashboard/dashboard_screen.dart`: company KPIs, booking status, live overview, recent bookings, alerts, activity and the Live Operations entry action.
 - `lib/core/`: shared constants, errors, routing, theme and utilities.
 - `lib/data/reference/india_locations/`: generated, versioned read-only India reference data.
 - `lib/features/service_location/models/`: location and boundary data models.
@@ -119,6 +122,13 @@ If a dropdown shows “No countries found”, treat it as a data-loading/configu
 7. Record exact changed files, commit SHA, CI run IDs and remaining blockers in a dated report.
 8. Do not merge, deploy, import production data, or activate service coverage without explicit owner approval.
 
-## 7. Current UI work boundary
+## 7. Dashboard and navigation update (2026-10-20)
+
+- Live Operations was removed as a standalone left-sidebar item and is now opened from the Dashboard command-center action. Its dedicated map screen remains intact and is not deleted.
+- Dashboard visual treatment now uses the DOJO WALK orange/cream palette, a raised gradient hero header, company overview copy and a prominent Live Operations action.
+- Booking, Walker Management, Coupons and Service Locations navigation indexes were updated to match the removed menu item. These changes must be validated by CI before merge.
+- This does not claim the live map/data stream is fully production-verified; it only updates the navigation entry point and dashboard presentation.
+
+## 8. Current UI work boundary
 
 The Service Locations page and Add Location dialog have a 3D-inspired orange/cream visual update on the review branch. This is a UI styling change only. It does not prove the country data source works, the company flow is fully implemented, or CI has passed. Keep the “No countries found” blocker visible until diagnosed and fixed.
