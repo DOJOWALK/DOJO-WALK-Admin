@@ -1959,15 +1959,34 @@ class _ServiceLocationScreenState
             title: const Text('Reconcile import run'),
             content: SizedBox(
               width: 560,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Enter the original Run ID and exact SHA-256 fingerprint. This check is read-only and never resumes or repairs an import.'),
-                  const SizedBox(height: 12),
-                  TextField(controller: runIdController, enabled: !checking, decoration: const InputDecoration(labelText: 'Import Run ID', border: OutlineInputBorder())),
-                  const SizedBox(height: 12),
-                  TextField(controller: fingerprintController, enabled: !checking, decoration: const InputDecoration(labelText: 'Input fingerprint (sha256:...)', border: OutlineInputBorder())),
-                ],
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Enter the original Run ID and exact SHA-256 fingerprint. This check is read-only and never resumes or repairs an import.'),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: runIdController,
+                      enabled: !checking,
+                      textInputAction: TextInputAction.next,
+                      decoration: const InputDecoration(
+                        labelText: 'Import Run ID',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: fingerprintController,
+                      enabled: !checking,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      decoration: const InputDecoration(
+                        labelText: 'Input fingerprint (sha256:...)',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             actions: [
