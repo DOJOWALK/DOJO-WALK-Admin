@@ -203,11 +203,11 @@ class ServiceLocationBoundary {
 
     final normalizedType = locationType.trim().toLowerCase();
 
-    if (!const {'city', 'area', 'locality'}.contains(
+    if (!const {'city', 'area'}.contains(
       normalizedType,
     )) {
       errors.add(
-        'Location type must be city, area, or locality.',
+        'Location type must be city or area.',
       );
     }
 
@@ -254,4 +254,54 @@ class ServiceLocationBoundary {
 
     return errors.toSet().toList(growable: false);
   }
+}
+
+/// Selects the boundary record that should open first in the Admin manager.
+///
+/// Pending replacements must be reachable for review even when an older
+/// verified boundary remains attached to the same location.
+ServiceLocationBoundary? selectBoundaryForManagement(
+  Iterable<ServiceLocationBoundary> boundaries,
+) {
+  final items = boundaries.toList(growable: false);
+  for (final status in const [
+    BoundaryVerificationStatus.pending,
+    BoundaryVerificationStatus.rejected,
+    BoundaryVerificationStatus.verified,
+  ]) {
+    for (final boundary in items) {
+      if (boundary.verificationStatus == status) return boundary;
+    }
+  }
+  return items.isEmpty ? null : items.first;
+}
+
+/// Orders boundary records for the explicit Admin chooser.
+///
+/// Pending and rejected replacements appear before verified records, and
+/// newer records appear first within each status. The input is not mutated.
+List<ServiceLocationBoundary> sortBoundariesForChooser(
+  Iterable<ServiceLocationBoundary> boundaries,
+) {
+  final items = boundaries.toList();
+  int priority(BoundaryVerificationStatus status) {
+    switch (status) {
+      case BoundaryVerificationStatus.pending:
+        return 0;
+      case BoundaryVerificationStatus.rejected:
+        return 1;
+      case BoundaryVerificationStatus.verified:
+        return 2;
+      case BoundaryVerificationStatus.notAvailable:
+        return 3;
+    }
+  }
+
+  items.sort((a, b) {
+    final statusOrder = priority(a.verificationStatus)
+        .compareTo(priority(b.verificationStatus));
+    if (statusOrder != 0) return statusOrder;
+    return b.updatedAt.compareTo(a.updatedAt);
+  });
+  return List<ServiceLocationBoundary>.unmodifiable(items);
 }

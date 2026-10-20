@@ -26,7 +26,7 @@ class ServiceBoundaryDialog extends StatefulWidget {
   final String locationId;
   final String locationName;
 
-  /// Examples: city, area, locality, village.
+  /// Supported types: city and area only; locality has no polygon workflow.
   final String locationType;
 
   final List<LatLng> initialPoints;
@@ -322,7 +322,7 @@ class _ServiceBoundaryDialogState
         ),
         const SizedBox(height: 12),
         DropdownButtonFormField<BoundarySourceType>(
-          value: _sourceType,
+          initialValue: _sourceType,
           decoration: const InputDecoration(
             labelText: 'Source Type',
             border: OutlineInputBorder(),

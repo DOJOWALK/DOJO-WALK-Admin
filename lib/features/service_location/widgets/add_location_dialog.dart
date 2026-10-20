@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/location_selection_state.dart';
 import '../models/service_location_models.dart';
 import '../services/service_location_service.dart';
 
@@ -29,17 +30,15 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
   int _level = 0;
 
-  String? _countryId;
-  String? _stateId;
-  String? _cityId;
-  String? _areaId;
+  LocationSelectionState _selection = const LocationSelectionState();
 
   bool _saving = false;
 
   static const List<String> _locationTypes = [
     'Country',
     'State',
-    'City / District',
+    'District',
+    'City',
     'Area / Sub-district',
     'Locality / Village',
   ];
@@ -78,7 +77,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
         case 1:
           await widget.service.saveState(
             ServiceState(
-              countryId: _countryId!,
+              countryId: _selection.countryId!,
               name: name,
               isActive: false,
             ),
@@ -86,18 +85,30 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
           break;
 
         case 2:
+          await widget.service.saveDistrict(
+            ServiceDistrict(
+              countryId: _selection.countryId!,
+              stateId: _selection.stateId!,
+              name: name,
+              isActive: false,
+            ),
+          );
+          break;
+
+        case 3:
           await widget.service.saveCity(
             ServiceCity(
-              countryId: _countryId!,
-              stateId: _stateId!,
+              countryId: _selection.countryId!,
+              stateId: _selection.stateId!,
+              districtId: _selection.districtId!,
               name: name,
               isServiceActive: false,
             ),
           );
           break;
 
-        case 3:
-          final city = await widget.service.getCity(_cityId!);
+        case 4:
+          final city = await widget.service.getCity(_selection.cityId!);
 
           if (city == null) {
             throw StateError(
@@ -116,8 +127,8 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
           );
           break;
 
-        case 4:
-          final city = await widget.service.getCity(_cityId!);
+        case 5:
+          final city = await widget.service.getCity(_selection.cityId!);
 
           if (city == null) {
             throw StateError(
@@ -130,7 +141,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
               countryId: city.countryId,
               stateId: city.stateId,
               cityId: city.id,
-              areaId: _areaId!,
+              areaId: _selection.areaId!,
               name: name,
               pincode: _pincodeController.text.trim(),
               isServiceActive: false,
@@ -166,7 +177,35 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     }
   }
 
+  Widget _dropdownStatus(String message, {bool loading = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          if (loading) ...[
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            const SizedBox(width: 10),
+          ],
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: loading ? Colors.black54 : Colors.red.shade700,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _dropdown<T>({
+    Key? key,
     required String label,
     required T? value,
     required List<DropdownMenuItem<T>> items,
@@ -175,7 +214,8 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: DropdownButtonFormField<T>(
-        value: value,
+        key: key,
+        initialValue: value,
         isExpanded: true,
         decoration: InputDecoration(
           labelText: label,
@@ -196,19 +236,20 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
       stream: widget.service.watchCountries(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return _dropdown<String>(
-            label: 'Country',
-            value: null,
-            items: const [],
-            onChanged: (_) {},
-          );
+          return _dropdownStatus('Unable to load countries: ${snapshot.error}');
+        }
+        if (!snapshot.hasData) {
+          return _dropdownStatus('Loading countries…', loading: true);
         }
 
-        final countries = snapshot.data ?? [];
+        final countries = snapshot.data!;
 
         return _dropdown<String>(
           label: 'Country',
-          value: _countryId,
+          value: retainAvailableSelection(
+            _selection.countryId,
+            countries.map((country) => country.id),
+          ),
           items: countries
               .map(
                 (country) => DropdownMenuItem<String>(
@@ -221,10 +262,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
               .toList(),
           onChanged: (value) {
             setState(() {
-              _countryId = value;
-              _stateId = null;
-              _cityId = null;
-              _areaId = null;
+              _selection = _selection.selectCountry(value);
             });
           },
         );
@@ -233,7 +271,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
   }
 
   Widget _buildStateDropdown() {
-    if (_countryId == null) {
+    if (_selection.countryId == null) {
       return _dropdown<String>(
         label: 'State',
         value: null,
@@ -243,13 +281,23 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     }
 
     return StreamBuilder<List<ServiceState>>(
-      stream: widget.service.watchStates(countryId: _countryId!),
+      stream: widget.service.watchStates(countryId: _selection.countryId!),
       builder: (context, snapshot) {
-        final states = snapshot.data ?? [];
+        if (snapshot.hasError) {
+          return _dropdownStatus('Unable to load states: ${snapshot.error}');
+        }
+        if (!snapshot.hasData) {
+          return _dropdownStatus('Loading states…', loading: true);
+        }
+        final states = snapshot.data!;
 
         return _dropdown<String>(
+          key: ValueKey<String>('state-${_selection.countryId}'),
           label: 'State',
-          value: _stateId,
+          value: retainAvailableSelection(
+            _selection.stateId,
+            states.map((state) => state.id),
+          ),
           items: states
               .map(
                 (state) => DropdownMenuItem<String>(
@@ -260,9 +308,56 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
               .toList(),
           onChanged: (value) {
             setState(() {
-              _stateId = value;
-              _cityId = null;
-              _areaId = null;
+              _selection = _selection.selectState(value);
+            });
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDistrictDropdown() {
+    if (_selection.countryId == null || _selection.stateId == null) {
+      return _dropdown<String>(
+        label: 'District',
+        value: null,
+        items: const [],
+        onChanged: (_) {},
+      );
+    }
+
+    return StreamBuilder<List<ServiceDistrict>>(
+      stream: widget.service.watchDistricts(
+        countryId: _selection.countryId,
+        stateId: _selection.stateId,
+      ),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return _dropdownStatus('Unable to load Districts: ${snapshot.error}');
+        }
+        if (!snapshot.hasData) {
+          return _dropdownStatus('Loading Districts…', loading: true);
+        }
+        final districts = snapshot.data!;
+
+        return _dropdown<String>(
+          key: ValueKey<String>(
+            'district-${_selection.countryId}-${_selection.stateId}',
+          ),
+          label: 'District',
+          value: retainAvailableSelection(
+            _selection.districtId,
+            districts.map((district) => district.id),
+          ),
+          items: districts
+              .map((district) => DropdownMenuItem<String>(
+                    value: district.id,
+                    child: Text(district.name),
+                  ))
+              .toList(),
+          onChanged: (value) {
+            setState(() {
+              _selection = _selection.selectDistrict(value);
             });
           },
         );
@@ -271,39 +366,40 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
   }
 
   Widget _buildCityDropdown() {
-    if (_countryId == null || _stateId == null) {
+    if (_selection.countryId == null || _selection.stateId == null ||
+        _selection.districtId == null) {
       return _dropdown<String>(
-        label: 'City / District',
+        label: 'City',
         value: null,
         items: const [],
         onChanged: (_) {},
       );
     }
-
     return StreamBuilder<List<ServiceCity>>(
       stream: widget.service.watchCities(
-        countryId: _countryId,
-        stateId: _stateId,
+        countryId: _selection.countryId,
+        stateId: _selection.stateId,
       ),
       builder: (context, snapshot) {
-        final cities = snapshot.data ?? [];
-
+        if (snapshot.hasError) {
+          return _dropdownStatus('Unable to load Cities: ${snapshot.error}');
+        }
+        if (!snapshot.hasData) {
+          return _dropdownStatus('Loading Cities…', loading: true);
+        }
+        final cities = snapshot.data!
+            .where((city) => city.districtId == _selection.districtId)
+            .toList();
         return _dropdown<String>(
-          label: 'City / District',
-          value: _cityId,
-          items: cities
-              .map(
-                (city) => DropdownMenuItem<String>(
-                  value: city.id,
-                  child: Text(city.name),
-                ),
-              )
-              .toList(),
+          key: ValueKey<String>('city-${_selection.districtId}'),
+          label: 'City',
+          value: retainAvailableSelection(_selection.cityId, cities.map((c) => c.id)),
+          items: cities.map((city) => DropdownMenuItem<String>(
+            value: city.id,
+            child: Text(city.name),
+          )).toList(),
           onChanged: (value) {
-            setState(() {
-              _cityId = value;
-              _areaId = null;
-            });
+            setState(() => _selection = _selection.selectCity(value));
           },
         );
       },
@@ -311,7 +407,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
   }
 
   Widget _buildAreaDropdown() {
-    if (_cityId == null) {
+    if (_selection.cityId == null) {
       return _dropdown<String>(
         label: 'Area / Sub-district',
         value: null,
@@ -321,13 +417,23 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     }
 
     return StreamBuilder<List<ServiceArea>>(
-      stream: widget.service.watchAreas(cityId: _cityId!),
+      stream: widget.service.watchAreas(cityId: _selection.cityId!),
       builder: (context, snapshot) {
-        final areas = snapshot.data ?? [];
+        if (snapshot.hasError) {
+          return _dropdownStatus('Unable to load areas/sub-districts: ${snapshot.error}');
+        }
+        if (!snapshot.hasData) {
+          return _dropdownStatus('Loading areas/sub-districts…', loading: true);
+        }
+        final areas = snapshot.data!;
 
         return _dropdown<String>(
+          key: ValueKey<String>('area-${_selection.cityId}'),
           label: 'Area / Sub-district',
-          value: _areaId,
+          value: retainAvailableSelection(
+            _selection.areaId,
+            areas.map((area) => area.id),
+          ),
           items: areas
               .map(
                 (area) => DropdownMenuItem<String>(
@@ -337,7 +443,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
               )
               .toList(),
           onChanged: (value) {
-            setState(() => _areaId = value);
+            setState(() => _selection = _selection.selectArea(value));
           },
         );
       },
@@ -346,10 +452,47 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final dialogWidth = screenWidth < 520 ? screenWidth * 0.86 : 480.0;
+
     return AlertDialog(
-      title: const Text('Add Location'),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      title: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: _addLocationOrange.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.add_location_alt_outlined,
+              color: _addLocationOrange,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Add Location',
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
+                ),
+                SizedBox(height: 3),
+                Text(
+                  'Create an inactive service-location record',
+                  style: TextStyle(fontSize: 11, color: Colors.black54, fontWeight: FontWeight.w400),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
       content: SizedBox(
-        width: 480,
+        width: dialogWidth,
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -357,7 +500,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<int>(
-                  value: _level,
+                  initialValue: _level,
                   isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Location type',
@@ -377,10 +520,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
                           setState(() {
                             _level = value;
-                            _countryId = null;
-                            _stateId = null;
-                            _cityId = null;
-                            _areaId = null;
+                            _selection = const LocationSelectionState();
 
                             _nameController.clear();
                             _codeController.clear();
@@ -395,8 +535,8 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
                 if (_level >= 2) _buildStateDropdown(),
 
+                if (_level >= 2) _buildDistrictDropdown(),
                 if (_level >= 3) _buildCityDropdown(),
-
                 if (_level >= 4) _buildAreaDropdown(),
 
                 const SizedBox(height: 4),
@@ -433,7 +573,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                   ),
                 ],
 
-                if (_level == 4) ...[
+                if (_level == 5) ...[
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _pincodeController,
@@ -451,15 +591,17 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.08),
+                    color: _addLocationOrange.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _addLocationOrange.withValues(alpha: 0.18),
+                    ),
                   ),
                   child: const Text(
-                    'This location will be saved as inactive. '
-                    'City, Area and Locality require a verified '
-                    'geographic boundary before activation. '
-                    'This form does not verify geographic boundaries.',
-                    style: TextStyle(fontSize: 12),
+                    'Safety check: this record is saved as inactive. '
+                    'City and Area activation requires a verified geographic boundary. '
+                    'Saving here does not verify or activate coverage.',
+                    style: TextStyle(fontSize: 12, height: 1.4),
                   ),
                 ),
               ],
@@ -469,28 +611,25 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: _saving
-              ? null
-              : () => Navigator.pop(context),
+          onPressed: _saving ? null : () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
         FilledButton.icon(
           onPressed: _saving ? null : _save,
           icon: _saving
               ? const SizedBox(
-                  height: 16,
                   width: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                  ),
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Icon(Icons.save),
-          label: Text(
-            _saving ? 'Saving...' : 'Save Location',
-          ),
+              : const Icon(Icons.save_outlined),
+          label: Text(_saving ? 'Saving...' : 'Save Location'),
           style: FilledButton.styleFrom(
             backgroundColor: _addLocationOrange,
             foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(11),
+            ),
           ),
         ),
       ],

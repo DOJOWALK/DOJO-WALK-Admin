@@ -52,8 +52,8 @@ Added [`docs/STEP_130_PARTNER_EMULATOR_TEST_READINESS.md`](STEP_130_PARTNER_EMUL
 
 - Confirmed Firebase repo source contains a Node test runner using `@firebase/rules-unit-testing`; `npm test` runs `node --test test/firestore.rules.test.mjs`.
 - Existing inspected tests cover Service Location Rules, but no Partner walker-create/draft-onboarding tests were found in that test file.
-- Defined exact cases for initial walker creation, owner isolation, existing `in_progress` draft updates, personal-only updates, privilege-field protection, application state guards and type validation.
-- The current field mismatch is not fixed by this step. No Emulator tests were run and no fix is claimed.
+- Defined cases for initial walker creation, owner isolation, existing `in_progress` draft updates, personal-only updates, privilege-field protection, application state guards and type validation.
+- The field mismatch was not fixed by this step. No Emulator tests were run and no fix is claimed.
 - [ ] Add Partner-specific fixtures/tests to the appropriate Firebase review branch.
 - [ ] Run Emulator suite and preserve actual results.
 - [ ] Verify deployed Rules revision and implement approved least-privilege contract.
@@ -328,3 +328,172 @@ Before calling Admin ready for merge, verify all of the following:
 ## Safety
 
 This branch is a review branch. Do not import the reference data into production Firebase, activate any service locations, deploy Functions/Rules/Hosting, or merge either PR until the required checks and explicit release approval are complete.
+
+
+## Admin completion progress — Step 131 (2026-10-18)
+
+### Partner onboarding Rules tests added to Firebase review branch
+
+Report: [`docs/STEP_131_PARTNER_ONBOARDING_EMULATOR_TESTS.md`](STEP_131_PARTNER_ONBOARDING_EMULATOR_TESTS.md), commit `382f80da88bdee0a5ce227134184c939faaf00ae`.
+
+- Firebase draft PR #4: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/pull/4
+- Review branch: `step-131-partner-onboarding-emulator-tests`.
+- Added six Emulator tests for initial walker draft create, owner isolation, existing location update, approval/status protection, ordinary-update submission guard and explicit submission transition.
+- Added a Rules invariant so ordinary draft edits preserve the stored `applicationSubmitted` value; the dedicated transition handles submission.
+- CI runs `39067829446` (Firestore Rules Emulator tests) and `39067829625` (geometry/callable tests) both completed with `success`. The Emulator job's `Run Firestore Emulator tests` step passed, and the geometry/callable integration job passed. This validates the checked-in review branch head `e91d7370c28a1eaea77f3906af19b98e294e1e3f`, not deployed production Rules.
+- [x] Inspect final CI conclusions and job steps; both workflows passed.
+- [ ] Verify the Partner submission UI matches the explicit transition.
+- [ ] Review Firebase and Partner branches together before release.
+
+No production deployment, activation, import or merge was performed.
+
+
+## Admin completion progress — Step 133 (2026-10-18)
+
+### Partner Flutter CI coverage audit
+
+Report: [`docs/STEP_133_PARTNER_FLUTTER_CI_AUDIT.md`](STEP_133_PARTNER_FLUTTER_CI_AUDIT.md), commit `5fa295a0a861e41644e5361ddf04ab351d8ac0d1`.
+
+- Inspected Partner `.github/workflows/flutter.yml`: it runs on push to `main` and manual `workflow_dispatch`, not on `pull_request`.
+- Workflow contains `flutter pub get`, asset checks, launcher-icon generation, `flutter analyze`, `flutter test`, release APK build and artifact upload.
+- No PASS is claimed for the exact Partner source head reviewed in Step 132. No workflow was manually dispatched.
+- Recommendation: add a dedicated PR validation workflow for analyze/tests and a non-release build; keep release APK artifact generation separate.
+- [ ] Approve/add PR validation workflow and capture CI for the exact reviewed Partner commit.
+- [ ] Cross-review Partner source and Firebase draft PR #4 before release.
+
+No source workflow change, merge, deployment, activation or production data operation occurred.
+
+
+## Admin completion progress — Step 134 (2026-10-18)
+
+### Partner PR validation workflow added for review
+
+- Partner workflow added at `.github/workflows/partner-pr-validation.yml` on branch `ci/partner-pr-validation`.
+- Draft PR #2: https://github.com/dojoplatform2026/dojo-partner/pull/2
+- Workflow covers Flutter dependency resolution, required image assets, launcher-icon generation, `flutter analyze`, `flutter test`, and debug APK build on relevant PRs to `main`.
+- Release APK packaging remains separate in the existing release workflow.
+- Report: [`docs/STEP_134_PARTNER_PR_VALIDATION_WORKFLOW.md`](STEP_134_PARTNER_PR_VALIDATION_WORKFLOW.md), commit `5b70d6946605d5aad439e72045437e534a17042b`.
+- [ ] Verify first GitHub Actions run; YAML acceptance, analyze, tests and debug build are not yet confirmed.
+- [ ] Review before merging; no runtime code, release artifact, or deployment changed.
+
+No merge or deployment was performed.
+
+
+## Admin completion progress — Step 135 (2026-10-18)
+
+### Partner PR validation CI result
+
+- GitHub Actions run [39068442507](https://github.com/dojoplatform2026/dojo-partner/actions/runs/39068442507) completed with job conclusion **success**.
+- Confirmed successful: Flutter setup, dependencies, Partner image asset checks, launcher-icon generation, `flutter analyze`, `flutter test`, and `flutter build apk --debug`.
+- Result recorded in [`docs/STEP_134_PARTNER_PR_VALIDATION_WORKFLOW.md`](STEP_134_PARTNER_PR_VALIDATION_WORKFLOW.md), commit `602ce5d8e326a4a3c96662dad4d19f4b1f2d5252`.
+- This validates the workflow's tested revision only; it does not prove production Firebase Rules status or release APK status.
+- [ ] Keep Partner PR #2 in draft until review and required release gates are satisfied.
+
+No merge, release, or deployment occurred.
+
+
+## Step 136 — Partner CI cross-review (2026-10-18)
+
+- Reviewed the new PR validation workflow and existing release workflow.
+- CI run 39068442507 completed successfully, including Flutter analyze, tests, and debug APK build.
+- Workflow uses read-only repository permissions and does not use secrets; release workflow remains separate.
+- Detailed report: docs/STEP_136_PARTNER_CI_CROSS_REVIEW.md (commit 65eed5a46696d28926ca329a9eb60a0b2412a52b).
+- Partner PR #2 remains draft pending human review. Production Firebase Rules and release APK remain separate checks.
+- No merge, release, or deployment occurred.
+
+
+## Step 137 — Partner/Firebase onboarding payload cross-check (2026-10-18)
+
+- Static comparison of Partner draft creation, location updates, final submission payload, and Firebase review-branch Rules found the field names and submission transition keys aligned.
+- Existing Firebase emulator tests cover initial draft creation, location updates, status escalation rejection, and explicit submission transition.
+- Coverage gap: tests do not yet exercise a full UI-created KYC/address profile end-to-end or additional-key rejection on submission. UI validation is not a substitute for server-side approval review.
+- Report: docs/STEP_137_PARTNER_FIREBASE_PAYLOAD_CROSS_CHECK.md, commit `ad951f3f9365bdde60d313961ea61aadea3a2725`.
+- Firebase review branch only; production Rules remain unverified, and legacy `zones` migration remains open. No source/Rules changes, merge, or deployment occurred.
+
+
+## Step 138 — Partner submission negative emulator tests (2026-10-18)
+
+- Added tests for invalid target status, unauthorized extra submission field, and duplicate submission attempt in Firebase review branch.
+- Draft Firebase PR #5: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/pull/5; commit `ae535891560a240d34387ed607f0e84453ed5eed`.
+- CI run `39069361083` was in progress at latest inspection; no final PASS/FAIL claimed.
+- Detailed report: docs/STEP_138_PARTNER_SUBMISSION_NEGATIVE_TESTS.md, commit `65bbdadd6e13c60593e8945b2e3addd2d7a39b30`.
+- Test-only change; production Rules unchanged; no merge or deployment.
+
+
+### Step 138 CI re-check update (2026-10-18)
+- Initial CI run `39069361083` failed: 54/55 tests passed; duplicate-submission test failed because a submitted draft remained editable through the ordinary owner-update rule.
+- Targeted Firebase review-branch Rules fix committed: `998ae64552d795ced708832f06f5925048bdc3c9`, adding a guard against ordinary owner updates after submission.
+- Follow-up run `39069565571`: workflow YAML validation passed; Firestore Emulator tests were still running at the latest check. Trusted Location workflow run `39069565556` was also in progress.
+- Detailed report: `docs/STEP_138_PARTNER_SUBMISSION_NEGATIVE_TESTS.md`, latest update commit `169da8f3d7dd992f2a93ec0ace0996e6e79c0475`.
+- Status remains **pending final CI verification**. No merge/deployment or production Rules changes.
+
+
+### Step 138 final verification (2026-10-18)
+- Firebase Firestore Rules Emulator run `39069565571`: **PASS** after the targeted post-submission update guard.
+- Trusted Location Geometry and Callable integration run `39069565556`: **PASS**.
+- Workflow YAML validation: **PASS**.
+- Step 138 report updated in commit `d30bea6a484b0b039d66c4d14508bfdca704da2c`.
+- Firebase PR #5 remains draft/open and unmerged. CI verification applies to review branch only; production Rules remain unverified/un-deployed.
+
+
+### Step 139 — Partner post-submission profile/KYC audit (2026-10-18)
+- Reviewed review-branch Rules: normal owner edits require `applicationSubmitted == false`; explicit submission is a separate constrained transition.
+- Added emulator test that submits first, then asserts edits to `documents` and `fullName` are denied.
+- Firebase PR #5 remains draft/open. Latest test commit `e88f5bdc5433d724470a2e4fa3adc458b2f28a4b`.
+- New CI runs #148 (Rules Emulator) and #137 (geometry/callable) were in progress at the time of report creation; final verification pending.
+- Step 139 report: `docs/STEP_139_POST_SUBMISSION_PROFILE_KYC_AUDIT.md`, commit `862bbb8eee4d7de0006a430e9ef164262feffa1f`.
+- No merge/deployment; production Rules remain unverified.
+
+
+#### Step 139 final CI result (2026-10-18)
+- Rules Emulator CI run #148 PASS: 56 tests, 56 passed, 0 failed. Includes new post-submission `documents` and `fullName` edit-denial test.
+- Geometry/Callable integration run #137 PASS.
+- CI links: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39069915280 and https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39069915211.
+- Step 139 report updated in commit `db6d19e866b979bbebdb7bbcc942664fdbde9f76`.
+- Next: compare Partner app submission/navigation behavior against this Rules contract and check for stale/legacy app path behavior. Keep all PRs draft pending human review.
+
+
+### Step 140 — Partner submission flow cross-check (2026-10-18)
+- Compared Partner work-location, personal-details, review-submit and account-check behavior with the Firebase review-branch Rules.
+- Submission code re-reads the latest document and updates only the explicit submission transition fields. Work-location and personal-details screens block submitted documents; Rules enforce this against races.
+- Refined post-submission negative test to use the app's actual nested `kyc.documents` payload shape. Commit `23ecbec506a9f52f05071d0e054c4a62d035ec9e`.
+- New CI runs #149 and #138 were in progress at report creation; do not mark this latest refinement passed until checked.
+- Step 140 report commit `bccdfd722c6841d867fe04af316f0e11a59cacd1`.
+- No merge/deployment. Correction-after-review workflow remains an open product decision.
+
+
+#### Step 140 final CI result (2026-10-18)
+- Rules Emulator run #150 PASS: 57 tests, 57 passed, 0 failed, including the actual nested `kyc.documents` edit attempt after submission.
+- Geometry/Callable integration run #139 PASS.
+- CI: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39070246822 and https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39070246869.
+- Step 140 report updated in commit `54b5fb21e8ef367547366c86516c7f27f633f28f`.
+- PR #5 remains draft/open/unmerged. No production deployment.
+
+
+### Step 141 — Partner KYC Storage Rules audit (2026-10-18)
+- Partner selfie/KYC screens upload Storage objects before writing private paths to Firestore.
+- Reviewed Firebase repo root and `firebase.json`: only Firestore Rules are configured in this repository snapshot; no `storage.rules` file or Storage Rules deployment path was found.
+- This is an evidence/configuration gap, not proof of deployed Storage Rules being absent/open. Actual deployed Storage policy remains unknown.
+- Treat KYC Storage authorization as a release blocker until the actual rules source is found, reviewed and emulator-tested for owner/path access, private reads, overwrite, content type, and size limits.
+- Report commit `2cf2fb5a6394edff63c907aea42f8bb9795b2f22`; no deployment or production change.
+
+## Step 254 — Service Location CSV import status correction (2026-10-20)
+
+The earlier audit section above that says CSV import is preview-only describes an older revision and is superseded for the Step 254 draft branch by the implementation below. It must not be read as the current branch status.
+
+- Added a State → District → City → Area CSV planner and import executor with normalized full-path matching, deterministic country-scoped IDs, active-super_admin checks, and parent-first writes through trusted Firebase callables.
+- The importer persists an immutable run marker and canonical plan/hash before hierarchy writes. New records remain inactive; import does not create/verify polygons or activate service coverage.
+- Import History provides read-only inspection/reconciliation by run ID and fingerprint. Backend reconciliation checks plan completeness, ordinal order, canonical SHA-256, actual hierarchy names/parents, and unintended activation; it does not resume or repair.
+- Admin head `5f82adcc51fd20ef716b1d714dd9c3fda3a29db9`: Admin Web Build Check (No Deploy), run `39388984799`, PASS; Service Location Geometry Tests, run `39388984788`, PASS.
+- Firebase commit `237865301d5b28d3426a7b804009ec2c6a85d6d6`: Trusted Location Geometry and Callable Tests, run `39314870564`, PASS; Firestore Security Rules, run `39314869860`, PASS.
+
+### Still open release gates
+
+1. No full Admin importer-to-Firebase Emulator end-to-end test covers callable writes, audit outcomes, ambiguous/partial failures, and signed-out/unauthorized scenarios as one workflow.
+2. Plan limit is 300 nodes per run; larger imports must be split into parent-complete files. Do not lift this limit without a separately tested chunked protocol.
+3. Reconciliation is intentionally read-only; interrupted imports require manual investigation and are not auto-replayed or repaired.
+4. Audit-failure reporting defaults to local debug logging; durable monitoring and a row-level outcome ledger are not implemented.
+5. Confirm the canonical India country document ID and reconcile the bundled LGD snapshot against the current official source before any production import.
+6. Service coverage still requires separately verified real-world City/Area polygons. Importing names is not proof of coverage.
+
+PR #12 remains Draft and unmerged. No production import, activation, merge, or deployment was performed. The Step 254 branch's passing CI does not override the open release gates above.

@@ -18,6 +18,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../services/service_location_geometry.dart';
+
 class ServiceBoundaryEditor extends StatefulWidget {
   const ServiceBoundaryEditor({
     super.key,
@@ -167,8 +169,8 @@ class _ServiceBoundaryEditorState
         )
         .toSet();
 
-    return distinctPoints.length >= 3 &&
-        _points.every(
+    if (distinctPoints.length < 3 ||
+        !_points.every(
           (point) =>
               point.latitude.isFinite &&
               point.longitude.isFinite &&
@@ -176,7 +178,11 @@ class _ServiceBoundaryEditorState
               point.latitude <= 90 &&
               point.longitude >= -180 &&
               point.longitude <= 180,
-        );
+        )) {
+      return false;
+    }
+
+    return ServiceLocationGeometry.isValidPolygon(_toGeoPoints());
   }
 
   void _requestSave() {
@@ -186,7 +192,7 @@ class _ServiceBoundaryEditorState
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'सेव करने से पहले कम-से-कम 3 अलग-अलग सही पॉइंट जोड़ें।',
+            'सेव करने से पहले सही सीमा बनाएं: कम-से-कम 3 पॉइंट, बिना self-intersection और वास्तविक क्षेत्रफल के साथ।',
           ),
         ),
       );
@@ -351,8 +357,8 @@ class _ServiceBoundaryEditorState
             widget.readOnly
                 ? 'यह boundary केवल देखने के लिए है।'
                 : _points.length < 3
-                    ? 'मैप पर क्लिक करके कम-से-कम 3 अलग-अलग पॉइंट जोड़ें।'
-                    : 'Polygon तैयार है। सेव करने से पहले वास्तविक सीमा जाँचें।',
+                    ? 'कम-से-कम 3 अलग-अलग पॉइंट जोड़ें और एक बंद, बिना काटती रेखाओं वाला क्षेत्र बनाएं।'
+                    : 'Polygon की मूल जाँच पास है। सेव करने से पहले वास्तविक सीमा जाँचें।',
             style: const TextStyle(fontSize: 13),
           ),
           if (!widget.readOnly) ...[

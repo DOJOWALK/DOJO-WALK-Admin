@@ -23,13 +23,14 @@ Current review-branch policy is: once submitted for review, a Partner cannot edi
 ## Release status
 No merge, production Rules deployment, or production data change. CI verification for the new KYC/profile test is complete and passing on the review branch.
 
-
 ## Follow-up Step 140 — Client payload cross-check
+
 Reviewed the Partner app's `lib/features/onboarding/screens/review_submit_screen.dart` submission payload at the inspected commit. It changes exactly the five fields permitted by the explicit Rules transition: `status`, `applicationSubmitted`, `submittedAt`, `updatedAt`, and `onboardingStep`. The UI also re-reads the walker document and validates current status and required KYC/address/work-zone data before submitting.
 
-Added a further Rules emulator test covering attempts to change nested `kyc` and `currentAddress` after submission:
+Added a further Rules Emulator test covering attempts to change nested `kyc` and `currentAddress` after submission:
 - Test commit: `2676e313476254279d041bf7db0a3ea9844b429f`
-- Rules Emulator CI run #150: queued at report update time: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39070246822
-- Geometry/Callable run #139: in progress at report update time: https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39070246869
+- [Rules Emulator CI run #150](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39070246822): **success**
+- [Geometry/Callable CI run #139](https://github.com/dojoplatform2026/DOJO-WALK-Firebase/actions/runs/39070246869): **success**
 
-The original Step 139 tests have passed (56/56); this follow-up's final CI is still pending.
+Both workflows completed successfully on the test commit. This confirms automated review-branch validation only; it does not confirm production Rules deployment and does not authorize a merge or deployment.
+

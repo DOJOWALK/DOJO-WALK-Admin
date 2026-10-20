@@ -5,14 +5,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// Service Location Models
 ///
 /// Hierarchy:
-/// Country -> State -> City/District -> Area/Sub-district
-/// -> Locality/Village
+/// Country -> State -> District -> Service City -> Service Area
+/// -> optional Locality/Village. Legacy Cities may omit districtId.
 ///
 /// Compatibility:
 /// - Legacy embedded boundary fields are retained.
 /// - City and Area support verifiedBoundaryId.
 /// - Locality does not require its own polygon.
 /// ===========================================================
+
+bool _readServiceActive(Map<String, dynamic> data) {
+  // The trusted Firebase field is authoritative whenever it is present.
+  // Fall back to the legacy field only for older documents without it.
+  if (data.containsKey('isServiceActive')) {
+    return data['isServiceActive'] == true;
+  }
+  return data['isActive'] == true;
+}
 
 DateTime? _readLocationDate(dynamic value) {
   if (value is Timestamp) {
@@ -204,7 +213,72 @@ class ServiceState {
 }
 
 /// ===========================================================
-/// 3. SERVICE CITY / DISTRICT
+/// 3. SERVICE DISTRICT
+/// Collection: service_districts
+/// ===========================================================
+
+class ServiceDistrict {
+  final String id;
+  final String countryId;
+  final String stateId;
+  final String name;
+  final bool isActive;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  const ServiceDistrict({
+    this.id = '',
+    required this.countryId,
+    required this.stateId,
+    required this.name,
+    this.isActive = false,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  Map<String, dynamic> toMap({bool includeCreatedAt = false}) => {
+        'countryId': countryId.trim(),
+        'stateId': stateId.trim(),
+        'name': name.trim(),
+        'isServiceActive': isActive,
+        'updatedAt': FieldValue.serverTimestamp(),
+        if (includeCreatedAt) 'createdAt': FieldValue.serverTimestamp(),
+      };
+
+  factory ServiceDistrict.fromMap(String id, Map<String, dynamic> data) =>
+      ServiceDistrict(
+        id: id,
+        countryId: data['countryId']?.toString() ?? '',
+        stateId: data['stateId']?.toString() ?? '',
+        name: data['name']?.toString() ?? '',
+        // Read the trusted callable's canonical field, with legacy fallback.
+        isActive: _readServiceActive(data),
+        createdAt: _readLocationDate(data['createdAt']),
+        updatedAt: _readLocationDate(data['updatedAt']),
+      );
+
+  ServiceDistrict copyWith({
+    String? id,
+    String? countryId,
+    String? stateId,
+    String? name,
+    bool? isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => ServiceDistrict(
+        id: id ?? this.id,
+        countryId: countryId ?? this.countryId,
+        stateId: stateId ?? this.stateId,
+        name: name ?? this.name,
+        isActive: isActive ?? this.isActive,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+}
+
+/// ===========================================================
+/// 4. SERVICE CITY
+
 /// Collection: service_cities
 ///
 /// verifiedBoundaryId links the City to the exact boundary
@@ -215,6 +289,8 @@ class ServiceCity {
   final String id;
   final String countryId;
   final String stateId;
+  /// Optional District parent; absent on legacy City documents.
+  final String districtId;
   final String name;
 
   /// Retained for compatibility with existing documents.
@@ -234,6 +310,7 @@ class ServiceCity {
     this.id = '',
     required this.countryId,
     required this.stateId,
+    this.districtId = '',
     required this.name,
     this.boundary = const [],
     this.boundarySource = '',
@@ -250,6 +327,7 @@ class ServiceCity {
     return {
       'countryId': countryId.trim(),
       'stateId': stateId.trim(),
+      if (districtId.trim().isNotEmpty) 'districtId': districtId.trim(),
       'name': name.trim(),
 
       // Legacy fields retained.
@@ -275,13 +353,14 @@ class ServiceCity {
       id: id,
       countryId: data['countryId']?.toString() ?? '',
       stateId: data['stateId']?.toString() ?? '',
+      districtId: data['districtId']?.toString() ?? '',
       name: data['name']?.toString() ?? '',
       boundary: _readLocationBoundary(data['boundary']),
       boundarySource: data['boundarySource']?.toString() ?? '',
       boundaryVerified: data['boundaryVerified'] == true,
       verifiedBoundaryId:
           data['verifiedBoundaryId']?.toString() ?? '',
-      isServiceActive: data['isServiceActive'] == true,
+      isServiceActive: _readServiceActive(data),
       createdAt: _readLocationDate(data['createdAt']),
       updatedAt: _readLocationDate(data['updatedAt']),
     );
@@ -291,6 +370,7 @@ class ServiceCity {
     String? id,
     String? countryId,
     String? stateId,
+    String? districtId,
     String? name,
     List<GeoPoint>? boundary,
     String? boundarySource,
@@ -304,6 +384,7 @@ class ServiceCity {
       id: id ?? this.id,
       countryId: countryId ?? this.countryId,
       stateId: stateId ?? this.stateId,
+      districtId: districtId ?? this.districtId,
       name: name ?? this.name,
       boundary: boundary ?? this.boundary,
       boundarySource: boundarySource ?? this.boundarySource,
@@ -398,7 +479,7 @@ class ServiceArea {
       boundaryVerified: data['boundaryVerified'] == true,
       verifiedBoundaryId:
           data['verifiedBoundaryId']?.toString() ?? '',
-      isServiceActive: data['isServiceActive'] == true,
+      isServiceActive: _readServiceActive(data),
       createdAt: _readLocationDate(data['createdAt']),
       updatedAt: _readLocationDate(data['updatedAt']),
     );
@@ -515,7 +596,7 @@ class ServiceLocality {
       boundary: _readLocationBoundary(data['boundary']),
       boundarySource: data['boundarySource']?.toString() ?? '',
       boundaryVerified: data['boundaryVerified'] == true,
-      isServiceActive: data['isServiceActive'] == true,
+      isServiceActive: _readServiceActive(data),
       createdAt: _readLocationDate(data['createdAt']),
       updatedAt: _readLocationDate(data['updatedAt']),
     );
@@ -567,6 +648,8 @@ class ServiceLocationImport {
   final String importedBy;
   final DateTime? importedAt;
   final String verificationStatus;
+  /// Fingerprint of the canonical validated hierarchy input. Empty for legacy audits.
+  final String inputFingerprint;
 
   const ServiceLocationImport({
     this.id = '',
@@ -576,6 +659,7 @@ class ServiceLocationImport {
     required this.importedBy,
     this.importedAt,
     required this.verificationStatus,
+    this.inputFingerprint = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -586,6 +670,8 @@ class ServiceLocationImport {
       'importedBy': importedBy.trim(),
       'importedAt': FieldValue.serverTimestamp(),
       'verificationStatus': verificationStatus.trim(),
+      if (inputFingerprint.trim().isNotEmpty)
+        'inputFingerprint': inputFingerprint.trim(),
     };
   }
 
@@ -600,8 +686,8 @@ class ServiceLocationImport {
       status: data['status']?.toString() ?? '',
       importedBy: data['importedBy']?.toString() ?? '',
       importedAt: _readLocationDate(data['importedAt']),
-      verificationStatus:
-          data['verificationStatus']?.toString() ?? '',
+      verificationStatus: data['verificationStatus']?.toString() ?? '',
+      inputFingerprint: data['inputFingerprint']?.toString() ?? '',
     );
   }
 
@@ -613,6 +699,7 @@ class ServiceLocationImport {
     String? importedBy,
     DateTime? importedAt,
     String? verificationStatus,
+    String? inputFingerprint,
   }) {
     return ServiceLocationImport(
       id: id ?? this.id,
@@ -621,8 +708,8 @@ class ServiceLocationImport {
       status: status ?? this.status,
       importedBy: importedBy ?? this.importedBy,
       importedAt: importedAt ?? this.importedAt,
-      verificationStatus:
-          verificationStatus ?? this.verificationStatus,
+      verificationStatus: verificationStatus ?? this.verificationStatus,
+      inputFingerprint: inputFingerprint ?? this.inputFingerprint,
     );
   }
 }

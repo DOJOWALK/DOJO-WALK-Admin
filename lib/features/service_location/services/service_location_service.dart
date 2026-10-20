@@ -1,32 +1,64 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:crypto/crypto.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/service_location_models.dart';
+import 'service_location_geometry.dart';
+import 'service_location_index_contract.dart';
 
 /// ===========================================================
 /// DOJO WALK ADMIN
 /// Service Location Service
 ///
 /// Hierarchy:
-/// Country -> State -> City/District -> Area/Sub-district
-/// -> Locality/Village
+/// Country -> State -> District -> Service City -> Service Area
+/// -> optional Locality/Village. Legacy Cities may omit districtId.
 ///
 /// City and Area activation requires a verified polygon stored
 /// in service_location_boundaries.
 ///
 /// Locality activation does not require its own polygon.
 ///
-/// Unique names are enforced through transactional name indexes.
+/// Unique names are enforced by the trusted server callable.
 /// ===========================================================
 
 class ServiceLocationService {
   final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
+  final String? Function() _currentUserIdProvider;
 
   ServiceLocationService({
     FirebaseFirestore? firestore,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+    FirebaseFunctions? functions,
+    String? Function()? currentUserIdProvider,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _functions = functions ?? FirebaseFunctions.instanceFor(region: 'asia-south1'),
+        _currentUserIdProvider = currentUserIdProvider ??
+            (() => FirebaseAuth.instance.currentUser?.uid);
+
+  Future<void> _setTrustedStatus({
+    required String locationType,
+    required String locationId,
+    required bool isActive,
+  }) async {
+    final callable = _functions.httpsCallable('setServiceLocationStatus');
+    await callable.call<void>({
+      'locationType': locationType,
+      'locationId': locationId,
+      'isActive': isActive,
+    });
+  }
+
+  Future<void> _activateTrustedBoundaryLocation({
+    required String locationType,
+    required String locationId,
+  }) async {
+    final callable = _functions.httpsCallable('activateServiceLocation');
+    await callable.call<void>({
+      'locationType': locationType,
+      'locationId': locationId,
+    });
+  }
 
   // ==========================================================
   // COLLECTIONS
@@ -37,6 +69,9 @@ class ServiceLocationService {
 
   CollectionReference<Map<String, dynamic>> get _states =>
       _firestore.collection('service_states');
+
+  CollectionReference<Map<String, dynamic>> get _districts =>
+      _firestore.collection('service_districts');
 
   CollectionReference<Map<String, dynamic>> get _cities =>
       _firestore.collection('service_cities');
@@ -49,9 +84,6 @@ class ServiceLocationService {
 
   CollectionReference<Map<String, dynamic>> get _imports =>
       _firestore.collection('service_location_imports');
-
-  CollectionReference<Map<String, dynamic>> get _nameIndexes =>
-      _firestore.collection('service_location_name_indexes');
 
   CollectionReference<Map<String, dynamic>> get _boundaries =>
       _firestore.collection('service_location_boundaries');
@@ -71,27 +103,6 @@ class ServiceLocationService {
     }
 
     return result;
-  }
-
-  String _normalizeName(String value) {
-    return value
-        .trim()
-        .toLowerCase()
-        .replaceAll(RegExp(r'\s+'), ' ');
-  }
-
-  String _nameIndexId({
-    required String collectionPath,
-    required List<String> parentIds,
-    required String name,
-  }) {
-    final normalized = jsonEncode([
-      collectionPath,
-      parentIds.map((id) => id.trim()).toList(),
-      _normalizeName(name),
-    ]);
-
-    return sha256.convert(utf8.encode(normalized)).toString();
   }
 
   List<GeoPoint> _readPoints(dynamic value) {
@@ -154,150 +165,74 @@ class ServiceLocationService {
     required CollectionReference<Map<String, dynamic>> collection,
     required String documentId,
     required String name,
-    required List<String> parentIds,
     required Map<String, dynamic> data,
-    required bool isNew,
   }) async {
-    final normalizedName = _normalizeName(
-      _required(name, 'Name'),
-    );
+    // Name-index writes are now server-owned. Keep this shared method as the
+    // single route for Country/State/City/Area/Locality saves.
+    final locationTypeByCollection = <String, String>{
+      'service_countries': 'country',
+      'service_states': 'state',
+      'service_districts': 'district',
+      'service_cities': 'city',
+      'service_areas': 'area',
+      'service_localities': 'locality',
+    };
+    final locationType = locationTypeByCollection[collection.path];
+    if (locationType == null) {
+      throw StateError('Unsupported service location collection.');
+    }
 
-    final target = collection.doc(documentId);
-
-    final newIndexId = _nameIndexId(
-      collectionPath: collection.path,
-      parentIds: parentIds,
-      name: normalizedName,
-    );
-
-    final newIndex = _nameIndexes.doc(newIndexId);
-
-    await _firestore.runTransaction((transaction) async {
-      final targetSnapshot = await transaction.get(target);
-      final newIndexSnapshot = await transaction.get(newIndex);
-
-      DocumentReference<Map<String, dynamic>>? oldIndex;
-      DocumentSnapshot<Map<String, dynamic>>? oldIndexSnapshot;
-
-      if (targetSnapshot.exists) {
-        final oldData = targetSnapshot.data()!;
-
-        final oldName = oldData['name']?.toString() ?? '';
-
-        final oldParentIds = _parentIdsFromDocument(
-          collection.path,
-          oldData,
-        );
-
-        final oldIndexId = _nameIndexId(
-          collectionPath: collection.path,
-          parentIds: oldParentIds,
-          name: oldName,
-        );
-
-        if (oldIndexId != newIndexId) {
-          oldIndex = _nameIndexes.doc(oldIndexId);
-          oldIndexSnapshot = await transaction.get(oldIndex);
-        }
+    final allowedFieldsByType = <String, Set<String>>{
+      'country': {'name', 'code'},
+      'state': {'countryId', 'name'},
+      'district': {'countryId', 'stateId', 'name'},
+      'city': {'countryId', 'stateId', 'districtId', 'name'},
+      'area': {'countryId', 'stateId', 'cityId', 'name'},
+      'locality': {
+        'countryId', 'stateId', 'cityId', 'areaId', 'name', 'pincode',
+      },
+    };
+    final allowedFields = allowedFieldsByType[locationType]!;
+    final payload = <String, dynamic>{};
+    for (final entry in data.entries) {
+      if (allowedFields.contains(entry.key)) {
+        payload[entry.key] = entry.value;
       }
+    }
+    payload['name'] = _required(name, 'Name');
 
-      if (newIndexSnapshot.exists) {
-        final indexData = newIndexSnapshot.data()!;
+    // A blank optional District ID means this is a legacy City. Omit the
+    // field entirely; sending an empty string makes the trusted callable treat
+    // it as a supplied but invalid parent ID.
+    final indexPayload =
+        normalizeServiceLocationIndexPayload(locationType, payload);
+    payload
+      ..clear()
+      ..addAll(indexPayload);
 
-        final indexedDocumentId =
-            indexData['documentId']?.toString() ?? '';
-
-        if (indexedDocumentId != documentId) {
-          throw StateError(
-            '"$name" already exists at this hierarchy level.',
-          );
-        }
+    // Parent IDs remain explicit in the payload so the server can validate
+    // the full hierarchy and recompute the canonical SHA-256 index.
+    final parentFields = serviceLocationIndexParentFields(locationType, payload);
+    for (final field in parentFields) {
+      final parentId = payload[field]?.toString().trim() ?? '';
+      if (parentId.isEmpty) {
+        throw StateError('The supplied service location hierarchy is invalid: $field is required.');
       }
+      payload[field] = parentId;
+    }
 
-      if (isNew && targetSnapshot.exists) {
-        throw StateError(
-          'This service location already exists.',
-        );
-      }
-
-      // Complete all transaction reads before writing.
-
-      if (oldIndex != null &&
-          oldIndexSnapshot != null &&
-          oldIndexSnapshot.exists) {
-        final oldIndexData = oldIndexSnapshot.data()!;
-
-        if (oldIndexData['documentId'] == documentId) {
-          transaction.delete(oldIndex);
-        }
-      }
-
-      transaction.set(
-        newIndex,
-        {
-          'collectionPath': collection.path,
-          'documentId': documentId,
-          'name': normalizedName,
-          'parentIds': parentIds,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
-
-      final saveData = Map<String, dynamic>.from(data);
-
-      if (!targetSnapshot.exists) {
-        saveData['createdAt'] = FieldValue.serverTimestamp();
-      }
-
-      saveData['updatedAt'] = FieldValue.serverTimestamp();
-
-      transaction.set(
-        target,
-        saveData,
-        SetOptions(merge: true),
-      );
+    final callable = _functions.httpsCallable('saveServiceLocationWithNameIndex');
+    final result = await callable.call<Map<String, dynamic>>({
+      'locationType': locationType,
+      'locationId': documentId,
+      'payload': payload,
     });
-  }
-
-  List<String> _parentIdsFromDocument(
-    String collectionPath,
-    Map<String, dynamic> data,
-  ) {
-    switch (collectionPath) {
-      case 'service_countries':
-        return const [];
-
-      case 'service_states':
-        return [
-          data['countryId']?.toString() ?? '',
-        ];
-
-      case 'service_cities':
-        return [
-          data['countryId']?.toString() ?? '',
-          data['stateId']?.toString() ?? '',
-        ];
-
-      case 'service_areas':
-        return [
-          data['countryId']?.toString() ?? '',
-          data['stateId']?.toString() ?? '',
-          data['cityId']?.toString() ?? '',
-        ];
-
-      case 'service_localities':
-        return [
-          data['countryId']?.toString() ?? '',
-          data['stateId']?.toString() ?? '',
-          data['cityId']?.toString() ?? '',
-          data['areaId']?.toString() ?? '',
-        ];
-
-      default:
-        return const [];
+    final savedId = result.data['locationId']?.toString();
+    if (savedId != documentId) {
+      throw StateError('The trusted service returned an unexpected location ID.');
     }
   }
+
 
   // ==========================================================
   // DOCUMENT / HIERARCHY VALIDATION
@@ -404,14 +339,6 @@ class ServiceLocationService {
     }
   }
 
-  Future<void> _requireExistingForUpdate(
-    CollectionReference<Map<String, dynamic>> collection,
-    String id,
-    String label,
-  ) async {
-    await _requireDocument(collection, id, label);
-  }
-
   Future<bool> _hasActiveChild({
     required String parentCollection,
     required String parentId,
@@ -426,8 +353,34 @@ class ServiceLocationService {
         break;
 
       case 'service_states':
+        // New hierarchy: an active District is also a child of the State.
+        // Preserve the legacy direct City lookup for older records that do
+        // not yet carry districtId.
+        final activeDistricts = await _districts
+            .where('stateId', isEqualTo: parentId)
+            .where('isServiceActive', isEqualTo: true)
+            .limit(1)
+            .get();
+        if (activeDistricts.docs.isNotEmpty) return true;
+
+        // Backward compatibility: older District records may only have
+        // the pre-callable isActive field. Never treat this as the canonical
+        // field for newly saved Districts.
+        final legacyActiveDistricts = await _districts
+            .where('stateId', isEqualTo: parentId)
+            .where('isActive', isEqualTo: true)
+            .limit(1)
+            .get();
+        if (legacyActiveDistricts.docs.isNotEmpty) return true;
+
         query = _cities
             .where('stateId', isEqualTo: parentId)
+            .where('isServiceActive', isEqualTo: true);
+        break;
+
+      case 'service_districts':
+        query = _cities
+            .where('districtId', isEqualTo: parentId)
             .where('isServiceActive', isEqualTo: true);
         break;
 
@@ -463,55 +416,6 @@ class ServiceLocationService {
     )) {
       throw StateError(
         'Deactivate active child locations before deactivating $label.',
-      );
-    }
-  }
-
-  Future<void> _ensureNoChildrenForReparent({
-    required String parentCollection,
-    required String parentId,
-    required String label,
-  }) async {
-    Query<Map<String, dynamic>> query;
-
-    switch (parentCollection) {
-      case 'service_countries':
-        query = _states.where(
-          'countryId',
-          isEqualTo: parentId,
-        );
-        break;
-
-      case 'service_states':
-        query = _cities.where(
-          'stateId',
-          isEqualTo: parentId,
-        );
-        break;
-
-      case 'service_cities':
-        query = _areas.where(
-          'cityId',
-          isEqualTo: parentId,
-        );
-        break;
-
-      case 'service_areas':
-        query = _localities.where(
-          'areaId',
-          isEqualTo: parentId,
-        );
-        break;
-
-      default:
-        return;
-    }
-
-    final result = await query.limit(1).get();
-
-    if (result.docs.isNotEmpty) {
-      throw StateError(
-        'Cannot move this $label while child locations exist.',
       );
     }
   }
@@ -597,6 +501,36 @@ class ServiceLocationService {
     return boundaryId;
   }
 
+  Future<List<GeoPoint>> _requireVerifiedBoundaryPoints({
+    required String boundaryId,
+    required String locationId,
+    required String locationType,
+  }) async {
+    final id = _required(boundaryId, 'Verified boundary ID');
+    final snapshot = await _boundaries.doc(id).get();
+
+    if (!snapshot.exists) {
+      throw StateError('The verified $locationType boundary was not found.');
+    }
+
+    final data = snapshot.data()!;
+    if (data['locationId']?.toString() != locationId ||
+        data['locationType']?.toString().toLowerCase() !=
+            locationType.toLowerCase() ||
+        data['verificationStatus'] != 'verified') {
+      throw StateError(
+        'The selected boundary is not verified for this $locationType.',
+      );
+    }
+
+    final points = _readPoints(data['points']);
+    if (!_hasValidPolygon(points)) {
+      throw StateError('The verified $locationType boundary polygon is invalid.');
+    }
+
+    return points;
+  }
+
   // ==========================================================
   // COUNTRIES
   // ==========================================================
@@ -622,6 +556,10 @@ class ServiceLocationService {
   ) async {
     final name = _required(country.name, 'Country name');
 
+    if (country.id.trim().isEmpty && country.isActive) {
+      throw StateError('Create a Country as inactive, then activate it separately.');
+    }
+
     final code = _required(country.code, 'Country code')
         .toUpperCase();
 
@@ -639,8 +577,6 @@ class ServiceLocationService {
       collection: _countries,
       documentId: id,
       name: name,
-      parentIds: const [],
-      isNew: country.id.trim().isEmpty,
       data: {
         'name': name,
         'code': code,
@@ -663,10 +599,11 @@ class ServiceLocationService {
       );
     }
 
-    await _countries.doc(id).update({
-      'isActive': isActive,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+    await _setTrustedStatus(
+      locationType: 'country',
+      locationId: id,
+      isActive: isActive,
+    );
   }
 
   // ==========================================================
@@ -707,22 +644,31 @@ class ServiceLocationService {
 
     final name = _required(state.name, 'State name');
 
+    if (state.id.trim().isEmpty && state.isActive) {
+      throw StateError('Create a State as inactive, then activate it separately.');
+    }
+
     await _requireDocument(
       _countries,
       countryId,
       'Country',
     );
 
-    final id = state.id.trim().isEmpty
-        ? _states.doc().id
-        : state.id.trim();
+    final oldId = state.id.trim();
+    final id = oldId.isEmpty ? _states.doc().id : oldId;
+
+    if (oldId.isNotEmpty) {
+      final existing = await _states.doc(id).get();
+      if (existing.exists &&
+          existing.data()?['countryId']?.toString() != countryId) {
+        throw StateError('A State parent cannot be changed after creation. Create a new State under the correct Country.');
+      }
+    }
 
     await _saveUniqueNamedDocument(
       collection: _states,
       documentId: id,
       name: name,
-      parentIds: [countryId],
-      isNew: state.id.trim().isEmpty,
       data: {
         'countryId': countryId,
         'name': name,
@@ -755,10 +701,95 @@ class ServiceLocationService {
       );
     }
 
-    await _states.doc(id).update({
-      'isActive': isActive,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+    await _setTrustedStatus(
+      locationType: 'state',
+      locationId: id,
+      isActive: isActive,
+    );
+  }
+
+  // ==========================================================
+  // DISTRICTS
+  // ==========================================================
+
+  Stream<List<ServiceDistrict>> watchDistricts({
+    String? countryId,
+    String? stateId,
+    bool? activeOnly,
+  }) {
+    Query<Map<String, dynamic>> query = _districts;
+    if (countryId != null && countryId.trim().isNotEmpty) {
+      query = query.where('countryId', isEqualTo: countryId.trim());
+    }
+    if (stateId != null && stateId.trim().isNotEmpty) {
+      query = query.where('stateId', isEqualTo: stateId.trim());
+    }
+    if (activeOnly == true) {
+      // Firebase's trusted status callable writes the canonical field.
+      query = query.where('isServiceActive', isEqualTo: true);
+    }
+    return query.orderBy('name').snapshots().map(
+      (snapshot) => snapshot.docs
+          .map((doc) => ServiceDistrict.fromMap(doc.id, doc.data()))
+          .toList(),
+    );
+  }
+
+  Future<ServiceDistrict?> getDistrict(String districtId) async {
+    final id = _required(districtId, 'District ID');
+    final snapshot = await _districts.doc(id).get();
+    if (!snapshot.exists || snapshot.data() == null) return null;
+    return ServiceDistrict.fromMap(snapshot.id, snapshot.data()!);
+  }
+
+  Future<void> saveDistrict(ServiceDistrict district) async {
+    final countryId = _required(district.countryId, 'Country ID');
+    final stateId = _required(district.stateId, 'State ID');
+    final name = _required(district.name, 'District name');
+    if (district.id.trim().isEmpty && district.isActive) {
+      throw StateError('Create a District as inactive, then activate it separately.');
+    }
+    await _requireDocument(_countries, countryId, 'Country');
+    final state = await _requireDocument(_states, stateId, 'State');
+    if (state['countryId']?.toString() != countryId) {
+      throw StateError('The State does not belong to the selected Country.');
+    }
+    final id = district.id.trim().isEmpty
+        ? _districts.doc().id
+        : district.id.trim();
+    if (district.id.trim().isNotEmpty) {
+      final old = await _districts.doc(id).get();
+      if (old.exists &&
+          (old.data()?['countryId']?.toString() != countryId ||
+              old.data()?['stateId']?.toString() != stateId)) {
+        throw StateError('A District parent cannot be changed after creation.');
+      }
+    }
+    await _saveUniqueNamedDocument(
+      collection: _districts,
+      documentId: id,
+      name: name,
+      data: {'countryId': countryId, 'stateId': stateId, 'name': name},
+    );
+  }
+
+  Future<void> setDistrictStatus({
+    required String districtId,
+    required bool isActive,
+  }) async {
+    final id = _required(districtId, 'District ID');
+    if (isActive) {
+      final district = await _requireDocument(_districts, id, 'District');
+      final countryId = district['countryId']?.toString() ?? '';
+      final stateId = district['stateId']?.toString() ?? '';
+      await _requireActiveCountry(countryId);
+      await _requireActiveState(stateId, countryId);
+    }
+    await _setTrustedStatus(
+      locationType: 'district',
+      locationId: id,
+      isActive: isActive,
+    );
   }
 
   // ==========================================================
@@ -844,8 +875,21 @@ class ServiceLocationService {
     );
 
     final name = _required(city.name, 'City name');
+    final districtId = city.districtId.trim();
+
+    if (districtId.isNotEmpty) {
+      final district = await _requireDocument(_districts, districtId, 'District');
+      if (district['countryId']?.toString() != countryId ||
+          district['stateId']?.toString() != stateId) {
+        throw StateError('The District does not belong to the selected Country and State.');
+      }
+    }
 
     final oldId = city.id.trim();
+
+    if (oldId.isEmpty && city.isServiceActive) {
+      throw StateError('Create a City as inactive; verify its boundary before activation.');
+    }
 
     final id = oldId.isEmpty ? _cities.doc().id : oldId;
 
@@ -885,15 +929,19 @@ class ServiceLocationService {
     if (existingSnapshot.exists) {
       final oldData = existingSnapshot.data()!;
 
-      final oldStateId =
-          oldData['stateId']?.toString() ?? '';
+      final oldCountryId = oldData['countryId']?.toString() ?? '';
+      final oldStateId = oldData['stateId']?.toString() ?? '';
+      final oldDistrictId = oldData['districtId']?.toString() ?? '';
 
-      if (oldStateId != stateId) {
-        await _ensureNoChildrenForReparent(
-          parentCollection: 'service_cities',
-          parentId: id,
-          label: 'city',
-        );
+      if ((oldDistrictId.isEmpty) != districtId.isEmpty) {
+        throw StateError('Adding or removing a City District requires a separate migration.');
+      }
+      if (oldDistrictId.isNotEmpty && oldDistrictId != districtId) {
+        throw StateError('A City District cannot be changed after creation.');
+      }
+
+      if (oldCountryId != countryId || oldStateId != stateId) {
+        throw StateError('A City parent cannot be changed after creation. Create a new City under the correct State.');
       }
     }
 
@@ -901,6 +949,7 @@ class ServiceLocationService {
       id: id,
       countryId: countryId,
       stateId: stateId,
+      districtId: districtId,
       name: name,
       verifiedBoundaryId: verifiedBoundaryId,
     );
@@ -909,8 +958,6 @@ class ServiceLocationService {
       collection: _cities,
       documentId: id,
       name: name,
-      parentIds: [countryId, stateId],
-      isNew: oldId.isEmpty,
       data: savedCity.toMap(),
     );
   }
@@ -927,8 +974,6 @@ class ServiceLocationService {
       'City',
     );
 
-    String? verifiedBoundaryId;
-
     if (isActive) {
       final countryId =
           city['countryId']?.toString() ?? '';
@@ -940,7 +985,7 @@ class ServiceLocationService {
 
       await _requireActiveState(stateId, countryId);
 
-      verifiedBoundaryId = await _requireVerifiedBoundary(
+      await _requireVerifiedBoundary(
         locationId: id,
         locationType: 'city',
       );
@@ -952,16 +997,18 @@ class ServiceLocationService {
       );
     }
 
-    final update = <String, dynamic>{
-      'isServiceActive': isActive,
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-
-    if (verifiedBoundaryId != null) {
-      update['verifiedBoundaryId'] = verifiedBoundaryId;
+    if (isActive) {
+      await _activateTrustedBoundaryLocation(
+        locationType: 'city',
+        locationId: id,
+      );
+    } else {
+      await _setTrustedStatus(
+        locationType: 'city',
+        locationId: id,
+        isActive: false,
+      );
     }
-
-    await _cities.doc(id).update(update);
   }
 
   // ==========================================================
@@ -1025,6 +1072,10 @@ class ServiceLocationService {
 
     final oldId = area.id.trim();
 
+    if (oldId.isEmpty && area.isServiceActive) {
+      throw StateError('Create an Area as inactive; verify its boundary before activation.');
+    }
+
     final id = oldId.isEmpty ? _areas.doc().id : oldId;
 
     final cityData = await _requireDocument(
@@ -1061,6 +1112,33 @@ class ServiceLocationService {
         locationId: id,
         locationType: 'area',
       );
+
+      final city = await _requireDocument(
+        _cities,
+        cityId,
+        'City',
+      );
+      final cityBoundaryId =
+          city['verifiedBoundaryId']?.toString().trim() ?? '';
+      final cityBoundaryPoints = await _requireVerifiedBoundaryPoints(
+        boundaryId: cityBoundaryId,
+        locationId: cityId,
+        locationType: 'city',
+      );
+      final areaBoundaryPoints = await _requireVerifiedBoundaryPoints(
+        boundaryId: verifiedBoundaryId,
+        locationId: id,
+        locationType: 'area',
+      );
+
+      if (!ServiceLocationGeometry.isPolygonContained(
+        parent: cityBoundaryPoints,
+        child: areaBoundaryPoints,
+      )) {
+        throw StateError(
+          'The Area boundary must be fully inside or on the parent City boundary.',
+        );
+      }
     }
 
     final existingSnapshot = await _areas.doc(id).get();
@@ -1068,15 +1146,12 @@ class ServiceLocationService {
     if (existingSnapshot.exists) {
       final oldData = existingSnapshot.data()!;
 
-      final oldCityId =
-          oldData['cityId']?.toString() ?? '';
+      final oldCountryId = oldData['countryId']?.toString() ?? '';
+      final oldStateId = oldData['stateId']?.toString() ?? '';
+      final oldCityId = oldData['cityId']?.toString() ?? '';
 
-      if (oldCityId != cityId) {
-        await _ensureNoChildrenForReparent(
-          parentCollection: 'service_areas',
-          parentId: id,
-          label: 'area',
-        );
+      if (oldCountryId != countryId || oldStateId != stateId || oldCityId != cityId) {
+        throw StateError('An Area parent cannot be changed after creation. Create a new Area under the correct City.');
       }
     }
 
@@ -1093,8 +1168,6 @@ class ServiceLocationService {
       collection: _areas,
       documentId: id,
       name: name,
-      parentIds: [countryId, stateId, cityId],
-      isNew: oldId.isEmpty,
       data: savedArea.toMap(),
     );
   }
@@ -1110,8 +1183,6 @@ class ServiceLocationService {
       id,
       'Area',
     );
-
-    String? verifiedBoundaryId;
 
     if (isActive) {
       final countryId =
@@ -1129,7 +1200,7 @@ class ServiceLocationService {
 
       await _requireActiveCity(cityId, stateId);
 
-      verifiedBoundaryId = await _requireVerifiedBoundary(
+      await _requireVerifiedBoundary(
         locationId: id,
         locationType: 'area',
       );
@@ -1141,16 +1212,18 @@ class ServiceLocationService {
       );
     }
 
-    final update = <String, dynamic>{
-      'isServiceActive': isActive,
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-
-    if (verifiedBoundaryId != null) {
-      update['verifiedBoundaryId'] = verifiedBoundaryId;
+    if (isActive) {
+      await _activateTrustedBoundaryLocation(
+        locationType: 'area',
+        locationId: id,
+      );
+    } else {
+      await _setTrustedStatus(
+        locationType: 'area',
+        locationId: id,
+        isActive: false,
+      );
     }
-
-    await _areas.doc(id).update(update);
   }
 
   // ==========================================================
@@ -1231,6 +1304,10 @@ class ServiceLocationService {
 
     final oldId = locality.id.trim();
 
+    if (oldId.isEmpty && locality.isServiceActive) {
+      throw StateError('Create a Locality as inactive, then activate it separately.');
+    }
+
     final id = oldId.isEmpty
         ? _localities.doc().id
         : oldId;
@@ -1287,15 +1364,13 @@ class ServiceLocationService {
     if (existingSnapshot.exists) {
       final oldData = existingSnapshot.data()!;
 
-      final oldAreaId =
-          oldData['areaId']?.toString() ?? '';
+      final oldCountryId = oldData['countryId']?.toString() ?? '';
+      final oldStateId = oldData['stateId']?.toString() ?? '';
+      final oldCityId = oldData['cityId']?.toString() ?? '';
+      final oldAreaId = oldData['areaId']?.toString() ?? '';
 
-      if (oldAreaId != areaId) {
-        await _ensureNoChildrenForReparent(
-          parentCollection: 'service_localities',
-          parentId: id,
-          label: 'locality',
-        );
+      if (oldCountryId != countryId || oldStateId != stateId || oldCityId != cityId || oldAreaId != areaId) {
+        throw StateError('A Locality parent cannot be changed after creation. Create a new Locality under the correct Area.');
       }
     }
 
@@ -1312,13 +1387,6 @@ class ServiceLocationService {
       collection: _localities,
       documentId: id,
       name: name,
-      parentIds: [
-        countryId,
-        stateId,
-        cityId,
-        areaId,
-      ],
-      isNew: oldId.isEmpty,
       data: savedLocality.toMap(),
     );
   }
@@ -1357,11 +1425,12 @@ class ServiceLocationService {
       await _requireActiveArea(areaId, cityId);
     }
 
-    // No locality polygon requirement.
-    await _localities.doc(id).update({
-      'isServiceActive': isActive,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+    // No locality polygon requirement; the server validates ancestry.
+    await _setTrustedStatus(
+      locationType: 'locality',
+      locationId: id,
+      isActive: isActive,
+    );
   }
 
   // ==========================================================
@@ -1384,9 +1453,108 @@ class ServiceLocationService {
         );
   }
 
+  /// Creates the trusted, durable run marker before any location writes.
+  /// The backend rejects reuse of any existing run ID, including matching
+  /// fingerprints. Use the read-only reconciliation flow before deciding how
+  /// to handle an interrupted run; this method never resumes or repairs it.
+  Future<void> beginImportRun({
+    required String runId,
+    required String countryId,
+    required String fileName,
+    required String inputFingerprint,
+  }) async {
+    final callable = _functions.httpsCallable('manageServiceLocationImportRun');
+    await callable.call<Map<String, dynamic>>({
+      'action': 'begin',
+      'runId': runId,
+      'countryId': countryId,
+      'fileName': fileName,
+      'inputFingerprint': inputFingerprint,
+    });
+  }
+
+  /// Persists the bounded canonical plan on the trusted backend before any
+  /// hierarchy writes. Existing runs with a recorded plan are immutable.
+  Future<void> recordImportPlan({
+    required String runId,
+    required String inputFingerprint,
+    required List<Map<String, dynamic>> nodes,
+  }) async {
+    final callable = _functions.httpsCallable('manageServiceLocationImportRun');
+    await callable.call<Map<String, dynamic>>({
+      'action': 'recordPlan',
+      'runId': runId,
+      'inputFingerprint': inputFingerprint,
+      'nodes': nodes,
+    });
+  }
+
+  /// Reads the server-owned run marker for reconciliation. This does not
+  /// resume or mutate an import; use [reconcileImportPlan] to compare the
+  /// immutable recorded plan with the current hierarchy.
+  Future<Map<String, dynamic>> inspectImportRun({
+    required String runId,
+    required String inputFingerprint,
+  }) async {
+    final callable = _functions.httpsCallable('manageServiceLocationImportRun');
+    final result = await callable.call<Map<String, dynamic>>({
+      'action': 'inspect',
+      'runId': runId,
+      'inputFingerprint': inputFingerprint,
+    });
+    return Map<String, dynamic>.from(result.data);
+  }
+
+  /// Performs a read-only comparison of the recorded import plan against the
+  /// current trusted hierarchy documents. This never resumes or repairs writes.
+  Future<Map<String, dynamic>> reconcileImportPlan({
+    required String runId,
+    required String inputFingerprint,
+  }) async {
+    final callable = _functions.httpsCallable('manageServiceLocationImportRun');
+    final result = await callable.call<Map<String, dynamic>>({
+      'action': 'reconcilePlan',
+      'runId': runId,
+      'inputFingerprint': inputFingerprint,
+    });
+    return Map<String, dynamic>.from(result.data);
+  }
+
+  /// Finalizes a previously started run. The server validates actor ownership,
+  /// fingerprint and allowed status transitions.
+  Future<void> finishImportRun({
+    required String runId,
+    required String inputFingerprint,
+    required String status,
+    required int plannedRecords,
+    required int createdRecords,
+    required int reusedRecords,
+  }) async {
+    final callable = _functions.httpsCallable('manageServiceLocationImportRun');
+    await callable.call<void>({
+      'action': 'finalize',
+      'runId': runId,
+      'inputFingerprint': inputFingerprint,
+      'status': status,
+      'plannedRecords': plannedRecords,
+      'createdRecords': createdRecords,
+      'reusedRecords': reusedRecords,
+    });
+  }
+
   Future<String> saveImport(
     ServiceLocationImport importRecord,
   ) async {
+    final currentUserId = _currentUserIdProvider();
+
+    if (currentUserId == null || currentUserId.trim().isEmpty) {
+      throw StateError('Sign in as an admin before recording an import.');
+    }
+
+    if (importRecord.importedBy.trim() != currentUserId) {
+      throw StateError('The import actor must match the signed-in admin.');
+    }
+
     final id = importRecord.id.trim().isEmpty
         ? _imports.doc().id
         : importRecord.id.trim();
@@ -1406,15 +1574,14 @@ class ServiceLocationService {
         importRecord.status,
         'Import status',
       ),
-      'importedBy': _required(
-        importRecord.importedBy,
-        'Importer ID',
-      ),
+      'importedBy': currentUserId,
       'importedAt': FieldValue.serverTimestamp(),
       'verificationStatus': _required(
         importRecord.verificationStatus,
         'Import verification status',
       ),
+      if (importRecord.inputFingerprint.trim().isNotEmpty)
+        'inputFingerprint': importRecord.inputFingerprint.trim(),
     };
 
     final snapshot = await reference.get();

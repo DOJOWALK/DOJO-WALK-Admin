@@ -16,12 +16,21 @@
 /// - Locality activation does not require its own polygon.
 /// - Legacy Zones are not modified.
 
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../models/service_location_boundary.dart';
 import '../models/service_location_models.dart';
+import '../services/location_csv_preview_parser.dart';
+import '../services/location_csv_import_fingerprint.dart';
+import '../services/location_csv_import_service.dart';
+import '../services/location_csv_lgd_validator.dart';
 import '../services/service_location_boundary_service.dart';
 import '../services/service_location_service.dart';
 import '../widgets/add_location_dialog.dart';
@@ -55,15 +64,25 @@ class _ServiceLocationScreenState
   String _search = '';
 
   GoogleMapController? _mapController;
+  late Future<Set<Polygon>> _activeBoundaryPolygonsFuture;
+  Set<Polygon> _loadedActiveBoundaryPolygons = <Polygon>{};
+  String? _lastFittedPolygonSignature;
 
   static const List<String> _tabNames = [
     'Countries',
     'States',
-    'Cities / Districts',
+    'Districts',
+    'Cities',
     'Areas / Sub-districts',
     'Localities / Villages',
     'Import History',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _activeBoundaryPolygonsFuture = _loadActiveBoundaryPolygons();
+  }
 
   @override
   void dispose() {
@@ -111,30 +130,83 @@ class _ServiceLocationScreenState
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final width = MediaQuery.sizeOf(context).width;
+    final isMobile = width < 600;
 
     return Scaffold(
       backgroundColor: _locationBackground,
       appBar: AppBar(
-        title: const Text(
-          'Service Locations',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        toolbarHeight: isMobile ? 68 : 76,
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        foregroundColor: const Color(0xFF242424),
         elevation: 0,
-        actions: [
-          TextButton.icon(
-            onPressed: _showAddLocationDialog,
-            icon: const Icon(
-              Icons.add_location_alt,
-              color: _locationOrange,
-            ),
-            label: const Text(
-              'Add Location',
-              style: TextStyle(
+        titleSpacing: 18,
+        title: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: _locationOrange.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: const Icon(
+                Icons.location_on_rounded,
                 color: _locationOrange,
-                fontWeight: FontWeight.bold,
+                size: 23,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Service Locations',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  SizedBox(height: 3),
+                  Text(
+                    'Coverage & boundary management',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: isMobile ? 8 : 20),
+            child: Center(
+              child: FilledButton.icon(
+                onPressed: _showAddLocationDialog,
+                icon: const Icon(Icons.add_location_alt_outlined, size: 19),
+                label: Text(isMobile ? 'Add' : 'Add Location'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: _locationOrange,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 12 : 18,
+                    vertical: 13,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
               ),
             ),
           ),
@@ -143,51 +215,59 @@ class _ServiceLocationScreenState
       body: Column(
         children: [
           _buildHeader(),
-
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            padding: EdgeInsets.fromLTRB(
+              isMobile ? 12 : 20, 12, isMobile ? 12 : 20, 0,
+            ),
             child: SizedBox(
               width: double.infinity,
-              height: isMobile ? 180 : 220,
+              height: isMobile ? 172 : 228,
               child: _buildMapPreview(),
             ),
           ),
-
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: EdgeInsets.fromLTRB(
+              isMobile ? 12 : 20, 12, isMobile ? 12 : 20, 8,
+            ),
             child: TextField(
               controller: _searchController,
-              onChanged: (value) {
-                setState(() => _search = value.trim());
-              },
+              onChanged: (value) => setState(() => _search = value.trim()),
               decoration: InputDecoration(
-                hintText: 'Search State, City or Area',
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: _locationOrange,
-                ),
+                hintText: 'Search state, city, area or code',
+                hintStyle: const TextStyle(fontSize: 13, color: Colors.black45),
+                prefixIcon: const Icon(Icons.search_rounded, color: _locationOrange),
                 suffixIcon: _search.isEmpty
                     ? null
                     : IconButton(
+                        tooltip: 'Clear search',
                         onPressed: () {
                           _searchController.clear();
                           setState(() => _search = '');
                         },
-                        icon: const Icon(Icons.clear),
+                        icon: const Icon(Icons.close_rounded),
                       ),
                 filled: true,
                 fillColor: Colors.white,
-                border: OutlineInputBorder(
+                contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
+                  borderSide: const BorderSide(color: Color(0xFFECE5DE)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: _locationOrange, width: 1.5),
                 ),
               ),
             ),
           ),
-
           _buildTabs(),
-          const Divider(height: 1),
-          Expanded(child: _buildSelectedList()),
+          const Divider(height: 1, color: Color(0xFFECE5DE)),
+          Expanded(
+            child: Container(
+              color: Colors.white,
+              child: _buildSelectedList(),
+            ),
+          ),
         ],
       ),
     );
@@ -198,58 +278,252 @@ class _ServiceLocationScreenState
   // ============================================================
 
   Widget _buildHeader() {
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.fromLTRB(isMobile ? 12 : 20, 14, isMobile ? 12 : 20, 0),
+      padding: EdgeInsets.all(isMobile ? 13 : 17),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _locationOrange.withValues(alpha: 0.20),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFF8F0)],
         ),
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: const Color(0xFFFFE1C5)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF9B5B25).withValues(alpha: 0.045),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Location Hierarchy',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Coverage overview',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _locationOrange.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.shield_outlined, size: 14, color: _locationOrange),
+                    SizedBox(width: 5),
+                    Text(
+                      'Verification required',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: _locationOrange,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 6),
-          Text(
-            'Country → State → City/District → '
-            'Area/Sub-district → Locality/Village',
+          const SizedBox(height: 10),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 5,
+            runSpacing: 6,
+            children: [
+              _hierarchyChip('Country'),
+              _hierarchyArrow(),
+              _hierarchyChip('State'),
+              _hierarchyArrow(),
+              _hierarchyChip('District'),
+              _hierarchyArrow(),
+              _hierarchyChip('City'),
+              _hierarchyArrow(),
+              _hierarchyChip('Area'),
+              _hierarchyArrow(),
+              _hierarchyChip('Locality (optional)'),
+            ],
           ),
-          SizedBox(height: 8),
-          Text(
-            'Pending Review → Verified / Rejected',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: _locationOrange,
-            ),
-          ),
-          SizedBox(height: 6),
-          Text(
-            'मौजूदा Firestore Rules में नई Boundary सीधे '
-            'Pending Review में जाती है। Verified Boundary '
-            'अपने आप service को active नहीं करती।',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.black54,
-            ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.info_outline_rounded, size: 16, color: Colors.black54),
+              const SizedBox(width: 7),
+              const Expanded(
+                child: Text(
+                  'नई boundaries Pending Review में सेव होती हैं। Verified boundary भी service को अपने आप active नहीं करती।',
+                  style: TextStyle(fontSize: 11, height: 1.35, color: Colors.black54),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
+  Widget _hierarchyChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFEFE3D8)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  Widget _hierarchyArrow() => const Icon(
+        Icons.chevron_right_rounded,
+        size: 16,
+        color: _locationOrange,
+      );
+
   // ============================================================
   // MAP PREVIEW
   // ============================================================
+
+  Future<Set<Polygon>> _loadActiveBoundaryPolygons() async {
+    final cities = await _service.watchCities().first;
+    final areas = await _service.watchAreas().first;
+    final boundarySnapshot = await FirebaseFirestore.instance
+        .collection('service_location_boundaries')
+        .where('verificationStatus', isEqualTo: 'verified')
+        .get();
+    final boundariesById = {
+      for (final document in boundarySnapshot.docs)
+        document.id: ServiceLocationBoundary.fromMap(
+          document.id,
+          document.data(),
+        ),
+    };
+    final polygons = <Polygon>{};
+
+    for (final city in cities.where((item) => item.isServiceActive)) {
+      final boundaryId = city.verifiedBoundaryId.trim();
+      if (boundaryId.isEmpty) continue;
+
+      final boundary = boundariesById[boundaryId];
+      if (boundary == null ||
+          !boundary.isVerified ||
+          boundary.locationId != city.id ||
+          boundary.locationType.toLowerCase() != 'city' ||
+          boundary.points.length < 3) {
+        continue;
+      }
+
+      polygons.add(
+        Polygon(
+          polygonId: PolygonId('service-city-${city.id}'),
+          points: boundary.points
+              .map((point) => LatLng(point.latitude, point.longitude))
+              .toList(growable: false),
+          strokeColor: _locationOrange,
+          strokeWidth: 2,
+          fillColor: _locationOrange.withValues(alpha: 0.05),
+          consumeTapEvents: true,
+          onTap: () => _showMessage('Active city boundary: ${city.name}'),
+        ),
+      );
+    }
+
+    for (final area in areas.where((item) => item.isServiceActive)) {
+      final boundaryId = area.verifiedBoundaryId.trim();
+      if (boundaryId.isEmpty) continue;
+
+      final boundary = boundariesById[boundaryId];
+      if (boundary == null ||
+          !boundary.isVerified ||
+          boundary.locationId != area.id ||
+          boundary.locationType.toLowerCase() != 'area' ||
+          boundary.points.length < 3) {
+        continue;
+      }
+
+      polygons.add(
+        Polygon(
+          polygonId: PolygonId('service-area-${area.id}'),
+          points: boundary.points
+              .map((point) => LatLng(point.latitude, point.longitude))
+              .toList(growable: false),
+          strokeColor: _locationOrange,
+          strokeWidth: 2,
+          fillColor: _locationOrange.withValues(alpha: 0.18),
+          consumeTapEvents: true,
+          onTap: () => _showMessage('Active service area: ${area.name}'),
+        ),
+      );
+    }
+
+    return polygons;
+  }
+
+  Future<void> _fitMapToActiveBoundaries(Set<Polygon> polygons) async {
+    final controller = _mapController;
+    if (controller == null || polygons.isEmpty) return;
+
+    final ids = polygons.map((polygon) => polygon.polygonId.value).toList()
+      ..sort();
+    final signature = ids.join('|');
+    if (signature == _lastFittedPolygonSignature) return;
+    _lastFittedPolygonSignature = signature;
+
+    final points = polygons.expand((polygon) => polygon.points).toList();
+    if (points.isEmpty) return;
+
+    var minLat = points.first.latitude;
+    var maxLat = minLat;
+    var minLng = points.first.longitude;
+    var maxLng = minLng;
+
+    for (final point in points.skip(1)) {
+      if (point.latitude < minLat) minLat = point.latitude;
+      if (point.latitude > maxLat) maxLat = point.latitude;
+      if (point.longitude < minLng) minLng = point.longitude;
+      if (point.longitude > maxLng) maxLng = point.longitude;
+    }
+
+    if (minLat == maxLat) {
+      minLat -= 0.001;
+      maxLat += 0.001;
+    }
+    if (minLng == maxLng) {
+      minLng -= 0.001;
+      maxLng += 0.001;
+    }
+
+    try {
+      await controller.animateCamera(
+        CameraUpdate.newLatLngBounds(
+          LatLngBounds(
+            southwest: LatLng(minLat, minLng),
+            northeast: LatLng(maxLat, maxLng),
+          ),
+          24,
+        ),
+      );
+    } catch (_) {
+      // A map can still be usable even if the camera cannot fit its bounds.
+    }
+  }
 
   Widget _buildMapPreview() {
     return Container(
@@ -261,72 +535,128 @@ class _ServiceLocationScreenState
           color: _locationOrange.withValues(alpha: 0.25),
         ),
       ),
-      child: Stack(
-        children: [
-          GoogleMap(
-            initialCameraPosition: const CameraPosition(
-              target: _defaultMapCenter,
-              zoom: 11,
-            ),
-            onMapCreated: (controller) {
-              _mapController = controller;
-            },
-            mapType: MapType.normal,
-            myLocationButtonEnabled: false,
-            myLocationEnabled: false,
-            zoomControlsEnabled: true,
-            compassEnabled: true,
-            mapToolbarEnabled: false,
-          ),
-          Positioned(
-            left: 10,
-            top: 10,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 7,
+      child: FutureBuilder<Set<Polygon>>(
+        future: _activeBoundaryPolygonsFuture,
+        builder: (context, snapshot) {
+          final polygons = snapshot.data ?? <Polygon>{};
+          _loadedActiveBoundaryPolygons = polygons;
+          if (snapshot.hasData && polygons.isNotEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _fitMapToActiveBoundaries(polygons);
+            });
+          }
+
+          return Stack(
+            children: [
+              GoogleMap(
+                initialCameraPosition: const CameraPosition(
+                  target: _defaultMapCenter,
+                  zoom: 11,
+                ),
+                onMapCreated: (controller) {
+                  _mapController = controller;
+                  if (_loadedActiveBoundaryPolygons.isNotEmpty) {
+                    _fitMapToActiveBoundaries(_loadedActiveBoundaryPolygons);
+                  }
+                },
+                polygons: polygons,
+                mapType: MapType.normal,
+                myLocationButtonEnabled: false,
+                myLocationEnabled: false,
+                zoomControlsEnabled: true,
+                compassEnabled: true,
+                mapToolbarEnabled: false,
               ),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.map_outlined,
-                    size: 18,
-                    color: _locationOrange,
+              Positioned(
+                left: 10,
+                top: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
                   ),
-                  SizedBox(width: 6),
-                  Text(
-                    'Location Map',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.map_outlined,
+                        size: 18,
+                        color: _locationOrange,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        snapshot.connectionState == ConnectionState.waiting
+                            ? 'Loading active boundaries…'
+                            : 'Active boundaries: ${polygons.length}',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Material(
+                  color: Colors.white.withValues(alpha: 0.95),
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    tooltip: 'Refresh active boundaries',
+                    onPressed: () {
+                      setState(() {
+                        _lastFittedPolygonSignature = null;
+                        _activeBoundaryPolygonsFuture =
+                            _loadActiveBoundaryPolygons();
+                      });
+                    },
+                    icon: const Icon(Icons.refresh, color: _locationOrange),
+                  ),
+                ),
+              ),
+              if (snapshot.hasError)
+                Positioned(
+                  left: 10,
+                  right: 10,
+                  bottom: 54,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                    child: Text(
+                      'Unable to load active boundaries: ${snapshot.error}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.red.shade700,
+                      ),
                     ),
                   ),
-                ],
+                ),
+              Positioned(
+                left: 10,
+                right: 10,
+                bottom: 10,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                  child: const Text(
+                    'Orange outlines show active verified City/Area boundaries. '
+                    'Tap a polygon to identify it; use Manage Boundary to review details.',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                ),
               ),
-            ),
-          ),
-          Positioned(
-            left: 10,
-            right: 10,
-            bottom: 10,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: const Text(
-                'किसी City या Area की वास्तविक Boundary देखने '
-                'और edit करने के लिए Manage Boundary खोलें।',
-                style: TextStyle(fontSize: 11),
-              ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -369,12 +699,14 @@ class _ServiceLocationScreenState
       case 1:
         return _buildStates();
       case 2:
-        return _buildCities();
+        return _buildDistricts();
       case 3:
-        return _buildAreas();
+        return _buildCities();
       case 4:
-        return _buildLocalities();
+        return _buildAreas();
       case 5:
+        return _buildLocalities();
+      case 6:
         return _buildImports();
       default:
         return _buildCountries();
@@ -552,6 +884,99 @@ class _ServiceLocationScreenState
   }
 
   // ============================================================
+  // DISTRICTS
+  // ============================================================
+
+  Widget _buildDistricts() {
+    return StreamBuilder<List<ServiceCountry>>(
+      stream: _service.watchCountries(),
+      builder: (context, countrySnapshot) {
+        if (countrySnapshot.hasError) {
+          return _emptyState('Unable to load Countries: ${countrySnapshot.error}');
+        }
+        if (!countrySnapshot.hasData) return _loadingState();
+
+        return StreamBuilder<List<ServiceState>>(
+          stream: _service.watchStates(),
+          builder: (context, stateSnapshot) {
+            if (stateSnapshot.hasError) {
+              return _emptyState('Unable to load States: ${stateSnapshot.error}');
+            }
+            if (!stateSnapshot.hasData) return _loadingState();
+
+            return StreamBuilder<List<ServiceDistrict>>(
+              stream: _service.watchDistricts(),
+              builder: (context, districtSnapshot) {
+                if (districtSnapshot.hasError) {
+                  return _emptyState(
+                    'Unable to load Districts: ${districtSnapshot.error}',
+                  );
+                }
+                if (!districtSnapshot.hasData) return _loadingState();
+
+                final countriesById = {
+                  for (final country in countrySnapshot.data!) country.id: country,
+                };
+                final statesById = {
+                  for (final state in stateSnapshot.data!) state.id: state,
+                };
+                final districts = districtSnapshot.data!.where((district) {
+                  final state = statesById[district.stateId];
+                  final country = countriesById[district.countryId];
+                  return _matches(
+                    '${district.id} ${district.name} '
+                    '${district.stateId} ${state?.name ?? ""} '
+                    '${district.countryId} ${country?.name ?? ""}',
+                  );
+                }).toList();
+
+                if (districts.isEmpty) {
+                  return _emptyState(
+                    _search.isEmpty
+                        ? 'No Districts yet. Use Add Location to create a District under a State.'
+                        : 'No Districts match your search.',
+                  );
+                }
+
+                return ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  children: [
+                    _sectionTitle('Districts · ${districts.length}'),
+                    for (final district in districts)
+                      _locationCard(
+                        title: district.name,
+                        subtitle: 'State: ${statesById[district.stateId]?.name ?? "Unknown State"}\n'
+                            'Country: ${countriesById[district.countryId]?.name ?? "Unknown Country"}\n'
+                            'Service: ${district.isActive ? "Active" : "Inactive"}',
+                        active: district.isActive,
+                        icon: Icons.map_outlined,
+                        onToggle: (value) async {
+                          try {
+                            await _service.setDistrictStatus(
+                              districtId: district.id,
+                              isActive: value,
+                            );
+                            _showMessage(
+                              value
+                                  ? 'District activated.'
+                                  : 'District deactivated.',
+                            );
+                          } catch (error) {
+                            await _showError(error);
+                          }
+                        },
+                      ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ============================================================
   // CITIES / DISTRICTS
   // ============================================================
 
@@ -562,28 +987,36 @@ class _ServiceLocationScreenState
         if (countrySnapshot.hasError) {
           return _emptyState('${countrySnapshot.error}');
         }
+        if (!countrySnapshot.hasData) return _loadingState();
 
-        if (!countrySnapshot.hasData) {
-          return _loadingState();
-        }
+        return StreamBuilder<List<ServiceState>>(
+          stream: _service.watchStates(),
+          builder: (context, stateSnapshot) {
+            if (stateSnapshot.hasError) {
+              return _emptyState('${stateSnapshot.error}');
+            }
+            if (!stateSnapshot.hasData) return _loadingState();
 
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          children: [
-            for (final country in countrySnapshot.data!)
-              StreamBuilder<List<ServiceState>>(
-                stream: _service.watchStates(
-                  countryId: country.id,
-                ),
-                builder: (context, stateSnapshot) {
-                  if (stateSnapshot.hasError ||
-                      !stateSnapshot.hasData) {
-                    return const SizedBox.shrink();
-                  }
+            return StreamBuilder<List<ServiceDistrict>>(
+              stream: _service.watchDistricts(),
+              builder: (context, districtSnapshot) {
+                if (districtSnapshot.hasError) {
+                  return _emptyState('${districtSnapshot.error}');
+                }
+                if (!districtSnapshot.hasData) return _loadingState();
 
-                  return Column(
-                    children: [
-                      for (final state in stateSnapshot.data!)
+                final districtsById = {
+                  for (final district in districtSnapshot.data!)
+                    district.id: district,
+                };
+
+                return ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  children: [
+                    for (final country in countrySnapshot.data!)
+                      for (final state in stateSnapshot.data!.where(
+                        (item) => item.countryId == country.id,
+                      ))
                         StreamBuilder<List<ServiceCity>>(
                           stream: _service.watchCities(
                             countryId: country.id,
@@ -595,53 +1028,46 @@ class _ServiceLocationScreenState
                               return const SizedBox.shrink();
                             }
 
-                            final cities = citySnapshot.data!
-                                .where(
-                                  (item) => _matches(
-                                    '${item.id} ${item.name} '
-                                    '${state.id} ${state.name} '
-                                    '${country.id} ${country.name}',
-                                  ),
-                                )
-                                .toList();
+                            final cities = citySnapshot.data!.where((item) {
+                              final district = districtsById[item.districtId];
+                              return _matches(
+                                '${item.id} ${item.name} '
+                                '${state.id} ${state.name} '
+                                '${country.id} ${country.name} '
+                                '${item.districtId} ${district?.name ?? "Legacy City"}',
+                              );
+                            }).toList();
 
                             if (cities.isEmpty) {
                               return const SizedBox.shrink();
                             }
 
                             return Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _sectionTitle(
-                                  '${state.name} · ${country.name}',
-                                ),
+                                _sectionTitle('${state.name} · ${country.name}'),
                                 for (final item in cities)
                                   _locationCard(
                                     title: item.name,
                                     subtitle:
                                         'ID: ${item.id}\n'
-                                        'Legacy boundary points: '
-                                        '${item.boundary.length}\n'
-                                        'Legacy verified: '
-                                        '${item.boundaryVerified ? "Yes" : "No"}\n'
+                                        'District: ${districtsById[item.districtId]?.name ?? (item.districtId.isEmpty ? "Not linked (legacy City)" : "Unknown District")}\n'
+                                        'Legacy boundary points: ${item.boundary.length}\n'
+                                        'Legacy verified: ${item.boundaryVerified ? "Yes" : "No"}\n'
                                         'Service: ${item.isServiceActive ? "Active" : "Inactive"}',
                                     active: item.isServiceActive,
                                     icon: Icons.location_city,
-                                    onManageBoundary: () =>
-                                        _manageBoundary(
+                                    onManageBoundary: () => _manageBoundary(
                                       locationId: item.id,
                                       locationName: item.name,
                                       locationType: 'city',
                                     ),
                                     onToggle: (value) async {
                                       try {
-                                        await _service
-                                            .setCityServiceStatus(
+                                        await _service.setCityServiceStatus(
                                           cityId: item.id,
                                           isActive: value,
                                         );
-
                                         _showMessage(
                                           value
                                               ? 'City service activated.'
@@ -656,11 +1082,11 @@ class _ServiceLocationScreenState
                             );
                           },
                         ),
-                    ],
-                  );
-                },
-              ),
-          ],
+                  ],
+                );
+              },
+            );
+          },
         );
       },
     );
@@ -699,7 +1125,7 @@ class _ServiceLocationScreenState
                       .where(
                         (item) => _matches(
                           '${item.id} ${item.name} '
-                          '${city.id} ${city.name}',
+                          '${city.id} ${city.name} ${city.districtId}',
                         ),
                       )
                       .toList();
@@ -717,7 +1143,8 @@ class _ServiceLocationScreenState
                           title: item.name,
                           subtitle:
                               'ID: ${item.id}\n'
-                              'City/District: ${city.name}\n'
+                              'City: ${city.name}\n'
+                              '${city.districtId.isEmpty ? "District: Legacy City (not linked)" : "District ID: ${city.districtId}"}\n'
                               'Legacy boundary points: '
                               '${item.boundary.length} · '
                               'Legacy verified: '
@@ -868,6 +1295,814 @@ class _ServiceLocationScreenState
     );
   }
 
+  Future<void> _confirmAndRunCsvImport({
+    required LocationCsvPreview preview,
+    required String fileName,
+  }) async {
+    if (!preview.isSyntacticallyValid || preview.rows.isEmpty) {
+      _showMessage('Validate a non-empty CSV before importing.');
+      return;
+    }
+
+    late final List<ServiceCountry> activeCountries;
+    try {
+      activeCountries = (await _service.watchCountries().first)
+          .where((country) => country.isActive && country.id.trim().isNotEmpty)
+          .toList(growable: false);
+    } catch (error) {
+      await _showError(error);
+      return;
+    }
+    if (!mounted) return;
+    if (activeCountries.isEmpty) {
+      await _showError(StateError(
+        'No active Service Country is available. Activate/configure the country before importing.',
+      ));
+      return;
+    }
+
+    final runIdController = TextEditingController(
+      text: 'csv-${DateTime.now().millisecondsSinceEpoch}',
+    );
+    String? selectedCountryId = activeCountries.first.id;
+    bool confirmed = false;
+    bool importing = false;
+
+    try {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('Confirm location CSV import'),
+            content: SizedBox(
+              width: 520,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Source: $fileName'),
+                    const SizedBox(height: 6),
+                    Text('CSV rows: ${preview.rows.length}'),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedCountryId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Parent country',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: activeCountries
+                          .map((country) => DropdownMenuItem<String>(
+                                value: country.id,
+                                child: Text('${country.name} (${country.code})'),
+                              ))
+                          .toList(growable: false),
+                      onChanged: importing
+                          ? null
+                          : (value) => setDialogState(
+                                () => selectedCountryId = value,
+                              ),
+                    ),
+                    if (selectedCountryId != null) ...[
+                      const SizedBox(height: 10),
+                      Builder(builder: (context) {
+                        final fingerprint = locationCsvImportFingerprint(
+                          countryId: selectedCountryId!,
+                          preview: preview,
+                        );
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF7F7F7),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFE6E0DA)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Import fingerprint · save this for reconciliation',
+                                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                              const SizedBox(height: 5),
+                              SelectableText(fingerprint, style: const TextStyle(fontSize: 11)),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton.icon(
+                                  onPressed: () async {
+                                    await Clipboard.setData(ClipboardData(text: fingerprint));
+                                    _showMessage('Import fingerprint copied. Keep it with the Run ID.');
+                                  },
+                                  icon: const Icon(Icons.copy_rounded, size: 16),
+                                  label: const Text('Copy fingerprint'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: runIdController,
+                      enabled: !importing,
+                      decoration: const InputDecoration(
+                        labelText: 'Import Run ID',
+                        helperText: 'Save this ID if the import needs reconciliation.',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF4E8),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFFFD1A8)),
+                      ),
+                      child: const Text(
+                        'Import creates inactive State → District → City → Area records only. It does not create boundaries or activate service. A network timeout can leave a partial run; do not retry with a new Run ID until the original run is reconciled.',
+                        style: TextStyle(fontSize: 12, height: 1.4),
+                      ),
+                    ),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: confirmed,
+                      onChanged: importing
+                          ? null
+                          : (value) => setDialogState(
+                                () => confirmed = value == true,
+                              ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      title: const Text(
+                        'I reviewed the CSV and confirm these location records should be imported.',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    if (importing) const LinearProgressIndicator(),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: importing
+                    ? null
+                    : () => Navigator.of(dialogContext).pop(),
+                child: const Text('Cancel'),
+              ),
+              FilledButton.icon(
+                onPressed: importing || !confirmed || selectedCountryId == null
+                    ? null
+                    : () async {
+                        final runId = runIdController.text.trim();
+                        try {
+                          validateLocationCsvImportRunId(runId);
+                        } catch (error) {
+                          await _showError(error);
+                          return;
+                        }
+                        setDialogState(() => importing = true);
+                        try {
+                          final result = await LocationCsvImportService(
+                            locations: _service,
+                          ).importPreview(
+                            preview: preview,
+                            countryId: selectedCountryId!,
+                            fileName: fileName,
+                            importRunId: runId,
+                          );
+                          if (!dialogContext.mounted) return;
+                          Navigator.of(dialogContext).pop();
+                          _showMessage(
+                            'Import completed · Planned ${result.plannedRecords} · '
+                            'Created ${result.createdRecords} · Reused ${result.reusedRecords}.',
+                          );
+                        } catch (error) {
+                          if (dialogContext.mounted) {
+                            setDialogState(() => importing = false);
+                          }
+                          await _showError(error);
+                        }
+                      },
+                icon: const Icon(Icons.cloud_upload_outlined),
+                label: Text(importing ? 'Importing…' : 'Import locations'),
+              ),
+            ],
+          ),
+        ),
+      );
+    } finally {
+      runIdController.dispose();
+    }
+  }
+
+  // ============================================================
+  // READ-ONLY CSV PREVIEW
+  // ============================================================
+
+  Future<void> _showCsvPreviewDialog() async {
+    final controller = TextEditingController();
+    final parser = LocationCsvPreviewParser();
+    LocationCsvPreview? preview;
+    List<String> mappingReport = [];
+    bool checkingParents = false;
+    String sourceName = 'Pasted CSV';
+
+    String normalizeLocationName(String value) =>
+        value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+
+    List<String> optionalSourceHeaders(LocationCsvPreview value) =>
+        value.headers.where((header) {
+          final normalized = header
+              .trim()
+              .toLowerCase()
+              .replaceAll(RegExp(r'[ _-]+'), '');
+          return !const {'state', 'district', 'city', 'area'}
+              .contains(normalized);
+        }).toList();
+
+    String rowPreviewSubtitle(LocationCsvRow row) {
+      final validation = row.errors.isEmpty
+          ? 'Validation passed'
+          : row.errors.join('\n');
+      final metadata = row.sourceValues.entries
+          .where((entry) {
+            final normalized = entry.key
+                .trim()
+                .toLowerCase()
+                .replaceAll(RegExp(r'[ _-]+'), '');
+            return !const {'state', 'district', 'city', 'area'}
+                    .contains(normalized) &&
+                entry.value.isNotEmpty;
+          })
+          .map((entry) => '${entry.key}: ${entry.value}')
+          .join(' · ');
+      return metadata.isEmpty
+          ? validation
+          : '$validation\nSource metadata: $metadata';
+    }
+
+    Future<void> checkParentMapping(StateSetter setDialogState) async {
+      final currentPreview = preview;
+      if (currentPreview == null || !currentPreview.isSyntacticallyValid) {
+        setDialogState(() {
+          mappingReport = ['Run a clean CSV validation before checking parents.'];
+        });
+        return;
+      }
+
+      setDialogState(() {
+        checkingParents = true;
+        mappingReport = [];
+      });
+
+      try {
+        final states = await _service.watchStates().first;
+        final districts = await _service.watchDistricts().first;
+        final cities = await _service.watchCities().first;
+        final areas = await _service.watchAreas().first;
+        final report = <String>[];
+        var matched = 0;
+        var lgdMatched = 0;
+
+        for (final row in currentPreview.rows) {
+          final lgdMatch = matchCsvStateDistrictToLgd(row);
+          if (lgdMatch.isMatched) {
+            lgdMatched++;
+          } else {
+            report.add('Line ${row.lineNumber}: LGD check — ${lgdMatch.message}');
+          }
+
+          final stateName = row.values['state'] ?? '';
+          final cityName = row.values['city'] ?? '';
+          final areaName = row.values['area'] ?? '';
+
+          final stateMatches = states.where(
+            (item) => normalizeLocationName(item.name) ==
+                normalizeLocationName(stateName),
+          ).toList();
+
+          if (stateMatches.length != 1) {
+            report.add(
+              'Line ${row.lineNumber}: State "$stateName" '
+              '${stateMatches.isEmpty ? 'not found' : 'is ambiguous'} '
+              'in existing Service Locations.',
+            );
+            continue;
+          }
+
+          final state = stateMatches.single;
+          final districtName = row.values['district'] ?? '';
+          final districtMatches = districts.where(
+            (item) =>
+                item.stateId == state.id &&
+                normalizeLocationName(item.name) ==
+                    normalizeLocationName(districtName),
+          ).toList();
+
+          if (districtMatches.length != 1) {
+            report.add(
+              'Line ${row.lineNumber}: District "$districtName" under '
+              '$stateName ${districtMatches.isEmpty ? 'not found' : 'is ambiguous'} '
+              'in existing Service Locations.',
+            );
+            continue;
+          }
+
+          final district = districtMatches.single;
+          final sameNameCities = cities.where(
+            (item) =>
+                item.stateId == state.id &&
+                normalizeLocationName(item.name) ==
+                    normalizeLocationName(cityName),
+          ).toList();
+          final cityMatches = sameNameCities.where(
+            (item) => item.districtId == district.id,
+          ).toList();
+
+          if (cityMatches.length != 1) {
+            final legacyUnlinked = sameNameCities.any(
+              (item) => item.districtId.trim().isEmpty,
+            );
+            final detail = cityMatches.isEmpty
+                ? (legacyUnlinked
+                    ? 'exists but is not linked to District "$districtName"'
+                    : 'not found under District "$districtName"')
+                : 'is ambiguous under District "$districtName"';
+            report.add(
+              'Line ${row.lineNumber}: City "$cityName" $detail.',
+            );
+            continue;
+          }
+
+          final city = cityMatches.single;
+          final areaMatches = areas.where(
+            (item) =>
+                item.cityId == city.id &&
+                normalizeLocationName(item.name) ==
+                    normalizeLocationName(areaName),
+          ).toList();
+
+          if (areaMatches.length != 1) {
+            report.add(
+              'Line ${row.lineNumber}: Area "$areaName" under '
+              '$cityName ${areaMatches.isEmpty ? 'not found' : 'is ambiguous'}.',
+            );
+            continue;
+          }
+
+          matched++;
+        }
+
+        report.insert(
+          0,
+          'LGD State/District reference matches: $lgdMatched / ${currentPreview.rows.length} rows. This uses the bundled reference snapshot only.',
+        );
+        report.insert(
+          1,
+          'Existing Service State/City/Area name matches: $matched / ${currentPreview.rows.length} rows.',
+        );
+        report.insert(
+          2,
+          'District mapping uses existing Service District records and requires each matched City to carry the matching districtId. Legacy unlinked Cities are reported, not guessed. This check never writes data.',
+        );
+
+        setDialogState(() {
+          mappingReport = report;
+        });
+      } catch (error) {
+        setDialogState(() {
+          mappingReport = ['Could not read existing parent records: $error'];
+        });
+      } finally {
+        setDialogState(() {
+          checkingParents = false;
+        });
+      }
+    }
+
+    Future<void> pickCsvFile(StateSetter setDialogState) async {
+      try {
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: const ['csv'],
+          allowMultiple: false,
+          withData: true,
+        );
+        if (result == null || result.files.isEmpty) return;
+
+        final file = result.files.single;
+        final bytes = file.bytes;
+        if (bytes == null) {
+          throw const FormatException(
+            'CSV file bytes are unavailable. Please try another file.',
+          );
+        }
+
+        final contents = utf8.decode(bytes, allowMalformed: false);
+        controller.text = contents;
+        setDialogState(() {
+          sourceName = file.name;
+          preview = parser.parse(contents);
+          // A new file invalidates any parent-mapping report from the old preview.
+          mappingReport = [];
+        });
+      } catch (error) {
+        setDialogState(() {
+          preview = LocationCsvPreview(
+            headers: const [],
+            rows: const [],
+            fileErrors: ['Could not read selected CSV: $error'],
+          );
+          // Do not leave stale mapping results visible after a file-read error.
+          mappingReport = [];
+        });
+      }
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Preview location CSV'),
+          content: SizedBox(
+            width: 760,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Paste CSV text below. Required columns: State, District, City, Area. '
+                    'This preview does not save or activate any locations.',
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () => pickCsvFile(setDialogState),
+                    icon: const Icon(Icons.upload_file_outlined),
+                    label: const Text('Choose CSV file'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: controller,
+                    onChanged: (_) {
+                      setDialogState(() {
+                        sourceName = 'Pasted CSV';
+                        preview = null;
+                        mappingReport = [];
+                      });
+                    },
+                    minLines: 6,
+                    maxLines: 12,
+                    keyboardType: TextInputType.multiline,
+                    decoration: const InputDecoration(
+                      hintText: 'State,District,City,Area\n'
+                          'Uttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City',
+                      border: OutlineInputBorder(),
+                      alignLabelWithHint: true,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (preview != null) ...[
+                    SelectableText('Source: $sourceName'),
+                    SelectableText(
+                      'SHA-256: ${sha256.convert(utf8.encode(controller.text))}',
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        Chip(label: Text('Rows: ${preview!.rows.length}')),
+                        Chip(label: Text('Valid: ${preview!.validRowCount}')),
+                        Chip(label: Text('Invalid: ${preview!.invalidRowCount}')),
+                      ],
+                    ),
+                    if (optionalSourceHeaders(preview!).isNotEmpty)
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.blueGrey.withValues(alpha: 0.07),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.blueGrey.withValues(alpha: 0.25),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Optional source metadata · preview only',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: optionalSourceHeaders(preview!)
+                                  .map((header) => Chip(
+                                        visualDensity: VisualDensity.compact,
+                                        label: Text(header),
+                                      ))
+                                  .toList(),
+                            ),
+                            const Text(
+                              'Source codes and versions are displayed as provided; they are not verified against an authoritative source.',
+                            ),
+                          ],
+                        ),
+                      ),
+                    for (final error in preview!.fileErrors)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          error,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    for (final row in preview!.rows.take(20))
+                      Card(
+                        margin: const EdgeInsets.only(top: 6),
+                        child: ListTile(
+                          dense: true,
+                          leading: Icon(
+                            row.isValid ? Icons.check_circle_outline : Icons.error_outline,
+                            color: row.isValid ? Colors.green : Colors.red,
+                          ),
+                          title: Text(
+                            'Line ${row.lineNumber}: ${row.values['state']} · '
+                            '${row.values['district']} · ${row.values['city']} · '
+                            '${row.values['area']}',
+                          ),
+                          subtitle: Text(rowPreviewSubtitle(row)),
+                        ),
+                      ),
+                    if (preview!.rows.length > 20)
+                      Text('Showing first 20 of ${preview!.rows.length} rows.'),
+                    if (preview!.isSyntacticallyValid)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: _locationOrange.withValues(alpha: 0.45),
+                          ),
+                        ),
+                        child: const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'CSV syntax validation passed — NOT import approval.',
+                              style: TextStyle(
+                                color: _locationOrange,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              'Preview itself never writes location records. After validation, use Import locations to choose an active parent country, enter a stable Run ID, and explicitly confirm the import. The trusted backend enforces super_admin access and records the bounded plan before hierarchy writes. If a run fails or times out, do not retry with a new Run ID; use Import History → Reconcile to inspect the original run. Import creates inactive records only and never creates boundaries or activates service.',
+                            ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      onPressed: checkingParents
+                          ? null
+                          : () => checkParentMapping(setDialogState),
+                      icon: checkingParents
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.account_tree_outlined),
+                      label: Text(
+                        checkingParents
+                            ? 'Checking existing parents…'
+                            : 'Check Existing Parent Mapping',
+                      ),
+                    ),
+                    for (final line in mappingReport)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(
+                          line,
+                          style: TextStyle(
+                            color: line.startsWith('Existing State/City/Area name matches')
+                                ? Colors.green.shade800
+                                : Colors.deepOrange.shade800,
+                          ),
+                        ),
+                      ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => setDialogState(() {
+                controller.clear();
+                preview = null;
+                mappingReport = [];
+                sourceName = 'Pasted CSV';
+              }),
+              child: const Text('Clear'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Close'),
+            ),
+            FilledButton.icon(
+              onPressed: preview == null || !preview!.isSyntacticallyValid
+                  ? null
+                  : () => _confirmAndRunCsvImport(
+                        preview: preview!,
+                        fileName: sourceName,
+                      ),
+              icon: const Icon(Icons.cloud_upload_outlined),
+              label: const Text('Import locations'),
+            ),
+            FilledButton.icon(
+              onPressed: () => setDialogState(() {
+                preview = parser.parse(controller.text);
+                mappingReport = [];
+              }),
+              icon: const Icon(Icons.fact_check_outlined),
+              label: const Text('Validate CSV'),
+            ),
+          ],
+        ),
+      ),
+    );
+    controller.dispose();
+  }
+
+  // Read-only reconciliation never resumes, repairs, activates, or replays writes.
+  Future<void> _reconcileImportById() async {
+    final runIdController = TextEditingController();
+    final fingerprintController = TextEditingController();
+    var checking = false;
+    try {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('Reconcile import run'),
+            content: SizedBox(
+              width: 560,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Enter the original Run ID and exact SHA-256 fingerprint. This check is read-only and never resumes or repairs an import.'),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: runIdController,
+                      enabled: !checking,
+                      textInputAction: TextInputAction.next,
+                      decoration: const InputDecoration(
+                        labelText: 'Import Run ID',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: fingerprintController,
+                      enabled: !checking,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      decoration: const InputDecoration(
+                        labelText: 'Input fingerprint (sha256:...)',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: checking ? null : () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
+              FilledButton(
+                onPressed: checking ? null : () async {
+                  final runId = runIdController.text.trim();
+                  final fingerprint = fingerprintController.text.trim();
+                  if (!RegExp(r'^[A-Za-z0-9_-]{1,150}$').hasMatch(runId)) {
+                    _showMessage('Enter a valid Run ID.');
+                    return;
+                  }
+                  if (!RegExp(r'^sha256:[0-9a-f]{64}$').hasMatch(fingerprint)) {
+                    _showMessage('Enter the complete lowercase SHA-256 fingerprint.');
+                    return;
+                  }
+                  setDialogState(() => checking = true);
+                  try {
+                    final inspection = await _service.inspectImportRun(runId: runId, inputFingerprint: fingerprint);
+                    final result = await _service.reconcileImportPlan(runId: runId, inputFingerprint: fingerprint);
+                    if (!dialogContext.mounted) return;
+                    Navigator.of(dialogContext).pop();
+                    await showDialog<void>(
+                      context: this.context,
+                      builder: (resultContext) => AlertDialog(
+                        title: const Text('Read-only reconciliation result'),
+                        content: SizedBox(
+                          width: 560,
+                          child: SingleChildScrollView(
+                            child: SelectableText(
+                              'Run: ' + runId + '\n' +
+                              'Server status: ' + (inspection['status']?.toString() ?? 'unknown') + '\n' +
+                              'Reconciliation: ' + (result['status']?.toString() ?? 'unknown') + '\n' +
+                              'Read-only: ' + (result['readOnly'] == true ? 'Yes' : 'No') + '\n' +
+                              'Planned records: ' + (result['plannedRecords'] ?? inspection['plannedRecords'] ?? '—').toString() + '\n' +
+                              'Matching records: ' + (result['matchingRecords'] ?? 0).toString() + '\n' +
+                              'Missing IDs: ' + ((result['missingIds'] as List? ?? const []).join(', ')) + '\n' +
+                              'Mismatch IDs: ' + ((result['mismatchIds'] as List? ?? const []).join(', ')) + '\n' +
+                              'Truncated: ' + (result['truncated'] == true ? 'Yes' : 'No') + '\n\n' +
+                              'No location was created, changed, activated, resumed or repaired.',
+                            ),
+                          ),
+                        ),
+                        actions: [TextButton(onPressed: () => Navigator.of(resultContext).pop(), child: const Text('Close'))],
+                      ),
+                    );
+                  } catch (error) {
+                    if (dialogContext.mounted) setDialogState(() => checking = false);
+                    await _showError(error);
+                  }
+                },
+                child: Text(checking ? 'Checking...' : 'Inspect & Reconcile'),
+              ),
+            ],
+          ),
+        ),
+      );
+    } finally {
+      runIdController.dispose();
+      fingerprintController.dispose();
+    }
+  }
+
+  Future<void> _reconcileImportRecord(ServiceLocationImport item) async {
+    final fingerprint = item.inputFingerprint.trim();
+    if (item.id.trim().isEmpty || fingerprint.isEmpty) {
+      _showMessage('This legacy import has no fingerprint; reconciliation is unavailable.');
+      return;
+    }
+    try {
+      final inspection = await _service.inspectImportRun(
+        runId: item.id,
+        inputFingerprint: fingerprint,
+      );
+      final reconciliation = await _service.reconcileImportPlan(
+        runId: item.id,
+        inputFingerprint: fingerprint,
+      );
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Read-only import reconciliation'),
+          content: SizedBox(
+            width: 560,
+            child: SingleChildScrollView(
+              child: SelectableText(
+                'Run: ${item.id}\n'
+                'Audit status: ${item.status}\n'
+                'Server status: ${inspection['status'] ?? 'unknown'}\n'
+                'Reconciliation: ${reconciliation['status'] ?? 'unknown'}\n'
+                'Read-only: ${reconciliation['readOnly'] == true ? 'Yes' : 'No'}\n'
+                'Plan records: ${reconciliation['plannedRecords'] ?? inspection['plannedRecords'] ?? '—'}\n'
+                'Matching records: ${reconciliation['matchingRecords'] ?? 0}\n'
+                'Missing records: ${reconciliation['missingCount'] ?? (reconciliation['missingIds'] as List? ?? const []).length}\n'
+                'Mismatched records: ${reconciliation['mismatchCount'] ?? (reconciliation['mismatchIds'] as List? ?? const []).length}\n'
+                'Missing IDs (first 50): ${(reconciliation['missingIds'] as List? ?? const []).join(', ')}\n'
+                'Mismatched IDs (first 50): ${(reconciliation['mismatchIds'] as List? ?? const []).join(', ')}\n'
+                'Results truncated: ${reconciliation['truncated'] == true ? 'Yes — more records need investigation' : 'No'}\n\n'
+                'This check does not write, repair, resume, or activate any location.',
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (error) {
+      await _showError(error);
+    }
+  }
+
   // ============================================================
   // IMPORT HISTORY
   // ============================================================
@@ -895,35 +2130,91 @@ class _ServiceLocationScreenState
             )
             .toList();
 
-        if (items.isEmpty) {
-          return _emptyState('No import records found.');
-        }
-
-        return ListView.builder(
+        return ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            final item = items[index];
-
-            return Card(
+          children: [
+            Card(
               color: Colors.white,
-              child: ListTile(
-                leading: const Icon(
-                  Icons.file_present,
-                  color: _locationOrange,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'CSV Import Preview',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Preview and validate State, District, City and Area rows before import. '
+                      'Import is restricted to active super_admin accounts. New records stay inactive; '
+                      'service activation still requires separate boundary verification.',
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        FilledButton.icon(
+                          onPressed: _showCsvPreviewDialog,
+                          icon: const Icon(Icons.preview_outlined),
+                          label: const Text('Paste CSV and Preview'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: _locationOrange,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: _reconcileImportById,
+                          icon: const Icon(Icons.manage_search_outlined),
+                          label: const Text('Reconcile by Run ID'),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                title: Text(item.fileName),
-                subtitle: Text(
-                  'ID: ${item.id}\n'
-                  'Source: ${item.source}\n'
-                  'Status: ${item.status}\n'
-                  'Verification: ${item.verificationStatus}',
-                ),
-                isThreeLine: true,
               ),
-            );
-          },
+            ),
+            if (items.isEmpty)
+              const Padding(
+                padding: EdgeInsets.only(top: 16),
+                child: Text('No import history records found yet.'),
+              ),
+            for (final item in items)
+              Card(
+                color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.file_present, color: _locationOrange),
+                        title: Text(item.fileName),
+                        subtitle: Text(
+                          'ID: ${item.id}\n'
+                          'Source: ${item.source}\n'
+                          'Status: ${item.status}\n'
+                          'Verification: ${item.verificationStatus}',
+                        ),
+                        isThreeLine: true,
+                      ),
+                      if (item.inputFingerprint.trim().isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                          child: OutlinedButton.icon(
+                            onPressed: () => _reconcileImportRecord(item),
+                            icon: const Icon(Icons.fact_check_outlined),
+                            label: const Text('Inspect & Reconcile (Read-only)'),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         );
+
       },
     );
   }
@@ -951,11 +2242,19 @@ class _ServiceLocationScreenState
           .where((boundary) => boundary.isVerified)
           .toList();
 
-      final existing = verified.isNotEmpty
-          ? verified.first
-          : boundaries.isNotEmpty
-              ? boundaries.first
-              : null;
+      // When more than one record exists, let the administrator explicitly
+      // choose which boundary to inspect/edit/review instead of silently
+      // selecting the first record by status.
+      final existing = boundaries.length <= 1
+          ? (boundaries.isEmpty ? null : boundaries.single)
+          : await _chooseBoundaryRecord(
+              locationName: locationName,
+              boundaries: boundaries,
+            );
+
+      // A null result means the chooser was cancelled. For a location with
+      // no records, null is the intentional "create first boundary" state.
+      if (boundaries.length > 1 && existing == null) return;
 
       final initialPoints = existing == null
           ? <LatLng>[]
@@ -974,10 +2273,87 @@ class _ServiceLocationScreenState
         locationType: locationType,
         existingBoundary: existing,
         initialPoints: initialPoints,
+        hasVerifiedBoundary: verified.isNotEmpty,
       );
     } catch (error) {
       await _showError(error);
     }
+  }
+
+  Future<ServiceLocationBoundary?> _chooseBoundaryRecord({
+    required String locationName,
+    required List<ServiceLocationBoundary> boundaries,
+  }) {
+    String statusLabel(BoundaryVerificationStatus status) {
+      switch (status) {
+        case BoundaryVerificationStatus.pending:
+          return 'Pending review';
+        case BoundaryVerificationStatus.verified:
+          return 'Verified · read-only';
+        case BoundaryVerificationStatus.rejected:
+          return 'Rejected · can edit/resubmit';
+        case BoundaryVerificationStatus.notAvailable:
+          return 'Status unavailable';
+      }
+    }
+
+    String dateLabel(DateTime value) {
+      final local = value.toLocal();
+      String two(int n) => n.toString().padLeft(2, '0');
+      return '${local.year}-${two(local.month)}-${two(local.day)} '
+          '${two(local.hour)}:${two(local.minute)}';
+    }
+
+    final ordered = sortBoundariesForChooser(boundaries);
+
+    return showDialog<ServiceLocationBoundary>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Choose Boundary · $locationName'),
+        content: SizedBox(
+          width: 620,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'एक रिकॉर्ड चुनें। Verified रिकॉर्ड read-only है; '
+                  'पुराना Verified रिकॉर्ड हटाया या बदला नहीं जाएगा।',
+                ),
+                const SizedBox(height: 10),
+                for (final boundary in ordered)
+                  Card(
+                    child: ListTile(
+                      leading: Icon(
+                        boundary.isVerified
+                            ? Icons.verified_outlined
+                            : boundary.verificationStatus ==
+                                    BoundaryVerificationStatus.rejected
+                                ? Icons.error_outline
+                                : Icons.map_outlined,
+                      ),
+                      title: Text(statusLabel(boundary.verificationStatus)),
+                      subtitle: Text(
+                        'Updated: ${dateLabel(boundary.updatedAt)}\n'
+                        'Source: ${boundary.sourceName.isEmpty ? "Not specified" : boundary.sourceName}\n'
+                        'ID: ${boundary.id}',
+                      ),
+                      isThreeLine: true,
+                      onTap: () => Navigator.of(dialogContext).pop(boundary),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _showBoundaryEditor({
@@ -986,6 +2362,7 @@ class _ServiceLocationScreenState
     required String locationType,
     required ServiceLocationBoundary? existingBoundary,
     required List<LatLng> initialPoints,
+    bool hasVerifiedBoundary = false,
   }) async {
     final sourceNameController = TextEditingController(
       text: existingBoundary?.sourceName ?? '',
@@ -1119,6 +2496,26 @@ class _ServiceLocationScreenState
 
                         _boundaryStatusBanner(existingBoundary),
 
+                        if (hasVerifiedBoundary && !isVerified) ...[
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: _locationOrange.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: _locationOrange.withValues(alpha: 0.35),
+                              ),
+                            ),
+                            child: const Text(
+                              'इस location की पुरानी Verified Boundary सुरक्षित है। '
+                              'यह अलग replacement record है। Firebase replacement '
+                              'verify करने से पहले location का inactive होना जरूरी है; '
+                              'यह स्क्रीन service को अपने-आप deactivate नहीं करेगी।',
+                            ),
+                          ),
+                        ],
+
                         const SizedBox(height: 12),
 
                         if (isRejected) ...[
@@ -1145,7 +2542,7 @@ class _ServiceLocationScreenState
 
                         if (!isVerified) ...[
                           DropdownButtonFormField<BoundarySourceType>(
-                            value: sourceType,
+                            initialValue: sourceType,
                             decoration: const InputDecoration(
                               labelText: 'Boundary source type',
                               border: OutlineInputBorder(),
@@ -1379,6 +2776,26 @@ class _ServiceLocationScreenState
                       style: FilledButton.styleFrom(
                         backgroundColor: Colors.green,
                       ),
+                    ),
+
+                  if (isVerified)
+                    OutlinedButton.icon(
+                      onPressed: isSaving
+                          ? null
+                          : () async {
+                              Navigator.of(dialogContext).pop();
+                              await Future<void>.delayed(Duration.zero);
+                              if (!mounted) return;
+                              await _showBoundaryEditor(
+                                locationId: locationId,
+                                locationName: locationName,
+                                locationType: locationType,
+                                existingBoundary: null,
+                                initialPoints: const <LatLng>[],
+                              );
+                            },
+                      icon: const Icon(Icons.add_location_alt_outlined),
+                      label: const Text('Create replacement boundary'),
                     ),
 
                   TextButton(
