@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+  final VoidCallback? onOpenLiveOperations;
+
+  const DashboardScreen({
+    super.key,
+    this.onOpenLiveOperations,
+  });
 
   final Color orange = const Color(0xFFFF6A00);
 
@@ -59,7 +64,7 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFFF7F7F7),
+      color: const Color(0xFFFFFAF5),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -216,33 +221,164 @@ class DashboardScreen extends StatelessWidget {
       'EEEE, dd MMMM yyyy',
     ).format(DateTime.now());
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Good morning, Admin 👋',
-          style: TextStyle(
-            fontSize: 27,
-            fontWeight: FontWeight.w800,
-          ),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFFFFFFF),
+            Color(0xFFFFEAD7),
+            Color(0xFFFFF7EF),
+          ],
         ),
-        const SizedBox(height: 6),
-        Text(
-          'Here is what is happening across DOJO WALK today.',
-          style: TextStyle(
-            color: Colors.grey.shade600,
-            fontSize: 14,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFFFD8B5)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF7900).withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          date,
-          style: TextStyle(
-            color: Colors.grey.shade500,
-            fontSize: 12,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                height: 48,
+                width: 48,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFF9A3D), Color(0xFFFF7900)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFF7900).withValues(alpha: 0.25),
+                      blurRadius: 12,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.dashboard_customize_rounded,
+                  color: Colors.white,
+                  size: 27,
+                ),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Text(
+                  'DOJO WALK Command Center',
+                  style: TextStyle(
+                    color: Color(0xFF292524),
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.circle,
+                size: 9,
+                color: Color(0xFF16A34A),
+              ),
+              const SizedBox(width: 6),
+              const Text(
+                'Overview',
+                style: TextStyle(
+                  color: Color(0xFF15803D),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
-        ),
-      ],
+          const SizedBox(height: 18),
+          const Text(
+            'Good morning, Admin 👋',
+            style: TextStyle(
+              color: Color(0xFF292524),
+              fontSize: 27,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            'Your company overview: bookings, customers, walkers and live walk operations.',
+            style: TextStyle(
+              color: Colors.brown.shade700,
+              fontSize: 14,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            date,
+            style: TextStyle(
+              color: Colors.grey.shade700,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              FilledButton.icon(
+                onPressed: onOpenLiveOperations,
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF7900),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 14,
+                  ),
+                  elevation: 3,
+                  shadowColor: const Color(0x55FF7900),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                icon: const Icon(Icons.radar_rounded),
+                label: const Text(
+                  'Open Live Operations',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: () {
+                  // Booking overview remains on this dashboard; full booking
+                  // management is available from the company navigation.
+                  ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                    const SnackBar(
+                      content: Text('Use the Bookings section for full booking management.'),
+                    ),
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF9A4D00),
+                  side: const BorderSide(color: Color(0xFFFFC48F)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                icon: const Icon(Icons.calendar_month_rounded),
+                label: const Text('Booking overview'),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
