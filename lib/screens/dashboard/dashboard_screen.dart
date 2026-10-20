@@ -112,7 +112,7 @@ class DashboardScreen extends StatelessWidget {
                       child: _StatCard(
                         title: 'Customers',
                         icon: Icons.people_outline,
-                        stream: _countAll('customers'),
+                        stream: _countAll('users'),
                       ),
                     ),
                     SizedBox(
@@ -374,7 +374,7 @@ class DashboardScreen extends StatelessWidget {
             stream: _countWhere(
               'bookings',
               'status',
-              'Walk In Progress',
+              'walking',
             ),
           ),
           const Divider(),
@@ -384,8 +384,8 @@ class DashboardScreen extends StatelessWidget {
             icon: Icons.person_outline,
             stream: _countWhere(
               'walkers',
-              'status',
-              'available',
+              'isOnline',
+              true,
             ),
           ),
           const Divider(),
@@ -396,7 +396,7 @@ class DashboardScreen extends StatelessWidget {
             stream: _countWhere(
               'bookings',
               'status',
-              'Pending',
+              'pending',
             ),
           ),
           const Divider(),
@@ -407,7 +407,7 @@ class DashboardScreen extends StatelessWidget {
             stream: _countWhere(
               'bookings',
               'status',
-              'Completed',
+              'completed',
             ),
           ),
         ],
@@ -436,11 +436,11 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 12),
 
           _StatusStreamRow(
-            label: 'Walker Assigned',
+            label: 'Picked Up',
             stream: _countWhere(
               'bookings',
               'status',
-              'Walker Assigned',
+              'picked_up',
             ),
           ),
           const SizedBox(height: 12),
@@ -450,7 +450,7 @@ class DashboardScreen extends StatelessWidget {
             stream: _countWhere(
               'bookings',
               'status',
-              'Walker Accepted',
+              'accepted',
             ),
           ),
           const SizedBox(height: 12),
@@ -460,7 +460,7 @@ class DashboardScreen extends StatelessWidget {
             stream: _countWhere(
               'bookings',
               'status',
-              'Walk In Progress',
+              'walking',
             ),
           ),
           const SizedBox(height: 12),
