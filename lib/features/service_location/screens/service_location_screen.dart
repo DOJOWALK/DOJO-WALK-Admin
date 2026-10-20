@@ -1758,11 +1758,11 @@ class _ServiceLocationScreenState
                 onPressed: checking ? null : () async {
                   final runId = runIdController.text.trim();
                   final fingerprint = fingerprintController.text.trim();
-                  if (!RegExp(r'^[A-Za-z0-9_-]{1,150}.hasMatch(runId)) {
+                  if (!RegExp(r'^[A-Za-z0-9_-]{1,150}$').hasMatch(runId)) {
                     _showMessage('Enter a valid Run ID.');
                     return;
                   }
-                  if (!RegExp(r'^sha256:[0-9a-f]{64}.hasMatch(fingerprint)) {
+                  if (!RegExp(r'^sha256:[0-9a-f]{64}$').hasMatch(fingerprint)) {
                     _showMessage('Enter the complete lowercase SHA-256 fingerprint.');
                     return;
                   }
