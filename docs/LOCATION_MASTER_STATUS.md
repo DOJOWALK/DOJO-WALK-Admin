@@ -9,9 +9,9 @@ Last updated: 2026-10-17
 - [x] Added `docs/SERVICE_LOCATION_DATA_BOOTSTRAP_AUDIT_2026-10-20.md`.
 - [x] Confirmed the Country screen reads `service_countries`; the empty state is used when the query succeeds but returns no matching documents. Read/permission errors are displayed separately.
 - [x] Confirmed Firestore rules intentionally deny client writes to the location hierarchy; the trusted callable `saveServiceLocationWithNameIndex` is the intended write path.
-- [x] Confirmed India LGD Dart files are local reference data, while the current CSV preview/planner is read-only. A production hierarchy import callable is not yet implemented.
+- [x] Corrected the import-path finding after tracing `LocationCsvImportService.importPreview()`: a bounded (maximum 300 planned nodes), client-orchestrated CSV importer exists and writes each node through the trusted Firebase callable. Preview alone is read-only; import requires explicit operator confirmation and an already-active Country. This is not a single server-side bulk-write callable.
 - [ ] Inspect the live Firestore collection in Firebase Console; repository access cannot prove its live document count.
-- [ ] Implement and test the trusted idempotent import flow before importing India master data.
+- [ ] Confirm/activate the India Country using the trusted status workflow, then pilot the existing CSV importer with a small parent-complete file; reconcile the run ID/fingerprint and verify inactive records before scaling up.
 - [ ] Latest Admin PR #14 CI for commit `48aa0a0c4492` was still running at the time of this note; check the Actions run before claiming a pass.
 
 ## Current status — review branch only
