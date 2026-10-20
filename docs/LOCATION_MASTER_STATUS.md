@@ -4,6 +4,23 @@ Last updated: 2026-10-17
 
 > **App-wise status:** See [`docs/PROJECT_STATUS_BY_APP_2026-10-17.md`](PROJECT_STATUS_BY_APP_2026-10-17.md) for separate Admin, Customer, Partner and shared Firebase status. **Current Admin technical audit:** `docs/ADMIN_COMPLETION_AUDIT_2026-10-17.md`. The long step-by-step entries below are historical work logs; older “pending/absent” notes describe the state at the time they were written and are not the current branch snapshot.
 
+## Bootstrap preparation — 2026-10-20
+
+- [x] Added `data/templates/service_location_import_template.csv` with the required header row `State,District,City,Area` and no fabricated sample data.
+- [x] Added `docs/INDIA_LOCATION_MASTER_BOOTSTRAP_RUNBOOK.md` covering Country creation, duplicate checks, pilot CSV import, Run ID/fingerprint preservation, inactive-record checks, and polygon-boundary safeguards.
+- [ ] Production Country/document counts still require Firebase Console verification; no live database mutation was performed from this repository audit.
+- [ ] Run a small, reviewed pilot only after confirming the correct Firebase project and active India Country.
+
+## Latest review — 2026-10-20
+
+- [x] Added `docs/SERVICE_LOCATION_DATA_BOOTSTRAP_AUDIT_2026-10-20.md`.
+- [x] Confirmed the Country screen reads `service_countries`; the empty state is used when the query succeeds but returns no matching documents. Read/permission errors are displayed separately.
+- [x] Confirmed Firestore rules intentionally deny client writes to the location hierarchy; the trusted callable `saveServiceLocationWithNameIndex` is the intended write path.
+- [x] Corrected the import-path finding after tracing `LocationCsvImportService.importPreview()`: a bounded (maximum 300 planned nodes), client-orchestrated CSV importer exists and writes each node through the trusted Firebase callable. Preview alone is read-only; import requires explicit operator confirmation and an already-active Country. This is not a single server-side bulk-write callable.
+- [ ] Inspect the live Firestore collection in Firebase Console; repository access cannot prove its live document count.
+- [ ] Confirm/activate the India Country using the trusted status workflow, then pilot the existing CSV importer with a small parent-complete file; reconcile the run ID/fingerprint and verify inactive records before scaling up.
+- [ ] Latest Admin PR #14 CI for commit `48aa0a0c4492` was still running at the time of this note; check the Actions run before claiming a pass.
+
 ## Current status — review branch only
 
 - [x] Admin Service Location screen and hierarchy controls exist.

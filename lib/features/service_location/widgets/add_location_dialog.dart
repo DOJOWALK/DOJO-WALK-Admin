@@ -219,8 +219,20 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
         isExpanded: true,
         decoration: InputDecoration(
           labelText: label,
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFFFFD8B8)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFFFFD8B8)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: _addLocationOrange, width: 1.8),
           ),
         ),
         items: items,
@@ -456,6 +468,17 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     final dialogWidth = screenWidth < 520 ? screenWidth * 0.86 : 480.0;
 
     return AlertDialog(
+      backgroundColor: const Color(0xFFFFFCF8),
+      surfaceTintColor: Colors.transparent,
+      elevation: 24,
+      shadowColor: _addLocationOrange.withValues(alpha: 0.24),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(26),
+        side: BorderSide(
+          color: _addLocationOrange.withValues(alpha: 0.22),
+          width: 1.2,
+        ),
+      ),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       title: Row(
         children: [
@@ -463,8 +486,19 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: _addLocationOrange.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFFFB66D), _addLocationOrange, Color(0xFFE75E00)],
+              ),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: _addLocationOrange.withValues(alpha: 0.30),
+                  blurRadius: 15,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
             child: const Icon(
               Icons.add_location_alt_outlined,
@@ -502,9 +536,23 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                 DropdownButtonFormField<int>(
                   initialValue: _level,
                   isExpanded: true,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Location type',
-                    border: OutlineInputBorder(),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: Color(0xFFFFD8B8)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: Color(0xFFFFD8B8)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: _addLocationOrange, width: 1.8),
+                    ),
                   ),
                   items: List.generate(
                     _locationTypes.length,
@@ -545,7 +593,21 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                   controller: _nameController,
                   decoration: InputDecoration(
                     labelText: '$_levelName name',
-                    border: const OutlineInputBorder(),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: Color(0xFFFFD8B8)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: Color(0xFFFFD8B8)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: _addLocationOrange, width: 1.8),
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -591,11 +653,22 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: _addLocationOrange.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _addLocationOrange.withValues(alpha: 0.18),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFFFF0E1), Colors.white],
                     ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: _addLocationOrange.withValues(alpha: 0.28),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _addLocationOrange.withValues(alpha: 0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: const Text(
                     'Safety check: this record is saved as inactive. '
@@ -627,8 +700,11 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
           style: FilledButton.styleFrom(
             backgroundColor: _addLocationOrange,
             foregroundColor: Colors.white,
+            elevation: 5,
+            shadowColor: _addLocationOrange.withValues(alpha: 0.32),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(11),
+              borderRadius: BorderRadius.circular(14),
             ),
           ),
         ),

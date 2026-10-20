@@ -32,11 +32,6 @@ class _AdminShellState extends State<AdminShell> {
       icon: Icons.dashboard_rounded,
     ),
     _AdminMenuItem(
-      title: 'Live Operations',
-      subtitle: 'Monitor active walks',
-      icon: Icons.location_on_rounded,
-    ),
-    _AdminMenuItem(
       title: 'Bookings',
       subtitle: 'Manage customer bookings',
       icon: Icons.calendar_month_rounded,
@@ -86,21 +81,26 @@ class _AdminShellState extends State<AdminShell> {
   Widget _buildContent() {
     switch (_selectedIndex) {
       case 0:
-        return const DashboardScreen();
+        return DashboardScreen(
+          onOpenLiveOperations: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const LiveOperationsScreen(),
+              ),
+            );
+          },
+        );
 
       case 1:
-        return const LiveOperationsScreen();
-
-      case 2:
         return const BookingsScreen();
 
-      case 3:
+      case 2:
         return const WalkerManagementDashboardScreen();
 
-      case 6:
+      case 5:
         return const CouponsScreen();
 
-      case 10:
+      case 9:
         return const ServiceLocationScreen();
 
       default:
