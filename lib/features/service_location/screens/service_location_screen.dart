@@ -816,7 +816,88 @@ class _ServiceLocationScreenState
             .toList();
 
         if (items.isEmpty) {
-          return _emptyState('No countries found.');
+          final hasSearch = _search.trim().isNotEmpty;
+
+          return Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 68,
+                      height: 68,
+                      decoration: BoxDecoration(
+                        color: _locationOrange.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      child: Icon(
+                        hasSearch
+                            ? Icons.search_off_rounded
+                            : Icons.public_rounded,
+                        size: 34,
+                        color: _locationOrange,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      hasSearch ? 'No matching countries' : 'Location master is empty',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF292524),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      hasSearch
+                          ? 'Try another country name or code, or clear the search.'
+                          : 'No documents were returned from service_countries. Add the base country first, then add its states and districts. This screen does not create fake location data automatically.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        height: 1.5,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        if (hasSearch)
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() => _search = '');
+                            },
+                            icon: const Icon(Icons.clear_rounded),
+                            label: const Text('Clear search'),
+                          ),
+                        FilledButton.icon(
+                          onPressed: _showAddLocationDialog,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: _locationOrange,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 13,
+                            ),
+                          ),
+                          icon: const Icon(Icons.add_location_alt_outlined),
+                          label: const Text('Add Country'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
         }
 
         return ListView.builder(
