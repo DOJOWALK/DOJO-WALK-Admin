@@ -24,6 +24,26 @@ void main() {
     });
   });
 
+  group('isDefinitiveLocationImportRunNotFound', () {
+    test('continues only for a definitive not-found response', () {
+      expect(isDefinitiveLocationImportRunNotFound('not-found'), isTrue);
+    });
+
+    test('fails closed for authorization, fingerprint, and transient errors', () {
+      for (final code in [
+        'permission-denied',
+        'failed-precondition',
+        'unauthenticated',
+        'unavailable',
+        'deadline-exceeded',
+        'internal',
+        'unknown',
+      ]) {
+        expect(isDefinitiveLocationImportRunNotFound(code), isFalse, reason: code);
+      }
+    });
+  });
+
   group('ensureLocationCsvImportRunMarkerIsNew', () {
     test('allows a run ID when the trusted marker is definitively absent', () {
       expect(
