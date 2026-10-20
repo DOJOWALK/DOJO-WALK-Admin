@@ -1731,66 +1731,102 @@ class _ServiceLocationScreenState
   Future<void> _reconcileImportById() async {
     final runIdController = TextEditingController();
     final fingerprintController = TextEditingController();
-    var isChecking = false;
-
+    var checking = false;
     try {
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
         builder: (dialogContext) => StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
-            title: const Text('Reconcile an import run'),
+            title: const Text('Reconcile import run'),
             content: SizedBox(
               width: 560,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Use the original immutable Run ID and SHA-256 fingerprint. '
-                      'This is useful when an import run exists on the server but its '
-                      'history audit could not be saved. The check is read-only.',
-                    ),
-                    const SizedBox(height: 14),
-                    TextField(
-                      controller: runIdController,
-                      enabled: !isChecking,
-                      decoration: const InputDecoration(
-                        labelText: 'Import Run ID',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: fingerprintController,
-                      enabled: !isChecking,
-                      minLines: 1,
-                      maxLines: 2,
-                      decoration: const InputDecoration(
-                        labelText: 'Input fingerprint (sha256:…)',
-                        helperText: 'Use the exact fingerprint generated for the original CSV.',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ],
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Enter the original Run ID and exact SHA-256 fingerprint. This check is read-only and never resumes or repairs an import.'),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: runIdController,
+                    enabled: !checking,
+                    decoration: const InputDecoration(labelText: 'Import Run ID', border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: fingerprintController,
+                    enabled: !checking,
+                    decoration: const InputDecoration(labelText: 'Input fingerprint (sha256:...)', border: OutlineInputBorder()),
+                  ),
+                ],
               ),
             ),
             actions: [
               TextButton(
-                onPressed: isChecking
-                    ? null
-                    : () => Navigator.of(dialogContext).pop(),
+                onPressed: checking ? null : () => Navigator.of(dialogContext).pop(),
                 child: const Text('Cancel'),
               ),
-              FilledButton.icon(
-                onPressed: isChecking
-                    ? null
-                    : () async {
-                        final runId = runIdController.text.trim();
-                        final fingerprint = fingerprintController.text.trim();
-                        if (!RegExp(r'^[A-Za-z0-9_-]{1,150}
+              FilledButton(
+                onPressed: checking ? null : () async {
+                  final runId = runIdController.text.trim();
+                  final fingerprint = fingerprintController.text.trim();
+                  if (!RegExp(r'^[A-Za-z0-9_-]{1,150}' + r'$').hasMatch(runId)) {
+                    _showMessage('Enter a valid Run ID.');
+                    return;
+                  }
+                  if (!RegExp(r'^sha256:[0-9a-f]{64}' + r'$').hasMatch(fingerprint)) {
+                    _showMessage('Enter the complete lowercase SHA-256 fingerprint.');
+                    return;
+                  }
+                  setDialogState(() => checking = true);
+                  try {
+                    final inspection = await _service.inspectImportRun(runId: runId, inputFingerprint: fingerprint);
+                    final result = await _service.reconcileImportPlan(runId: runId, inputFingerprint: fingerprint);
+                    if (!dialogContext.mounted) return;
+                    Navigator.of(dialogContext).pop();
+                    await showDialog<void>(
+                      context: this.context,
+                      builder: (resultContext) => AlertDialog(
+                        title: const Text('Read-only reconciliation result'),
+                        content: SizedBox(
+                          width: 560,
+                          child: SingleChildScrollView(
+                            child: SelectableText(
+                              'Run: ${runId}\\n'
+                              'Server status: ${inspection['status'] ?? 'unknown'}\\n'
+                              'Reconciliation: ${result['status'] ?? 'unknown'}\\n'
+                              'Read-only: ${result['readOnly'] == true ? 'Yes' : 'No'}\\n'
+                              'Planned records: ${result['plannedRecords'] ?? inspection['plannedRecords'] ?? '—'}\\n'
+                              'Matching records: ${result['matchingRecords'] ?? 0}\\n'
+                              'Missing IDs: ${(result['missingIds'] as List? ?? const []).join(', ')}\\n'
+                              'Mismatch IDs: ${(result['mismatchIds'] as List? ?? const []).join(', ')}\\n'
+                              'Truncated: ${result['truncated'] == true ? 'Yes' : 'No'}\\n\\n'
+                              'No location was created, changed, activated, resumed or repaired.',
+                            ),
+                          ),
+                        ),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.of(resultContext).pop(), child: const Text('Close')),
+                        ],
+                      ),
+                    );
+                  } catch (error) {
+                    if (dialogContext.mounted) setDialogState(() => checking = false);
+                    await _showError(error);
+                  }
+                },
+                child: Text(checking ? 'Checking...' : 'Inspect & Reconcile'),
+              ),
+            ],
+          ),
+        ),
+      );
+    } finally {
+      runIdController.dispose();
+      fingerprintController.dispose();
+    }
+  }
+
+  Future<void> _reconcileImportRecord(ServiceLocationImport item) async {
     final fingerprint = item.inputFingerprint.trim();
     if (item.id.trim().isEmpty || fingerprint.isEmpty) {
       _showMessage('This legacy import has no fingerprint; reconciliation is unavailable.');
