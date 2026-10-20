@@ -1752,15 +1752,18 @@ class _ServiceLocationScreenState
             width: 560,
             child: SingleChildScrollView(
               child: SelectableText(
-                'Run: ${item.id}\\n'
-                'Audit status: ${item.status}\\n'
-                'Server status: ${inspection['status'] ?? 'unknown'}\\n'
-                'Reconciliation: ${reconciliation['status'] ?? 'unknown'}\\n'
-                'Read-only: ${reconciliation['readOnly'] == true ? 'Yes' : 'No'}\\n'
-                'Planned: ${reconciliation['plannedRecords'] ?? inspection['plannedRecords'] ?? '—'}\\n'
-                'Matching: ${reconciliation['matchingRecords'] ?? 0}\\n'
-                'Missing IDs: ${(reconciliation['missingIds'] as List? ?? const []).join(', ')}\\n'
-                'Mismatched IDs: ${(reconciliation['mismatchIds'] as List? ?? const []).join(', ')}\\n\\n'
+                'Run: ${item.id}\n'
+                'Audit status: ${item.status}\n'
+                'Server status: ${inspection['status'] ?? 'unknown'}\n'
+                'Reconciliation: ${reconciliation['status'] ?? 'unknown'}\n'
+                'Read-only: ${reconciliation['readOnly'] == true ? 'Yes' : 'No'}\n'
+                'Plan records: ${reconciliation['plannedRecords'] ?? inspection['plannedRecords'] ?? '—'}\n'
+                'Matching records: ${reconciliation['matchingRecords'] ?? 0}\n'
+                'Missing records: ${reconciliation['missingCount'] ?? (reconciliation['missingIds'] as List? ?? const []).length}\n'
+                'Mismatched records: ${reconciliation['mismatchCount'] ?? (reconciliation['mismatchIds'] as List? ?? const []).length}\n'
+                'Missing IDs (first 50): ${(reconciliation['missingIds'] as List? ?? const []).join(', ')}\n'
+                'Mismatched IDs (first 50): ${(reconciliation['mismatchIds'] as List? ?? const []).join(', ')}\n'
+                'Results truncated: ${reconciliation['truncated'] == true ? 'Yes — more records need investigation' : 'No'}\n\n'
                 'This check does not write, repair, resume, or activate any location.',
               ),
             ),
