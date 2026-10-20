@@ -166,6 +166,16 @@ dojo-partner/
 
 These Customer and Partner trees are target groupings, not an audit of every existing file in those repositories.
 
+## Company-wide flow and ownership
+
+The company-level workflow, repository ownership, shared contract rules, Service Location lifecycle, and recommended folder placement are maintained in
+[`docs/architecture/DOJO_WALK_COMPANY_FLOW_AND_FILE_STRUCTURE.md`](architecture/DOJO_WALK_COMPANY_FLOW_AND_FILE_STRUCTURE.md).
+
+Canonical business flow:
+`Company/System Management → Operations → India Location Master → Customer → Partner/Walker → Booking/Live Walk → Support → Reports/Audits`.
+
+This is a cross-repository flow, not a reason to duplicate app folders. Keep each feature in its owning repository, preserve existing paths until migration tests pass, and use canonical shared IDs/contracts for entities used by multiple apps. The architecture guide distinguishes intended organization from implementation that has actually been verified.
+
 ## 7. Engineering and release gates
 
 1. Inspect existing files before moving or renaming anything.
