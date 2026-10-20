@@ -2085,8 +2085,9 @@ class _ServiceLocationScreenState
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'Validate State, District, City and Area rows before any future import. '
-                      'Preview only — no Firestore writes or activation.',
+                      'Preview and validate State, District, City and Area rows before import. '
+                      'Import is restricted to active super_admin accounts. New records stay inactive; '
+                      'service activation still requires separate boundary verification.',
                     ),
                     const SizedBox(height: 12),
                     Wrap(
