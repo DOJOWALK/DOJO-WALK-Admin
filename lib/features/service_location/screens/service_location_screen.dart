@@ -139,7 +139,9 @@ class _ServiceLocationScreenState
         toolbarHeight: isMobile ? 68 : 76,
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF242424),
-        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: _locationOrange.withValues(alpha: 0.12),
+        elevation: 3,
         titleSpacing: 18,
         title: Row(
           children: [
@@ -147,8 +149,19 @@ class _ServiceLocationScreenState
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: _locationOrange.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(13),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFFFA64D), _locationOrange, Color(0xFFE85F00)],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: _locationOrange.withValues(alpha: 0.28),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
               child: const Icon(
                 Icons.location_on_rounded,
@@ -289,13 +302,19 @@ class _ServiceLocationScreenState
           end: Alignment.bottomRight,
           colors: [Colors.white, Color(0xFFFFF8F0)],
         ),
-        borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: const Color(0xFFFFE1C5)),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFFFD2AC), width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF9B5B25).withValues(alpha: 0.045),
-            blurRadius: 16,
-            offset: const Offset(0, 5),
+            color: const Color(0xFF9B5B25).withValues(alpha: 0.10),
+            blurRadius: 26,
+            spreadRadius: 1,
+            offset: const Offset(0, 10),
+          ),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.9),
+            blurRadius: 4,
+            offset: const Offset(-2, -2),
           ),
         ],
       ),
@@ -529,11 +548,23 @@ class _ServiceLocationScreenState
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _locationOrange.withValues(alpha: 0.25),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFF4E9)],
         ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: _locationOrange.withValues(alpha: 0.34),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _locationOrange.withValues(alpha: 0.16),
+            blurRadius: 24,
+            offset: const Offset(0, 9),
+          ),
+        ],
       ),
       child: FutureBuilder<Set<Polygon>>(
         future: _activeBoundaryPolygonsFuture,
@@ -678,11 +709,25 @@ class _ServiceLocationScreenState
         separatorBuilder: (_, __) =>
             const SizedBox(width: 8),
         itemBuilder: (context, index) {
+          final selected = _selectedTab == index;
           return ChoiceChip(
             label: Text(_tabNames[index]),
-            selected: _selectedTab == index,
-            selectedColor:
-                _locationOrange.withValues(alpha: 0.18),
+            selected: selected,
+            selectedColor: _locationOrange,
+            backgroundColor: Colors.white,
+            labelStyle: TextStyle(
+              color: selected ? Colors.white : const Color(0xFF5D5148),
+              fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+              fontSize: 12,
+            ),
+            side: BorderSide(
+              color: selected ? _locationOrange : const Color(0xFFE9D9CB),
+              width: 1,
+            ),
+            elevation: selected ? 5 : 1,
+            pressElevation: 7,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
             onSelected: (_) {
               setState(() => _selectedTab = index);
             },
@@ -3099,18 +3144,34 @@ class _ServiceLocationScreenState
   }) {
     return Card(
       color: Colors.white,
-      elevation: 0,
-      margin: const EdgeInsets.symmetric(vertical: 5),
+      shadowColor: _locationOrange.withValues(alpha: 0.12),
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 7, horizontal: 2),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(18),
         side: BorderSide(
-          color: Colors.grey.withValues(alpha: 0.15),
+          color: _locationOrange.withValues(alpha: 0.12),
         ),
       ),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor:
-              _locationOrange.withValues(alpha: 0.12),
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [const Color(0xFFFFD7B5), _locationOrange.withValues(alpha: 0.14)],
+            ),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: _locationOrange.withValues(alpha: 0.12),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
           child: Icon(icon, color: _locationOrange),
         ),
         title: Text(
