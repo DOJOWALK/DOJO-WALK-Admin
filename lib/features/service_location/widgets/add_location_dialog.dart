@@ -467,7 +467,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
     final screenSize = MediaQuery.sizeOf(context);
     final isCompact = screenSize.width < 600;
     final dialogWidth = isCompact
-        ? (screenSize.width - 32).clamp(280.0, 560.0)
+        ? (screenSize.width - 32).clamp(280.0, 560.0).toDouble()
         : 560.0;
 
     return AlertDialog(
