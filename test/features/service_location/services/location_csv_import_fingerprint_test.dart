@@ -24,10 +24,10 @@ void main() {
 
     test('normalizes repeated internal whitespace in hierarchy values', () {
       final spaced = parser.parse(
-        'State,District,City,Area\\nUttar   Pradesh,Gautam   Buddha Nagar,Greater  Noida,Gaur   City',
+        'State,District,City,Area\nUttar   Pradesh,Gautam   Buddha Nagar,Greater  Noida,Gaur   City',
       );
       final normalized = parser.parse(
-        'State,District,City,Area\\nUttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City',
+        'State,District,City,Area\nUttar Pradesh,Gautam Buddha Nagar,Greater Noida,Gaur City',
       );
       expect(spaced.isSyntacticallyValid, isTrue);
       expect(normalized.isSyntacticallyValid, isTrue);
