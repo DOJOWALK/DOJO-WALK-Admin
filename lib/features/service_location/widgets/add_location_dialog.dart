@@ -464,10 +464,17 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final dialogWidth = screenWidth < 520 ? screenWidth * 0.86 : 480.0;
+    final screenSize = MediaQuery.sizeOf(context);
+    final isCompact = screenSize.width < 600;
+    final dialogWidth = isCompact
+        ? (screenSize.width - 32).clamp(280.0, 560.0)
+        : 560.0;
 
     return AlertDialog(
+      constraints: BoxConstraints(
+        maxWidth: 600,
+        maxHeight: screenSize.height * (isCompact ? 0.88 : 0.86),
+      ),
       backgroundColor: const Color(0xFFFFFCF8),
       surfaceTintColor: Colors.transparent,
       elevation: 24,
@@ -533,6 +540,32 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF3E8),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFFD8B8)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.account_tree_outlined,
+                          size: 18, color: _addLocationOrange),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _level == 0
+                              ? 'Start with the country. It will be saved inactive; activation is a separate admin action.'
+                              : 'Choose the existing parent locations first. The new record will be saved inactive.',
+                          style: const TextStyle(fontSize: 12, height: 1.35),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 DropdownButtonFormField<int>(
                   initialValue: _level,
                   isExpanded: true,
@@ -627,8 +660,91 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                       border: OutlineInputBorder(),
                     ),
                     validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Enter country code';
+                      final code = value?.trim().toUpperCase() ?? '';
+                      if (code.isEmpty) return 'Enter country code';
+                      if (!RegExp(r'^[A-Z]{2,3}
+                  ),
+                ],
+
+                if (_level == 5) ...[
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _pincodeController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'PIN code (optional)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 12),
+
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFFFF0E1), Colors.white],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: _addLocationOrange.withValues(alpha: 0.28),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _addLocationOrange.withValues(alpha: 0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    'Safety check: this record is saved as inactive. '
+                    'City and Area activation requires a verified geographic boundary. '
+                    'Saving here does not verify or activate coverage.',
+                    style: TextStyle(fontSize: 12, height: 1.4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton.icon(
+          onPressed: _saving ? null : _save,
+          icon: _saving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.save_outlined),
+          label: Text(_saving ? 'Saving...' : 'Save Location'),
+          style: FilledButton.styleFrom(
+            backgroundColor: _addLocationOrange,
+            foregroundColor: Colors.white,
+            elevation: 5,
+            shadowColor: _addLocationOrange.withValues(alpha: 0.32),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+).hasMatch(code)) {
+                        return 'Use a 2–3 letter country code, e.g. IN';
                       }
                       return null;
                     },
