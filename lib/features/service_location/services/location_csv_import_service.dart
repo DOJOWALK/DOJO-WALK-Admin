@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -39,6 +40,17 @@ void ensureLocationCsvImportRunIsNew({required bool auditRecordExists}) {
     throw StateError(
       'This import run ID already has an audit record. Existing import runs '
       'are immutable; reconcile the prior run before starting another attempt.',
+    );
+  }
+}
+
+/// Blocks a new CSV import when its durable server-owned run marker already
+/// exists, even if the operator-facing audit document is missing.
+void ensureLocationCsvImportRunMarkerIsNew({required bool markerExists}) {
+  if (markerExists) {
+    throw StateError(
+      'This import run ID already has a durable run marker. Do not retry the '
+      'import; inspect and reconcile the existing run before taking any action.',
     );
   }
 }
@@ -123,6 +135,21 @@ class LocationCsvImportService {
           .doc(runId)
           .get();
       ensureLocationCsvImportRunIsNew(auditRecordExists: priorRun.exists);
+
+      // The audit summary may be absent after an interrupted/ambiguous run.
+      // Inspect the trusted durable marker as well, before planning or writes.
+      // Only a definitive not-found permits a new run; all other callable
+      // errors fail closed so authorization/network failures cannot bypass this
+      // preflight. A found marker is read-only and never auto-resumed.
+      try {
+        await _locations.inspectImportRun(
+          runId: runId,
+          inputFingerprint: inputFingerprint,
+        );
+        ensureLocationCsvImportRunMarkerIsNew(markerExists: true);
+      } on FirebaseFunctionsException catch (error) {
+        if (error.code != 'not-found') rethrow;
+      }
 
       final existing = await _loadExistingPathIds(country);
       plan = _planner.plan(
