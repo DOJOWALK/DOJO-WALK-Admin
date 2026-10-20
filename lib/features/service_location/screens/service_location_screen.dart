@@ -1291,6 +1291,171 @@ class _ServiceLocationScreenState
     );
   }
 
+  Future<void> _confirmAndRunCsvImport({
+    required LocationCsvPreview preview,
+    required String fileName,
+  }) async {
+    if (!preview.isSyntacticallyValid || preview.rows.isEmpty) {
+      _showMessage('Validate a non-empty CSV before importing.');
+      return;
+    }
+
+    late final List<ServiceCountry> activeCountries;
+    try {
+      activeCountries = (await _service.watchCountries().first)
+          .where((country) => country.isActive && country.id.trim().isNotEmpty)
+          .toList(growable: false);
+    } catch (error) {
+      await _showError(error);
+      return;
+    }
+    if (!mounted) return;
+    if (activeCountries.isEmpty) {
+      await _showError(StateError(
+        'No active Service Country is available. Activate/configure the country before importing.',
+      ));
+      return;
+    }
+
+    final runIdController = TextEditingController(
+      text: 'csv-${DateTime.now().millisecondsSinceEpoch}',
+    );
+    String? selectedCountryId = activeCountries.first.id;
+    bool confirmed = false;
+    bool importing = false;
+
+    try {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: !importing,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('Confirm location CSV import'),
+            content: SizedBox(
+              width: 520,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Source: $fileName'),
+                    const SizedBox(height: 6),
+                    Text('CSV rows: ${preview.rows.length}'),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: selectedCountryId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Parent country',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: activeCountries
+                          .map((country) => DropdownMenuItem<String>(
+                                value: country.id,
+                                child: Text('${country.name} (${country.code})'),
+                              ))
+                          .toList(growable: false),
+                      onChanged: importing
+                          ? null
+                          : (value) => setDialogState(
+                                () => selectedCountryId = value,
+                              ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: runIdController,
+                      enabled: !importing,
+                      decoration: const InputDecoration(
+                        labelText: 'Import Run ID',
+                        helperText: 'Save this ID if the import needs reconciliation.',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF4E8),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFFFD1A8)),
+                      ),
+                      child: const Text(
+                        'Import creates inactive State → District → City → Area records only. It does not create boundaries or activate service. A network timeout can leave a partial run; do not retry with a new Run ID until the original run is reconciled.',
+                        style: TextStyle(fontSize: 12, height: 1.4),
+                      ),
+                    ),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: confirmed,
+                      onChanged: importing
+                          ? null
+                          : (value) => setDialogState(
+                                () => confirmed = value == true,
+                              ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      title: const Text(
+                        'I reviewed the CSV and confirm these location records should be imported.',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    if (importing) const LinearProgressIndicator(),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: importing
+                    ? null
+                    : () => Navigator.of(dialogContext).pop(),
+                child: const Text('Cancel'),
+              ),
+              FilledButton.icon(
+                onPressed: importing || !confirmed || selectedCountryId == null
+                    ? null
+                    : () async {
+                        final runId = runIdController.text.trim();
+                        try {
+                          validateLocationCsvImportRunId(runId);
+                        } catch (error) {
+                          await _showError(error);
+                          return;
+                        }
+                        setDialogState(() => importing = true);
+                        try {
+                          final result = await LocationCsvImportService(
+                            locations: _service,
+                          ).importPreview(
+                            preview: preview,
+                            countryId: selectedCountryId!,
+                            fileName: fileName,
+                            importRunId: runId,
+                          );
+                          if (!dialogContext.mounted) return;
+                          Navigator.of(dialogContext).pop();
+                          _showMessage(
+                            'Import completed · Planned ${result.plannedRecords} · '
+                            'Created ${result.createdRecords} · Reused ${result.reusedRecords}.',
+                          );
+                        } catch (error) {
+                          if (dialogContext.mounted) {
+                            setDialogState(() => importing = false);
+                          }
+                          await _showError(error);
+                        }
+                      },
+                icon: const Icon(Icons.cloud_upload_outlined),
+                label: Text(importing ? 'Importing…' : 'Import locations'),
+              ),
+            ],
+          ),
+        ),
+      );
+    } finally {
+      runIdController.dispose();
+    }
+  }
+
   // ============================================================
   // READ-ONLY CSV PREVIEW
   // ============================================================
@@ -1712,6 +1877,16 @@ class _ServiceLocationScreenState
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('Close'),
+            ),
+            FilledButton.icon(
+              onPressed: preview == null || !preview!.isSyntacticallyValid
+                  ? null
+                  : () => _confirmAndRunCsvImport(
+                        preview: preview!,
+                        fileName: sourceName,
+                      ),
+              icon: const Icon(Icons.cloud_upload_outlined),
+              label: const Text('Import locations'),
             ),
             FilledButton.icon(
               onPressed: () => setDialogState(() {
