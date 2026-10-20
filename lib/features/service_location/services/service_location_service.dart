@@ -1455,7 +1455,8 @@ class ServiceLocationService {
 
   /// Creates the trusted, durable run marker before any location writes.
   /// The backend rejects reuse of any existing run ID, including matching
-  /// fingerprints, until an authoritative reconciliation workflow is available.
+  /// fingerprints. Use the read-only reconciliation flow before deciding how
+  /// to handle an interrupted run; this method never resumes or repairs it.
   Future<void> beginImportRun({
     required String runId,
     required String countryId,
@@ -1489,7 +1490,8 @@ class ServiceLocationService {
   }
 
   /// Reads the server-owned run marker for reconciliation. This does not
-  /// resume or mutate an import; callers must still verify the hierarchy.
+  /// resume or mutate an import; use [reconcileImportPlan] to compare the
+  /// immutable recorded plan with the current hierarchy.
   Future<Map<String, dynamic>> inspectImportRun({
     required String runId,
     required String inputFingerprint,
