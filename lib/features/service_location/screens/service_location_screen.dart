@@ -1727,6 +1727,57 @@ class _ServiceLocationScreenState
     controller.dispose();
   }
 
+  // Read-only reconciliation never resumes, repairs, activates, or replays writes.
+  Future<void> _reconcileImportRecord(ServiceLocationImport item) async {
+    final fingerprint = item.inputFingerprint.trim();
+    if (item.id.trim().isEmpty || fingerprint.isEmpty) {
+      _showMessage('This legacy import has no fingerprint; reconciliation is unavailable.');
+      return;
+    }
+    try {
+      final inspection = await _service.inspectImportRun(
+        runId: item.id,
+        inputFingerprint: fingerprint,
+      );
+      final reconciliation = await _service.reconcileImportPlan(
+        runId: item.id,
+        inputFingerprint: fingerprint,
+      );
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Read-only import reconciliation'),
+          content: SizedBox(
+            width: 560,
+            child: SingleChildScrollView(
+              child: SelectableText(
+                'Run: ${item.id}\\n'
+                'Audit status: ${item.status}\\n'
+                'Server status: ${inspection['status'] ?? 'unknown'}\\n'
+                'Reconciliation: ${reconciliation['status'] ?? 'unknown'}\\n'
+                'Read-only: ${reconciliation['readOnly'] == true ? 'Yes' : 'No'}\\n'
+                'Planned: ${reconciliation['plannedRecords'] ?? inspection['plannedRecords'] ?? '—'}\\n'
+                'Matching: ${reconciliation['matchingRecords'] ?? 0}\\n'
+                'Missing IDs: ${(reconciliation['missingIds'] as List? ?? const []).join(', ')}\\n'
+                'Mismatched IDs: ${(reconciliation['mismatchIds'] as List? ?? const []).join(', ')}\\n\\n'
+                'This check does not write, repair, resume, or activate any location.',
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (error) {
+      await _showError(error);
+    }
+  }
+
   // ============================================================
   // IMPORT HISTORY
   // ============================================================
@@ -1798,16 +1849,33 @@ class _ServiceLocationScreenState
             for (final item in items)
               Card(
                 color: Colors.white,
-                child: ListTile(
-                  leading: const Icon(Icons.file_present, color: _locationOrange),
-                  title: Text(item.fileName),
-                  subtitle: Text(
-                    'ID: ${item.id}\n'
-                    'Source: ${item.source}\n'
-                    'Status: ${item.status}\n'
-                    'Verification: ${item.verificationStatus}',
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.file_present, color: _locationOrange),
+                        title: Text(item.fileName),
+                        subtitle: Text(
+                          'ID: ${item.id}\\n'
+                          'Source: ${item.source}\\n'
+                          'Status: ${item.status}\\n'
+                          'Verification: ${item.verificationStatus}',
+                        ),
+                        isThreeLine: true,
+                      ),
+                      if (item.inputFingerprint.trim().isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                          child: OutlinedButton.icon(
+                            onPressed: () => _reconcileImportRecord(item),
+                            icon: const Icon(Icons.fact_check_outlined),
+                            label: const Text('Inspect & Reconcile (Read-only)'),
+                          ),
+                        ),
+                    ],
                   ),
-                  isThreeLine: true,
                 ),
               ),
           ],
