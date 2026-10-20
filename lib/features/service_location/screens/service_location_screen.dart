@@ -1780,15 +1780,15 @@ class _ServiceLocationScreenState
                           width: 560,
                           child: SingleChildScrollView(
                             child: SelectableText(
-                              'Run: ' + runId + '\\n' +
-                              'Server status: ' + (inspection['status']?.toString() ?? 'unknown') + '\\n' +
-                              'Reconciliation: ' + (result['status']?.toString() ?? 'unknown') + '\\n' +
-                              'Read-only: ' + (result['readOnly'] == true ? 'Yes' : 'No') + '\\n' +
-                              'Planned records: ' + (result['plannedRecords'] ?? inspection['plannedRecords'] ?? '—').toString() + '\\n' +
-                              'Matching records: ' + (result['matchingRecords'] ?? 0).toString() + '\\n' +
-                              'Missing IDs: ' + ((result['missingIds'] as List? ?? const []).join(', ')) + '\\n' +
-                              'Mismatch IDs: ' + ((result['mismatchIds'] as List? ?? const []).join(', ')) + '\\n' +
-                              'Truncated: ' + (result['truncated'] == true ? 'Yes' : 'No') + '\\n\\n' +
+                              'Run: ' + runId + '\n' +
+                              'Server status: ' + (inspection['status']?.toString() ?? 'unknown') + '\n' +
+                              'Reconciliation: ' + (result['status']?.toString() ?? 'unknown') + '\n' +
+                              'Read-only: ' + (result['readOnly'] == true ? 'Yes' : 'No') + '\n' +
+                              'Planned records: ' + (result['plannedRecords'] ?? inspection['plannedRecords'] ?? '—').toString() + '\n' +
+                              'Matching records: ' + (result['matchingRecords'] ?? 0).toString() + '\n' +
+                              'Missing IDs: ' + ((result['missingIds'] as List? ?? const []).join(', ')) + '\n' +
+                              'Mismatch IDs: ' + ((result['mismatchIds'] as List? ?? const []).join(', ')) + '\n' +
+                              'Truncated: ' + (result['truncated'] == true ? 'Yes' : 'No') + '\n\n' +
                               'No location was created, changed, activated, resumed or repaired.',
                             ),
                           ),
