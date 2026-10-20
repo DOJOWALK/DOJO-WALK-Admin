@@ -618,7 +618,10 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
                 if (_level >= 2) _buildDistrictDropdown(),
                 if (_level >= 3) _buildCityDropdown(),
-                if (_level >= 4) _buildAreaDropdown(),
+                // Area is created under a selected City; only Locality needs
+                // an existing Area as its parent. Never show an Area selector
+                // while creating an Area record itself.
+                if (_level == 5) _buildAreaDropdown(),
 
                 const SizedBox(height: 4),
 
