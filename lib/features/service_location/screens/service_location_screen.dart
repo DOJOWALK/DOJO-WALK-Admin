@@ -1327,7 +1327,7 @@ class _ServiceLocationScreenState
     try {
       await showDialog<void>(
         context: context,
-        barrierDismissible: !importing,
+        barrierDismissible: false,
         builder: (dialogContext) => StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
             title: const Text('Confirm location CSV import'),
