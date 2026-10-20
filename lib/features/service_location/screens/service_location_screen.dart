@@ -22,11 +22,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../models/service_location_boundary.dart';
 import '../models/service_location_models.dart';
 import '../services/location_csv_preview_parser.dart';
+import '../services/location_csv_import_fingerprint.dart';
 import '../services/location_csv_import_service.dart';
 import '../services/location_csv_lgd_validator.dart';
 import '../services/service_location_boundary_service.dart';
@@ -1361,6 +1363,44 @@ class _ServiceLocationScreenState
                                 () => selectedCountryId = value,
                               ),
                     ),
+                    if (selectedCountryId != null) ...[
+                      const SizedBox(height: 10),
+                      Builder(builder: (context) {
+                        final fingerprint = locationCsvImportFingerprint(
+                          countryId: selectedCountryId!,
+                          preview: preview,
+                        );
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF7F7F7),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFE6E0DA)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Import fingerprint · save this for reconciliation',
+                                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                              const SizedBox(height: 5),
+                              SelectableText(fingerprint, style: const TextStyle(fontSize: 11)),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton.icon(
+                                  onPressed: () async {
+                                    await Clipboard.setData(ClipboardData(text: fingerprint));
+                                    _showMessage('Import fingerprint copied. Keep it with the Run ID.');
+                                  },
+                                  icon: const Icon(Icons.copy_rounded, size: 16),
+                                  label: const Text('Copy fingerprint'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
                     const SizedBox(height: 12),
                     TextField(
                       controller: runIdController,
