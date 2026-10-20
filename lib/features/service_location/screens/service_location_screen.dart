@@ -1343,7 +1343,7 @@ class _ServiceLocationScreenState
                     Text('CSV rows: ${preview.rows.length}'),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: selectedCountryId,
+                      initialValue: selectedCountryId,
                       isExpanded: true,
                       decoration: const InputDecoration(
                         labelText: 'Parent country',
