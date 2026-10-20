@@ -945,8 +945,8 @@ class _ServiceLocationScreenState
                     for (final district in districts)
                       _locationCard(
                         title: district.name,
-                        subtitle: 'State: ${statesById[district.stateId]?.name ?? "Unknown State"}\\n'
-                            'Country: ${countriesById[district.countryId]?.name ?? "Unknown Country"}\\n'
+                        subtitle: 'State: ${statesById[district.stateId]?.name ?? "Unknown State"}\n'
+                            'Country: ${countriesById[district.countryId]?.name ?? "Unknown Country"}\n'
                             'Service: ${district.isActive ? "Active" : "Inactive"}',
                         active: district.isActive,
                         icon: Icons.map_outlined,
@@ -1050,10 +1050,10 @@ class _ServiceLocationScreenState
                                   _locationCard(
                                     title: item.name,
                                     subtitle:
-                                        'ID: ${item.id}\\n'
-                                        'District: ${districtsById[item.districtId]?.name ?? (item.districtId.isEmpty ? "Not linked (legacy City)" : "Unknown District")}\\n'
-                                        'Legacy boundary points: ${item.boundary.length}\\n'
-                                        'Legacy verified: ${item.boundaryVerified ? "Yes" : "No"}\\n'
+                                        'ID: ${item.id}\n'
+                                        'District: ${districtsById[item.districtId]?.name ?? (item.districtId.isEmpty ? "Not linked (legacy City)" : "Unknown District")}\n'
+                                        'Legacy boundary points: ${item.boundary.length}\n'
+                                        'Legacy verified: ${item.boundaryVerified ? "Yes" : "No"}\n'
                                         'Service: ${item.isServiceActive ? "Active" : "Inactive"}',
                                     active: item.isServiceActive,
                                     icon: Icons.location_city,
@@ -2192,9 +2192,9 @@ class _ServiceLocationScreenState
                         leading: const Icon(Icons.file_present, color: _locationOrange),
                         title: Text(item.fileName),
                         subtitle: Text(
-                          'ID: ${item.id}\\n'
-                          'Source: ${item.source}\\n'
-                          'Status: ${item.status}\\n'
+                          'ID: ${item.id}\n'
+                          'Source: ${item.source}\n'
+                          'Status: ${item.status}\n'
                           'Verification: ${item.verificationStatus}',
                         ),
                         isThreeLine: true,
