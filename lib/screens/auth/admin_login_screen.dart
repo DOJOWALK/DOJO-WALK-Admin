@@ -117,7 +117,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           width: 72,
                           height: 72,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFF6A00),
+                            color: const Color(0xFFFF7900),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           alignment: Alignment.center,
@@ -257,7 +257,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         child: FilledButton(
                           onPressed: _isLoading ? null : _signIn,
                           style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFFFF6A00),
+                            backgroundColor: const Color(0xFFFF7900),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
                             ),
