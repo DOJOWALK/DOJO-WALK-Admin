@@ -44,6 +44,11 @@ void ensureLocationCsvImportRunIsNew({required bool auditRecordExists}) {
   }
 }
 
+/// Only a definitive backend not-found response proves that no durable run
+/// marker exists. Every other callable error must fail closed during preflight.
+bool isDefinitiveLocationImportRunNotFound(String errorCode) =>
+    errorCode == 'not-found';
+
 /// Blocks a new CSV import when its durable server-owned run marker already
 /// exists, even if the operator-facing audit document is missing.
 void ensureLocationCsvImportRunMarkerIsNew({required bool markerExists}) {
@@ -148,7 +153,7 @@ class LocationCsvImportService {
         );
         ensureLocationCsvImportRunMarkerIsNew(markerExists: true);
       } on FirebaseFunctionsException catch (error) {
-        if (error.code != 'not-found') rethrow;
+        if (!isDefinitiveLocationImportRunNotFound(error.code)) rethrow;
       }
 
       final existing = await _loadExistingPathIds(country);
