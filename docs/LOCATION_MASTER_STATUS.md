@@ -4,6 +4,16 @@ Last updated: 2026-10-17
 
 > **App-wise status:** See [`docs/PROJECT_STATUS_BY_APP_2026-10-17.md`](PROJECT_STATUS_BY_APP_2026-10-17.md) for separate Admin, Customer, Partner and shared Firebase status. **Current Admin technical audit:** `docs/ADMIN_COMPLETION_AUDIT_2026-10-17.md`. The long step-by-step entries below are historical work logs; older “pending/absent” notes describe the state at the time they were written and are not the current branch snapshot.
 
+## Latest review — 2026-10-20
+
+- [x] Added `docs/SERVICE_LOCATION_DATA_BOOTSTRAP_AUDIT_2026-10-20.md`.
+- [x] Confirmed the Country screen reads `service_countries`; the empty state is used when the query succeeds but returns no matching documents. Read/permission errors are displayed separately.
+- [x] Confirmed Firestore rules intentionally deny client writes to the location hierarchy; the trusted callable `saveServiceLocationWithNameIndex` is the intended write path.
+- [x] Confirmed India LGD Dart files are local reference data, while the current CSV preview/planner is read-only. A production hierarchy import callable is not yet implemented.
+- [ ] Inspect the live Firestore collection in Firebase Console; repository access cannot prove its live document count.
+- [ ] Implement and test the trusted idempotent import flow before importing India master data.
+- [ ] Latest Admin PR #14 CI for commit `48aa0a0c4492` was still running at the time of this note; check the Actions run before claiming a pass.
+
 ## Current status — review branch only
 
 - [x] Admin Service Location screen and hierarchy controls exist.
