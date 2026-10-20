@@ -176,6 +176,12 @@ Canonical business flow:
 
 This is a cross-repository flow, not a reason to duplicate app folders. Keep each feature in its owning repository, preserve existing paths until migration tests pass, and use canonical shared IDs/contracts for entities used by multiple apps. The architecture guide distinguishes intended organization from implementation that has actually been verified.
 
+## Dashboard-first navigation structure
+
+The Admin shell is defined in `lib/screens/dashboard/admin_shell.dart`. Keep **Dashboard** as the main company command center. Live Operations is launched from the Dashboard's prominent action and retains its dedicated map screen at `lib/screens/live/live_operations_screen.dart`; it is not a separate sidebar destination. Dashboard UI and metrics live in `lib/screens/dashboard/dashboard_screen.dart`.
+
+Company flow and implementation boundary: `docs/architecture/DOJO_WALK_COMPANY_FLOW_AND_FILE_STRUCTURE.md`.
+
 ## 7. Engineering and release gates
 
 1. Inspect existing files before moving or renaming anything.
