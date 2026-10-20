@@ -241,23 +241,10 @@ class LocationCsvImportService {
 
       allLocationWritesCompleted = true;
 
-      // Audit records are append-only under the current Firestore rules.
-      // Write one immutable final summary instead of trying to update a
-      // "started" record later. If this write fails or its outcome is
-      // ambiguous, deterministic location IDs reduce duplicate-path risk, but
-      // the import is NOT automatically retryable: audit reconciliation is
-      // still required before reusing this logical run ID.
-      await _locations.saveImport(ServiceLocationImport(
-        id: runId,
-        source: 'csv',
-        fileName: sourceFileName,
-        status: 'completed',
-        importedBy: actor,
-        verificationStatus: 'pending',
-        inputFingerprint: inputFingerprint,
-      ));
-      auditWritten = true;
-
+      // The trusted finalization callable atomically commits both the
+      // terminal run state and the immutable operator-facing audit record.
+      // This avoids a timeout leaving a completed run with a missing/conflicting
+      // client-written audit summary.
       await _locations.finishImportRun(
         runId: runId,
         inputFingerprint: inputFingerprint,
@@ -266,6 +253,7 @@ class LocationCsvImportService {
         createdRecords: created,
         reusedRecords: reused,
       );
+      auditWritten = true;
 
       return LocationCsvImportResult(
         plannedRecords: plan.length,
@@ -274,31 +262,9 @@ class LocationCsvImportService {
         auditWritten: auditWritten,
       );
     } catch (error, stackTrace) {
-      // Write a failure audit only when the success audit was not already
-      // committed. A timeout during finalization must not create a conflicting
-      // second immutable audit record for the same run ID.
-      if (!auditWritten) {
-        try {
-          await _locations.saveImport(ServiceLocationImport(
-            id: runId,
-            source: 'csv',
-            fileName: sourceFileName,
-            status: classifyLocationCsvImportFailure(
-              allLocationWritesCompleted: allLocationWritesCompleted,
-              locationWriteAttempted: locationWriteAttempted,
-            ),
-            importedBy: actor,
-            verificationStatus: 'pending',
-            inputFingerprint: inputFingerprint,
-          ));
-        } catch (auditError, auditStackTrace) {
-          try {
-            _onAuditFailure(auditError, auditStackTrace);
-          } catch (_) {
-            // A broken telemetry adapter must not mask the original error.
-          }
-        }
-      }
+      // Failure status and audit are written together by the trusted
+      // finalization callable. If the response was ambiguous, the server
+      // rejects a conflicting terminal state and preserves its original audit.
       try {
         await _locations.finishImportRun(
           runId: runId,
