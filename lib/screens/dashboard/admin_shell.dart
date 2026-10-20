@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 
 import 'dashboard_screen.dart';
-import '../live/live_operations_screen.dart';
 import '../bookings/bookings_screen.dart';
 import '../coupons/coupons_screen.dart';
 
@@ -30,11 +29,6 @@ class _AdminShellState extends State<AdminShell> {
       title: 'Dashboard',
       subtitle: 'Overview and statistics',
       icon: Icons.dashboard_rounded,
-    ),
-    _AdminMenuItem(
-      title: 'Live Operations',
-      subtitle: 'Monitor active walks',
-      icon: Icons.location_on_rounded,
     ),
     _AdminMenuItem(
       title: 'Bookings',
@@ -86,21 +80,26 @@ class _AdminShellState extends State<AdminShell> {
   Widget _buildContent() {
     switch (_selectedIndex) {
       case 0:
-        return const DashboardScreen();
+        return DashboardScreen(
+          onOpenLiveOperations: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const LiveOperationsScreen(),
+              ),
+            );
+          },
+        );
 
       case 1:
-        return const LiveOperationsScreen();
-
-      case 2:
         return const BookingsScreen();
 
-      case 3:
+      case 2:
         return const WalkerManagementDashboardScreen();
 
-      case 6:
+      case 5:
         return const CouponsScreen();
 
-      case 10:
+      case 9:
         return const ServiceLocationScreen();
 
       default:
