@@ -769,7 +769,14 @@ class ServiceLocationService {
       collection: _districts,
       documentId: id,
       name: name,
-      data: {'countryId': countryId, 'stateId': stateId, 'name': name},
+      data: {
+        'countryId': countryId,
+        'stateId': stateId,
+        'name': name,
+        // Persist the canonical status field even for inactive imports.
+        // Reconciliation and active-only queries use isServiceActive.
+        'isServiceActive': district.isActive,
+      },
     );
   }
 
