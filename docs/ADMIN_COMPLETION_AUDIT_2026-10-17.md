@@ -476,3 +476,24 @@ No merge, release, or deployment occurred.
 - This is an evidence/configuration gap, not proof of deployed Storage Rules being absent/open. Actual deployed Storage policy remains unknown.
 - Treat KYC Storage authorization as a release blocker until the actual rules source is found, reviewed and emulator-tested for owner/path access, private reads, overwrite, content type, and size limits.
 - Report commit `2cf2fb5a6394edff63c907aea42f8bb9795b2f22`; no deployment or production change.
+
+## Step 254 — Service Location CSV import status correction (2026-10-20)
+
+The earlier audit section above that says CSV import is preview-only describes an older revision and is superseded for the Step 254 draft branch by the implementation below. It must not be read as the current branch status.
+
+- Added a State → District → City → Area CSV planner and import executor with normalized full-path matching, deterministic country-scoped IDs, active-super_admin checks, and parent-first writes through trusted Firebase callables.
+- The importer persists an immutable run marker and canonical plan/hash before hierarchy writes. New records remain inactive; import does not create/verify polygons or activate service coverage.
+- Import History provides read-only inspection/reconciliation by run ID and fingerprint. Backend reconciliation checks plan completeness, ordinal order, canonical SHA-256, actual hierarchy names/parents, and unintended activation; it does not resume or repair.
+- Admin head `5f82adcc51fd20ef716b1d714dd9c3fda3a29db9`: Admin Web Build Check (No Deploy), run `39388984799`, PASS; Service Location Geometry Tests, run `39388984788`, PASS.
+- Firebase commit `237865301d5b28d3426a7b804009ec2c6a85d6d6`: Trusted Location Geometry and Callable Tests, run `39314870564`, PASS; Firestore Security Rules, run `39314869860`, PASS.
+
+### Still open release gates
+
+1. No full Admin importer-to-Firebase Emulator end-to-end test covers callable writes, audit outcomes, ambiguous/partial failures, and signed-out/unauthorized scenarios as one workflow.
+2. Plan limit is 300 nodes per run; larger imports must be split into parent-complete files. Do not lift this limit without a separately tested chunked protocol.
+3. Reconciliation is intentionally read-only; interrupted imports require manual investigation and are not auto-replayed or repaired.
+4. Audit-failure reporting defaults to local debug logging; durable monitoring and a row-level outcome ledger are not implemented.
+5. Confirm the canonical India country document ID and reconcile the bundled LGD snapshot against the current official source before any production import.
+6. Service coverage still requires separately verified real-world City/Area polygons. Importing names is not proof of coverage.
+
+PR #12 remains Draft and unmerged. No production import, activation, merge, or deployment was performed. The Step 254 branch's passing CI does not override the open release gates above.

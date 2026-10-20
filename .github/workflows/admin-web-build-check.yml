@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - step-186-main-integration-review
     paths:
       - '**.dart'
       - 'pubspec.yaml'

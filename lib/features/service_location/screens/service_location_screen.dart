@@ -22,11 +22,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../models/service_location_boundary.dart';
 import '../models/service_location_models.dart';
 import '../services/location_csv_preview_parser.dart';
+import '../services/location_csv_import_fingerprint.dart';
+import '../services/location_csv_import_service.dart';
 import '../services/location_csv_lgd_validator.dart';
 import '../services/service_location_boundary_service.dart';
 import '../services/service_location_service.dart';
@@ -345,11 +348,13 @@ class _ServiceLocationScreenState
               _hierarchyArrow(),
               _hierarchyChip('State'),
               _hierarchyArrow(),
-              _hierarchyChip('City / District'),
+              _hierarchyChip('District'),
+              _hierarchyArrow(),
+              _hierarchyChip('City'),
               _hierarchyArrow(),
               _hierarchyChip('Area'),
               _hierarchyArrow(),
-              _hierarchyChip('Locality'),
+              _hierarchyChip('Locality (optional)'),
             ],
           ),
           const SizedBox(height: 10),
@@ -940,8 +945,8 @@ class _ServiceLocationScreenState
                     for (final district in districts)
                       _locationCard(
                         title: district.name,
-                        subtitle: 'State: ${statesById[district.stateId]?.name ?? "Unknown State"}\\n'
-                            'Country: ${countriesById[district.countryId]?.name ?? "Unknown Country"}\\n'
+                        subtitle: 'State: ${statesById[district.stateId]?.name ?? "Unknown State"}\n'
+                            'Country: ${countriesById[district.countryId]?.name ?? "Unknown Country"}\n'
                             'Service: ${district.isActive ? "Active" : "Inactive"}',
                         active: district.isActive,
                         icon: Icons.map_outlined,
@@ -1045,10 +1050,10 @@ class _ServiceLocationScreenState
                                   _locationCard(
                                     title: item.name,
                                     subtitle:
-                                        'ID: ${item.id}\\n'
-                                        'District: ${districtsById[item.districtId]?.name ?? (item.districtId.isEmpty ? "Not linked (legacy City)" : "Unknown District")}\\n'
-                                        'Legacy boundary points: ${item.boundary.length}\\n'
-                                        'Legacy verified: ${item.boundaryVerified ? "Yes" : "No"}\\n'
+                                        'ID: ${item.id}\n'
+                                        'District: ${districtsById[item.districtId]?.name ?? (item.districtId.isEmpty ? "Not linked (legacy City)" : "Unknown District")}\n'
+                                        'Legacy boundary points: ${item.boundary.length}\n'
+                                        'Legacy verified: ${item.boundaryVerified ? "Yes" : "No"}\n'
                                         'Service: ${item.isServiceActive ? "Active" : "Inactive"}',
                                     active: item.isServiceActive,
                                     icon: Icons.location_city,
@@ -1288,6 +1293,209 @@ class _ServiceLocationScreenState
         );
       },
     );
+  }
+
+  Future<void> _confirmAndRunCsvImport({
+    required LocationCsvPreview preview,
+    required String fileName,
+  }) async {
+    if (!preview.isSyntacticallyValid || preview.rows.isEmpty) {
+      _showMessage('Validate a non-empty CSV before importing.');
+      return;
+    }
+
+    late final List<ServiceCountry> activeCountries;
+    try {
+      activeCountries = (await _service.watchCountries().first)
+          .where((country) => country.isActive && country.id.trim().isNotEmpty)
+          .toList(growable: false);
+    } catch (error) {
+      await _showError(error);
+      return;
+    }
+    if (!mounted) return;
+    if (activeCountries.isEmpty) {
+      await _showError(StateError(
+        'No active Service Country is available. Activate/configure the country before importing.',
+      ));
+      return;
+    }
+
+    final runIdController = TextEditingController(
+      text: 'csv-${DateTime.now().millisecondsSinceEpoch}',
+    );
+    String? selectedCountryId = activeCountries.first.id;
+    bool confirmed = false;
+    bool importing = false;
+
+    try {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('Confirm location CSV import'),
+            content: SizedBox(
+              width: 520,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Source: $fileName'),
+                    const SizedBox(height: 6),
+                    Text('CSV rows: ${preview.rows.length}'),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedCountryId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Parent country',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: activeCountries
+                          .map((country) => DropdownMenuItem<String>(
+                                value: country.id,
+                                child: Text('${country.name} (${country.code})'),
+                              ))
+                          .toList(growable: false),
+                      onChanged: importing
+                          ? null
+                          : (value) => setDialogState(
+                                () => selectedCountryId = value,
+                              ),
+                    ),
+                    if (selectedCountryId != null) ...[
+                      const SizedBox(height: 10),
+                      Builder(builder: (context) {
+                        final fingerprint = locationCsvImportFingerprint(
+                          countryId: selectedCountryId!,
+                          preview: preview,
+                        );
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF7F7F7),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFE6E0DA)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Import fingerprint · save this for reconciliation',
+                                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                              const SizedBox(height: 5),
+                              SelectableText(fingerprint, style: const TextStyle(fontSize: 11)),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton.icon(
+                                  onPressed: () async {
+                                    await Clipboard.setData(ClipboardData(text: fingerprint));
+                                    _showMessage('Import fingerprint copied. Keep it with the Run ID.');
+                                  },
+                                  icon: const Icon(Icons.copy_rounded, size: 16),
+                                  label: const Text('Copy fingerprint'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: runIdController,
+                      enabled: !importing,
+                      decoration: const InputDecoration(
+                        labelText: 'Import Run ID',
+                        helperText: 'Save this ID if the import needs reconciliation.',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF4E8),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFFFD1A8)),
+                      ),
+                      child: const Text(
+                        'Import creates inactive State → District → City → Area records only. It does not create boundaries or activate service. A network timeout can leave a partial run; do not retry with a new Run ID until the original run is reconciled.',
+                        style: TextStyle(fontSize: 12, height: 1.4),
+                      ),
+                    ),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: confirmed,
+                      onChanged: importing
+                          ? null
+                          : (value) => setDialogState(
+                                () => confirmed = value == true,
+                              ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      title: const Text(
+                        'I reviewed the CSV and confirm these location records should be imported.',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    if (importing) const LinearProgressIndicator(),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: importing
+                    ? null
+                    : () => Navigator.of(dialogContext).pop(),
+                child: const Text('Cancel'),
+              ),
+              FilledButton.icon(
+                onPressed: importing || !confirmed || selectedCountryId == null
+                    ? null
+                    : () async {
+                        final runId = runIdController.text.trim();
+                        try {
+                          validateLocationCsvImportRunId(runId);
+                        } catch (error) {
+                          await _showError(error);
+                          return;
+                        }
+                        setDialogState(() => importing = true);
+                        try {
+                          final result = await LocationCsvImportService(
+                            locations: _service,
+                          ).importPreview(
+                            preview: preview,
+                            countryId: selectedCountryId!,
+                            fileName: fileName,
+                            importRunId: runId,
+                          );
+                          if (!dialogContext.mounted) return;
+                          Navigator.of(dialogContext).pop();
+                          _showMessage(
+                            'Import completed · Planned ${result.plannedRecords} · '
+                            'Created ${result.createdRecords} · Reused ${result.reusedRecords}.',
+                          );
+                        } catch (error) {
+                          if (dialogContext.mounted) {
+                            setDialogState(() => importing = false);
+                          }
+                          await _showError(error);
+                        }
+                      },
+                icon: const Icon(Icons.cloud_upload_outlined),
+                label: Text(importing ? 'Importing…' : 'Import locations'),
+              ),
+            ],
+          ),
+        ),
+      );
+    } finally {
+      runIdController.dispose();
+    }
   }
 
   // ============================================================
@@ -1658,7 +1866,7 @@ class _ServiceLocationScreenState
                             ),
                             SizedBox(height: 6),
                             Text(
-                              'Import is intentionally disabled. This screen only previews the file and checks existing names; it writes no location records. The current data model has no separate District level, and a trusted, transactional import is not implemented. Do not treat a successful preview or parent-name match as permission to import.',
+                              'Preview itself never writes location records. After validation, use Import locations to choose an active parent country, enter a stable Run ID, and explicitly confirm the import. The trusted backend enforces super_admin access and records the bounded plan before hierarchy writes. If a run fails or times out, do not retry with a new Run ID; use Import History → Reconcile to inspect the original run. Import creates inactive records only and never creates boundaries or activates service.',
                             ),
                           ],
                         ),
@@ -1713,6 +1921,16 @@ class _ServiceLocationScreenState
               child: const Text('Close'),
             ),
             FilledButton.icon(
+              onPressed: preview == null || !preview!.isSyntacticallyValid
+                  ? null
+                  : () => _confirmAndRunCsvImport(
+                        preview: preview!,
+                        fileName: sourceName,
+                      ),
+              icon: const Icon(Icons.cloud_upload_outlined),
+              label: const Text('Import locations'),
+            ),
+            FilledButton.icon(
               onPressed: () => setDialogState(() {
                 preview = parser.parse(controller.text);
                 mappingReport = [];
@@ -1725,6 +1943,164 @@ class _ServiceLocationScreenState
       ),
     );
     controller.dispose();
+  }
+
+  // Read-only reconciliation never resumes, repairs, activates, or replays writes.
+  Future<void> _reconcileImportById() async {
+    final runIdController = TextEditingController();
+    final fingerprintController = TextEditingController();
+    var checking = false;
+    try {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('Reconcile import run'),
+            content: SizedBox(
+              width: 560,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Enter the original Run ID and exact SHA-256 fingerprint. This check is read-only and never resumes or repairs an import.'),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: runIdController,
+                      enabled: !checking,
+                      textInputAction: TextInputAction.next,
+                      decoration: const InputDecoration(
+                        labelText: 'Import Run ID',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: fingerprintController,
+                      enabled: !checking,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      decoration: const InputDecoration(
+                        labelText: 'Input fingerprint (sha256:...)',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: checking ? null : () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
+              FilledButton(
+                onPressed: checking ? null : () async {
+                  final runId = runIdController.text.trim();
+                  final fingerprint = fingerprintController.text.trim();
+                  if (!RegExp(r'^[A-Za-z0-9_-]{1,150}$').hasMatch(runId)) {
+                    _showMessage('Enter a valid Run ID.');
+                    return;
+                  }
+                  if (!RegExp(r'^sha256:[0-9a-f]{64}$').hasMatch(fingerprint)) {
+                    _showMessage('Enter the complete lowercase SHA-256 fingerprint.');
+                    return;
+                  }
+                  setDialogState(() => checking = true);
+                  try {
+                    final inspection = await _service.inspectImportRun(runId: runId, inputFingerprint: fingerprint);
+                    final result = await _service.reconcileImportPlan(runId: runId, inputFingerprint: fingerprint);
+                    if (!dialogContext.mounted) return;
+                    Navigator.of(dialogContext).pop();
+                    await showDialog<void>(
+                      context: this.context,
+                      builder: (resultContext) => AlertDialog(
+                        title: const Text('Read-only reconciliation result'),
+                        content: SizedBox(
+                          width: 560,
+                          child: SingleChildScrollView(
+                            child: SelectableText(
+                              'Run: ' + runId + '\n' +
+                              'Server status: ' + (inspection['status']?.toString() ?? 'unknown') + '\n' +
+                              'Reconciliation: ' + (result['status']?.toString() ?? 'unknown') + '\n' +
+                              'Read-only: ' + (result['readOnly'] == true ? 'Yes' : 'No') + '\n' +
+                              'Planned records: ' + (result['plannedRecords'] ?? inspection['plannedRecords'] ?? '—').toString() + '\n' +
+                              'Matching records: ' + (result['matchingRecords'] ?? 0).toString() + '\n' +
+                              'Missing IDs: ' + ((result['missingIds'] as List? ?? const []).join(', ')) + '\n' +
+                              'Mismatch IDs: ' + ((result['mismatchIds'] as List? ?? const []).join(', ')) + '\n' +
+                              'Truncated: ' + (result['truncated'] == true ? 'Yes' : 'No') + '\n\n' +
+                              'No location was created, changed, activated, resumed or repaired.',
+                            ),
+                          ),
+                        ),
+                        actions: [TextButton(onPressed: () => Navigator.of(resultContext).pop(), child: const Text('Close'))],
+                      ),
+                    );
+                  } catch (error) {
+                    if (dialogContext.mounted) setDialogState(() => checking = false);
+                    await _showError(error);
+                  }
+                },
+                child: Text(checking ? 'Checking...' : 'Inspect & Reconcile'),
+              ),
+            ],
+          ),
+        ),
+      );
+    } finally {
+      runIdController.dispose();
+      fingerprintController.dispose();
+    }
+  }
+
+  Future<void> _reconcileImportRecord(ServiceLocationImport item) async {
+    final fingerprint = item.inputFingerprint.trim();
+    if (item.id.trim().isEmpty || fingerprint.isEmpty) {
+      _showMessage('This legacy import has no fingerprint; reconciliation is unavailable.');
+      return;
+    }
+    try {
+      final inspection = await _service.inspectImportRun(
+        runId: item.id,
+        inputFingerprint: fingerprint,
+      );
+      final reconciliation = await _service.reconcileImportPlan(
+        runId: item.id,
+        inputFingerprint: fingerprint,
+      );
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Read-only import reconciliation'),
+          content: SizedBox(
+            width: 560,
+            child: SingleChildScrollView(
+              child: SelectableText(
+                'Run: ${item.id}\n'
+                'Audit status: ${item.status}\n'
+                'Server status: ${inspection['status'] ?? 'unknown'}\n'
+                'Reconciliation: ${reconciliation['status'] ?? 'unknown'}\n'
+                'Read-only: ${reconciliation['readOnly'] == true ? 'Yes' : 'No'}\n'
+                'Plan records: ${reconciliation['plannedRecords'] ?? inspection['plannedRecords'] ?? '—'}\n'
+                'Matching records: ${reconciliation['matchingRecords'] ?? 0}\n'
+                'Missing records: ${reconciliation['missingCount'] ?? (reconciliation['missingIds'] as List? ?? const []).length}\n'
+                'Mismatched records: ${reconciliation['mismatchCount'] ?? (reconciliation['mismatchIds'] as List? ?? const []).length}\n'
+                'Missing IDs (first 50): ${(reconciliation['missingIds'] as List? ?? const []).join(', ')}\n'
+                'Mismatched IDs (first 50): ${(reconciliation['mismatchIds'] as List? ?? const []).join(', ')}\n'
+                'Results truncated: ${reconciliation['truncated'] == true ? 'Yes — more records need investigation' : 'No'}\n\n'
+                'This check does not write, repair, resume, or activate any location.',
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (error) {
+      await _showError(error);
+    }
   }
 
   // ============================================================
@@ -1770,21 +2146,30 @@ class _ServiceLocationScreenState
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'Validate State, District, City and Area rows before any future import. '
-                      'Preview only — no Firestore writes or activation.',
+                      'Preview and validate State, District, City and Area rows before import. '
+                      'Import is restricted to active super_admin accounts. New records stay inactive; '
+                      'service activation still requires separate boundary verification.',
                     ),
                     const SizedBox(height: 12),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: FilledButton.icon(
-                        onPressed: _showCsvPreviewDialog,
-                        icon: const Icon(Icons.preview_outlined),
-                        label: const Text('Paste CSV and Preview'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: _locationOrange,
-                          foregroundColor: Colors.white,
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        FilledButton.icon(
+                          onPressed: _showCsvPreviewDialog,
+                          icon: const Icon(Icons.preview_outlined),
+                          label: const Text('Paste CSV and Preview'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: _locationOrange,
+                            foregroundColor: Colors.white,
+                          ),
                         ),
-                      ),
+                        OutlinedButton.icon(
+                          onPressed: _reconcileImportById,
+                          icon: const Icon(Icons.manage_search_outlined),
+                          label: const Text('Reconcile by Run ID'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -1798,16 +2183,33 @@ class _ServiceLocationScreenState
             for (final item in items)
               Card(
                 color: Colors.white,
-                child: ListTile(
-                  leading: const Icon(Icons.file_present, color: _locationOrange),
-                  title: Text(item.fileName),
-                  subtitle: Text(
-                    'ID: ${item.id}\n'
-                    'Source: ${item.source}\n'
-                    'Status: ${item.status}\n'
-                    'Verification: ${item.verificationStatus}',
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.file_present, color: _locationOrange),
+                        title: Text(item.fileName),
+                        subtitle: Text(
+                          'ID: ${item.id}\n'
+                          'Source: ${item.source}\n'
+                          'Status: ${item.status}\n'
+                          'Verification: ${item.verificationStatus}',
+                        ),
+                        isThreeLine: true,
+                      ),
+                      if (item.inputFingerprint.trim().isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                          child: OutlinedButton.icon(
+                            onPressed: () => _reconcileImportRecord(item),
+                            icon: const Icon(Icons.fact_check_outlined),
+                            label: const Text('Inspect & Reconcile (Read-only)'),
+                          ),
+                        ),
+                    ],
                   ),
-                  isThreeLine: true,
                 ),
               ),
           ],

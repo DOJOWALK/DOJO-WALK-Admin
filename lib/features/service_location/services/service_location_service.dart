@@ -25,12 +25,16 @@ import 'service_location_index_contract.dart';
 class ServiceLocationService {
   final FirebaseFirestore _firestore;
   final FirebaseFunctions _functions;
+  final String? Function() _currentUserIdProvider;
 
   ServiceLocationService({
     FirebaseFirestore? firestore,
     FirebaseFunctions? functions,
+    String? Function()? currentUserIdProvider,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _functions = functions ?? FirebaseFunctions.instanceFor(region: 'asia-south1');
+        _functions = functions ?? FirebaseFunctions.instanceFor(region: 'asia-south1'),
+        _currentUserIdProvider = currentUserIdProvider ??
+            (() => FirebaseAuth.instance.currentUser?.uid);
 
   Future<void> _setTrustedStatus({
     required String locationType,
@@ -1449,10 +1453,99 @@ class ServiceLocationService {
         );
   }
 
+  /// Creates the trusted, durable run marker before any location writes.
+  /// The backend rejects reuse of any existing run ID, including matching
+  /// fingerprints. Use the read-only reconciliation flow before deciding how
+  /// to handle an interrupted run; this method never resumes or repairs it.
+  Future<void> beginImportRun({
+    required String runId,
+    required String countryId,
+    required String fileName,
+    required String inputFingerprint,
+  }) async {
+    final callable = _functions.httpsCallable('manageServiceLocationImportRun');
+    await callable.call<Map<String, dynamic>>({
+      'action': 'begin',
+      'runId': runId,
+      'countryId': countryId,
+      'fileName': fileName,
+      'inputFingerprint': inputFingerprint,
+    });
+  }
+
+  /// Persists the bounded canonical plan on the trusted backend before any
+  /// hierarchy writes. Existing runs with a recorded plan are immutable.
+  Future<void> recordImportPlan({
+    required String runId,
+    required String inputFingerprint,
+    required List<Map<String, dynamic>> nodes,
+  }) async {
+    final callable = _functions.httpsCallable('manageServiceLocationImportRun');
+    await callable.call<Map<String, dynamic>>({
+      'action': 'recordPlan',
+      'runId': runId,
+      'inputFingerprint': inputFingerprint,
+      'nodes': nodes,
+    });
+  }
+
+  /// Reads the server-owned run marker for reconciliation. This does not
+  /// resume or mutate an import; use [reconcileImportPlan] to compare the
+  /// immutable recorded plan with the current hierarchy.
+  Future<Map<String, dynamic>> inspectImportRun({
+    required String runId,
+    required String inputFingerprint,
+  }) async {
+    final callable = _functions.httpsCallable('manageServiceLocationImportRun');
+    final result = await callable.call<Map<String, dynamic>>({
+      'action': 'inspect',
+      'runId': runId,
+      'inputFingerprint': inputFingerprint,
+    });
+    return Map<String, dynamic>.from(result.data);
+  }
+
+  /// Performs a read-only comparison of the recorded import plan against the
+  /// current trusted hierarchy documents. This never resumes or repairs writes.
+  Future<Map<String, dynamic>> reconcileImportPlan({
+    required String runId,
+    required String inputFingerprint,
+  }) async {
+    final callable = _functions.httpsCallable('manageServiceLocationImportRun');
+    final result = await callable.call<Map<String, dynamic>>({
+      'action': 'reconcilePlan',
+      'runId': runId,
+      'inputFingerprint': inputFingerprint,
+    });
+    return Map<String, dynamic>.from(result.data);
+  }
+
+  /// Finalizes a previously started run. The server validates actor ownership,
+  /// fingerprint and allowed status transitions.
+  Future<void> finishImportRun({
+    required String runId,
+    required String inputFingerprint,
+    required String status,
+    required int plannedRecords,
+    required int createdRecords,
+    required int reusedRecords,
+  }) async {
+    final callable = _functions.httpsCallable('manageServiceLocationImportRun');
+    await callable.call<void>({
+      'action': 'finalize',
+      'runId': runId,
+      'inputFingerprint': inputFingerprint,
+      'status': status,
+      'plannedRecords': plannedRecords,
+      'createdRecords': createdRecords,
+      'reusedRecords': reusedRecords,
+    });
+  }
+
   Future<String> saveImport(
     ServiceLocationImport importRecord,
   ) async {
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final currentUserId = _currentUserIdProvider();
 
     if (currentUserId == null || currentUserId.trim().isEmpty) {
       throw StateError('Sign in as an admin before recording an import.');
@@ -1487,6 +1580,8 @@ class ServiceLocationService {
         importRecord.verificationStatus,
         'Import verification status',
       ),
+      if (importRecord.inputFingerprint.trim().isNotEmpty)
+        'inputFingerprint': importRecord.inputFingerprint.trim(),
     };
 
     final snapshot = await reference.get();
