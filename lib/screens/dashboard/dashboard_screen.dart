@@ -351,30 +351,6 @@ class DashboardScreen extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.w800),
                 ),
               ),
-              OutlinedButton.icon(
-                onPressed: () {
-                  // Booking overview remains on this dashboard; full booking
-                  // management is available from the company navigation.
-                  ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-                    const SnackBar(
-                      content: Text('Use the Bookings section for full booking management.'),
-                    ),
-                  );
-                },
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF9A4D00),
-                  side: const BorderSide(color: Color(0xFFFFC48F)),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                icon: const Icon(Icons.calendar_month_rounded),
-                label: const Text('Booking overview'),
-              ),
             ],
           ),
         ],
