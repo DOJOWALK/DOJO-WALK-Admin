@@ -4,6 +4,13 @@ Last updated: 2026-10-17
 
 > **App-wise status:** See [`docs/PROJECT_STATUS_BY_APP_2026-10-17.md`](PROJECT_STATUS_BY_APP_2026-10-17.md) for separate Admin, Customer, Partner and shared Firebase status. **Current Admin technical audit:** `docs/ADMIN_COMPLETION_AUDIT_2026-10-17.md`. The long step-by-step entries below are historical work logs; older “pending/absent” notes describe the state at the time they were written and are not the current branch snapshot.
 
+## Bootstrap preparation — 2026-10-20
+
+- [x] Added `data/templates/service_location_import_template.csv` with the required header row `State,District,City,Area` and no fabricated sample data.
+- [x] Added `docs/INDIA_LOCATION_MASTER_BOOTSTRAP_RUNBOOK.md` covering Country creation, duplicate checks, pilot CSV import, Run ID/fingerprint preservation, inactive-record checks, and polygon-boundary safeguards.
+- [ ] Production Country/document counts still require Firebase Console verification; no live database mutation was performed from this repository audit.
+- [ ] Run a small, reviewed pilot only after confirming the correct Firebase project and active India Country.
+
 ## Latest review — 2026-10-20
 
 - [x] Added `docs/SERVICE_LOCATION_DATA_BOOTSTRAP_AUDIT_2026-10-20.md`.
