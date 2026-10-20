@@ -1824,7 +1824,7 @@ class _ServiceLocationScreenState
                             ),
                             SizedBox(height: 6),
                             Text(
-                              'Import is intentionally disabled in this screen. A guarded import executor is being validated separately, but this preview does not call it and writes no location records. Do not treat a successful preview or parent-name match as permission to import. Import UI will remain disabled until authenticated Firebase-emulator tests cover partial writes, retry and immutable audit behavior.',
+                              'Preview itself never writes location records. After validation, use Import locations to choose an active parent country, enter a stable Run ID, and explicitly confirm the import. The trusted backend enforces super_admin access and records the bounded plan before hierarchy writes. If a run fails or times out, do not retry with a new Run ID; use Import History → Reconcile to inspect the original run. Import creates inactive records only and never creates boundaries or activates service.',
                             ),
                           ],
                         ),
