@@ -250,6 +250,9 @@ class _ServiceLocationScreenState
   }
 
   Widget _buildStatusFilter() {
+    // Import History is a log view, not a location-status list.
+    if (_selectedTab == 6) return const SizedBox.shrink();
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
       child: Row(
