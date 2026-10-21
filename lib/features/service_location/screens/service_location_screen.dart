@@ -3530,23 +3530,26 @@ class _ServiceLocationScreenState
         subtitle: Text(subtitle),
         isThreeLine: subtitle.contains('\n'),
         trailing: SizedBox(
-          width: (onManageBoundary == null ? 65 : 190) + (onOpen == null ? 0 : 88),
+          width: (onManageBoundary == null ? 58 : 104) +
+              (onOpen == null ? 0 : 44),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               if (onOpen != null)
-                TextButton.icon(
+                IconButton(
+                  tooltip: 'Open',
+                  visualDensity: VisualDensity.compact,
                   onPressed: onOpen,
-                  icon: const Icon(Icons.chevron_right_rounded, size: 18),
-                  label: const Text('Open'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: _locationOrange,
-                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                  icon: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: _locationOrange,
                   ),
                 ),
               if (onManageBoundary != null)
                 IconButton(
                   tooltip: 'Manage Boundary',
+                  visualDensity: VisualDensity.compact,
                   onPressed: onManageBoundary,
                   icon: const Icon(
                     Icons.edit_location_alt_outlined,
