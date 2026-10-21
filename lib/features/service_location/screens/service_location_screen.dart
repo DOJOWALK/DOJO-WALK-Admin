@@ -1377,59 +1377,78 @@ class _ServiceLocationScreenState
                               );
                             }).toList();
 
+                            final linkedCities = _selectedDistrictId == null
+                                ? cities
+                                : cities.where(
+                                    (item) => item.districtId == _selectedDistrictId,
+                                  ).toList();
+                            final unlinkedLegacyCities = _selectedDistrictId == null
+                                ? <ServiceCity>[]
+                                : cities.where((item) => item.districtId.isEmpty).toList();
+
                             if (cities.isEmpty) {
                               return const SizedBox.shrink();
                             }
 
+                            Widget cityCard(ServiceCity item) => _locationCard(
+                                  title: item.name,
+                                  subtitle:
+                                      'ID: ${item.id}\n'
+                                      'District: ${districtsById[item.districtId]?.name ?? (item.districtId.isEmpty ? "Not linked (legacy City)" : "Unknown District")}\n'
+                                      'Legacy boundary points: ${item.boundary.length}\n'
+                                      'Legacy verified: ${item.boundaryVerified ? "Yes" : "No"}\n'
+                                      'Service: ${item.isServiceActive ? "Active" : "Inactive"}',
+                                  active: item.isServiceActive,
+                                  icon: Icons.location_city,
+                                  onOpen: () {
+                                    setState(() {
+                                      _selectedCityId = item.id;
+                                      _selectedCityName = item.name;
+                                      _selectedAreaId = null;
+                                      _selectedAreaName = null;
+                                      _selectedTab = 4;
+                                      _search = '';
+                                      _searchController.clear();
+                                    });
+                                  },
+                                  onManageBoundary: () => _manageBoundary(
+                                    locationId: item.id,
+                                    locationName: item.name,
+                                    locationType: 'city',
+                                  ),
+                                  onToggle: (value) async {
+                                    try {
+                                      await _service.setCityServiceStatus(
+                                        cityId: item.id,
+                                        isActive: value,
+                                      );
+                                      _showMessage(
+                                        value
+                                            ? 'City service activated.'
+                                            : 'City service deactivated.',
+                                      );
+                                    } catch (error) {
+                                      await _showError(error);
+                                    }
+                                  },
+                                );
+
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _sectionTitle(_selectedDistrictName == null
-                                    ? '${state.name} · ${country.name}'
-                                    : '${_selectedDistrictName} · Cities (includes unlinked legacy Cities)'),
-                                for (final item in cities)
-                                  _locationCard(
-                                    title: item.name,
-                                    subtitle:
-                                        'ID: ${item.id}\n'
-                                        'District: ${districtsById[item.districtId]?.name ?? (item.districtId.isEmpty ? "Not linked (legacy City)" : "Unknown District")}\n'
-                                        'Legacy boundary points: ${item.boundary.length}\n'
-                                        'Legacy verified: ${item.boundaryVerified ? "Yes" : "No"}\n'
-                                        'Service: ${item.isServiceActive ? "Active" : "Inactive"}',
-                                    active: item.isServiceActive,
-                                    icon: Icons.location_city,
-                                    onOpen: () {
-                                      setState(() {
-                                        _selectedCityId = item.id;
-                                        _selectedCityName = item.name;
-                                        _selectedAreaId = null;
-                                        _selectedAreaName = null;
-                                        _selectedTab = 4;
-                                        _search = '';
-                                        _searchController.clear();
-                                      });
-                                    },
-                                    onManageBoundary: () => _manageBoundary(
-                                      locationId: item.id,
-                                      locationName: item.name,
-                                      locationType: 'city',
-                                    ),
-                                    onToggle: (value) async {
-                                      try {
-                                        await _service.setCityServiceStatus(
-                                          cityId: item.id,
-                                          isActive: value,
-                                        );
-                                        _showMessage(
-                                          value
-                                              ? 'City service activated.'
-                                              : 'City service deactivated.',
-                                        );
-                                      } catch (error) {
-                                        await _showError(error);
-                                      }
-                                    },
-                                  ),
+                                if (_selectedDistrictId == null) ...[
+                                  _sectionTitle('${state.name} · ${country.name}'),
+                                  for (final item in cities) cityCard(item),
+                                ] else ...[
+                                  if (linkedCities.isNotEmpty) ...[
+                                    _sectionTitle('${_selectedDistrictName ?? "District"} · Cities'),
+                                    for (final item in linkedCities) cityCard(item),
+                                  ],
+                                  if (unlinkedLegacyCities.isNotEmpty) ...[
+                                    _sectionTitle('Unlinked / Legacy Cities · Not assigned to a District'),
+                                    for (final item in unlinkedLegacyCities) cityCard(item),
+                                  ],
+                                ],
                               ],
                             );
                           },
