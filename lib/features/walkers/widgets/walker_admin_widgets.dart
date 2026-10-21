@@ -172,8 +172,8 @@ class WalkerAdminCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 14),
       color: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: walkerAdminBorder),
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: Color(0xFFFFE1C8)),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
