@@ -1000,6 +1000,12 @@ class _ServiceLocationScreenState
                             setState(() {
                               _selectedStateId = item.id;
                               _selectedStateName = item.name;
+                              _selectedDistrictId = null;
+                              _selectedDistrictName = null;
+                              _selectedCityId = null;
+                              _selectedCityName = null;
+                              _selectedAreaId = null;
+                              _selectedAreaName = null;
                               _selectedTab = 2;
                               _search = '';
                               _searchController.clear();
@@ -1106,6 +1112,10 @@ class _ServiceLocationScreenState
                                 statesById[district.stateId]?.name;
                             _selectedDistrictId = district.id;
                             _selectedDistrictName = district.name;
+                            _selectedCityId = null;
+                            _selectedCityName = null;
+                            _selectedAreaId = null;
+                            _selectedAreaName = null;
                             _selectedTab = 3;
                             _search = '';
                             _searchController.clear();
@@ -1228,6 +1238,8 @@ class _ServiceLocationScreenState
                                       setState(() {
                                         _selectedCityId = item.id;
                                         _selectedCityName = item.name;
+                                        _selectedAreaId = null;
+                                        _selectedAreaName = null;
                                         _selectedTab = 4;
                                         _search = '';
                                         _searchController.clear();
