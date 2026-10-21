@@ -88,9 +88,9 @@ class _AdminShellState extends State<AdminShell> {
                 builder: (_) => const LiveOperationsScreen(),
               ),
             );
+          },
           onOpenServiceLocations: () {
             setState(() => _selectedIndex = 9);
-          },
           },
         );
 
