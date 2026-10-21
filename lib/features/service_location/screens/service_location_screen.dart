@@ -1362,6 +1362,12 @@ class _ServiceLocationScreenState
                             }
 
                             final cities = citySnapshot.data!.where((item) {
+                              // When drilling into a selected State/District, do not
+                              // leak unlinked legacy Cities from other States into
+                              // the selected District's legacy group.
+                              if (_selectedStateId != null && state.id != _selectedStateId) {
+                                return false;
+                              }
                               if (!_matchesStatus(item.isServiceActive)) return false;
                               if (_selectedDistrictId != null &&
                                   item.districtId != _selectedDistrictId &&
