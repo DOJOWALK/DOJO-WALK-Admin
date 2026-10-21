@@ -3468,15 +3468,33 @@ class _ServiceLocationScreenState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const Text(
+                'Location to change',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: _locationOrange,
+                ),
+              ),
+              const SizedBox(height: 6),
               Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-              const SizedBox(height: 10),
-              Text(subtitle),
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
+              SelectableText(subtitle),
+              const SizedBox(height: 14),
+              const Text(
+                'Before confirmation',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 6),
               Text(
                 activating
-                    ? 'You are requesting to activate this location for service. Parent eligibility and required verified City/Area boundary checks must still pass on the server.'
-                    : 'You are requesting to deactivate service for this location. This does not delete the location record.',
+                    ? 'Activation request: the server must confirm parent eligibility and the required verified boundary. City and Area need a verified boundary; Locality does not need its own polygon by default.'
+                    : 'Deactivation request: service will be turned off for this location. The location record itself will not be deleted.',
                 style: const TextStyle(height: 1.4),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'This screen is a review only. Final permission and eligibility checks remain on the server; a confirmation here does not bypass them.',
+                style: TextStyle(height: 1.4, color: Colors.black54),
               ),
             ],
           ),
