@@ -967,12 +967,11 @@ class _ServiceLocationScreenState
           country.name.trim().toLowerCase() == 'india')) continue;
       addResult(type: 'State', id: item.id, name: item.name,
         path: 'India · ${item.name}', active: item.isActive, tab: 1,
-        code: item.code, stateId: item.id);
+        stateId: item.id);
     }
     for (final item in districts) {
       final state = stateById[item.stateId];
       if (state == null) continue;
-      final country = countryById[item.countryId];
       final path = 'India · ${state.name} · ${item.name}';
       addResult(type: 'District', id: item.id, name: item.name,
         path: path, active: item.isActive, tab: 2,
