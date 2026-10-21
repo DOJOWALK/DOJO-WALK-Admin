@@ -3718,6 +3718,8 @@ class _ServiceLocationScreenState
     VoidCallback? onManageBoundary,
     String? reviewBoundaryLocationType,
     String? reviewBoundaryLocationId,
+    String? hierarchyLocationType,
+    String? hierarchyLocationId,
   }) {
     return Card(
       color: Colors.white,
