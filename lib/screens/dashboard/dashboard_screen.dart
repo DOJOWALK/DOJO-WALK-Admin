@@ -795,12 +795,28 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(18),
-        border: Border.all(
-          color: const Color(0xFFEAEAEA),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFF7F0)],
         ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFFFE1C8),
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x16FF7900),
+            blurRadius: 24,
+            offset: Offset(0, 9),
+          ),
+          BoxShadow(
+            color: Colors.white,
+            blurRadius: 0,
+            spreadRadius: 1,
+            offset: Offset(-1, -1),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -875,12 +891,28 @@ class _RevenueCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(18),
-        border: Border.all(
-          color: const Color(0xFFEAEAEA),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFF7F0)],
         ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFFFE1C8),
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x16FF7900),
+            blurRadius: 24,
+            offset: Offset(0, 9),
+          ),
+          BoxShadow(
+            color: Colors.white,
+            blurRadius: 0,
+            spreadRadius: 1,
+            offset: Offset(-1, -1),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -963,12 +995,28 @@ class _DashboardCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(18),
-        border: Border.all(
-          color: const Color(0xFFEAEAEA),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFF7F0)],
         ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFFFE1C8),
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x16FF7900),
+            blurRadius: 24,
+            offset: Offset(0, 9),
+          ),
+          BoxShadow(
+            color: Colors.white,
+            blurRadius: 0,
+            spreadRadius: 1,
+            offset: Offset(-1, -1),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment:
