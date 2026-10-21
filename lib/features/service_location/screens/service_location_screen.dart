@@ -68,6 +68,8 @@ class _ServiceLocationScreenState
   String? _selectedDistrictName;
   String? _selectedCityId;
   String? _selectedCityName;
+  String? _selectedAreaId;
+  String? _selectedAreaName;
 
   GoogleMapController? _mapController;
   late Future<Set<Polygon>> _activeBoundaryPolygonsFuture;
@@ -1328,6 +1330,15 @@ class _ServiceLocationScreenState
                               'Service: ${item.isServiceActive ? "Active" : "Inactive"}',
                           active: item.isServiceActive,
                           icon: Icons.grid_view,
+                          onOpen: () {
+                            setState(() {
+                              _selectedAreaId = item.id;
+                              _selectedAreaName = item.name;
+                              _selectedTab = 5;
+                              _search = '';
+                              _searchController.clear();
+                            });
+                          },
                           onManageBoundary: () =>
                               _manageBoundary(
                             locationId: item.id,
@@ -1393,7 +1404,9 @@ class _ServiceLocationScreenState
 
                   return Column(
                     children: [
-                      for (final area in areaSnapshot.data!)
+                      for (final area in areaSnapshot.data!.where(
+                        (item) => _selectedAreaId == null || item.id == _selectedAreaId,
+                      ))
                         StreamBuilder<List<ServiceLocality>>(
                           stream: _service.watchLocalities(
                             cityId: city.id,
