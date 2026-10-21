@@ -260,7 +260,7 @@ class _LiveOperationsScreenState
           .where((entry) => entry.value != null)
           .take(12)
           .map((entry) => entry.key + ': ' + entry.value.toString())
-          .join('\\n');
+          .join('\n');
       await showDialog<void>(
         context: context,
         builder: (dialogContext) => AlertDialog(
