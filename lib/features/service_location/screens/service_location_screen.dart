@@ -254,7 +254,10 @@ class _ServiceLocationScreenState
       padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
       child: Row(
         children: [
-          const Text('Show:', style: TextStyle(fontWeight: FontWeight.w700)),
+          Text(
+            _selectedTab <= 1 ? 'Record status:' : 'Service status:',
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
           const SizedBox(width: 8),
           for (final value in const ['All', 'Active', 'Inactive']) ...[
             Padding(
