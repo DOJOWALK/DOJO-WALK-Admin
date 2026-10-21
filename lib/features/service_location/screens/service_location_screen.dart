@@ -1121,15 +1121,26 @@ class _ServiceLocationScreenState
         }
 
         final countries = countrySnapshot.data!;
+        final indiaCountries = countries.where((country) =>
+            country.code.trim().toUpperCase() == 'IN' ||
+            country.name.trim().toLowerCase() == 'india').toList()
+          ..sort((a, b) {
+            final aExact = a.code.trim().toUpperCase() == 'IN' ? 0 : 1;
+            final bExact = b.code.trim().toUpperCase() == 'IN' ? 0 : 1;
+            return aExact.compareTo(bExact);
+          });
 
-        if (countries.isEmpty) {
-          return _emptyState('Add a country first.');
+        if (indiaCountries.isEmpty) {
+          return _emptyState(
+            'India is not configured in the country master. '
+            'Check the India (IN) master record before viewing States.',
+          );
         }
 
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            for (final country in countries)
+            for (final country in indiaCountries.take(1))
               StreamBuilder<List<ServiceState>>(
                 stream: _service.watchStates(
                   countryId: country.id,
