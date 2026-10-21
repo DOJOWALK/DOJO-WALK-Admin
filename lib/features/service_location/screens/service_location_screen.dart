@@ -62,6 +62,7 @@ class _ServiceLocationScreenState
 
   int _selectedTab = 0;
   String _search = '';
+  String _statusFilter = 'All';
   String? _selectedStateId;
   String? _selectedStateName;
   String? _selectedDistrictId;
@@ -134,6 +135,45 @@ class _ServiceLocationScreenState
     if (query.isEmpty) return true;
 
     return value.toLowerCase().contains(query);
+  }
+
+  bool _matchesStatus(bool active) {
+    switch (_statusFilter) {
+      case 'Active':
+        return active;
+      case 'Inactive':
+        return !active;
+      default:
+        return true;
+    }
+  }
+
+  Widget _buildStatusFilter() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
+      child: Row(
+        children: [
+          const Text('Show:', style: TextStyle(fontWeight: FontWeight.w700)),
+          const SizedBox(width: 8),
+          for (final value in const ['All', 'Active', 'Inactive']) ...[
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: ChoiceChip(
+                label: Text(value),
+                selected: _statusFilter == value,
+                selectedColor: _locationOrange,
+                labelStyle: TextStyle(
+                  color: _statusFilter == value ? Colors.white : const Color(0xFF5D5148),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+                onSelected: (_) => setState(() => _statusFilter = value),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   @override
@@ -282,6 +322,7 @@ class _ServiceLocationScreenState
             ),
           ),
           _buildTabs(),
+          _buildStatusFilter(),
           const Divider(height: 1, color: Color(0xFFECE5DE)),
           Expanded(
             child: Container(
@@ -817,7 +858,7 @@ class _ServiceLocationScreenState
 
         final items = snapshot.data!
             .where(
-              (item) => _matches(
+              (item) => _matchesStatus(item.isActive) && _matches(
                 '${item.id} ${item.name} ${item.code}',
               ),
             )
@@ -974,7 +1015,7 @@ class _ServiceLocationScreenState
 
                   final items = snapshot.data!
                       .where(
-                        (item) => _matches(
+                        (item) => _matchesStatus(item.isActive) && _matches(
                           '${item.id} ${item.name} '
                           '${country.id} ${country.name}',
                         ),
@@ -1070,6 +1111,7 @@ class _ServiceLocationScreenState
                   for (final state in stateSnapshot.data!) state.id: state,
                 };
                 final districts = districtSnapshot.data!.where((district) {
+                  if (!_matchesStatus(district.isActive)) return false;
                   if (_selectedStateId != null &&
                       district.stateId != _selectedStateId) {
                     return false;
@@ -1200,6 +1242,7 @@ class _ServiceLocationScreenState
                             }
 
                             final cities = citySnapshot.data!.where((item) {
+                              if (!_matchesStatus(item.isServiceActive)) return false;
                               if (_selectedDistrictId != null &&
                                   item.districtId != _selectedDistrictId) {
                                 return false;
@@ -1313,7 +1356,7 @@ class _ServiceLocationScreenState
 
                   final areas = snapshot.data!
                       .where(
-                        (item) => _matches(
+                        (item) => _matchesStatus(item.isServiceActive) && _matches(
                           '${item.id} ${item.name} '
                           '${city.id} ${city.name} ${city.districtId}',
                         ),
@@ -1432,7 +1475,7 @@ class _ServiceLocationScreenState
 
                             final items = snapshot.data!
                                 .where(
-                                  (item) => _matches(
+                                  (item) => _matchesStatus(item.isServiceActive) && _matches(
                                     '${item.id} ${item.name} '
                                     '${item.pincode} ${item.areaId} '
                                     '${area.name} ${item.cityId} '
