@@ -64,6 +64,8 @@ class _ServiceLocationScreenState
   String _search = '';
   String? _selectedStateId;
   String? _selectedStateName;
+  String? _selectedDistrictId;
+  String? _selectedDistrictName;
 
   GoogleMapController? _mapController;
   late Future<Set<Polygon>> _activeBoundaryPolygonsFuture;
@@ -1093,6 +1095,18 @@ class _ServiceLocationScreenState
                             'Service: ${district.isActive ? "Active" : "Inactive"}',
                         active: district.isActive,
                         icon: Icons.map_outlined,
+                        onOpen: () {
+                          setState(() {
+                            _selectedStateId = district.stateId;
+                            _selectedStateName =
+                                statesById[district.stateId]?.name;
+                            _selectedDistrictId = district.id;
+                            _selectedDistrictName = district.name;
+                            _selectedTab = 3;
+                            _search = '';
+                            _searchController.clear();
+                          });
+                        },
                         onToggle: (value) async {
                           try {
                             await _service.setDistrictStatus(
@@ -1172,6 +1186,10 @@ class _ServiceLocationScreenState
                             }
 
                             final cities = citySnapshot.data!.where((item) {
+                              if (_selectedDistrictId != null &&
+                                  item.districtId != _selectedDistrictId) {
+                                return false;
+                              }
                               final district = districtsById[item.districtId];
                               return _matches(
                                 '${item.id} ${item.name} '
@@ -1188,7 +1206,9 @@ class _ServiceLocationScreenState
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _sectionTitle('${state.name} · ${country.name}'),
+                                _sectionTitle(_selectedDistrictName == null
+                                    ? '${state.name} · ${country.name}'
+                                    : '${_selectedDistrictName} · Cities'),
                                 for (final item in cities)
                                   _locationCard(
                                     title: item.name,
