@@ -158,7 +158,7 @@ class _ServiceLocationScreenState
       if (_selectedCityId != null)
         (label: _selectedCityName ?? 'City', tab: 3, selected: _selectedAreaId == null),
       if (_selectedAreaId != null)
-        (label: _selectedAreaName ?? 'Area', tab: 4, selected: true),
+        (label: _selectedAreaName ?? 'Area', tab: 4, selected: _selectedTab == 4),
     ];
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 2, 16, 6),
