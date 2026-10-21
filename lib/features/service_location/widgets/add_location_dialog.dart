@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/location_selection_state.dart';
 import '../models/service_location_models.dart';
 import '../services/service_location_service.dart';
+import '../services/optional_indian_pincode_validator.dart';
 
 const Color _addLocationOrange = Color(0xFFFF7900);
 
@@ -680,8 +681,10 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: 'PIN code (optional)',
+                      helperText: 'Leave blank or enter a 6-digit Indian PIN code',
                       border: OutlineInputBorder(),
                     ),
+                    validator: validateOptionalIndianPincode,
                   ),
                 ],
 
