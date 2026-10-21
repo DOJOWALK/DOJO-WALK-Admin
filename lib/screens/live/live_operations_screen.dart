@@ -246,7 +246,6 @@ class _LiveOperationsScreenState
       );
       return;
     }
-
     try {
       final booking = await _firestore.collection('bookings').doc(bookingId).get();
       if (!mounted) return;
@@ -256,14 +255,12 @@ class _LiveOperationsScreenState
         );
         return;
       }
-
       final data = booking.data() ?? <String, dynamic>{};
       final details = data.entries
           .where((entry) => entry.value != null)
           .take(12)
           .map((entry) => entry.key + ': ' + entry.value.toString())
           .join('\\n');
-
       await showDialog<void>(
         context: context,
         builder: (dialogContext) => AlertDialog(
@@ -272,10 +269,7 @@ class _LiveOperationsScreenState
             child: SelectableText(details.isEmpty ? 'No booking details available.' : details),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Close'),
-            ),
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Close')),
           ],
         ),
       );
@@ -376,6 +370,8 @@ class _LiveOperationsScreenState
               bottom: 20,
               child: _WalkerDetailsCard(
                 data: selected,
+                onViewBooking: () => _showBookingDetails(selected['currentBookingId']?.toString()),
+                onViewRoute: () => _loadWalkerRoute(selected['id']?.toString() ?? _selectedWalkerId!),
                 onClose: () {
                   setState(() {
                     _selectedWalkerId = null;
