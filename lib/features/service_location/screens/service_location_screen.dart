@@ -62,6 +62,8 @@ class _ServiceLocationScreenState
 
   int _selectedTab = 0;
   String _search = '';
+  String? _selectedStateId;
+  String? _selectedStateName;
 
   GoogleMapController? _mapController;
   late Future<Set<Polygon>> _activeBoundaryPolygonsFuture;
@@ -988,6 +990,15 @@ class _ServiceLocationScreenState
                               'ID: ${item.id} · Country: ${country.name}',
                           active: item.isActive,
                           icon: Icons.map_outlined,
+                          onOpen: () {
+                            setState(() {
+                              _selectedStateId = item.id;
+                              _selectedStateName = item.name;
+                              _selectedTab = 2;
+                              _search = '';
+                              _searchController.clear();
+                            });
+                          },
                           onToggle: (value) async {
                             try {
                               await _service.setStateStatus(
@@ -1047,6 +1058,10 @@ class _ServiceLocationScreenState
                   for (final state in stateSnapshot.data!) state.id: state,
                 };
                 final districts = districtSnapshot.data!.where((district) {
+                  if (_selectedStateId != null &&
+                      district.stateId != _selectedStateId) {
+                    return false;
+                  }
                   final state = statesById[district.stateId];
                   final country = countriesById[district.countryId];
                   return _matches(
@@ -1067,7 +1082,9 @@ class _ServiceLocationScreenState
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                   children: [
-                    _sectionTitle('Districts · ${districts.length}'),
+                    _sectionTitle(_selectedStateName == null
+                        ? 'All Districts · ${districts.length}'
+                        : '${_selectedStateName} · Districts · ${districts.length}'),
                     for (final district in districts)
                       _locationCard(
                         title: district.name,
@@ -3221,6 +3238,7 @@ class _ServiceLocationScreenState
     required bool active,
     required IconData icon,
     required ValueChanged<bool> onToggle,
+    VoidCallback? onOpen,
     VoidCallback? onManageBoundary,
   }) {
     return Card(
@@ -3262,10 +3280,20 @@ class _ServiceLocationScreenState
         subtitle: Text(subtitle),
         isThreeLine: subtitle.contains('\n'),
         trailing: SizedBox(
-          width: onManageBoundary == null ? 65 : 190,
+          width: (onManageBoundary == null ? 65 : 190) + (onOpen == null ? 0 : 88),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              if (onOpen != null)
+                TextButton.icon(
+                  onPressed: onOpen,
+                  icon: const Icon(Icons.chevron_right_rounded, size: 18),
+                  label: const Text('Open'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: _locationOrange,
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                  ),
+                ),
               if (onManageBoundary != null)
                 IconButton(
                   tooltip: 'Manage Boundary',
