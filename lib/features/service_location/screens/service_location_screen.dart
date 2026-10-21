@@ -255,7 +255,7 @@ class _ServiceLocationScreenState
       child: Row(
         children: [
           Text(
-            _selectedTab <= 1 ? 'Record status:' : 'Service status:',
+            _selectedTab <= 2 ? 'Record status:' : 'Service status:',
             style: const TextStyle(fontWeight: FontWeight.w700),
           ),
           const SizedBox(width: 8),
