@@ -261,7 +261,7 @@ class _ServiceLocationScreenState
       child: Row(
         children: [
           Text(
-            _selectedTab <= 2 ? 'Record status:' : 'Service status:',
+            _selectedTab <= 1 ? 'Record status:' : 'Service status:',
             style: const TextStyle(fontWeight: FontWeight.w700),
           ),
           const SizedBox(width: 8),
@@ -1280,7 +1280,7 @@ class _ServiceLocationScreenState
                         title: district.name,
                         subtitle: 'State: ${statesById[district.stateId]?.name ?? "Unknown State"}\n'
                             'Country: ${countriesById[district.countryId]?.name ?? "Unknown Country"}\n'
-                            'Record status: ${district.isActive ? "Active" : "Inactive"}',
+                            'Service status: ${district.isActive ? "Active" : "Inactive"}',
                         active: district.isActive,
                         icon: Icons.map_outlined,
                         onOpen: () {
