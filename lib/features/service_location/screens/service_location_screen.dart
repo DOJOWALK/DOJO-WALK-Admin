@@ -153,8 +153,8 @@ class _ServiceLocationScreenState
     final crumbs = <({String label, int tab, bool selected})>[
       (label: 'India', tab: 1, selected: _selectedStateId == null && _selectedTab == 1),
       if (_selectedStateId != null)
-        (label: _selectedStateName ?? 'State', tab: 1,
-          selected: _selectedDistrictId == null && _selectedTab == 1),
+        (label: _selectedStateName ?? 'State', tab: 2,
+          selected: _selectedDistrictId == null && _selectedTab == 2),
       if (_selectedDistrictId != null)
         (label: _selectedDistrictName ?? 'District', tab: 2,
           selected: _selectedCityId == null && _selectedTab == 2),
@@ -966,7 +966,7 @@ class _ServiceLocationScreenState
       if (country == null || !(country.code.trim().toUpperCase() == 'IN' ||
           country.name.trim().toLowerCase() == 'india')) continue;
       addResult(type: 'State', id: item.id, name: item.name,
-        path: 'India · ${item.name}', active: item.isActive, tab: 1,
+        path: 'India · ${item.name}', active: item.isActive, tab: 2,
         stateId: item.id);
     }
     for (final item in districts) {
