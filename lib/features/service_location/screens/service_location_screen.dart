@@ -71,6 +71,7 @@ class _ServiceLocationScreenState
   String? _selectedCityName;
   String? _selectedAreaId;
   String? _selectedAreaName;
+  Future<List<Map<String, dynamic>>>? _globalSearchFuture;
 
   GoogleMapController? _mapController;
   late Future<Set<Polygon>> _activeBoundaryPolygonsFuture;
@@ -402,9 +403,12 @@ class _ServiceLocationScreenState
             ),
             child: TextField(
               controller: _searchController,
-              onChanged: (value) => setState(() => _search = value.trim()),
+              onChanged: (value) => setState(() {
+                _search = value.trim();
+                _globalSearchFuture = _search.isEmpty ? null : _loadGlobalSearchResults();
+              }),
               decoration: InputDecoration(
-                hintText: 'Search state, city, area or code',
+                hintText: 'Search state, district, city, area, locality or PIN/code',
                 hintStyle: const TextStyle(fontSize: 13, color: Colors.black45),
                 prefixIcon: const Icon(Icons.search_rounded, color: _locationOrange),
                 suffixIcon: _search.isEmpty
@@ -912,7 +916,174 @@ class _ServiceLocationScreenState
     );
   }
 
+  Future<List<Map<String, dynamic>>> _loadGlobalSearchResults() async {
+    final results = <Map<String, dynamic>>[];
+    final countries = await _service.watchCountries().first;
+    final states = await _service.watchStates().first;
+    final districts = await _service.watchDistricts().first;
+    final cities = await _service.watchCities().first;
+    final areas = await _service.watchAreas().first;
+    final localities = await _service.watchLocalities().first;
+    final countryById = {for (final item in countries) item.id: item};
+    final stateById = {for (final item in states) item.id: item};
+    final districtById = {for (final item in districts) item.id: item};
+    final cityById = {for (final item in cities) item.id: item};
+    final areaById = {for (final item in areas) item.id: item};
+    final query = _search.trim().toLowerCase();
+
+    void addResult({
+      required String type,
+      required String id,
+      required String name,
+      required String path,
+      required bool active,
+      required int tab,
+      String code = '',
+      String pincode = '',
+      String? stateId,
+      String? districtId,
+      String? cityId,
+      String? areaId,
+    }) {
+      if (!_matchesStatus(active)) return;
+      final searchable = '$type $id $name $code $pincode $path'.toLowerCase();
+      if (query.isNotEmpty && !searchable.contains(query)) return;
+      results.add({
+        'type': type, 'id': id, 'name': name, 'path': path, 'active': active,
+        'tab': tab, 'stateId': stateId, 'districtId': districtId,
+        'cityId': cityId, 'areaId': areaId,
+      });
+    }
+
+    for (final item in countries.where((item) =>
+        item.code.trim().toUpperCase() == 'IN' ||
+        item.name.trim().toLowerCase() == 'india')) {
+      addResult(type: 'Country', id: item.id, name: item.name,
+        path: 'India', active: item.isActive, tab: 1, code: item.code);
+    }
+    for (final item in states) {
+      final country = countryById[item.countryId];
+      if (country == null || !(country.code.trim().toUpperCase() == 'IN' ||
+          country.name.trim().toLowerCase() == 'india')) continue;
+      addResult(type: 'State', id: item.id, name: item.name,
+        path: 'India · ${item.name}', active: item.isActive, tab: 1,
+        code: item.code, stateId: item.id);
+    }
+    for (final item in districts) {
+      final state = stateById[item.stateId];
+      if (state == null) continue;
+      final country = countryById[item.countryId];
+      final path = 'India · ${state.name} · ${item.name}';
+      addResult(type: 'District', id: item.id, name: item.name,
+        path: path, active: item.isActive, tab: 2,
+        stateId: state.id, districtId: item.id);
+    }
+    for (final item in cities) {
+      final state = stateById[item.stateId];
+      final district = districtById[item.districtId];
+      final path = ['India', if (state != null) state.name,
+        if (district != null) district.name, item.name].join(' · ');
+      addResult(type: 'City', id: item.id, name: item.name,
+        path: path, active: item.isServiceActive, tab: 3,
+        stateId: item.stateId, districtId: item.districtId, cityId: item.id);
+    }
+    for (final item in areas) {
+      final city = cityById[item.cityId];
+      if (city == null) continue;
+      final state = stateById[city.stateId];
+      final district = districtById[city.districtId];
+      final path = ['India', if (state != null) state.name,
+        if (district != null) district.name, city.name, item.name].join(' · ');
+      addResult(type: 'Area', id: item.id, name: item.name,
+        path: path, active: item.isServiceActive, tab: 4,
+        stateId: city.stateId, districtId: city.districtId,
+        cityId: city.id, areaId: item.id);
+    }
+    for (final item in localities) {
+      final area = areaById[item.areaId];
+      final city = cityById[item.cityId];
+      if (city == null) continue;
+      final state = stateById[city.stateId];
+      final district = districtById[city.districtId];
+      final path = ['India', if (state != null) state.name,
+        if (district != null) district.name, city.name,
+        if (area != null) area.name, item.name,
+        if (item.pincode.trim().isNotEmpty) 'PIN ${item.pincode}'].join(' · ');
+      addResult(type: 'Locality', id: item.id, name: item.name,
+        path: path, active: item.isServiceActive, tab: 5,
+        pincode: item.pincode, stateId: city.stateId,
+        districtId: city.districtId, cityId: city.id, areaId: item.areaId);
+    }
+    results.sort((a, b) => (a['name'] as String).toLowerCase()
+        .compareTo((b['name'] as String).toLowerCase()));
+    return results;
+  }
+
+  Widget _buildGlobalSearchResults() {
+    final future = _globalSearchFuture ??= _loadGlobalSearchResults();
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return _emptyState('Unable to search service locations: ${snapshot.error}');
+        }
+        if (!snapshot.hasData) return _loadingState();
+        final results = snapshot.data!;
+        if (results.isEmpty) {
+          return _emptyState('No matching locations found. Try a name, district, area, locality or PIN/code.');
+        }
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          children: [
+            _sectionTitle('${results.length} matching locations'),
+            for (final item in results)
+              Card(
+                margin: const EdgeInsets.symmetric(vertical: 5),
+                child: ListTile(
+                  leading: const Icon(Icons.location_on_outlined, color: _locationOrange),
+                  title: Text(item['name'] as String,
+                    style: const TextStyle(fontWeight: FontWeight.w700)),
+                  subtitle: Text('${item['type']} · ${item['path']}\n'
+                    '${(item['active'] as bool) ? 'Service active' : 'Service inactive'}'),
+                  isThreeLine: true,
+                  trailing: TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedStateId = item['stateId'] as String?;
+                        _selectedStateName = _selectedStateId == null
+                            ? null : stateBySearchName(_selectedStateId!);
+                        _selectedDistrictId = item['districtId'] as String?;
+                        _selectedDistrictName = null;
+                        _selectedCityId = item['cityId'] as String?;
+                        _selectedCityName = null;
+                        _selectedAreaId = item['areaId'] as String?;
+                        _selectedAreaName = null;
+                        _selectedTab = item['tab'] as int;
+                        _search = '';
+                        _searchController.clear();
+                        _globalSearchFuture = null;
+                      });
+                    },
+                    child: const Text('Open'),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  String? stateBySearchName(String stateId) {
+    // The result path already contains the human-readable state name.
+    // Keep the ID as the selection source; this helper is only a safe label fallback.
+    return _selectedStateName ?? stateId;
+  }
+
   Widget _buildSelectedList() {
+    if (_search.trim().isNotEmpty && _selectedTab != 6) {
+      return _buildGlobalSearchResults();
+    }
     switch (_selectedTab) {
       case 0:
         return _buildCountries();
