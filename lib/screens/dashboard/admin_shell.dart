@@ -9,6 +9,7 @@ import '../coupons/coupons_screen.dart';
 
 import '../../features/walkers/screens/walker_management_dashboard_screen.dart';
 import '../../features/service_location/screens/service_location_screen.dart';
+import '../../features/company_setup/screens/company_setup_screen.dart';
 
 const Color adminOrange = Color(0xFFFF7900);
 const Color adminBackground = Color(0xFFFFFAF5);
@@ -76,6 +77,11 @@ class _AdminShellState extends State<AdminShell> {
       subtitle: 'Manage countries, states, cities and areas',
       icon: Icons.location_city_rounded,
     ),
+    _AdminMenuItem(
+      title: 'Company Setup',
+      subtitle: 'Company profile, policies, roles and approvals',
+      icon: Icons.business_center_rounded,
+    ),
   ];
 
   Widget _buildContent() {
@@ -105,6 +111,9 @@ class _AdminShellState extends State<AdminShell> {
 
       case 9:
         return const ServiceLocationScreen();
+
+      case 10:
+        return const CompanySetupScreen();
 
       default:
         return _buildComingSoonScreen(
