@@ -89,6 +89,9 @@ class _AdminShellState extends State<AdminShell> {
               ),
             );
           },
+          onOpenServiceLocations: () {
+            setState(() => _selectedIndex = 9);
+          },
         );
 
       case 1:

@@ -4,10 +4,12 @@ import 'package:intl/intl.dart';
 
 class DashboardScreen extends StatelessWidget {
   final VoidCallback? onOpenLiveOperations;
+  final VoidCallback? onOpenServiceLocations;
 
   const DashboardScreen({
     super.key,
     this.onOpenLiveOperations,
+    this.onOpenServiceLocations,
   });
 
   final Color orange = const Color(0xFFFF7900);
@@ -350,6 +352,17 @@ class DashboardScreen extends StatelessWidget {
                   'Open Live Operations',
                   style: TextStyle(fontWeight: FontWeight.w800),
                 ),
+              ),
+              OutlinedButton.icon(
+                onPressed: onOpenServiceLocations,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFFF7900),
+                  side: const BorderSide(color: Color(0xFFFF7900)),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                icon: const Icon(Icons.add_location_alt_outlined),
+                label: const Text('Add / Manage Locations'),
               ),
             ],
           ),
