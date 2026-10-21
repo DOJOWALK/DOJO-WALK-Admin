@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../../screens/dashboard/admin_shell.dart';
 
 /// First-stage Company Setup workspace.
 ///
 /// This screen is intentionally a setup blueprint only. It does not claim to
 /// persist company settings until Firestore schema, authorization, and audit
 /// logging are implemented and tested.
+const Color __adminOrange = Color(0xFFFF7900);
+const Color _adminBackground = Color(0xFFFFFAF5);
+const Color __adminText = Color(0xFF252525);
+
 class CompanySetupScreen extends StatelessWidget {
   const CompanySetupScreen({super.key});
 
@@ -169,13 +172,13 @@ class CompanySetupScreen extends StatelessWidget {
                 child: const Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline_rounded, color: adminOrange),
+                    Icon(Icons.info_outline_rounded, color: _adminOrange),
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Foundation preview: these sections show what must be configured. Saving, file uploads, role enforcement and audit logging are not connected in this first UI step. Do not treat a section as completed until its backend and security checks are implemented.',
                         style: TextStyle(
-                          color: adminText,
+                          color: _adminText,
                           fontSize: 13,
                           height: 1.5,
                         ),
@@ -188,7 +191,7 @@ class CompanySetupScreen extends StatelessWidget {
               const Text(
                 'Setup sections',
                 style: TextStyle(
-                  color: adminText,
+                  color: _adminText,
                   fontSize: 21,
                   fontWeight: FontWeight.bold,
                 ),
@@ -239,7 +242,7 @@ class CompanySetupScreen extends StatelessWidget {
       builder: (dialogContext) => AlertDialog(
         title: Row(
           children: [
-            Icon(section.icon, color: adminOrange),
+            Icon(section.icon, color: _adminOrange),
             const SizedBox(width: 10),
             Expanded(child: Text(section.title)),
           ],
@@ -265,7 +268,7 @@ class CompanySetupScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Icon(Icons.radio_button_unchecked_rounded,
-                            size: 18, color: adminOrange),
+                            size: 18, color: _adminOrange),
                         const SizedBox(width: 9),
                         Expanded(child: Text(requirement)),
                       ],
@@ -326,16 +329,16 @@ class _SetupSectionCard extends StatelessWidget {
                 height: 46,
                 width: 46,
                 decoration: BoxDecoration(
-                  color: adminOrange.withValues(alpha: 0.10),
+                  color: _adminOrange.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(section.icon, color: adminOrange, size: 24),
+                child: Icon(section.icon, color: _adminOrange, size: 24),
               ),
               const SizedBox(height: 16),
               Text(
                 section.title,
                 style: const TextStyle(
-                  color: adminText,
+                  color: _adminText,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -353,19 +356,19 @@ class _SetupSectionCard extends StatelessWidget {
               const Row(
                 children: [
                   Icon(Icons.radio_button_unchecked_rounded,
-                      size: 16, color: adminOrange),
+                      size: 16, color: _adminOrange),
                   SizedBox(width: 7),
                   Text(
                     'Not configured',
                     style: TextStyle(
-                      color: adminText,
+                      color: _adminText,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   Spacer(),
                   Icon(Icons.arrow_forward_rounded,
-                      size: 18, color: adminOrange),
+                      size: 18, color: _adminOrange),
                 ],
               ),
             ],
