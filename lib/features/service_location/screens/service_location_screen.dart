@@ -60,7 +60,7 @@ class _ServiceLocationScreenState
   final TextEditingController _searchController =
       TextEditingController();
 
-  int _selectedTab = 0;
+  int _selectedTab = 1;
   String _search = '';
   String _statusFilter = 'All';
   String? _selectedStateId;
