@@ -1364,7 +1364,8 @@ class _ServiceLocationScreenState
                             final cities = citySnapshot.data!.where((item) {
                               if (!_matchesStatus(item.isServiceActive)) return false;
                               if (_selectedDistrictId != null &&
-                                  item.districtId != _selectedDistrictId) {
+                                  item.districtId != _selectedDistrictId &&
+                                  item.districtId.isNotEmpty) {
                                 return false;
                               }
                               final district = districtsById[item.districtId];
@@ -1385,7 +1386,7 @@ class _ServiceLocationScreenState
                               children: [
                                 _sectionTitle(_selectedDistrictName == null
                                     ? '${state.name} · ${country.name}'
-                                    : '${_selectedDistrictName} · Cities'),
+                                    : '${_selectedDistrictName} · Cities (includes unlinked legacy Cities)'),
                                 for (final item in cities)
                                   _locationCard(
                                     title: item.name,
