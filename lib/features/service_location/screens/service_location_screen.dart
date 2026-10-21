@@ -1602,7 +1602,9 @@ class _ServiceLocationScreenState
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            for (final city in citySnapshot.data!)
+            for (final city in citySnapshot.data!.where(
+              (item) => _selectedCityId == null || item.id == _selectedCityId,
+            ))
               StreamBuilder<List<ServiceArea>>(
                 stream: _service.watchAreas(
                   cityId: city.id,
