@@ -3498,6 +3498,15 @@ class _ServiceLocationScreenState
         boundaryLookupFailed = true;
       }
     }
+    final boundaryRequired = activating &&
+        (boundaryLocationType?.toLowerCase() == 'city' ||
+            boundaryLocationType?.toLowerCase() == 'area');
+    final verifiedPolygonAvailable = !boundaryLookupFailed &&
+        authoritativeBoundary != null &&
+        authoritativeBoundary.isVerified &&
+        authoritativeBoundary.points.length >= 3;
+    final canConfirm = !boundaryRequired || verifiedPolygonAvailable;
+
     final confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -3568,6 +3577,17 @@ class _ServiceLocationScreenState
                     Text('Verified at: ${authoritativeBoundary.verifiedAt!.toLocal()}'),
                 ],
               ],
+              if (boundaryRequired && !verifiedPolygonAvailable) ...[
+                const SizedBox(height: 10),
+                const Text(
+                  'Activation is unavailable here: a verified City/Area polygon with at least 3 points must be loaded first. The server remains the final authority.',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.w700,
+                    height: 1.4,
+                  ),
+                ),
+              ],
               const SizedBox(height: 14),
               const Text(
                 'Before confirmation',
@@ -3595,7 +3615,7 @@ class _ServiceLocationScreenState
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: _locationOrange),
-            onPressed: () => Navigator.pop(dialogContext, true),
+            onPressed: canConfirm ? () => Navigator.pop(dialogContext, true) : null,
             child: Text(activating ? 'Confirm Activation' : 'Confirm Deactivation'),
           ),
         ],
