@@ -3560,12 +3560,12 @@ class _ServiceLocationScreenState
                 else if (authoritativeBoundary == null)
                   const Text('No boundary record found. Activation requires a verified City/Area polygon.')
                 else ...[
-                  Text('Verification: ${authoritativeBoundary!.verificationStatus.name}'),
-                  Text('Source: ${authoritativeBoundary!.sourceName.isEmpty ? "Not provided" : authoritativeBoundary!.sourceName}'),
-                  Text('Source reference: ${authoritativeBoundary!.sourceReference.isEmpty ? "Not provided" : authoritativeBoundary!.sourceReference}'),
-                  Text('Polygon points: ${authoritativeBoundary!.points.length}'),
-                  if (authoritativeBoundary!.verifiedAt != null)
-                    Text('Verified at: ${authoritativeBoundary!.verifiedAt!.toLocal()}'),
+                  Text('Verification: ${authoritativeBoundary.verificationStatus.name}'),
+                  Text('Source: ${authoritativeBoundary.sourceName.isEmpty ? "Not provided" : authoritativeBoundary.sourceName}'),
+                  Text('Source reference: ${authoritativeBoundary.sourceReference.isEmpty ? "Not provided" : authoritativeBoundary.sourceReference}'),
+                  Text('Polygon points: ${authoritativeBoundary.points.length}'),
+                  if (authoritativeBoundary.verifiedAt != null)
+                    Text('Verified at: ${authoritativeBoundary.verifiedAt!.toLocal()}'),
                 ],
               ],
               const SizedBox(height: 14),
