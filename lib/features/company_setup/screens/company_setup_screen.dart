@@ -6,9 +6,8 @@ import 'package:flutter/material.dart';
 /// This screen is intentionally a setup blueprint only. It does not claim to
 /// persist company settings until Firestore schema, authorization, and audit
 /// logging are implemented and tested.
-const Color __adminOrange = Color(0xFFFF7900);
-const Color _adminBackground = Color(0xFFFFFAF5);
-const Color __adminText = Color(0xFF252525);
+const Color _adminOrange = Color(0xFFFF7900);
+const Color _adminText = Color(0xFF252525);
 
 class CompanySetupScreen extends StatelessWidget {
   const CompanySetupScreen({super.key});
