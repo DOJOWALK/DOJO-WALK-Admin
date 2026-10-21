@@ -1651,6 +1651,8 @@ class _ServiceLocationScreenState
                                         'Service: ${item.isServiceActive ? "Active" : "Inactive"}',
                                     active: item.isServiceActive,
                                     icon: Icons.place_outlined,
+                                    hierarchyLocationType: 'locality',
+                                    hierarchyLocationId: item.id,
                                     onToggle: (value) async {
                                       try {
                                         await _service
@@ -3477,6 +3479,64 @@ class _ServiceLocationScreenState
     );
   }
 
+  Future<List<String>> _loadParentStatusReview({
+    required String locationType,
+    required String locationId,
+  }) async {
+    final firestore = FirebaseFirestore.instance;
+    final lines = <String>[];
+
+    Future<Map<String, dynamic>?> read(String collection, String? id) async {
+      if (id == null || id.trim().isEmpty) return null;
+      final snapshot = await firestore.collection(collection).doc(id).get();
+      return snapshot.data();
+    }
+
+    String status(Map<String, dynamic>? data) {
+      if (data == null) return 'Unknown / not found';
+      final active = data.containsKey('isServiceActive')
+          ? data['isServiceActive'] == true
+          : data['isActive'] == true;
+      return active ? 'Active' : 'Inactive';
+    }
+
+    final collectionByType = <String, String>{
+      'city': 'service_cities',
+      'area': 'service_areas',
+      'locality': 'service_localities',
+    };
+    final record = await read(collectionByType[locationType], locationId);
+    if (record == null) return ['Parent status review unavailable: record not found.'];
+
+    final city = locationType == 'city'
+        ? record
+        : await read('service_cities', record['cityId']?.toString());
+    final stateId = (city?['stateId'] ?? record['stateId'])?.toString();
+    final countryId = (city?['countryId'] ?? record['countryId'])?.toString();
+    final districtId = city?['districtId']?.toString() ?? '';
+    final area = locationType == 'area'
+        ? record
+        : locationType == 'locality'
+            ? await read('service_areas', record['areaId']?.toString())
+            : null;
+
+    final country = await read('service_countries', countryId);
+    final state = await read('service_states', stateId);
+    final district = await read('service_districts', districtId);
+    lines.add('Country: ${country?['name'] ?? countryId ?? 'Unknown'} — ${status(country)}');
+    lines.add('State: ${state?['name'] ?? stateId ?? 'Unknown'} — ${status(state)}');
+    lines.add(districtId.isEmpty
+        ? 'District: Not linked (legacy City)'
+        : 'District: ${district?['name'] ?? districtId} — ${status(district)}');
+    if (locationType != 'city') {
+      lines.add('City: ${city?['name'] ?? record['cityId'] ?? 'Unknown'} — ${status(city)}');
+    }
+    if (locationType == 'locality') {
+      lines.add('Area: ${area?['name'] ?? record['areaId'] ?? 'Unknown'} — ${status(area)}');
+    }
+    return lines;
+  }
+
   Future<bool> _reviewStatusChange({
     required String title,
     required String subtitle,
@@ -3484,7 +3544,21 @@ class _ServiceLocationScreenState
     required bool activating,
     String? boundaryLocationType,
     String? boundaryLocationId,
+    String? hierarchyLocationType,
+    String? hierarchyLocationId,
   }) async {
+    List<String> parentStatusLines = const [];
+    var parentStatusLookupFailed = false;
+    if (hierarchyLocationType != null && hierarchyLocationId != null) {
+      try {
+        parentStatusLines = await _loadParentStatusReview(
+          locationType: hierarchyLocationType,
+          locationId: hierarchyLocationId,
+        );
+      } catch (_) {
+        parentStatusLookupFailed = true;
+      }
+    }
     ServiceLocationBoundary? authoritativeBoundary;
     var boundaryLookupFailed = false;
     if (boundaryLocationType != null && boundaryLocationId != null) {
@@ -3557,6 +3631,16 @@ class _ServiceLocationScreenState
               ),
               const SizedBox(height: 4),
               SelectableText(subtitle),
+              if (hierarchyLocationType != null) ...[
+                const SizedBox(height: 12),
+                const Text('Parent hierarchy status (live records)',
+                    style: TextStyle(fontWeight: FontWeight.w800)),
+                const SizedBox(height: 5),
+                if (parentStatusLookupFailed)
+                  const Text('Parent status could not be loaded. Server-side eligibility checks remain required.')
+                else
+                  for (final line in parentStatusLines) Text(line),
+              ],
               if (boundaryLocationType != null) ...[
                 const SizedBox(height: 12),
                 const Text(
@@ -3711,6 +3795,14 @@ class _ServiceLocationScreenState
                     activating: value,
                     boundaryLocationType: reviewBoundaryLocationType,
                     boundaryLocationId: reviewBoundaryLocationId,
+                    hierarchyLocationType: hierarchyLocationType ??
+                        ((reviewBoundaryLocationType == 'city' || reviewBoundaryLocationType == 'area')
+                            ? reviewBoundaryLocationType
+                            : null),
+                    hierarchyLocationId: hierarchyLocationId ??
+                        ((reviewBoundaryLocationType == 'city' || reviewBoundaryLocationType == 'area')
+                            ? reviewBoundaryLocationId
+                            : null),
                   );
                   if (confirmed && mounted) onToggle(value);
                 },
