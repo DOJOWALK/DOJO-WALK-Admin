@@ -7,7 +7,7 @@ class DojoWalkAdminTheme {
       brightness: Brightness.light,
       scaffoldBackgroundColor: const Color(0xFFF7F7F7),
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFFFF6A00),
+        seedColor: const Color(0xFFFF7900),
         brightness: Brightness.light,
       ),
       fontFamily: 'Arial',
