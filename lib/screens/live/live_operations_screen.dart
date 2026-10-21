@@ -238,6 +238,54 @@ class _LiveOperationsScreenState
     return _walkers[_selectedWalkerId!];
   }
 
+  Future<void> _showBookingDetails(String? bookingId) async {
+    if (bookingId == null || bookingId.trim().isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No active booking is linked to this walker.')),
+      );
+      return;
+    }
+
+    try {
+      final booking = await _firestore.collection('bookings').doc(bookingId).get();
+      if (!mounted) return;
+      if (!booking.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Booking ' + bookingId + ' was not found.')),
+        );
+        return;
+      }
+
+      final data = booking.data() ?? <String, dynamic>{};
+      final details = data.entries
+          .where((entry) => entry.value != null)
+          .take(12)
+          .map((entry) => entry.key + ': ' + entry.value.toString())
+          .join('\\n');
+
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Booking Details'),
+          content: SingleChildScrollView(
+            child: SelectableText(details.isEmpty ? 'No booking details available.' : details),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to load booking: ' + error.toString())),
+      );
+    }
+  }
   // ============================================================
   // BUILD
   // ============================================================
@@ -349,10 +397,14 @@ class _LiveOperationsScreenState
 class _WalkerDetailsCard extends StatelessWidget {
   final Map<String, dynamic> data;
   final VoidCallback onClose;
+  final VoidCallback onViewBooking;
+  final VoidCallback onViewRoute;
 
   const _WalkerDetailsCard({
     required this.data,
     required this.onClose,
+    required this.onViewBooking,
+    required this.onViewRoute,
   });
 
   @override
@@ -499,7 +551,7 @@ class _WalkerDetailsCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {},
+                    onPressed: onViewBooking,
                     icon: const Icon(
                       Icons.receipt_long_outlined,
                     ),
@@ -511,7 +563,7 @@ class _WalkerDetailsCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: onViewRoute,
                     style:
                         ElevatedButton.styleFrom(
                       backgroundColor:
