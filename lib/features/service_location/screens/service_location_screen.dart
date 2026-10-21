@@ -1115,15 +1115,17 @@ class _ServiceLocationScreenState
         if (countrySnapshot.hasError) {
           return _emptyState('${countrySnapshot.error}');
         }
-
         if (!countrySnapshot.hasData) {
           return _loadingState();
         }
 
-        final countries = countrySnapshot.data!;
-        final indiaCountries = countries.where((country) =>
-            country.code.trim().toUpperCase() == 'IN' ||
-            country.name.trim().toLowerCase() == 'india').toList()
+        final indiaCountries = countrySnapshot.data!
+            .where(
+              (country) =>
+                  country.code.trim().toUpperCase() == 'IN' ||
+                  country.name.trim().toLowerCase() == 'india',
+            )
+            .toList()
           ..sort((a, b) {
             final aExact = a.code.trim().toUpperCase() == 'IN' ? 0 : 1;
             final bExact = b.code.trim().toUpperCase() == 'IN' ? 0 : 1;
@@ -1132,79 +1134,76 @@ class _ServiceLocationScreenState
 
         if (indiaCountries.isEmpty) {
           return _emptyState(
-            'India is not configured in the country master. '
-            'Check the India (IN) master record before viewing States.',
+            'India (IN) is not configured in the country master. '
+            'Check the India setup before viewing States; do not create another Country here.',
           );
         }
 
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          children: [
-            for (final country in indiaCountries.take(1))
-              StreamBuilder<List<ServiceState>>(
-                stream: _service.watchStates(
-                  countryId: country.id,
-                ),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError || !snapshot.hasData) {
-                    return const SizedBox.shrink();
-                  }
+        final country = indiaCountries.first;
+        return StreamBuilder<List<ServiceState>>(
+          stream: _service.watchStates(countryId: country.id),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return _emptyState('Unable to load India States: ${snapshot.error}');
+            }
+            if (!snapshot.hasData) {
+              return _loadingState();
+            }
 
-                  final items = snapshot.data!
-                      .where(
-                        (item) => _matchesStatus(item.isActive) && _matches(
-                          '${item.id} ${item.name} '
-                          '${country.id} ${country.name}',
-                        ),
-                      )
-                      .toList();
+            final items = snapshot.data!
+                .where(
+                  (item) => _matchesStatus(item.isActive) && _matches(
+                    '${item.id} ${item.name} ${country.id} India IN',
+                  ),
+                )
+                .toList();
 
-                  if (items.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
+            if (items.isEmpty) {
+              return _emptyState(
+                'No India States match the current search/status filter.',
+              );
+            }
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _sectionTitle(country.name),
-                      for (final item in items)
-                        _locationCard(
-                          title: item.name,
-                          subtitle:
-                              'ID: ${item.id} · Country: ${country.name}\nRecord status: ${item.isActive ? "Active" : "Inactive"}',
-                          active: item.isActive,
-                          icon: Icons.map_outlined,
-                          onOpen: () {
-                            setState(() {
-                              _selectedStateId = item.id;
-                              _selectedStateName = item.name;
-                              _selectedDistrictId = null;
-                              _selectedDistrictName = null;
-                              _selectedCityId = null;
-                              _selectedCityName = null;
-                              _selectedAreaId = null;
-                              _selectedAreaName = null;
-                              _selectedTab = 2;
-                              _search = '';
-                              _searchController.clear();
-                            });
-                          },
-                          onToggle: (value) async {
-                            try {
-                              await _service.setStateStatus(
-                                stateId: item.id,
-                                isActive: value,
-                              );
-                            } catch (error) {
-                              await _showError(error);
-                            }
-                          },
-                        ),
-                    ],
-                  );
-                },
-              ),
-          ],
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              children: [
+                _sectionTitle('India'),
+                for (final item in items)
+                  _locationCard(
+                    title: item.name,
+                    subtitle:
+                        'ID: ${item.id} · Country: India (IN)\\nRecord status: ${item.isActive ? "Active" : "Inactive"}',
+                    active: item.isActive,
+                    icon: Icons.map_outlined,
+                    onOpen: () {
+                      setState(() {
+                        _selectedStateId = item.id;
+                        _selectedStateName = item.name;
+                        _selectedDistrictId = null;
+                        _selectedDistrictName = null;
+                        _selectedCityId = null;
+                        _selectedCityName = null;
+                        _selectedAreaId = null;
+                        _selectedAreaName = null;
+                        _selectedTab = 2;
+                        _search = '';
+                        _searchController.clear();
+                      });
+                    },
+                    onToggle: (value) async {
+                      try {
+                        await _service.setStateStatus(
+                          stateId: item.id,
+                          isActive: value,
+                        );
+                      } catch (error) {
+                        await _showError(error);
+                      }
+                    },
+                  ),
+              ],
+            );
+          },
         );
       },
     );
