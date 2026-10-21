@@ -3476,6 +3476,7 @@ class _ServiceLocationScreenState
   Future<bool> _reviewStatusChange({
     required String title,
     required String subtitle,
+    required bool currentStatus,
     required bool activating,
   }) async {
     final confirmed = await showDialog<bool>(
@@ -3510,7 +3511,7 @@ class _ServiceLocationScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Current status: ${activating ? "Inactive" : "Active"}',
+                      'Current status: ${currentStatus ? "Active" : "Inactive"}',
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 4),
@@ -3645,6 +3646,7 @@ class _ServiceLocationScreenState
                   final confirmed = await _reviewStatusChange(
                     title: title,
                     subtitle: subtitle,
+                    currentStatus: active,
                     activating: value,
                   );
                   if (confirmed && mounted) onToggle(value);
