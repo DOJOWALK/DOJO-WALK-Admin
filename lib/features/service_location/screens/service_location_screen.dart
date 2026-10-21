@@ -1560,10 +1560,12 @@ class _ServiceLocationScreenState
                             stateId: state.id,
                           ),
                           builder: (context, citySnapshot) {
-                            if (citySnapshot.hasError ||
-                                !citySnapshot.hasData) {
-                              return const SizedBox.shrink();
+                            if (citySnapshot.hasError) {
+                              return _emptyState(
+                                'Could not load Cities for ${state.name}: ${citySnapshot.error}',
+                              );
                             }
+                            if (!citySnapshot.hasData) return _loadingState();
 
                             final cities = citySnapshot.data!.where((item) {
                               // When drilling into a selected State/District, do not
