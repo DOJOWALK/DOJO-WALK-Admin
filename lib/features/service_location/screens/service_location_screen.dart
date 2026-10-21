@@ -1416,6 +1416,8 @@ class _ServiceLocationScreenState
                                     locationName: item.name,
                                     locationType: 'city',
                                   ),
+                                  reviewBoundaryLocationType: 'city',
+                                  reviewBoundaryLocationId: item.id,
                                   onToggle: (value) async {
                                     try {
                                       await _service.setCityServiceStatus(
@@ -1540,6 +1542,8 @@ class _ServiceLocationScreenState
                             locationName: item.name,
                             locationType: 'area',
                           ),
+                          reviewBoundaryLocationType: 'area',
+                          reviewBoundaryLocationId: item.id,
                           onToggle: (value) async {
                             try {
                               await _service.setAreaServiceStatus(
@@ -3478,7 +3482,22 @@ class _ServiceLocationScreenState
     required String subtitle,
     required bool currentStatus,
     required bool activating,
+    String? boundaryLocationType,
+    String? boundaryLocationId,
   }) async {
+    ServiceLocationBoundary? authoritativeBoundary;
+    var boundaryLookupFailed = false;
+    if (boundaryLocationType != null && boundaryLocationId != null) {
+      try {
+        final boundaries = await _boundaryService.watchForLocation(
+          boundaryLocationId,
+          locationType: boundaryLocationType,
+        ).first;
+        authoritativeBoundary = selectBoundaryForManagement(boundaries);
+      } catch (_) {
+        boundaryLookupFailed = true;
+      }
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -3529,6 +3548,26 @@ class _ServiceLocationScreenState
               ),
               const SizedBox(height: 4),
               SelectableText(subtitle),
+              if (boundaryLocationType != null) ...[
+                const SizedBox(height: 12),
+                const Text(
+                  'Authoritative boundary status',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 5),
+                if (boundaryLookupFailed)
+                  const Text('Boundary status could not be loaded. Do not treat this as verified.')
+                else if (authoritativeBoundary == null)
+                  const Text('No boundary record found. Activation requires a verified City/Area polygon.')
+                else ...[
+                  Text('Verification: ${authoritativeBoundary!.verificationStatus.name}'),
+                  Text('Source: ${authoritativeBoundary!.sourceName.isEmpty ? "Not provided" : authoritativeBoundary!.sourceName}'),
+                  Text('Source reference: ${authoritativeBoundary!.sourceReference.isEmpty ? "Not provided" : authoritativeBoundary!.sourceReference}'),
+                  Text('Polygon points: ${authoritativeBoundary!.points.length}'),
+                  if (authoritativeBoundary!.verifiedAt != null)
+                    Text('Verified at: ${authoritativeBoundary!.verifiedAt!.toLocal()}'),
+                ],
+              ],
               const SizedBox(height: 14),
               const Text(
                 'Before confirmation',
@@ -3573,6 +3612,8 @@ class _ServiceLocationScreenState
     required ValueChanged<bool> onToggle,
     VoidCallback? onOpen,
     VoidCallback? onManageBoundary,
+    String? reviewBoundaryLocationType,
+    String? reviewBoundaryLocationId,
   }) {
     return Card(
       color: Colors.white,
@@ -3648,6 +3689,8 @@ class _ServiceLocationScreenState
                     subtitle: subtitle,
                     currentStatus: active,
                     activating: value,
+                    boundaryLocationType: reviewBoundaryLocationType,
+                    boundaryLocationId: reviewBoundaryLocationId,
                   );
                   if (confirmed && mounted) onToggle(value);
                 },
