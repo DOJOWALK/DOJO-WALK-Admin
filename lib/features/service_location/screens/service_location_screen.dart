@@ -1078,7 +1078,7 @@ class _ServiceLocationScreenState
             return _locationCard(
               title: item.name,
               subtitle:
-                  'ID: ${item.id} · Code: ${item.code}',
+                  'ID: ${item.id} · Code: ${item.code}\nRecord status: ${item.isActive ? "Active" : "Inactive"}',
               active: item.isActive,
               icon: Icons.public,
               onToggle: (value) async {
@@ -1154,7 +1154,7 @@ class _ServiceLocationScreenState
                         _locationCard(
                           title: item.name,
                           subtitle:
-                              'ID: ${item.id} · Country: ${country.name}',
+                              'ID: ${item.id} · Country: ${country.name}\nRecord status: ${item.isActive ? "Active" : "Inactive"}',
                           active: item.isActive,
                           icon: Icons.map_outlined,
                           onOpen: () {
