@@ -148,6 +148,98 @@ class _ServiceLocationScreenState
     }
   }
 
+  Widget _buildHierarchyBreadcrumb() {
+    final crumbs = <({String label, int tab, bool selected})>[
+      (label: 'India', tab: 1, selected: _selectedStateId == null),
+      if (_selectedStateId != null)
+        (label: _selectedStateName ?? 'State', tab: 1, selected: _selectedDistrictId == null),
+      if (_selectedDistrictId != null)
+        (label: _selectedDistrictName ?? 'District', tab: 2, selected: _selectedCityId == null),
+      if (_selectedCityId != null)
+        (label: _selectedCityName ?? 'City', tab: 3, selected: _selectedAreaId == null),
+      if (_selectedAreaId != null)
+        (label: _selectedAreaName ?? 'Area', tab: 4, selected: true),
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 6),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            const Icon(Icons.account_tree_outlined, size: 16, color: _locationOrange),
+            const SizedBox(width: 6),
+            for (var i = 0; i < crumbs.length; i++) ...[
+              if (i > 0)
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 3),
+                  child: Icon(Icons.chevron_right, size: 15, color: Colors.black45),
+                ),
+              TextButton(
+                onPressed: crumbs[i].selected
+                    ? null
+                    : () {
+                        setState(() {
+                          _selectedTab = crumbs[i].tab;
+                          if (crumbs[i].tab <= 1) {
+                            _selectedDistrictId = null;
+                            _selectedDistrictName = null;
+                            _selectedCityId = null;
+                            _selectedCityName = null;
+                            _selectedAreaId = null;
+                            _selectedAreaName = null;
+                          } else if (crumbs[i].tab == 2) {
+                            _selectedCityId = null;
+                            _selectedCityName = null;
+                            _selectedAreaId = null;
+                            _selectedAreaName = null;
+                          } else if (crumbs[i].tab == 3) {
+                            _selectedAreaId = null;
+                            _selectedAreaName = null;
+                          }
+                          _search = '';
+                          _searchController.clear();
+                        });
+                      },
+                style: TextButton.styleFrom(
+                  foregroundColor: crumbs[i].selected ? _locationOrange : const Color(0xFF5D5148),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                  minimumSize: const Size(0, 30),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  crumbs[i].label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: crumbs[i].selected ? FontWeight.w800 : FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+            if (_selectedStateId != null)
+              IconButton(
+                tooltip: 'Clear location selection',
+                visualDensity: VisualDensity.compact,
+                onPressed: () => setState(() {
+                  _selectedStateId = null;
+                  _selectedStateName = null;
+                  _selectedDistrictId = null;
+                  _selectedDistrictName = null;
+                  _selectedCityId = null;
+                  _selectedCityName = null;
+                  _selectedAreaId = null;
+                  _selectedAreaName = null;
+                  _selectedTab = 1;
+                  _search = '';
+                  _searchController.clear();
+                }),
+                icon: const Icon(Icons.close, size: 17),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildStatusFilter() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
@@ -322,6 +414,7 @@ class _ServiceLocationScreenState
             ),
           ),
           _buildTabs(),
+          _buildHierarchyBreadcrumb(),
           _buildStatusFilter(),
           const Divider(height: 1, color: Color(0xFFECE5DE)),
           Expanded(
