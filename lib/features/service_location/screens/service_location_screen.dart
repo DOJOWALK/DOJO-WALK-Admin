@@ -1027,9 +1027,15 @@ class _ServiceLocationScreenState
           return _emptyState('Unable to search service locations: ${snapshot.error}');
         }
         if (!snapshot.hasData) return _loadingState();
-        final results = snapshot.data!;
+        final results = snapshot.data!
+            .where((item) => _matchesStatus(item['active'] as bool))
+            .toList(growable: false);
         if (results.isEmpty) {
-          return _emptyState('No matching locations found. Try a name, district, area, locality or PIN/code.');
+          return _emptyState(
+            _statusFilter == 'All'
+                ? 'No matching locations found. Try a name, district, area, locality or PIN/code.'
+                : 'No matching locations found for the $_statusFilter status filter. Try All or change your search.',
+          );
         }
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
