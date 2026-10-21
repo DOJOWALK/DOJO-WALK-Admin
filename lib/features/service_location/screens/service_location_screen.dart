@@ -3497,7 +3497,36 @@ class _ServiceLocationScreenState
               ),
               const SizedBox(height: 6),
               Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-              const SizedBox(height: 6),
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF3E8),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFFFD8B8)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Current status: ${activating ? "Inactive" : "Active"}',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'After confirmation: ${activating ? "Active" : "Inactive"}',
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Location details',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 4),
               SelectableText(subtitle),
               const SizedBox(height: 14),
               const Text(
