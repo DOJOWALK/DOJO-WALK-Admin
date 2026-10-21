@@ -180,7 +180,16 @@ class _ServiceLocationScreenState
                     : () {
                         setState(() {
                           _selectedTab = crumbs[i].tab;
-                          if (crumbs[i].tab <= 1) {
+                          if (crumbs[i].label == 'India') {
+                            _selectedStateId = null;
+                            _selectedStateName = null;
+                            _selectedDistrictId = null;
+                            _selectedDistrictName = null;
+                            _selectedCityId = null;
+                            _selectedCityName = null;
+                            _selectedAreaId = null;
+                            _selectedAreaName = null;
+                          } else if (crumbs[i].tab <= 1) {
                             _selectedDistrictId = null;
                             _selectedDistrictName = null;
                             _selectedCityId = null;
