@@ -3505,8 +3505,14 @@ class _ServiceLocationScreenState
       'area': 'service_areas',
       'locality': 'service_localities',
     };
-    final record = await read(collectionByType[locationType], locationId);
-    if (record == null) return ['Parent status review unavailable: record not found.'];
+    final collection = collectionByType[locationType];
+    if (collection == null) {
+      return ['Parent status review unavailable: unsupported location type.'];
+    }
+    final record = await read(collection, locationId);
+    if (record == null) {
+      return ['Parent status review unavailable: record not found.'];
+    }
 
     final city = locationType == 'city'
         ? record
