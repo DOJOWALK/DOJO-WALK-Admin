@@ -10,7 +10,7 @@ class DashboardScreen extends StatelessWidget {
     this.onOpenLiveOperations,
   });
 
-  final Color orange = const Color(0xFFFF6A00);
+  final Color orange = const Color(0xFFFF7900);
 
   // ============================================================
   // FIRESTORE COUNTS
@@ -790,7 +790,7 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const orange = Color(0xFFFF6A00);
+    const orange = Color(0xFFFF7900);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -870,7 +870,7 @@ class _RevenueCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const orange = Color(0xFFFF6A00);
+    const orange = Color(0xFFFF7900);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -957,7 +957,7 @@ class _DashboardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const orange = Color(0xFFFF6A00);
+    const orange = Color(0xFFFF7900);
 
     return Container(
       width: double.infinity,
@@ -1084,7 +1084,7 @@ class _StatusStreamRow extends StatelessWidget {
               ),
               decoration: BoxDecoration(
                 color: const Color(
-                  0xFFFF6A00,
+                  0xFFFF7900,
                 ).withValues(
                   alpha: 0.10,
                 ),
@@ -1098,7 +1098,7 @@ class _StatusStreamRow extends StatelessWidget {
                 style:
                     const TextStyle(
                   color:
-                      Color(0xFFFF6A00),
+                      Color(0xFFFF7900),
                   fontWeight:
                       FontWeight.w700,
                   fontSize: 12,
@@ -1138,14 +1138,14 @@ class _AlertStreamRow extends StatelessWidget {
           height: 40,
           decoration: BoxDecoration(
             color: const Color(
-              0xFFFF6A00,
+              0xFFFF7900,
             ).withValues(alpha: 0.10),
             borderRadius:
                 BorderRadius.circular(12),
           ),
           child: const Icon(
             Icons.warning_amber_outlined,
-            color: Color(0xFFFF6A00),
+            color: Color(0xFFFF7900),
             size: 20,
           ),
         ),
@@ -1256,7 +1256,7 @@ class _StatusBadge extends StatelessWidget {
 
       case 'pending':
       default:
-        return const Color(0xFFFF6A00);
+        return const Color(0xFFFF7900);
     }
   }
 }
@@ -1282,7 +1282,7 @@ class _ActivityItem extends StatelessWidget {
       children: [
         const Icon(
           Icons.bolt_outlined,
-          color: Color(0xFFFF6A00),
+          color: Color(0xFFFF7900),
         ),
         const SizedBox(width: 12),
         Expanded(
