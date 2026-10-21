@@ -24,6 +24,42 @@ void main() {
     });
   });
 
+  group('isDefinitiveLocationImportRunNotFound', () {
+    test('continues only for a definitive not-found response', () {
+      expect(isDefinitiveLocationImportRunNotFound('not-found'), isTrue);
+    });
+
+    test('fails closed for authorization, fingerprint, and transient errors', () {
+      for (final code in [
+        'permission-denied',
+        'failed-precondition',
+        'unauthenticated',
+        'unavailable',
+        'deadline-exceeded',
+        'internal',
+        'unknown',
+      ]) {
+        expect(isDefinitiveLocationImportRunNotFound(code), isFalse, reason: code);
+      }
+    });
+  });
+
+  group('ensureLocationCsvImportRunMarkerIsNew', () {
+    test('allows a run ID when the trusted marker is definitively absent', () {
+      expect(
+        () => ensureLocationCsvImportRunMarkerIsNew(markerExists: false),
+        returnsNormally,
+      );
+    });
+
+    test('blocks a run ID when a durable marker exists without requiring an audit', () {
+      expect(
+        () => ensureLocationCsvImportRunMarkerIsNew(markerExists: true),
+        throwsStateError,
+      );
+    });
+  });
+
   group('ensureLocationCsvImportRunIsNew', () {
     test('allows a run ID with no prior audit record', () {
       expect(
