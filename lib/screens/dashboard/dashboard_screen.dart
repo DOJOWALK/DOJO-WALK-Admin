@@ -866,15 +866,9 @@ class _StatCard extends StatelessWidget {
                   stream: stream,
                   builder:
                       (context, snapshot) {
-                    return Text(
-                      '${snapshot.data ?? 0}',
-                      style:
-                          const TextStyle(
-                        fontSize: 25,
-                        fontWeight:
-                            FontWeight.w800,
-                      ),
-                    );
+                    if (snapshot.hasError) return const Tooltip(message: 'Unable to load this count', child: Icon(Icons.error_outline, color: Colors.redAccent));
+                    if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) return const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2));
+                    return Text('${snapshot.data ?? 0}', style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800));
                   },
                 ),
               ],
@@ -962,18 +956,10 @@ class _RevenueCard extends StatelessWidget {
                   stream: stream,
                   builder:
                       (context, snapshot) {
-                    final value =
-                        snapshot.data ?? 0;
-
-                    return Text(
-                      '₹${value.toStringAsFixed(0)}',
-                      style:
-                          const TextStyle(
-                        fontSize: 25,
-                        fontWeight:
-                            FontWeight.w800,
-                      ),
-                    );
+                    if (snapshot.hasError) return const Tooltip(message: 'Unable to load revenue', child: Icon(Icons.error_outline, color: Colors.redAccent));
+                    if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) return const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2));
+                    final value = snapshot.data ?? 0;
+                    return Text('₹${value.toStringAsFixed(0)}', style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800));
                   },
                 ),
               ],
@@ -1092,15 +1078,9 @@ class _LiveStreamRow extends StatelessWidget {
           stream: stream,
           builder:
               (context, snapshot) {
-            return Text(
-              '${snapshot.data ?? 0}',
-              style:
-                  const TextStyle(
-                fontWeight:
-                    FontWeight.w800,
-                fontSize: 16,
-              ),
-            );
+            if (snapshot.hasError) return const Tooltip(message: 'Unable to load this count', child: Icon(Icons.error_outline, color: Colors.redAccent, size: 18));
+            if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) return const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2));
+            return Text('${snapshot.data ?? 0}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16));
           },
         ),
       ],
@@ -1154,17 +1134,11 @@ class _StatusStreamRow extends StatelessWidget {
                   20,
                 ),
               ),
-              child: Text(
-                '${snapshot.data ?? 0}',
-                style:
-                    const TextStyle(
-                  color:
-                      Color(0xFFFF7900),
-                  fontWeight:
-                      FontWeight.w700,
-                  fontSize: 12,
-                ),
-              ),
+              child: snapshot.hasError
+                  ? const Tooltip(message: 'Unable to load this count', child: Icon(Icons.error_outline, color: Colors.redAccent, size: 16))
+                  : snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData
+                      ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                      : Text('${snapshot.data ?? 0}', style: const TextStyle(color: Color(0xFFFF7900), fontWeight: FontWeight.w700, fontSize: 12)),
             );
           },
         ),
