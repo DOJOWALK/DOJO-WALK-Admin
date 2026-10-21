@@ -883,6 +883,21 @@ class _ServiceLocationScreenState
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
             onSelected: (_) {
+              final requirement = switch (index) {
+                2 when _selectedStateId == null =>
+                  'पहले State खोलें, फिर District देखें।',
+                3 when _selectedDistrictId == null =>
+                  'पहले किसी State के अंदर District खोलें, फिर City देखें।',
+                4 when _selectedCityId == null =>
+                  'पहले किसी District के अंदर City खोलें, फिर Area देखें।',
+                5 when _selectedAreaId == null =>
+                  'पहले किसी City के अंदर Area खोलें, फिर Locality देखें।',
+                _ => null,
+              };
+              if (requirement != null) {
+                _showMessage(requirement);
+                return;
+              }
               setState(() => _selectedTab = index);
             },
           );
