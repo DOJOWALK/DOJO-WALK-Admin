@@ -1043,20 +1043,38 @@ class _ServiceLocationScreenState
                   title: Text(item['name'] as String,
                     style: const TextStyle(fontWeight: FontWeight.w700)),
                   subtitle: Text('${item['type']} · ${item['path']}\n'
-                    '${(item['active'] as bool) ? 'Service active' : 'Service inactive'}'),
+                    '${(item['type'] == 'Country' || item['type'] == 'State') ? 'Record' : 'Service'} '
+                    '${(item['active'] as bool) ? 'active' : 'inactive'}'),
                   isThreeLine: true,
                   trailing: TextButton(
                     onPressed: () {
+                      final pathParts = (item['path'] as String).split(' · ');
+                      final type = item['type'] as String;
                       setState(() {
                         _selectedStateId = item['stateId'] as String?;
                         _selectedStateName = _selectedStateId == null
-                            ? null : stateBySearchName(_selectedStateId!);
+                            ? null
+                            : type == 'State'
+                                ? item['name'] as String
+                                : pathParts.length > 1 ? pathParts[1] : _selectedStateId;
                         _selectedDistrictId = item['districtId'] as String?;
-                        _selectedDistrictName = null;
+                        _selectedDistrictName = _selectedDistrictId == null
+                            ? null
+                            : type == 'District'
+                                ? item['name'] as String
+                                : pathParts.length > 2 ? pathParts[2] : _selectedDistrictId;
                         _selectedCityId = item['cityId'] as String?;
-                        _selectedCityName = null;
+                        _selectedCityName = _selectedCityId == null
+                            ? null
+                            : type == 'City'
+                                ? item['name'] as String
+                                : pathParts.length > 3 ? pathParts[3] : _selectedCityId;
                         _selectedAreaId = item['areaId'] as String?;
-                        _selectedAreaName = null;
+                        _selectedAreaName = _selectedAreaId == null
+                            ? null
+                            : type == 'Area'
+                                ? item['name'] as String
+                                : pathParts.length > 4 ? pathParts[4] : _selectedAreaId;
                         _selectedTab = item['tab'] as int;
                         _search = '';
                         _searchController.clear();
