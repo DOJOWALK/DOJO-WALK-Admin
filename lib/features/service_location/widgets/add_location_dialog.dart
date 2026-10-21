@@ -680,85 +680,8 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: 'PIN code (optional)',
-                      hintText: '6-digit Indian PIN code',
                       border: OutlineInputBorder(),
                     ),
-                    validator: (value) {
-                      final pin = value?.trim() ?? '';
-                      if (pin.isEmpty) return null;
-                      if (!RegExp(r'^[1-9][0-9]{5}
-                ],
-
-                const SizedBox(height: 12),
-
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFFFFF0E1), Colors.white],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: _addLocationOrange.withValues(alpha: 0.28),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _addLocationOrange.withValues(alpha: 0.08),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Text(
-                    'Safety check: this record is saved as inactive. '
-                    'City and Area activation requires a verified geographic boundary. '
-                    'Saving here does not verify or activate coverage.',
-                    style: TextStyle(fontSize: 12, height: 1.4),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _saving ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        FilledButton.icon(
-          onPressed: _saving ? null : _save,
-          icon: _saving
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.save_outlined),
-          label: Text(_saving ? 'Saving...' : 'Save Location'),
-          style: FilledButton.styleFrom(
-            backgroundColor: _addLocationOrange,
-            foregroundColor: Colors.white,
-            elevation: 5,
-            shadowColor: _addLocationOrange.withValues(alpha: 0.32),
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-).hasMatch(pin)) {
-                        return 'Enter a valid 6-digit PIN code';
-                      }
-                      return null;
-                    },
                   ),
                 ],
 
