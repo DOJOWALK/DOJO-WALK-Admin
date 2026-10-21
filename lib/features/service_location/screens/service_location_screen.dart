@@ -150,19 +150,21 @@ class _ServiceLocationScreenState
   }
 
   Widget _buildHierarchyBreadcrumb() {
-    final crumbs = <({String label, int tab, bool selected})>[
-      (label: 'India', tab: 1, selected: _selectedStateId == null && _selectedTab == 1),
+    final crumbs = <({String label, String level, int tab, bool selected})>[
+      (label: 'India', level: 'country', tab: 1,
+        selected: _selectedStateId == null && _selectedTab == 1),
       if (_selectedStateId != null)
-        (label: _selectedStateName ?? 'State', tab: 2,
+        (label: _selectedStateName ?? 'State', level: 'state', tab: 2,
           selected: _selectedDistrictId == null && _selectedTab == 2),
       if (_selectedDistrictId != null)
-        (label: _selectedDistrictName ?? 'District', tab: 2,
+        (label: _selectedDistrictName ?? 'District', level: 'district', tab: 2,
           selected: _selectedCityId == null && _selectedTab == 2),
       if (_selectedCityId != null)
-        (label: _selectedCityName ?? 'City', tab: 3,
+        (label: _selectedCityName ?? 'City', level: 'city', tab: 3,
           selected: _selectedAreaId == null && _selectedTab == 3),
       if (_selectedAreaId != null)
-        (label: _selectedAreaName ?? 'Area', tab: 4, selected: _selectedTab == 4),
+        (label: _selectedAreaName ?? 'Area', level: 'area', tab: 4,
+          selected: _selectedTab == 4),
     ];
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 2, 16, 6),
@@ -184,7 +186,7 @@ class _ServiceLocationScreenState
                     : () {
                         setState(() {
                           _selectedTab = crumbs[i].tab;
-                          if (crumbs[i].label == 'India') {
+                          if (crumbs[i].level == 'country') {
                             _selectedStateId = null;
                             _selectedStateName = null;
                             _selectedDistrictId = null;
@@ -193,19 +195,21 @@ class _ServiceLocationScreenState
                             _selectedCityName = null;
                             _selectedAreaId = null;
                             _selectedAreaName = null;
-                          } else if (crumbs[i].tab <= 1) {
+                          } else if (crumbs[i].level == 'state') {
+                            // Return to this State's District list; clear the
+                            // deeper selection so the breadcrumb and list agree.
                             _selectedDistrictId = null;
                             _selectedDistrictName = null;
                             _selectedCityId = null;
                             _selectedCityName = null;
                             _selectedAreaId = null;
                             _selectedAreaName = null;
-                          } else if (crumbs[i].tab == 2) {
+                          } else if (crumbs[i].level == 'district') {
                             _selectedCityId = null;
                             _selectedCityName = null;
                             _selectedAreaId = null;
                             _selectedAreaName = null;
-                          } else if (crumbs[i].tab == 3) {
+                          } else if (crumbs[i].level == 'city') {
                             _selectedAreaId = null;
                             _selectedAreaName = null;
                           }
