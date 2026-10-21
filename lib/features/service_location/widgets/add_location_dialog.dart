@@ -29,7 +29,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
   final _codeController = TextEditingController();
   final _pincodeController = TextEditingController();
 
-  int _level = 0;
+  int _level = 1;
 
   LocationSelectionState _selection = const LocationSelectionState();
 
@@ -56,6 +56,26 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
 
   Future<void> _save() async {
     if (_saving) return;
+
+    if (_selection.countryId == null || _selection.countryId!.isEmpty) {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('India setup required'),
+          content: const Text(
+            'The India (IN) country master record could not be loaded. '
+            'Please check the country master before adding this location.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
 
     if (!_formKey.currentState!.validate()) return;
 
@@ -249,35 +269,65 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
       stream: widget.service.watchCountries(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return _dropdownStatus('Unable to load countries: ${snapshot.error}');
+          return _dropdownStatus('Unable to load India country record: ${snapshot.error}');
         }
         if (!snapshot.hasData) {
-          return _dropdownStatus('Loading countries…', loading: true);
+          return _dropdownStatus('Loading India setup…', loading: true);
         }
 
-        final countries = snapshot.data!;
+        final matches = snapshot.data!.where((country) =>
+            country.code.trim().toUpperCase() == 'IN' ||
+            country.name.trim().toLowerCase() == 'india').toList()
+          ..sort((a, b) {
+            final aExact = a.code.trim().toUpperCase() == 'IN' ? 0 : 1;
+            final bExact = b.code.trim().toUpperCase() == 'IN' ? 0 : 1;
+            return aExact.compareTo(bExact);
+          });
 
-        return _dropdown<String>(
-          label: 'Country',
-          value: retainAvailableSelection(
-            _selection.countryId,
-            countries.map((country) => country.id),
-          ),
-          items: countries
-              .map(
-                (country) => DropdownMenuItem<String>(
-                  value: country.id,
-                  child: Text(
-                    '${country.name} (${country.code})',
-                  ),
-                ),
-              )
-              .toList(),
-          onChanged: (value) {
+        if (matches.isEmpty) {
+          return _dropdownStatus(
+            'India is not configured in the country master yet. '
+            'Add the India master record before adding State or lower locations.',
+          );
+        }
+
+        final india = matches.first;
+        if (_selection.countryId != india.id) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted || _saving || _selection.countryId == india.id) return;
             setState(() {
-              _selection = _selection.selectCountry(value);
+              _selection = _selection.selectCountry(india.id);
             });
-          },
+          });
+        }
+
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF3E8),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFFFD8B8)),
+          ),
+          child: const Row(
+            children: [
+              Text('🇮🇳', style: TextStyle(fontSize: 22)),
+              SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('India', style: TextStyle(fontWeight: FontWeight.w800)),
+                    SizedBox(height: 2),
+                    Text('Country fixed • Code IN',
+                        style: TextStyle(fontSize: 12, color: Colors.black54)),
+                  ],
+                ),
+              ),
+              Icon(Icons.lock_outline, size: 18, color: _addLocationOrange),
+            ],
+          ),
         );
       },
     );
@@ -589,10 +639,10 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                     ),
                   ),
                   items: List.generate(
-                    _locationTypes.length,
+                    _locationTypes.length - 1,
                     (index) => DropdownMenuItem<int>(
-                      value: index,
-                      child: Text(_locationTypes[index]),
+                      value: index + 1,
+                      child: Text(_locationTypes[index + 1]),
                     ),
                   ),
                   onChanged: _saving
@@ -653,26 +703,6 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                     return null;
                   },
                 ),
-
-                if (_level == 0) ...[
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _codeController,
-                    textCapitalization: TextCapitalization.characters,
-                    decoration: const InputDecoration(
-                      labelText: 'Country code (e.g. IN)',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      final code = value?.trim().toUpperCase() ?? '';
-                      if (code.isEmpty) return 'Enter country code';
-                      if (!RegExp(r'^[A-Z]{2,3}$').hasMatch(code)) {
-                        return 'Use a 2–3 letter country code, e.g. IN';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
 
                 if (_level == 5) ...[
                   const SizedBox(height: 12),
