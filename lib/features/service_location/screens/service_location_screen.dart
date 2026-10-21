@@ -150,13 +150,16 @@ class _ServiceLocationScreenState
 
   Widget _buildHierarchyBreadcrumb() {
     final crumbs = <({String label, int tab, bool selected})>[
-      (label: 'India', tab: 1, selected: _selectedStateId == null),
+      (label: 'India', tab: 1, selected: _selectedStateId == null && _selectedTab == 1),
       if (_selectedStateId != null)
-        (label: _selectedStateName ?? 'State', tab: 1, selected: _selectedDistrictId == null),
+        (label: _selectedStateName ?? 'State', tab: 1,
+          selected: _selectedDistrictId == null && _selectedTab == 1),
       if (_selectedDistrictId != null)
-        (label: _selectedDistrictName ?? 'District', tab: 2, selected: _selectedCityId == null),
+        (label: _selectedDistrictName ?? 'District', tab: 2,
+          selected: _selectedCityId == null && _selectedTab == 2),
       if (_selectedCityId != null)
-        (label: _selectedCityName ?? 'City', tab: 3, selected: _selectedAreaId == null),
+        (label: _selectedCityName ?? 'City', tab: 3,
+          selected: _selectedAreaId == null && _selectedTab == 3),
       if (_selectedAreaId != null)
         (label: _selectedAreaName ?? 'Area', tab: 4, selected: _selectedTab == 4),
     ];
