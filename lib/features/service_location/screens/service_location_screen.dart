@@ -66,6 +66,8 @@ class _ServiceLocationScreenState
   String? _selectedStateName;
   String? _selectedDistrictId;
   String? _selectedDistrictName;
+  String? _selectedCityId;
+  String? _selectedCityName;
 
   GoogleMapController? _mapController;
   late Future<Set<Polygon>> _activeBoundaryPolygonsFuture;
@@ -1220,6 +1222,15 @@ class _ServiceLocationScreenState
                                         'Service: ${item.isServiceActive ? "Active" : "Inactive"}',
                                     active: item.isServiceActive,
                                     icon: Icons.location_city,
+                                    onOpen: () {
+                                      setState(() {
+                                        _selectedCityId = item.id;
+                                        _selectedCityName = item.name;
+                                        _selectedTab = 4;
+                                        _search = '';
+                                        _searchController.clear();
+                                      });
+                                    },
                                     onManageBoundary: () => _manageBoundary(
                                       locationId: item.id,
                                       locationName: item.name,
@@ -1274,7 +1285,9 @@ class _ServiceLocationScreenState
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            for (final city in citySnapshot.data!)
+            for (final city in citySnapshot.data!.where(
+              (item) => _selectedCityId == null || item.id == _selectedCityId,
+            ))
               StreamBuilder<List<ServiceArea>>(
                 stream: _service.watchAreas(
                   cityId: city.id,
@@ -1300,7 +1313,7 @@ class _ServiceLocationScreenState
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionTitle(city.name),
+                      _sectionTitle(_selectedCityName == null ? city.name : '${_selectedCityName} · Areas'),
                       for (final item in areas)
                         _locationCard(
                           title: item.name,
