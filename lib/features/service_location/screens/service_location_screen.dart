@@ -3333,6 +3333,50 @@ class _ServiceLocationScreenState
     );
   }
 
+  Future<bool> _reviewStatusChange({
+    required String title,
+    required String subtitle,
+    required bool activating,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(activating ? 'Review Activation' : 'Review Service Status'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+              const SizedBox(height: 10),
+              Text(subtitle),
+              const SizedBox(height: 12),
+              Text(
+                activating
+                    ? 'You are requesting to activate this location for service. Parent eligibility and required verified City/Area boundary checks must still pass on the server.'
+                    : 'You are requesting to deactivate service for this location. This does not delete the location record.',
+                style: const TextStyle(height: 1.4),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: _locationOrange),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(activating ? 'Confirm Activation' : 'Confirm Deactivation'),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
+  }
+
   Widget _locationCard({
     required String title,
     required String subtitle,
@@ -3407,7 +3451,14 @@ class _ServiceLocationScreenState
               Switch(
                 value: active,
                 activeThumbColor: _locationOrange,
-                onChanged: onToggle,
+                onChanged: (value) async {
+                  final confirmed = await _reviewStatusChange(
+                    title: title,
+                    subtitle: subtitle,
+                    activating: value,
+                  );
+                  if (confirmed && mounted) onToggle(value);
+                },
               ),
             ],
           ),
