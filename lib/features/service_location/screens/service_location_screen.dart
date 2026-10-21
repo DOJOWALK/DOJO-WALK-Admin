@@ -1702,9 +1702,12 @@ class _ServiceLocationScreenState
                   cityId: city.id,
                 ),
                 builder: (context, snapshot) {
-                  if (snapshot.hasError || !snapshot.hasData) {
-                    return const SizedBox.shrink();
+                  if (snapshot.hasError) {
+                    return _emptyState(
+                      'Unable to load Areas for ${city.name}: ${snapshot.error}',
+                    );
                   }
+                  if (!snapshot.hasData) return _loadingState();
 
                   final areas = snapshot.data!
                       .where(
@@ -1808,10 +1811,12 @@ class _ServiceLocationScreenState
                   cityId: city.id,
                 ),
                 builder: (context, areaSnapshot) {
-                  if (areaSnapshot.hasError ||
-                      !areaSnapshot.hasData) {
-                    return const SizedBox.shrink();
+                  if (areaSnapshot.hasError) {
+                    return _emptyState(
+                      'Unable to load Areas for ${city.name}: ${areaSnapshot.error}',
+                    );
                   }
+                  if (!areaSnapshot.hasData) return _loadingState();
 
                   return Column(
                     children: [
