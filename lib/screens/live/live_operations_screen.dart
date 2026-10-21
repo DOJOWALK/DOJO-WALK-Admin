@@ -70,8 +70,22 @@ class _LiveOperationsScreenState
           ..clear()
           ..addAll(updated);
 
+        if (_selectedWalkerId != null &&
+            !updated.containsKey(_selectedWalkerId)) {
+          _selectedWalkerId = null;
+          _polylines = {};
+        }
+
         _buildMarkers();
       });
+    }, onError: (Object error, StackTrace stackTrace) {
+      debugPrint('Live walker listener failed: $error');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to refresh live walkers. Check connection and permissions.'),
+        ),
+      );
     });
   }
 
@@ -219,9 +233,21 @@ class _LiveOperationsScreenState
           _polylines = {};
         }
       });
+
+      if (points.length < 2 && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No route points are available for this walker yet.'),
+          ),
+        );
+      }
     } catch (e) {
-      debugPrint(
-        'Unable to load walker route: $e',
+      debugPrint('Unable to load walker route: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to load walker route. Please retry.'),
+        ),
       );
     }
   }
