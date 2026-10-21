@@ -1264,7 +1264,7 @@ class _ServiceLocationScreenState
                         title: district.name,
                         subtitle: 'State: ${statesById[district.stateId]?.name ?? "Unknown State"}\n'
                             'Country: ${countriesById[district.countryId]?.name ?? "Unknown Country"}\n'
-                            'Service: ${district.isActive ? "Active" : "Inactive"}',
+                            'Record status: ${district.isActive ? "Active" : "Inactive"}',
                         active: district.isActive,
                         icon: Icons.map_outlined,
                         onOpen: () {
