@@ -89,6 +89,49 @@ class _LiveOperationsScreenState
     });
   }
 
+  // Never present an online status as proof that the GPS position is current.
+  // Timestamp fields are read defensively because legacy walker documents may
+  // not yet contain a standardized location freshness field.
+  DateTime? _locationUpdatedAt(Map<String, dynamic> data) {
+    for (final key in const [
+      'currentLocationUpdatedAt',
+      'locationUpdatedAt',
+      'lastLocationAt',
+      'updatedAt',
+    ]) {
+      final value = data[key];
+      if (value is Timestamp) return value.toDate();
+      if (value is DateTime) return value;
+      if (value is String) {
+        final parsed = DateTime.tryParse(value);
+        if (parsed != null) return parsed;
+      }
+    }
+    return null;
+  }
+
+  String _locationConfidenceLabel(Map<String, dynamic> data) {
+    final updatedAt = _locationUpdatedAt(data);
+    if (updatedAt == null) {
+      return 'Possible location · update time unavailable';
+    }
+    final age = DateTime.now().difference(updatedAt.toLocal());
+    if (age >= Duration.zero && age <= const Duration(minutes: 2)) {
+      return 'Recent location update · verify on map';
+    }
+    return 'Last known location · verify before action';
+  }
+
+  double _locationConfidenceHue(Map<String, dynamic> data) {
+    final updatedAt = _locationUpdatedAt(data);
+    if (updatedAt == null) return BitmapDescriptor.hueAzure;
+    final age = DateTime.now().difference(updatedAt.toLocal());
+    if (age >= Duration.zero && age <= const Duration(minutes: 2)) {
+      return BitmapDescriptor.hueOrange;
+    }
+    return BitmapDescriptor.hueYellow;
+  }
+
   // ============================================================
   // BUILD WALKER MARKERS
   // ============================================================
@@ -122,11 +165,11 @@ class _LiveOperationsScreenState
           infoWindow: InfoWindow(
             title: name,
             snippet: selected
-                ? 'Selected Walker'
-                : 'Online',
+                ? 'Selected · ${_locationConfidenceLabel(data)}'
+                : _locationConfidenceLabel(data),
           ),
           icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueOrange,
+            _locationConfidenceHue(data),
           ),
           onTap: () {
             _selectWalker(walkerId);
