@@ -60,8 +60,18 @@ class _ServiceLocationScreenState
   final TextEditingController _searchController =
       TextEditingController();
 
-  int _selectedTab = 0;
+  int _selectedTab = 1;
   String _search = '';
+  String _statusFilter = 'All';
+  String? _selectedStateId;
+  String? _selectedStateName;
+  String? _selectedDistrictId;
+  String? _selectedDistrictName;
+  String? _selectedCityId;
+  String? _selectedCityName;
+  String? _selectedAreaId;
+  String? _selectedAreaName;
+  Future<List<Map<String, dynamic>>>? _globalSearchFuture;
 
   GoogleMapController? _mapController;
   late Future<Set<Polygon>> _activeBoundaryPolygonsFuture;
@@ -126,6 +136,159 @@ class _ServiceLocationScreenState
     if (query.isEmpty) return true;
 
     return value.toLowerCase().contains(query);
+  }
+
+  bool _matchesStatus(bool active) {
+    switch (_statusFilter) {
+      case 'Active':
+        return active;
+      case 'Inactive':
+        return !active;
+      default:
+        return true;
+    }
+  }
+
+  Widget _buildHierarchyBreadcrumb() {
+    final crumbs = <({String label, String level, int tab, bool selected})>[
+      (label: 'India', level: 'country', tab: 1,
+        selected: _selectedStateId == null && _selectedTab == 1),
+      if (_selectedStateId != null)
+        (label: _selectedStateName ?? 'State', level: 'state', tab: 2,
+          selected: _selectedDistrictId == null && _selectedTab == 2),
+      if (_selectedDistrictId != null)
+        (label: _selectedDistrictName ?? 'District', level: 'district', tab: 2,
+          selected: _selectedCityId == null && _selectedTab == 2),
+      if (_selectedCityId != null)
+        (label: _selectedCityName ?? 'City', level: 'city', tab: 3,
+          selected: _selectedAreaId == null && _selectedTab == 3),
+      if (_selectedAreaId != null)
+        (label: _selectedAreaName ?? 'Area', level: 'area', tab: 4,
+          selected: _selectedTab == 4),
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 6),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            const Icon(Icons.account_tree_outlined, size: 16, color: _locationOrange),
+            const SizedBox(width: 6),
+            for (var i = 0; i < crumbs.length; i++) ...[
+              if (i > 0)
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 3),
+                  child: Icon(Icons.chevron_right, size: 15, color: Colors.black45),
+                ),
+              TextButton(
+                onPressed: crumbs[i].selected
+                    ? null
+                    : () {
+                        setState(() {
+                          _selectedTab = crumbs[i].tab;
+                          if (crumbs[i].level == 'country') {
+                            _selectedStateId = null;
+                            _selectedStateName = null;
+                            _selectedDistrictId = null;
+                            _selectedDistrictName = null;
+                            _selectedCityId = null;
+                            _selectedCityName = null;
+                            _selectedAreaId = null;
+                            _selectedAreaName = null;
+                          } else if (crumbs[i].level == 'state') {
+                            // Return to this State's District list; clear the
+                            // deeper selection so the breadcrumb and list agree.
+                            _selectedDistrictId = null;
+                            _selectedDistrictName = null;
+                            _selectedCityId = null;
+                            _selectedCityName = null;
+                            _selectedAreaId = null;
+                            _selectedAreaName = null;
+                          } else if (crumbs[i].level == 'district') {
+                            _selectedCityId = null;
+                            _selectedCityName = null;
+                            _selectedAreaId = null;
+                            _selectedAreaName = null;
+                          } else if (crumbs[i].level == 'city') {
+                            _selectedAreaId = null;
+                            _selectedAreaName = null;
+                          }
+                          _search = '';
+                          _searchController.clear();
+                        });
+                      },
+                style: TextButton.styleFrom(
+                  foregroundColor: crumbs[i].selected ? _locationOrange : const Color(0xFF5D5148),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                  minimumSize: const Size(0, 30),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  crumbs[i].label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: crumbs[i].selected ? FontWeight.w800 : FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+            if (_selectedStateId != null)
+              IconButton(
+                tooltip: 'Clear location selection',
+                visualDensity: VisualDensity.compact,
+                onPressed: () => setState(() {
+                  _selectedStateId = null;
+                  _selectedStateName = null;
+                  _selectedDistrictId = null;
+                  _selectedDistrictName = null;
+                  _selectedCityId = null;
+                  _selectedCityName = null;
+                  _selectedAreaId = null;
+                  _selectedAreaName = null;
+                  _selectedTab = 1;
+                  _search = '';
+                  _searchController.clear();
+                }),
+                icon: const Icon(Icons.close, size: 17),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusFilter() {
+    // Import History is a log view, not a location-status list.
+    if (_selectedTab == 6) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
+      child: Row(
+        children: [
+          Text(
+            _selectedTab <= 1 ? 'Record status:' : 'Service status:',
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(width: 8),
+          for (final value in const ['All', 'Active', 'Inactive']) ...[
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: ChoiceChip(
+                label: Text(value),
+                selected: _statusFilter == value,
+                selectedColor: _locationOrange,
+                labelStyle: TextStyle(
+                  color: _statusFilter == value ? Colors.white : const Color(0xFF5D5148),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+                onSelected: (_) => setState(() => _statusFilter = value),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   @override
@@ -244,9 +407,12 @@ class _ServiceLocationScreenState
             ),
             child: TextField(
               controller: _searchController,
-              onChanged: (value) => setState(() => _search = value.trim()),
+              onChanged: (value) => setState(() {
+                _search = value.trim();
+                _globalSearchFuture = _search.isEmpty ? null : _loadGlobalSearchResults();
+              }),
               decoration: InputDecoration(
-                hintText: 'Search state, city, area or code',
+                hintText: 'Search state, district, city, area, locality or PIN/code',
                 hintStyle: const TextStyle(fontSize: 13, color: Colors.black45),
                 prefixIcon: const Icon(Icons.search_rounded, color: _locationOrange),
                 suffixIcon: _search.isEmpty
@@ -274,6 +440,8 @@ class _ServiceLocationScreenState
             ),
           ),
           _buildTabs(),
+          _buildHierarchyBreadcrumb(),
+          _buildStatusFilter(),
           const Divider(height: 1, color: Color(0xFFECE5DE)),
           Expanded(
             child: Container(
@@ -729,6 +897,21 @@ class _ServiceLocationScreenState
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
             onSelected: (_) {
+              final requirement = switch (index) {
+                2 when _selectedStateId == null =>
+                  'पहले State खोलें, फिर District देखें।',
+                3 when _selectedDistrictId == null =>
+                  'पहले किसी State के अंदर District खोलें, फिर City देखें।',
+                4 when _selectedCityId == null =>
+                  'पहले किसी District के अंदर City खोलें, फिर Area देखें।',
+                5 when _selectedAreaId == null =>
+                  'पहले किसी City के अंदर Area खोलें, फिर Locality देखें।',
+                _ => null,
+              };
+              if (requirement != null) {
+                _showMessage(requirement);
+                return;
+              }
               setState(() => _selectedTab = index);
             },
           );
@@ -737,7 +920,197 @@ class _ServiceLocationScreenState
     );
   }
 
+  Future<List<Map<String, dynamic>>> _loadGlobalSearchResults() async {
+    final results = <Map<String, dynamic>>[];
+    final countries = await _service.watchCountries().first;
+    final states = await _service.watchStates().first;
+    final districts = await _service.watchDistricts().first;
+    final cities = await _service.watchCities().first;
+    final areas = await _service.watchAreas().first;
+    final localities = await _service.watchLocalities().first;
+    final countryById = {for (final item in countries) item.id: item};
+    final stateById = {for (final item in states) item.id: item};
+    final districtById = {for (final item in districts) item.id: item};
+    final cityById = {for (final item in cities) item.id: item};
+    final areaById = {for (final item in areas) item.id: item};
+    final query = _search.trim().toLowerCase();
+
+    void addResult({
+      required String type,
+      required String id,
+      required String name,
+      required String path,
+      required bool active,
+      required int tab,
+      String code = '',
+      String pincode = '',
+      String? stateId,
+      String? districtId,
+      String? cityId,
+      String? areaId,
+    }) {
+      if (!_matchesStatus(active)) return;
+      final searchable = '$type $id $name $code $pincode $path'.toLowerCase();
+      if (query.isNotEmpty && !searchable.contains(query)) return;
+      results.add({
+        'type': type, 'id': id, 'name': name, 'path': path, 'active': active,
+        'tab': tab, 'stateId': stateId, 'districtId': districtId,
+        'cityId': cityId, 'areaId': areaId,
+      });
+    }
+
+    for (final item in countries.where((item) =>
+        item.code.trim().toUpperCase() == 'IN' ||
+        item.name.trim().toLowerCase() == 'india')) {
+      addResult(type: 'Country', id: item.id, name: item.name,
+        path: 'India', active: item.isActive, tab: 1, code: item.code);
+    }
+    for (final item in states) {
+      final country = countryById[item.countryId];
+      if (country == null || !(country.code.trim().toUpperCase() == 'IN' ||
+          country.name.trim().toLowerCase() == 'india')) continue;
+      addResult(type: 'State', id: item.id, name: item.name,
+        path: 'India · ${item.name}', active: item.isActive, tab: 2,
+        stateId: item.id);
+    }
+    for (final item in districts) {
+      final state = stateById[item.stateId];
+      if (state == null) continue;
+      final path = 'India · ${state.name} · ${item.name}';
+      addResult(type: 'District', id: item.id, name: item.name,
+        path: path, active: item.isActive, tab: 2,
+        stateId: state.id, districtId: item.id);
+    }
+    for (final item in cities) {
+      final state = stateById[item.stateId];
+      final district = districtById[item.districtId];
+      final path = ['India', if (state != null) state.name,
+        if (district != null) district.name, item.name].join(' · ');
+      addResult(type: 'City', id: item.id, name: item.name,
+        path: path, active: item.isServiceActive, tab: 3,
+        stateId: item.stateId, districtId: item.districtId, cityId: item.id);
+    }
+    for (final item in areas) {
+      final city = cityById[item.cityId];
+      if (city == null) continue;
+      final state = stateById[city.stateId];
+      final district = districtById[city.districtId];
+      final path = ['India', if (state != null) state.name,
+        if (district != null) district.name, city.name, item.name].join(' · ');
+      addResult(type: 'Area', id: item.id, name: item.name,
+        path: path, active: item.isServiceActive, tab: 4,
+        stateId: city.stateId, districtId: city.districtId,
+        cityId: city.id, areaId: item.id);
+    }
+    for (final item in localities) {
+      final area = areaById[item.areaId];
+      final city = cityById[item.cityId];
+      if (city == null) continue;
+      final state = stateById[city.stateId];
+      final district = districtById[city.districtId];
+      final path = ['India', if (state != null) state.name,
+        if (district != null) district.name, city.name,
+        if (area != null) area.name, item.name,
+        if (item.pincode.trim().isNotEmpty) 'PIN ${item.pincode}'].join(' · ');
+      addResult(type: 'Locality', id: item.id, name: item.name,
+        path: path, active: item.isServiceActive, tab: 5,
+        pincode: item.pincode, stateId: city.stateId,
+        districtId: city.districtId, cityId: city.id, areaId: item.areaId);
+    }
+    results.sort((a, b) => (a['name'] as String).toLowerCase()
+        .compareTo((b['name'] as String).toLowerCase()));
+    return results;
+  }
+
+  Widget _buildGlobalSearchResults() {
+    final future = _globalSearchFuture ??= _loadGlobalSearchResults();
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return _emptyState('Unable to search service locations: ${snapshot.error}');
+        }
+        if (!snapshot.hasData) return _loadingState();
+        final results = snapshot.data!
+            .where((item) => _matchesStatus(item['active'] as bool))
+            .toList(growable: false);
+        if (results.isEmpty) {
+          return _emptyState(
+            _statusFilter == 'All'
+                ? 'No matching locations found. Try a name, district, area, locality or PIN/code.'
+                : 'No matching locations found for the $_statusFilter status filter. Try All or change your search.',
+          );
+        }
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          children: [
+            _sectionTitle('${results.length} matching locations'),
+            for (final item in results)
+              Card(
+                margin: const EdgeInsets.symmetric(vertical: 5),
+                child: ListTile(
+                  leading: const Icon(Icons.location_on_outlined, color: _locationOrange),
+                  title: Text(item['name'] as String,
+                    style: const TextStyle(fontWeight: FontWeight.w700)),
+                  subtitle: Text('${item['type']} · ${item['path']}\n'
+                    '${(item['type'] == 'Country' || item['type'] == 'State') ? 'Record' : 'Service'} '
+                    '${(item['active'] as bool) ? 'active' : 'inactive'}'),
+                  isThreeLine: true,
+                  trailing: TextButton(
+                    onPressed: () {
+                      final pathParts = (item['path'] as String).split(' · ');
+                      final type = item['type'] as String;
+                      setState(() {
+                        _selectedStateId = item['stateId'] as String?;
+                        _selectedStateName = _selectedStateId == null
+                            ? null
+                            : type == 'State'
+                                ? item['name'] as String
+                                : pathParts.length > 1 ? pathParts[1] : _selectedStateId;
+                        _selectedDistrictId = item['districtId'] as String?;
+                        _selectedDistrictName = _selectedDistrictId == null
+                            ? null
+                            : type == 'District'
+                                ? item['name'] as String
+                                : pathParts.length > 2 ? pathParts[2] : _selectedDistrictId;
+                        _selectedCityId = item['cityId'] as String?;
+                        _selectedCityName = _selectedCityId == null
+                            ? null
+                            : type == 'City'
+                                ? item['name'] as String
+                                : pathParts.length > 3 ? pathParts[3] : _selectedCityId;
+                        _selectedAreaId = item['areaId'] as String?;
+                        _selectedAreaName = _selectedAreaId == null
+                            ? null
+                            : type == 'Area'
+                                ? item['name'] as String
+                                : pathParts.length > 4 ? pathParts[4] : _selectedAreaId;
+                        _selectedTab = item['tab'] as int;
+                        _search = '';
+                        _searchController.clear();
+                        _globalSearchFuture = null;
+                      });
+                    },
+                    child: const Text('Open'),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  String? stateBySearchName(String stateId) {
+    // The result path already contains the human-readable state name.
+    // Keep the ID as the selection source; this helper is only a safe label fallback.
+    return _selectedStateName ?? stateId;
+  }
+
   Widget _buildSelectedList() {
+    if (_search.trim().isNotEmpty && _selectedTab != 6) {
+      return _buildGlobalSearchResults();
+    }
     switch (_selectedTab) {
       case 0:
         return _buildCountries();
@@ -809,7 +1182,7 @@ class _ServiceLocationScreenState
 
         final items = snapshot.data!
             .where(
-              (item) => _matches(
+              (item) => _matchesStatus(item.isActive) && _matches(
                 '${item.id} ${item.name} ${item.code}',
               ),
             )
@@ -909,7 +1282,7 @@ class _ServiceLocationScreenState
             return _locationCard(
               title: item.name,
               subtitle:
-                  'ID: ${item.id} · Code: ${item.code}',
+                  'ID: ${item.id} · Code: ${item.code}\nRecord status: ${item.isActive ? "Active" : "Inactive"}',
               active: item.isActive,
               icon: Icons.public,
               onToggle: (value) async {
@@ -940,70 +1313,95 @@ class _ServiceLocationScreenState
         if (countrySnapshot.hasError) {
           return _emptyState('${countrySnapshot.error}');
         }
-
         if (!countrySnapshot.hasData) {
           return _loadingState();
         }
 
-        final countries = countrySnapshot.data!;
+        final indiaCountries = countrySnapshot.data!
+            .where(
+              (country) =>
+                  country.code.trim().toUpperCase() == 'IN' ||
+                  country.name.trim().toLowerCase() == 'india',
+            )
+            .toList()
+          ..sort((a, b) {
+            final aExact = a.code.trim().toUpperCase() == 'IN' ? 0 : 1;
+            final bExact = b.code.trim().toUpperCase() == 'IN' ? 0 : 1;
+            return aExact.compareTo(bExact);
+          });
 
-        if (countries.isEmpty) {
-          return _emptyState('Add a country first.');
+        if (indiaCountries.isEmpty) {
+          return _emptyState(
+            'India (IN) is not configured in the country master. '
+            'Check the India setup before viewing States; do not create another Country here.',
+          );
         }
 
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          children: [
-            for (final country in countries)
-              StreamBuilder<List<ServiceState>>(
-                stream: _service.watchStates(
-                  countryId: country.id,
-                ),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError || !snapshot.hasData) {
-                    return const SizedBox.shrink();
-                  }
+        final country = indiaCountries.first;
+        return StreamBuilder<List<ServiceState>>(
+          stream: _service.watchStates(countryId: country.id),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return _emptyState('Unable to load India States: ${snapshot.error}');
+            }
+            if (!snapshot.hasData) {
+              return _loadingState();
+            }
 
-                  final items = snapshot.data!
-                      .where(
-                        (item) => _matches(
-                          '${item.id} ${item.name} '
-                          '${country.id} ${country.name}',
-                        ),
-                      )
-                      .toList();
+            final items = snapshot.data!
+                .where(
+                  (item) => _matchesStatus(item.isActive) && _matches(
+                    '${item.id} ${item.name} ${country.id} India IN',
+                  ),
+                )
+                .toList();
 
-                  if (items.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
+            if (items.isEmpty) {
+              return _emptyState(
+                'No India States match the current search/status filter.',
+              );
+            }
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _sectionTitle(country.name),
-                      for (final item in items)
-                        _locationCard(
-                          title: item.name,
-                          subtitle:
-                              'ID: ${item.id} · Country: ${country.name}',
-                          active: item.isActive,
-                          icon: Icons.map_outlined,
-                          onToggle: (value) async {
-                            try {
-                              await _service.setStateStatus(
-                                stateId: item.id,
-                                isActive: value,
-                              );
-                            } catch (error) {
-                              await _showError(error);
-                            }
-                          },
-                        ),
-                    ],
-                  );
-                },
-              ),
-          ],
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              children: [
+                _sectionTitle('India'),
+                for (final item in items)
+                  _locationCard(
+                    title: item.name,
+                    subtitle:
+                        'ID: ${item.id} · Country: India (IN)\\nRecord status: ${item.isActive ? "Active" : "Inactive"}',
+                    active: item.isActive,
+                    icon: Icons.map_outlined,
+                    onOpen: () {
+                      setState(() {
+                        _selectedStateId = item.id;
+                        _selectedStateName = item.name;
+                        _selectedDistrictId = null;
+                        _selectedDistrictName = null;
+                        _selectedCityId = null;
+                        _selectedCityName = null;
+                        _selectedAreaId = null;
+                        _selectedAreaName = null;
+                        _selectedTab = 2;
+                        _search = '';
+                        _searchController.clear();
+                      });
+                    },
+                    onToggle: (value) async {
+                      try {
+                        await _service.setStateStatus(
+                          stateId: item.id,
+                          isActive: value,
+                        );
+                      } catch (error) {
+                        await _showError(error);
+                      }
+                    },
+                  ),
+              ],
+            );
+          },
         );
       },
     );
@@ -1047,6 +1445,11 @@ class _ServiceLocationScreenState
                   for (final state in stateSnapshot.data!) state.id: state,
                 };
                 final districts = districtSnapshot.data!.where((district) {
+                  if (!_matchesStatus(district.isActive)) return false;
+                  if (_selectedStateId != null &&
+                      district.stateId != _selectedStateId) {
+                    return false;
+                  }
                   final state = statesById[district.stateId];
                   final country = countriesById[district.countryId];
                   return _matches(
@@ -1067,15 +1470,33 @@ class _ServiceLocationScreenState
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                   children: [
-                    _sectionTitle('Districts · ${districts.length}'),
+                    _sectionTitle(_selectedStateName == null
+                        ? 'All Districts · ${districts.length}'
+                        : '${_selectedStateName} · Districts · ${districts.length}'),
                     for (final district in districts)
                       _locationCard(
                         title: district.name,
                         subtitle: 'State: ${statesById[district.stateId]?.name ?? "Unknown State"}\n'
                             'Country: ${countriesById[district.countryId]?.name ?? "Unknown Country"}\n'
-                            'Service: ${district.isActive ? "Active" : "Inactive"}',
+                            'Service status: ${district.isActive ? "Active" : "Inactive"}',
                         active: district.isActive,
                         icon: Icons.map_outlined,
+                        onOpen: () {
+                          setState(() {
+                            _selectedStateId = district.stateId;
+                            _selectedStateName =
+                                statesById[district.stateId]?.name;
+                            _selectedDistrictId = district.id;
+                            _selectedDistrictName = district.name;
+                            _selectedCityId = null;
+                            _selectedCityName = null;
+                            _selectedAreaId = null;
+                            _selectedAreaName = null;
+                            _selectedTab = 3;
+                            _search = '';
+                            _searchController.clear();
+                          });
+                        },
                         onToggle: (value) async {
                           try {
                             await _service.setDistrictStatus(
@@ -1149,12 +1570,26 @@ class _ServiceLocationScreenState
                             stateId: state.id,
                           ),
                           builder: (context, citySnapshot) {
-                            if (citySnapshot.hasError ||
-                                !citySnapshot.hasData) {
-                              return const SizedBox.shrink();
+                            if (citySnapshot.hasError) {
+                              return _emptyState(
+                                'Could not load Cities for ${state.name}: ${citySnapshot.error}',
+                              );
                             }
+                            if (!citySnapshot.hasData) return _loadingState();
 
                             final cities = citySnapshot.data!.where((item) {
+                              // When drilling into a selected State/District, do not
+                              // leak unlinked legacy Cities from other States into
+                              // the selected District's legacy group.
+                              if (_selectedStateId != null && state.id != _selectedStateId) {
+                                return false;
+                              }
+                              if (!_matchesStatus(item.isServiceActive)) return false;
+                              if (_selectedDistrictId != null &&
+                                  item.districtId != _selectedDistrictId &&
+                                  item.districtId.isNotEmpty) {
+                                return false;
+                              }
                               final district = districtsById[item.districtId];
                               return _matches(
                                 '${item.id} ${item.name} '
@@ -1164,46 +1599,80 @@ class _ServiceLocationScreenState
                               );
                             }).toList();
 
+                            final linkedCities = _selectedDistrictId == null
+                                ? cities
+                                : cities.where(
+                                    (item) => item.districtId == _selectedDistrictId,
+                                  ).toList();
+                            final unlinkedLegacyCities = _selectedDistrictId == null
+                                ? <ServiceCity>[]
+                                : cities.where((item) => item.districtId.isEmpty).toList();
+
                             if (cities.isEmpty) {
                               return const SizedBox.shrink();
                             }
 
+                            Widget cityCard(ServiceCity item) => _locationCard(
+                                  title: item.name,
+                                  subtitle:
+                                      'ID: ${item.id}\n'
+                                      'District: ${districtsById[item.districtId]?.name ?? (item.districtId.isEmpty ? "Not linked (legacy City)" : "Unknown District")}\n'
+                                      'Legacy boundary points: ${item.boundary.length}\n'
+                                      'Legacy verified: ${item.boundaryVerified ? "Yes" : "No"}\n'
+                                      'Service: ${item.isServiceActive ? "Active" : "Inactive"}',
+                                  active: item.isServiceActive,
+                                  icon: Icons.location_city,
+                                  onOpen: () {
+                                    setState(() {
+                                      _selectedCityId = item.id;
+                                      _selectedCityName = item.name;
+                                      _selectedAreaId = null;
+                                      _selectedAreaName = null;
+                                      _selectedTab = 4;
+                                      _search = '';
+                                      _searchController.clear();
+                                    });
+                                  },
+                                  onManageBoundary: () => _manageBoundary(
+                                    locationId: item.id,
+                                    locationName: item.name,
+                                    locationType: 'city',
+                                  ),
+                                  reviewBoundaryLocationType: 'city',
+                                  reviewBoundaryLocationId: item.id,
+                                  onToggle: (value) async {
+                                    try {
+                                      await _service.setCityServiceStatus(
+                                        cityId: item.id,
+                                        isActive: value,
+                                      );
+                                      _showMessage(
+                                        value
+                                            ? 'City service activated.'
+                                            : 'City service deactivated.',
+                                      );
+                                    } catch (error) {
+                                      await _showError(error);
+                                    }
+                                  },
+                                );
+
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _sectionTitle('${state.name} · ${country.name}'),
-                                for (final item in cities)
-                                  _locationCard(
-                                    title: item.name,
-                                    subtitle:
-                                        'ID: ${item.id}\n'
-                                        'District: ${districtsById[item.districtId]?.name ?? (item.districtId.isEmpty ? "Not linked (legacy City)" : "Unknown District")}\n'
-                                        'Legacy boundary points: ${item.boundary.length}\n'
-                                        'Legacy verified: ${item.boundaryVerified ? "Yes" : "No"}\n'
-                                        'Service: ${item.isServiceActive ? "Active" : "Inactive"}',
-                                    active: item.isServiceActive,
-                                    icon: Icons.location_city,
-                                    onManageBoundary: () => _manageBoundary(
-                                      locationId: item.id,
-                                      locationName: item.name,
-                                      locationType: 'city',
-                                    ),
-                                    onToggle: (value) async {
-                                      try {
-                                        await _service.setCityServiceStatus(
-                                          cityId: item.id,
-                                          isActive: value,
-                                        );
-                                        _showMessage(
-                                          value
-                                              ? 'City service activated.'
-                                              : 'City service deactivated.',
-                                        );
-                                      } catch (error) {
-                                        await _showError(error);
-                                      }
-                                    },
-                                  ),
+                                if (_selectedDistrictId == null) ...[
+                                  _sectionTitle('${state.name} · ${country.name}'),
+                                  for (final item in cities) cityCard(item),
+                                ] else ...[
+                                  if (linkedCities.isNotEmpty) ...[
+                                    _sectionTitle('${_selectedDistrictName ?? "District"} · Cities'),
+                                    for (final item in linkedCities) cityCard(item),
+                                  ],
+                                  if (unlinkedLegacyCities.isNotEmpty) ...[
+                                    _sectionTitle('Unlinked / Legacy Cities · Not assigned to a District'),
+                                    for (final item in unlinkedLegacyCities) cityCard(item),
+                                  ],
+                                ],
                               ],
                             );
                           },
@@ -1237,19 +1706,24 @@ class _ServiceLocationScreenState
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            for (final city in citySnapshot.data!)
+            for (final city in citySnapshot.data!.where(
+              (item) => _selectedCityId == null || item.id == _selectedCityId,
+            ))
               StreamBuilder<List<ServiceArea>>(
                 stream: _service.watchAreas(
                   cityId: city.id,
                 ),
                 builder: (context, snapshot) {
-                  if (snapshot.hasError || !snapshot.hasData) {
-                    return const SizedBox.shrink();
+                  if (snapshot.hasError) {
+                    return _emptyState(
+                      'Unable to load Areas for ${city.name}: ${snapshot.error}',
+                    );
                   }
+                  if (!snapshot.hasData) return _loadingState();
 
                   final areas = snapshot.data!
                       .where(
-                        (item) => _matches(
+                        (item) => _matchesStatus(item.isServiceActive) && _matches(
                           '${item.id} ${item.name} '
                           '${city.id} ${city.name} ${city.districtId}',
                         ),
@@ -1263,7 +1737,7 @@ class _ServiceLocationScreenState
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionTitle(city.name),
+                      _sectionTitle(_selectedCityName == null ? city.name : '${_selectedCityName} · Areas'),
                       for (final item in areas)
                         _locationCard(
                           title: item.name,
@@ -1278,12 +1752,23 @@ class _ServiceLocationScreenState
                               'Service: ${item.isServiceActive ? "Active" : "Inactive"}',
                           active: item.isServiceActive,
                           icon: Icons.grid_view,
+                          onOpen: () {
+                            setState(() {
+                              _selectedAreaId = item.id;
+                              _selectedAreaName = item.name;
+                              _selectedTab = 5;
+                              _search = '';
+                              _searchController.clear();
+                            });
+                          },
                           onManageBoundary: () =>
                               _manageBoundary(
                             locationId: item.id,
                             locationName: item.name,
                             locationType: 'area',
                           ),
+                          reviewBoundaryLocationType: 'area',
+                          reviewBoundaryLocationId: item.id,
                           onToggle: (value) async {
                             try {
                               await _service.setAreaServiceStatus(
@@ -1330,20 +1815,26 @@ class _ServiceLocationScreenState
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            for (final city in citySnapshot.data!)
+            for (final city in citySnapshot.data!.where(
+              (item) => _selectedCityId == null || item.id == _selectedCityId,
+            ))
               StreamBuilder<List<ServiceArea>>(
                 stream: _service.watchAreas(
                   cityId: city.id,
                 ),
                 builder: (context, areaSnapshot) {
-                  if (areaSnapshot.hasError ||
-                      !areaSnapshot.hasData) {
-                    return const SizedBox.shrink();
+                  if (areaSnapshot.hasError) {
+                    return _emptyState(
+                      'Unable to load Areas for ${city.name}: ${areaSnapshot.error}',
+                    );
                   }
+                  if (!areaSnapshot.hasData) return _loadingState();
 
                   return Column(
                     children: [
-                      for (final area in areaSnapshot.data!)
+                      for (final area in areaSnapshot.data!.where(
+                        (item) => _selectedAreaId == null || item.id == _selectedAreaId,
+                      ))
                         StreamBuilder<List<ServiceLocality>>(
                           stream: _service.watchLocalities(
                             cityId: city.id,
@@ -1357,7 +1848,7 @@ class _ServiceLocationScreenState
 
                             final items = snapshot.data!
                                 .where(
-                                  (item) => _matches(
+                                  (item) => _matchesStatus(item.isServiceActive) && _matches(
                                     '${item.id} ${item.name} '
                                     '${item.pincode} ${item.areaId} '
                                     '${area.name} ${item.cityId} '
@@ -1389,6 +1880,8 @@ class _ServiceLocationScreenState
                                         'Service: ${item.isServiceActive ? "Active" : "Inactive"}',
                                     active: item.isServiceActive,
                                     icon: Icons.place_outlined,
+                                    hierarchyLocationType: 'locality',
+                                    hierarchyLocationId: item.id,
                                     onToggle: (value) async {
                                       try {
                                         await _service
@@ -3215,13 +3708,253 @@ class _ServiceLocationScreenState
     );
   }
 
+  Future<List<String>> _loadParentStatusReview({
+    required String locationType,
+    required String locationId,
+  }) async {
+    final firestore = FirebaseFirestore.instance;
+    final lines = <String>[];
+
+    Future<Map<String, dynamic>?> read(String collection, String? id) async {
+      if (id == null || id.trim().isEmpty) return null;
+      final snapshot = await firestore.collection(collection).doc(id).get();
+      return snapshot.data();
+    }
+
+    String status(Map<String, dynamic>? data) {
+      if (data == null) return 'Unknown / not found';
+      final active = data.containsKey('isServiceActive')
+          ? data['isServiceActive'] == true
+          : data['isActive'] == true;
+      return active ? 'Active' : 'Inactive';
+    }
+
+    final collectionByType = <String, String>{
+      'city': 'service_cities',
+      'area': 'service_areas',
+      'locality': 'service_localities',
+    };
+    final collection = collectionByType[locationType];
+    if (collection == null) {
+      return ['Parent status review unavailable: unsupported location type.'];
+    }
+    final record = await read(collection, locationId);
+    if (record == null) {
+      return ['Parent status review unavailable: record not found.'];
+    }
+
+    final city = locationType == 'city'
+        ? record
+        : await read('service_cities', record['cityId']?.toString());
+    final stateId = (city?['stateId'] ?? record['stateId'])?.toString();
+    final countryId = (city?['countryId'] ?? record['countryId'])?.toString();
+    final districtId = city?['districtId']?.toString() ?? '';
+    final area = locationType == 'area'
+        ? record
+        : locationType == 'locality'
+            ? await read('service_areas', record['areaId']?.toString())
+            : null;
+
+    final country = await read('service_countries', countryId);
+    final state = await read('service_states', stateId);
+    final district = await read('service_districts', districtId);
+    lines.add('Country: ${country?['name'] ?? countryId ?? 'Unknown'} — ${status(country)}');
+    lines.add('State: ${state?['name'] ?? stateId ?? 'Unknown'} — ${status(state)}');
+    lines.add(districtId.isEmpty
+        ? 'District: Not linked (legacy City)'
+        : 'District: ${district?['name'] ?? districtId} — ${status(district)}');
+    if (locationType != 'city') {
+      lines.add('City: ${city?['name'] ?? record['cityId'] ?? 'Unknown'} — ${status(city)}');
+    }
+    if (locationType == 'locality') {
+      lines.add('Area: ${area?['name'] ?? record['areaId'] ?? 'Unknown'} — ${status(area)}');
+    }
+    return lines;
+  }
+
+  Future<bool> _reviewStatusChange({
+    required String title,
+    required String subtitle,
+    required bool currentStatus,
+    required bool activating,
+    String? boundaryLocationType,
+    String? boundaryLocationId,
+    String? hierarchyLocationType,
+    String? hierarchyLocationId,
+  }) async {
+    List<String> parentStatusLines = const [];
+    var parentStatusLookupFailed = false;
+    if (hierarchyLocationType != null && hierarchyLocationId != null) {
+      try {
+        parentStatusLines = await _loadParentStatusReview(
+          locationType: hierarchyLocationType,
+          locationId: hierarchyLocationId,
+        );
+      } catch (_) {
+        parentStatusLookupFailed = true;
+      }
+    }
+    ServiceLocationBoundary? authoritativeBoundary;
+    var boundaryLookupFailed = false;
+    if (boundaryLocationType != null && boundaryLocationId != null) {
+      try {
+        final boundaries = await _boundaryService.watchForLocation(
+          boundaryLocationId,
+          locationType: boundaryLocationType,
+        ).first;
+        authoritativeBoundary = selectBoundaryForManagement(boundaries);
+      } catch (_) {
+        boundaryLookupFailed = true;
+      }
+    }
+    final boundaryRequired = activating &&
+        (boundaryLocationType?.toLowerCase() == 'city' ||
+            boundaryLocationType?.toLowerCase() == 'area');
+    final verifiedPolygonAvailable = !boundaryLookupFailed &&
+        authoritativeBoundary != null &&
+        authoritativeBoundary.isVerified &&
+        authoritativeBoundary.points.length >= 3;
+    final canConfirm = !boundaryRequired || verifiedPolygonAvailable;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(activating ? 'Review Activation' : 'Review Service Status'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Location to change',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: _locationOrange,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF3E8),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFFFD8B8)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Current status: ${currentStatus ? "Active" : "Inactive"}',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'After confirmation: ${activating ? "Active" : "Inactive"}',
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Location details',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 4),
+              SelectableText(subtitle),
+              if (hierarchyLocationType != null) ...[
+                const SizedBox(height: 12),
+                const Text('Parent hierarchy status (live records)',
+                    style: TextStyle(fontWeight: FontWeight.w800)),
+                const SizedBox(height: 5),
+                if (parentStatusLookupFailed)
+                  const Text('Parent status could not be loaded. Server-side eligibility checks remain required.')
+                else
+                  for (final line in parentStatusLines) Text(line),
+              ],
+              if (boundaryLocationType != null) ...[
+                const SizedBox(height: 12),
+                const Text(
+                  'Authoritative boundary status',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 5),
+                if (boundaryLookupFailed)
+                  const Text('Boundary status could not be loaded. Do not treat this as verified.')
+                else if (authoritativeBoundary == null)
+                  const Text('No boundary record found. Activation requires a verified City/Area polygon.')
+                else ...[
+                  Text('Verification: ${authoritativeBoundary.verificationStatus.name}'),
+                  Text('Source: ${authoritativeBoundary.sourceName.isEmpty ? "Not provided" : authoritativeBoundary.sourceName}'),
+                  Text('Source reference: ${authoritativeBoundary.sourceReference.isEmpty ? "Not provided" : authoritativeBoundary.sourceReference}'),
+                  Text('Polygon points: ${authoritativeBoundary.points.length}'),
+                  if (authoritativeBoundary.verifiedAt != null)
+                    Text('Verified at: ${authoritativeBoundary.verifiedAt!.toLocal()}'),
+                ],
+              ],
+              if (boundaryRequired && !verifiedPolygonAvailable) ...[
+                const SizedBox(height: 10),
+                const Text(
+                  'Activation is unavailable here: a verified City/Area polygon with at least 3 points must be loaded first. The server remains the final authority.',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.w700,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 14),
+              const Text(
+                'Before confirmation',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                activating
+                    ? 'Activation request: the server must confirm parent eligibility and the required verified boundary. City and Area need a verified boundary; Locality does not need its own polygon by default.'
+                    : 'Deactivation request: service will be turned off for this location. The location record itself will not be deleted.',
+                style: const TextStyle(height: 1.4),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'This screen is a review only. Final permission and eligibility checks remain on the server; a confirmation here does not bypass them.',
+                style: TextStyle(height: 1.4, color: Colors.black54),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: _locationOrange),
+            onPressed: canConfirm ? () => Navigator.pop(dialogContext, true) : null,
+            child: Text(activating ? 'Confirm Activation' : 'Confirm Deactivation'),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
+  }
+
   Widget _locationCard({
     required String title,
     required String subtitle,
     required bool active,
     required IconData icon,
     required ValueChanged<bool> onToggle,
+    VoidCallback? onOpen,
     VoidCallback? onManageBoundary,
+    String? reviewBoundaryLocationType,
+    String? reviewBoundaryLocationId,
+    String? hierarchyLocationType,
+    String? hierarchyLocationId,
   }) {
     return Card(
       color: Colors.white,
@@ -3262,13 +3995,26 @@ class _ServiceLocationScreenState
         subtitle: Text(subtitle),
         isThreeLine: subtitle.contains('\n'),
         trailing: SizedBox(
-          width: onManageBoundary == null ? 65 : 190,
+          width: (onManageBoundary == null ? 58 : 104) +
+              (onOpen == null ? 0 : 44),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              if (onOpen != null)
+                IconButton(
+                  tooltip: 'Open',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: onOpen,
+                  icon: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: _locationOrange,
+                  ),
+                ),
               if (onManageBoundary != null)
                 IconButton(
                   tooltip: 'Manage Boundary',
+                  visualDensity: VisualDensity.compact,
                   onPressed: onManageBoundary,
                   icon: const Icon(
                     Icons.edit_location_alt_outlined,
@@ -3278,7 +4024,25 @@ class _ServiceLocationScreenState
               Switch(
                 value: active,
                 activeThumbColor: _locationOrange,
-                onChanged: onToggle,
+                onChanged: (value) async {
+                  final confirmed = await _reviewStatusChange(
+                    title: title,
+                    subtitle: subtitle,
+                    currentStatus: active,
+                    activating: value,
+                    boundaryLocationType: reviewBoundaryLocationType,
+                    boundaryLocationId: reviewBoundaryLocationId,
+                    hierarchyLocationType: hierarchyLocationType ??
+                        ((reviewBoundaryLocationType == 'city' || reviewBoundaryLocationType == 'area')
+                            ? reviewBoundaryLocationType
+                            : null),
+                    hierarchyLocationId: hierarchyLocationId ??
+                        ((reviewBoundaryLocationType == 'city' || reviewBoundaryLocationType == 'area')
+                            ? reviewBoundaryLocationId
+                            : null),
+                  );
+                  if (confirmed && mounted) onToggle(value);
+                },
               ),
             ],
           ),
