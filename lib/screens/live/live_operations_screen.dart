@@ -233,9 +233,11 @@ class _LiveOperationsScreenState
             'walkerId',
             isEqualTo: walkerId,
           )
+          // Load the most recent route points first so a long-running
+          // walk does not display only its oldest history.
           .orderBy(
             'timestamp',
-            descending: false,
+            descending: true,
           )
           .limit(300)
           .get();
@@ -257,6 +259,9 @@ class _LiveOperationsScreenState
           );
         }
       }
+
+      // The query returns newest-to-oldest; reverse it for map drawing.
+      points.reverse();
 
       if (!mounted) return;
 
