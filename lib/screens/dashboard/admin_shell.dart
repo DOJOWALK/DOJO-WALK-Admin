@@ -98,13 +98,6 @@ class _AdminShellState extends State<AdminShell> {
     switch (_selectedIndex) {
       case 0:
         return DashboardScreen(
-          onOpenLiveOperations: () {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const LiveOperationsScreen(),
-              ),
-            );
-          },
           onOpenServiceLocations: () {
             setState(() => _selectedIndex = 9);
           },
