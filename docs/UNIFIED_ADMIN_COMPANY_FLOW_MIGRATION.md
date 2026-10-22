@@ -78,3 +78,20 @@ The Admin application is the single Company Control Center for DOJO WALK. The ow
 - Company settings and approval changes persist securely; no UI-only mock is called complete.
 - Firebase rules/backend changes are reviewed and tested against the Firebase repository; deployment authentication/IAM is verified independently.
 - Exactly one consolidated migration PR is used for this work. Do not merge/delete existing branches or PRs automatically; preserve unmerged work until it has been reviewed and ported.
+
+
+## Cross-repository security blockers confirmed during implementation
+
+Checked the current `dojoplatform2026/DOJO-WALK-Firebase` `main` rules on 2026-10-22:
+
+- `admin_users` client-side create/delete are denied.
+- Admin-user updates are restricted to a small allowlist (`name`, `email`, `role`, `isActive`, `updatedAt`) and roles currently allowed by that rule are `super_admin`, `admin`, and `support`.
+- The shared `isAdmin()` rule helper currently recognizes only active `super_admin` accounts for privileged admin operations.
+- No `staff_profiles` collection rule was found in the inspected rules file.
+- `audit_logs` reads and writes are restricted to the current `isAdmin()` helper and a defined field allowlist.
+
+Consequences:
+- This Admin branch must not create admin accounts or grant roles directly from the client.
+- Staff ID issuance, identity-document verification, appointment approval, role/scope grants and revocation need a trusted callable/server implementation and matching Firestore rules/tests in the Firebase repository before these workflows can be declared complete.
+- The Staff & Admin screen is intentionally read-only until that backend contract exists. This is a security gate, not a completed onboarding flow.
+- Do not loosen rules to make the UI work. Align the intended least-privilege roles, callable authorization, audit fields and negative tests first.
