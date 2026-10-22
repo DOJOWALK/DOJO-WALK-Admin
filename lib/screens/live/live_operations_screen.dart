@@ -324,11 +324,25 @@ class _LiveOperationsScreenState
         return;
       }
       final data = booking.data() ?? <String, dynamic>{};
-      final details = data.entries
-          .where((entry) => entry.value != null)
-          .take(12)
-          .map((entry) => entry.key + ': ' + entry.value.toString())
-          .join('\n');
+
+      // Only show operational fields here. Booking documents may also contain
+      // customer contact details, pickup addresses or payment metadata.
+      const safeFields = <String, String>{
+        'status': 'Booking status',
+        'walkType': 'Walk type',
+        'bookingPlan': 'Booking plan',
+        'serviceType': 'Service type',
+        'durationMinutes': 'Duration (minutes)',
+        'paymentStatus': 'Payment status',
+        'walkerId': 'Assigned walker reference',
+        'dogId': 'Dog reference',
+        'petId': 'Pet reference',
+      };
+      final visibleDetails = safeFields.entries
+          .where((field) => data[field.key] != null)
+          .map((field) => '${field.value}: ${data[field.key]}')
+          .toList();
+      final details = visibleDetails.join('\n');
       await showDialog<void>(
         context: context,
         builder: (dialogContext) => AlertDialog(
