@@ -1,6 +1,6 @@
 # DOJO WALK Company Flow and Repository Structure
 
-Last updated: 2026-10-20  
+Last updated: 2026-10-22  
 Status: Architecture guide / target structure. This document does not certify that every listed feature is implemented or production-ready.
 
 ## 1. Company-wide operating flow
@@ -16,7 +16,7 @@ DOJO WALK Company
   │   └── Release / deployment controls
   ├── Dashboard & Operations (single command center)
   │   ├── Company KPIs and booking status
-  │   ├── Live Operations overview + Open Live Operations map
+  │   ├── Embedded Live Operations map and walker status
   │   ├── Recent bookings and operational alerts
   │   └── Walker availability and assignment
   ├── India Location Master
@@ -73,8 +73,8 @@ Each repository has its own Git branch and release pipeline. Coordinate them usi
 
 ### Admin — `DOJO-WALK-Admin`
 - `lib/app/`: app composition.
-- `lib/screens/dashboard/admin_shell.dart`: company navigation shell; Dashboard is the primary command center and Live Operations is launched from the Dashboard action instead of occupying a separate sidebar item.
-- `lib/screens/dashboard/dashboard_screen.dart`: company KPIs, booking status, live overview, recent bookings, alerts, activity and the Live Operations entry action.
+- `lib/screens/dashboard/admin_shell.dart`: company navigation shell; Dashboard is the primary command center and Live Operations is embedded within it, not a separate sidebar destination.
+- `lib/screens/dashboard/dashboard_screen.dart`: company KPIs, booking status, embedded Live Operations, recent bookings, alerts and activity.
 - `lib/core/`: shared constants, errors, routing, theme and utilities.
 - `lib/data/reference/india_locations/`: generated, versioned read-only India reference data.
 - `lib/features/service_location/models/`: location and boundary data models.
@@ -132,3 +132,28 @@ If a dropdown shows “No countries found”, treat it as a data-loading/configu
 ## 8. Current UI work boundary
 
 The Service Locations page and Add Location dialog have a 3D-inspired orange/cream visual update on the review branch. This is a UI styling change only. It does not prove the country data source works, the company flow is fully implemented, or CI has passed. Keep the “No countries found” blocker visible until diagnosed and fixed.
+
+
+### Unified Company Setup — Admin migration branch
+
+All Admin repository work for this migration must stay on the single branch
+`feature/admin-company-flow-migration-2026-10-22` and be reviewed in the
+single consolidation PR. Do not separately merge the older Company Setup or
+India Location UI PRs while this consolidation is in progress.
+
+- `lib/features/company_setup/screens/company_setup_screen.dart`: company profile, legal documents, departments, role policy, approval authority, policies and setup readiness.
+- `lib/features/company_setup/screens/staff_admin_access_screen.dart`: restricted staff/admin account review. Staff ID generation and privileged role grants require trusted backend implementation; client UI must not mint identities or grant roles.
+- `lib/features/company_setup/screens/security_audit_screen.dart`: read-only audit timeline; audit coverage must be validated against backend writes.
+- `lib/screens/dashboard/dashboard_screen.dart`: embeds Live Operations within the company dashboard.
+- `lib/screens/live/live_operations_screen.dart`: walker map, booking/route actions, and location freshness labels. Online status alone is not proof of fresh GPS.
+- `lib/features/service_location/screens/service_location_screen.dart` and `widgets/add_location_dialog.dart`: India hierarchy browsing and Add Location form.
+- `docs/UNIFIED_ADMIN_COMPANY_FLOW_MIGRATION.md`: migration sequence, invariants and acceptance gates.
+
+### Release gates
+
+The migration is not production-ready until Flutter formatting, analyzer, tests
+and Web build pass on the exact PR head; privileged staff/role changes are
+enforced by trusted Firebase backend/rules; negative scope tests prove one Area
+cannot read or modify another Area; staff verification/ID issuance and audit
+events are tested; and Hosting deployment permission is independently verified.
+A UI-only screen or an open PR is not evidence that these controls are live.
