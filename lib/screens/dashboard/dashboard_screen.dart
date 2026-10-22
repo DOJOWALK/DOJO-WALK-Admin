@@ -2,13 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../live/live_operations_screen.dart';
+
 class DashboardScreen extends StatelessWidget {
-  final VoidCallback? onOpenLiveOperations;
   final VoidCallback? onOpenServiceLocations;
 
   const DashboardScreen({
     super.key,
-    this.onOpenLiveOperations,
     this.onOpenServiceLocations,
   });
 
@@ -73,6 +73,8 @@ class DashboardScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(),
+            const SizedBox(height: 20),
+            _buildEmbeddedLiveOperations(),
             const SizedBox(height: 28),
 
             // ==================================================
@@ -214,6 +216,22 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
+  // Live Operations is embedded in the Dashboard so operators can monitor
+  // walkers without leaving the company control center.
+  Widget _buildEmbeddedLiveOperations() {
+    return _DashboardCard(
+      title: 'Live Operations',
+      icon: Icons.radar_rounded,
+      child: SizedBox(
+        height: 480,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: const LiveOperationsScreen(),
+        ),
+      ),
+    );
+  }
+
   // ============================================================
   // HEADER
   // ============================================================
@@ -332,27 +350,6 @@ class DashboardScreen extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: [
-              FilledButton.icon(
-                onPressed: onOpenLiveOperations,
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF7900),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 14,
-                  ),
-                  elevation: 3,
-                  shadowColor: const Color(0x55FF7900),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                icon: const Icon(Icons.radar_rounded),
-                label: const Text(
-                  'Open Live Operations',
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-              ),
               OutlinedButton.icon(
                 onPressed: onOpenServiceLocations,
                 style: OutlinedButton.styleFrom(
