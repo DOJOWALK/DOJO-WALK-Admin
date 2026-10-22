@@ -95,3 +95,30 @@ Consequences:
 - Staff ID issuance, identity-document verification, appointment approval, role/scope grants and revocation need a trusted callable/server implementation and matching Firestore rules/tests in the Firebase repository before these workflows can be declared complete.
 - The Staff & Admin screen is intentionally read-only until that backend contract exists. This is a security gate, not a completed onboarding flow.
 - Do not loosen rules to make the UI work. Align the intended least-privilege roles, callable authorization, audit fields and negative tests first.
+
+
+## File-by-file migration inventory
+
+| Area | File(s) | Current migration status |
+|---|---|---|
+| Company navigation | `lib/screens/dashboard/admin_shell.dart` | Company Setup, Staff & Admin Access, and Security & Audit are in the unified menu; role-aware menu filtering still needs implementation and backend policy alignment. |
+| Dashboard | `lib/screens/dashboard/dashboard_screen.dart` | Live Operations widget is embedded; run Flutter validation and verify layout on mobile/web before acceptance. |
+| Live operations | `lib/screens/live/live_operations_screen.dart`, `lib/screens/live/live_map_widget.dart` | Existing walker stream/actions retained; location freshness labels added. “My Location” recenter/permission handling and action-state review remain open. |
+| Company setup | `lib/features/company_setup/screens/company_setup_screen.dart` | Setup blueprint screen ported; persistent editable profile/documents/policies and secure approval workflow remain to be implemented. |
+| Staff/admin | `lib/features/company_setup/screens/staff_admin_access_screen.dart` | Read-only provisioned-admin view. Staff ID issuance, document verification, appointment approval and role grant are explicitly not enabled until trusted backend exists. |
+| Audit | `lib/features/company_setup/screens/security_audit_screen.dart` | Read-only event timeline. Need verify every privileged backend mutation emits a durable audit event. |
+| Location hierarchy | `lib/features/service_location/screens/service_location_screen.dart` | Reviewed India hierarchy/status-navigation work ported from the existing location UI branch; run formatter, analyzer, regression and geometry tests. |
+| Add Location | `lib/features/service_location/widgets/add_location_dialog.dart` | India master-record requirement and location form changes ported; test create/edit and legacy compatibility. |
+| Shared architecture | `docs/architecture/DOJO_WALK_COMPANY_FLOW_AND_FILE_STRUCTURE.md` | Updated to describe unified Company Setup and embedded Live Operations. |
+| Migration contract | `docs/UNIFIED_ADMIN_COMPANY_FLOW_MIGRATION.md` | Acceptance gates and single-branch policy documented. |
+| Firebase authorization | Separate repository: `dojoplatform2026/DOJO-WALK-Firebase` | Must be reviewed/updated and tested in that repository. Git branches are repository-specific; the Admin branch cannot contain Firebase repo commits. Do not claim secure staff provisioning until this dependency is verified. |
+| CI/release | `.github/workflows/admin-main-full-validation.yml`, `.github/workflows/build_web.yml` | CI and Hosting must be verified on the final PR head; prior Hosting failure was IAM/serviceusage permission related. No successful run is recorded for the current PR head yet. |
+
+## Current evidence snapshot
+
+- Single Admin work branch: `feature/admin-company-flow-migration-2026-10-22`.
+- Single consolidation PR: [PR #36](https://github.com/dojoplatform2026/DOJO-WALK-Admin/pull/36), open and Draft.
+- Latest checked PR head when this inventory was written: `68aad0170a11e6d0ce432b37ca3aefd4f2463ea6`.
+- GitHub reported no combined commit status entries and no PR workflow runs for the checked head at that time. This is **not** a test pass.
+- Production deployment and data migration have not been performed.
+- Existing unmerged PRs/branches are preserved until their work is reviewed and ported; do not delete unmerged work merely to make the branch list look clean.
