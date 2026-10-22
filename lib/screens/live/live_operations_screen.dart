@@ -97,7 +97,6 @@ class _LiveOperationsScreenState
       'currentLocationUpdatedAt',
       'locationUpdatedAt',
       'lastLocationAt',
-      'updatedAt',
     ]) {
       final value = data[key];
       if (value is Timestamp) return value.toDate();
