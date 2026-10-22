@@ -10,6 +10,8 @@ import '../coupons/coupons_screen.dart';
 import '../../features/walkers/screens/walker_management_dashboard_screen.dart';
 import '../../features/service_location/screens/service_location_screen.dart';
 import '../../features/company_setup/screens/company_setup_screen.dart';
+import '../../features/company_setup/screens/staff_admin_access_screen.dart';
+import '../../features/company_setup/screens/security_audit_screen.dart';
 
 const Color adminOrange = Color(0xFFFF7900);
 const Color adminBackground = Color(0xFFFFFAF5);
@@ -117,6 +119,12 @@ class _AdminShellState extends State<AdminShell> {
 
       case 10:
         return const CompanySetupScreen();
+
+      case 11:
+        return const StaffAdminAccessScreen();
+
+      case 12:
+        return const SecurityAuditScreen();
 
       default:
         return _buildComingSoonScreen(
