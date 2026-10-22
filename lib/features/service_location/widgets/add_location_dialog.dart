@@ -450,20 +450,50 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
         if (!snapshot.hasData) {
           return _dropdownStatus('Loading Cities…', loading: true);
         }
-        final cities = snapshot.data!
+        final allStateCities = snapshot.data!;
+        final cities = allStateCities
             .where((city) => city.districtId == _selection.districtId)
             .toList();
-        return _dropdown<String>(
-          key: ValueKey<String>('city-${_selection.districtId}'),
-          label: 'City',
-          value: retainAvailableSelection(_selection.cityId, cities.map((c) => c.id)),
-          items: cities.map((city) => DropdownMenuItem<String>(
-            value: city.id,
-            child: Text(city.name),
-          )).toList(),
-          onChanged: (value) {
-            setState(() => _selection = _selection.selectCity(value));
-          },
+        final legacyCities = allStateCities
+            .where((city) =>
+                city.stateId == _selection.stateId &&
+                city.districtId.trim().isEmpty)
+            .toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _dropdown<String>(
+              key: ValueKey<String>('city-${_selection.districtId}'),
+              label: 'City',
+              value: retainAvailableSelection(
+                _selection.cityId,
+                cities.map((city) => city.id),
+              ),
+              items: cities.map((city) => DropdownMenuItem<String>(
+                value: city.id,
+                child: Text(city.name),
+              )).toList(),
+              onChanged: (value) {
+                setState(() => _selection = _selection.selectCity(value));
+              },
+            ),
+            if (legacyCities.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  '${legacyCities.length} older City record(s) in this State '
+                  'do not have a District assigned, so they are not shown here. '
+                  'Review and migrate them explicitly; they will not be '
+                  'automatically assigned to a District.',
+                  style: TextStyle(
+                    color: Colors.orange.shade900,
+                    fontSize: 12,
+                    height: 1.35,
+                  ),
+                ),
+              ),
+          ],
         );
       },
     );
@@ -668,7 +698,7 @@ class _AddLocationDialogState extends State<AddLocationDialog> {
                 if (_level >= 2) _buildStateDropdown(),
 
                 if (_level >= 3) _buildDistrictDropdown(),
-                if (_level >= 3) _buildCityDropdown(),
+                if (_level >= 4) _buildCityDropdown(),
                 // Area is created under a selected City; only Locality needs
                 // an existing Area as its parent. Never show an Area selector
                 // while creating an Area record itself.
