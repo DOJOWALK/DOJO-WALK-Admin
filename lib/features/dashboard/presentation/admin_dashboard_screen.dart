@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
-  const AdminDashboardScreen({super.key});
+  const AdminDashboardScreen({
+    super.key,
+    required this.onOpenServiceLocation,
+    required this.onOpenLiveOperations,
+  });
+
+  final VoidCallback onOpenServiceLocation;
+  final VoidCallback onOpenLiveOperations;
 
   @override
   Widget build(BuildContext context) {
@@ -42,23 +49,25 @@ class AdminDashboardScreen extends StatelessWidget {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     childAspectRatio: compact ? 3.0 : 2.6,
-                    children: const [
+                    children: [
                       _FeatureCard(
                         title: 'Service Location',
                         subtitle: 'States, cities, areas and verified boundaries',
                         icon: Icons.map_outlined,
+                        onTap: onOpenServiceLocation,
                       ),
                       _FeatureCard(
                         title: 'Live Operations',
                         subtitle: 'Walk status and approximate walker location',
                         icon: Icons.near_me_outlined,
+                        onTap: onOpenLiveOperations,
                       ),
-                      _FeatureCard(
+                      const _FeatureCard(
                         title: 'Bookings',
                         subtitle: 'Booking state and verified payment status',
                         icon: Icons.calendar_month_outlined,
                       ),
-                      _FeatureCard(
+                      const _FeatureCard(
                         title: 'Walkers / Partners',
                         subtitle: 'Availability, assignment and operational review',
                         icon: Icons.pets_outlined,
@@ -108,18 +117,23 @@ class _FeatureCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.icon,
+    this.onTap,
   });
 
   final String title;
   final String subtitle;
   final IconData icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Row(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
           children: [
             DecoratedBox(
               decoration: BoxDecoration(
@@ -149,6 +163,7 @@ class _FeatureCard extends StatelessWidget {
               ),
             ),
           ],
+          ),
         ),
       ),
     );
