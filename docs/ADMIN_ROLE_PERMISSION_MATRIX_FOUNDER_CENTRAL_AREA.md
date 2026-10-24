@@ -56,15 +56,15 @@ Legend: **Full** = within role's reserved authority; **Policy** = define/approve
 
 | Module / action | Founder / CEO | Central Admin | Area Manager | Supervisor (future only; disabled at pilot) |
 |---|---|---|---| --- |
-| Company dashboard | Full | Operate, company operations | Scoped | Assigned task summary only; no global metrics |
+| Company dashboard | Full | Operate, company operations | Scoped | No access at pilot; role disabled |
 | Admin appointment/revocation | Central Admin and role policy | Only explicitly delegated lower-role tasks | No | No |
 | Role/permission policy | Policy | No self-elevation; only delegated changes | No | No |
-| Service Location records | Full oversight | Operate; request activation | Scoped view/request | View assigned work context only; no activation |
+| Service Location records | Full oversight | Operate; request activation | Scoped view/request | No access at pilot; role disabled |
 | New Service Area first-ON GO | Full | Prepare launch pack; operate only after valid recorded GO | Request/escalate; cannot activate alone | Deny by default until separately approved |
-| Bookings | Full oversight/escalations | Operate company-wide | Scoped operate | Only assigned booking/task details, if approved |
-| Walker/Partner records | Full oversight/escalations | Operate verification workflow | Scoped operations; escalate verification decisions | Assigned task context only; no verification/role changes |
+| Bookings | Full oversight/escalations | Operate company-wide | Scoped operate | No access at pilot; role disabled |
+| Walker/Partner records | Full oversight/escalations | Operate verification workflow | Scoped operations; escalate verification decisions | No access at pilot; role disabled |
 | Availability/attendance | Full oversight | Operate company-wide | Scoped | Deny by default until explicitly approved |
-| Live operations | Full oversight | Operate company-wide | Scoped; location freshness must be visible | Assigned tasks only; location access only if approved and necessary |
+| Live operations | Full oversight | Operate company-wide | Scoped; location freshness must be visible | No access at pilot; role disabled |
 | Pricing policy | Policy | Apply policy; request change | No change | No |
 | Coupons/discounts | Policy and limits | Operate within limits | No change | No |
 | Payment/reconciliation reports | Company-wide | Authorized operational/finance access | Scoped/minimum required only | Deny by default until explicitly approved |
@@ -73,7 +73,7 @@ Legend: **Full** = within role's reserved authority; **Policy** = define/approve
 | Reports | Company-wide | Authorized operational reports | Scoped | Deny by default until explicitly approved |
 | Audit logs | Company-wide sensitive logs | Authorized operational logs | Own/relevant scoped actions | Own assigned-task actions only, if enabled |
 | Security settings | Founder-reserved control | No Founder control | No | No |
-| Self-elevation | No; Founder identity is provisioned securely | Deny | Deny | Deny by default until explicitly approved |
+| Self-elevation | No; Founder identity is provisioned securely | Deny | Deny | No access at pilot; role disabled |
 
 ## 4. Required backend data contract (proposal)
 
