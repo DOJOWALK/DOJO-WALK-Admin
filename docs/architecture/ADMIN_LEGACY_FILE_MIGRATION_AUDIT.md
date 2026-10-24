@@ -130,3 +130,12 @@ Re-fetched the current PR and checked the Actions runs associated with exact hea
 6. Deployed Rules/Functions revision parity and real-admin runtime behavior remain unverified.
 
 **Decision:** Latest inspected Admin branch CI is green, but this does not mean Admin is complete or release-ready. Keep PR #37 draft. No merge, deployment, production data write, or branch deletion was performed.
+
+
+## Latest verified CI checkpoint — 24 Oct 2026
+
+- Re-fetched draft PR #37: branch `feature/admin-fresh-architecture-2026-10-24`, inspected head `29075423be92c93a55c317b5e6badad5595b7816`; PR remains open, draft, and unmerged.
+- Exact-head workflow results: Admin Main Full Validation / No Deploy run `40095026727` passed its completed job steps for full-project analysis, full test suite, and Flutter Web build; Admin Web Build Check / No Deploy run `40095026687` passed the same validation steps; Service Location Geometry Tests run `40095026681` passed geometry/CSV planner analysis and unit tests.
+- Boundary Review code now renders a Google Maps polygon preview for valid stored coordinates. This is not proof that the production Maps key, official boundary source, or human verification process is configured correctly.
+- Add Location performs callable save then document read-back and checks the correct inactive flag. The exact-head CI does not replace authenticated Firebase Emulator coverage for save/read-back, duplicate names, inactive-admin rejection, or authorization revocation.
+- No merge, deployment, production write, or branch deletion was performed. Keep PR #37 draft until the outstanding blockers above have evidence-backed closure.
