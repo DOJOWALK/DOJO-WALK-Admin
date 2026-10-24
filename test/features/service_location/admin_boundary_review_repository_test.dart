@@ -42,18 +42,19 @@ void main() {
       expect(item.points, ['28.600000, 77.200000']);
     });
 
-    test('ignores malformed coordinate entries and defaults missing timestamp', () {
+    test('ignores malformed and out-of-range coordinates; defaults timestamp', () {
       final item = AdminBoundaryReviewItem.fromMap('boundary-4', {
         'locationId': 'city-2',
         'locationType': 'city',
         'points': [
           {'latitude': 'not-a-number', 'longitude': 77.2},
           {'lat': 91, 'lng': 181},
+          {'lat': double.infinity, 'lng': 77.2},
           'unexpected',
         ],
       });
 
-      expect(item.points, ['91.000000, 181.000000']);
+      expect(item.points, isEmpty);
       expect(item.updatedAt, DateTime.fromMillisecondsSinceEpoch(0));
     });
   });
