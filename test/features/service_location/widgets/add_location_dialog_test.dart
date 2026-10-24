@@ -50,6 +50,49 @@ void main() {
     expect(find.text('Add Location'), findsNothing);
   });
 
+  testWidgets('keeps the dialog open and surfaces a duplicate-save error', (tester) async {
+    final source = _FakeAddLocationDataSource(
+      saveStateError: StateError('Duplicate state name for this parent.'),
+    );
+    var savedLevel = -1;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (_) => AddLocationDialog(
+                  service: source,
+                  onSaved: (level) => savedLevel = level,
+                ),
+              ),
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).first, 'Uttar Pradesh');
+    await tester.tap(find.text('Save Location'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Unable to save location'), findsOneWidget);
+    expect(
+      find.textContaining('Duplicate state name for this parent.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add Location'), findsOneWidget);
+    expect(savedLevel, -1);
+  });
+
   testWidgets('shows a clear setup error when India master is missing', (tester) async {
     final source = _FakeAddLocationDataSource(includeIndia: false);
 
@@ -84,9 +127,13 @@ void main() {
 }
 
 class _FakeAddLocationDataSource implements AddLocationDataSource {
-  _FakeAddLocationDataSource({this.includeIndia = true});
+  _FakeAddLocationDataSource({
+    this.includeIndia = true,
+    this.saveStateError,
+  });
 
   final bool includeIndia;
+  final Object? saveStateError;
   ServiceState? savedState;
 
   @override
@@ -130,6 +177,8 @@ class _FakeAddLocationDataSource implements AddLocationDataSource {
 
   @override
   Future<void> saveState(ServiceState state) async {
+    final error = saveStateError;
+    if (error != null) throw error;
     savedState = state;
   }
 
