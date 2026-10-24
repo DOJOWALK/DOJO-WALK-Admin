@@ -42,12 +42,6 @@ class _AdminAppShellState extends State<AdminAppShell> {
     ),
   ];
 
-  static const _screens = [
-    AdminDashboardScreen(),
-    AddLocationScreen(),
-    LiveOperationsScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -103,7 +97,14 @@ class _AdminAppShellState extends State<AdminAppShell> {
               Expanded(
                 child: IndexedStack(
                   index: _selectedIndex,
-                  children: _screens,
+                  children: [
+                    AdminDashboardScreen(
+                      onOpenServiceLocation: () => setState(() => _selectedIndex = 1),
+                      onOpenLiveOperations: () => setState(() => _selectedIndex = 2),
+                    ),
+                    const AddLocationScreen(),
+                    const LiveOperationsScreen(),
+                  ],
                 ),
               ),
             ],
