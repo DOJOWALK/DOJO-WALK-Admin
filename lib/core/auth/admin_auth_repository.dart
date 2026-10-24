@@ -3,6 +3,28 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import 'admin_identity.dart';
 
+/// Applies live authorization revocation to a stream for an authenticated user.
+///
+/// The input stream represents that user's live admin document. A missing or
+/// unauthorized identity emits null and triggers sign-out. Keeping this
+/// transform separate makes the revocation behavior testable without Firebase.
+class AdminIdentityRevocationGuard {
+  const AdminIdentityRevocationGuard._();
+
+  static Stream<AdminIdentity?> watch(
+    Stream<AdminIdentity?> identities, {
+    required Future<void> Function() onRevoked,
+  }) {
+    return identities.asyncMap((identity) async {
+      if (identity == null || !identity.canEnterAdmin) {
+        await onRevoked();
+        return null;
+      }
+      return identity;
+    });
+  }
+}
+
 /// Fresh auth/data-access boundary for the rebuilt Admin UI.
 ///
 /// No legacy widgets or screens are imported here. The repository checks the
@@ -23,17 +45,20 @@ class AdminAuthRepository {
     return _auth.authStateChanges().asyncExpand((user) {
       if (user == null) return Stream<AdminIdentity?>.value(null);
 
-      return _firestore
+      final documentIdentities = _firestore
           .collection('admin_users')
           .doc(user.uid)
           .snapshots()
-          .asyncMap((snapshot) async {
-        final identity = _identityFromSnapshot(user, snapshot);
-        if (identity == null && _auth.currentUser?.uid == user.uid) {
-          await _auth.signOut();
-        }
-        return identity;
-      });
+          .map((snapshot) => _identityFromSnapshot(user, snapshot));
+
+      return AdminIdentityRevocationGuard.watch(
+        documentIdentities,
+        onRevoked: () async {
+          if (_auth.currentUser?.uid == user.uid) {
+            await _auth.signOut();
+          }
+        },
+      );
     });
   }
 
