@@ -55,9 +55,9 @@ class _AdminAppShellState extends State<AdminAppShell> {
         final wide = constraints.maxWidth >= 900;
         return Scaffold(
           appBar: AppBar(
-            title: const Text(
-              'DOJO WALK Admin',
-              style: TextStyle(fontWeight: FontWeight.w800),
+            title: Text(
+              const ['Dashboard', 'Add Location', 'Live Operations'][_selectedIndex],
+              style: const TextStyle(fontWeight: FontWeight.w800),
             ),
             actions: [
               if (wide && widget.identity.displayName != null)
