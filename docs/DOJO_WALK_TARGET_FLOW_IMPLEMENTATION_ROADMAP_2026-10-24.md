@@ -246,3 +246,30 @@ CI success confirms the checked code and tests for these commits. It does NOT es
 ### Safe next action
 
 Inspect the exact-head Firebase #526 test output and the callable write path for District-aware Area/Locality indexes. Then add the authenticated Admin emulator tests above. Keep PR #37 and #34 draft/open; no merge, deployment, production backfill or authority provisioning without explicit release approval.
+
+
+## 11. Exact-head verification update — 2026-10-24
+
+### Admin review head
+
+Admin branch `feature/admin-fresh-architecture-2026-10-24`, commit `27e73a1b4ffbca2f57c5a926cc3651a9557a19b8`, completed all three checks successfully:
+
+- Admin Main Full Validation (No Deploy), run `40111350986` (#187).
+- Admin Web Build Check (No Deploy), run `40111350900` (#866).
+- Service Location Geometry Tests, run `40111350910` (#704).
+
+These checks validate the review commit's analysis/tests/build and geometry test suite. They do not prove that all Admin workflows are production-ready or deployed.
+
+### Firebase name-index regression update
+
+Firebase review head `eb2fc43b971f46dfb77a8585f808cd36ec60e285` completed Actions run `40112768985` (#527) successfully. The Functions build and Firestore Emulator Rules/Functions integration test step passed. The Firebase review branch added callable-level tests for District-linked City idempotent same-ID saves and rename-to-existing-sibling conflict preservation, alongside existing District-scoped duplicate, cross-District same-name, legacy City, and rename/index replacement tests.
+
+This is Firebase review-branch CI only; it does not establish deployed Rules/Functions parity.
+
+### Remaining gates — do not mark complete
+
+- Admin's legacy UI identity gate still requires active `super_admin`; canonical Founder/Central Admin/Area Manager roles and server-enforced Area scope are not implemented as a coordinated migration.
+- Dashboard counts and Live Operations remain pending trusted live feeds. “Possible Walker Nearby” is not verified live location evidence, and operational actions must remain disabled until backend permission/state transitions are tested.
+- Confirm callable-level Area and Locality rename/idempotency coverage and legacy index compatibility.
+- Confirm Customer saved-address schema and migrate direct booking writes to a trusted booking callable before enforcing canonical Area requirements in production Rules.
+- Keep both PRs in draft review. No merge, deployment, production migration, role provisioning, or service-area launch approval is authorized by these CI results.
