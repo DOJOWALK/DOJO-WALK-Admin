@@ -6,6 +6,7 @@ import '../../core/theme/admin_theme.dart';
 import '../dashboard/presentation/admin_dashboard_screen.dart';
 import '../live_operations/presentation/live_operations_screen.dart';
 import '../service_location/presentation/add_location_screen.dart';
+import '../service_location/presentation/boundary_review_screen.dart';
 
 class AdminAppShell extends StatefulWidget {
   const AdminAppShell({
@@ -36,6 +37,11 @@ class _AdminAppShellState extends State<AdminAppShell> {
       label: 'Add Location',
     ),
     NavigationDestination(
+      icon: Icon(Icons.fact_check_outlined),
+      selectedIcon: Icon(Icons.fact_check),
+      label: 'Boundary Review',
+    ),
+    NavigationDestination(
       icon: Icon(Icons.radar_outlined),
       selectedIcon: Icon(Icons.radar),
       label: 'Live Operations',
@@ -50,7 +56,7 @@ class _AdminAppShellState extends State<AdminAppShell> {
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              const ['Dashboard', 'Add Location', 'Live Operations'][_selectedIndex],
+              const ['Dashboard', 'Add Location', 'Boundary Review', 'Live Operations'][_selectedIndex],
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
             actions: [
@@ -103,6 +109,7 @@ class _AdminAppShellState extends State<AdminAppShell> {
                       onOpenLiveOperations: () => setState(() => _selectedIndex = 2),
                     ),
                     const AddLocationScreen(),
+                    const BoundaryReviewScreen(),
                     const LiveOperationsScreen(),
                   ],
                 ),
