@@ -62,3 +62,16 @@ Check CI for the new HEAD. If it passes, add authenticated Firebase Emulator cov
 - The current focused tests include dashboard/live-operation UI assertions, identity/revocation-guard unit tests, auth-gate retry behavior, and boundary-coordinate parsing. They are not substitutes for the still-missing authenticated Firebase Emulator tests for live admin-document revocation and the complete Add Location callable/Rules/read-back path.
 - PR #37 remains **open and draft**. No merge, deployment, production data write, or branch deletion was performed.
 - Remaining release blockers: verify live map/API configuration; run authenticated Emulator coverage for admin revocation and Add Location save/duplicate/inactive-admin/read-back; implement and test the canonical Founder/CEO → Central Admin → Area Manager scope model with server-enforced assigned-area restrictions; verify deployed Firebase revision parity and complete the required release review.
+
+
+## Latest verified CI checkpoint — PR #37 HEAD f6dae0c20ca8408ce7e7125133716cc56a56a2d0
+
+Checked the GitHub Actions runs associated with this exact PR head on 24 Oct 2026:
+
+- Admin Main Full Validation (No Deploy), run 40096969588: **SUCCESS** — dependency install, complete-project analysis, full test suite, and Flutter Web build all completed.
+- Admin Web Build Check (No Deploy), run 40096969626: **SUCCESS** — analysis, full test suite, and Flutter Web build all completed.
+- Service Location Geometry Tests, run 40096969602: **SUCCESS** — formatting/whitespace checks, targeted analysis, and geometry/CSV planner unit tests completed.
+
+The current branch source includes a Google Maps polygon preview in Boundary Review and Add Location save/read-back with explicit inactive-status confirmation. CI does not prove a valid production Maps API key, correct map rendering in the deployed browser, authenticated real Admin behavior against Firebase Emulator, or deployed Firebase revision parity.
+
+**Status unchanged:** PR #37 remains open/draft. No merge, deployment, production data write, or branch deletion. The remaining authenticated Emulator tests, Founder/CEO → Central Admin → Area Manager authorization/scope implementation, live operations data connection, and release review remain blockers.
