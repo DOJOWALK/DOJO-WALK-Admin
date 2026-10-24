@@ -3,10 +3,11 @@ import 'package:dojo_admin/features/service_location/models/location_selection_s
 
 void main() {
   group('LocationSelectionState', () {
-    test('changing country clears state, city, and area', () {
+    test('changing country clears every descendant selection', () {
       const current = LocationSelectionState(
         countryId: 'old-country',
         stateId: 'old-state',
+        districtId: 'old-district',
         cityId: 'old-city',
         areaId: 'old-area',
       );
@@ -15,27 +16,12 @@ void main() {
 
       expect(next.countryId, 'new-country');
       expect(next.stateId, isNull);
+      expect(next.districtId, isNull);
       expect(next.cityId, isNull);
       expect(next.areaId, isNull);
     });
 
-    test('changing state preserves country and clears city and area', () {
-      const current = LocationSelectionState(
-        countryId: 'country',
-        stateId: 'old-state',
-        cityId: 'city',
-        areaId: 'area',
-      );
-
-      final next = current.selectState('new-state');
-
-      expect(next.countryId, 'country');
-      expect(next.stateId, 'new-state');
-      expect(next.cityId, isNull);
-      expect(next.areaId, isNull);
-    });
-
-    test('changing state clears District, City, and Area', () {
+    test('changing state preserves country and clears District, City, Area', () {
       const current = LocationSelectionState(
         countryId: 'country',
         stateId: 'old-state',
@@ -71,10 +57,11 @@ void main() {
       expect(next.areaId, isNull);
     });
 
-    test('changing city preserves country and state and clears area', () {
+    test('changing city preserves its parent hierarchy and clears Area', () {
       const current = LocationSelectionState(
         countryId: 'country',
         stateId: 'state',
+        districtId: 'district',
         cityId: 'old-city',
         areaId: 'area',
       );
@@ -83,6 +70,7 @@ void main() {
 
       expect(next.countryId, 'country');
       expect(next.stateId, 'state');
+      expect(next.districtId, 'district');
       expect(next.cityId, 'new-city');
       expect(next.areaId, isNull);
     });
@@ -91,6 +79,7 @@ void main() {
       const current = LocationSelectionState(
         countryId: 'country',
         stateId: 'state',
+        districtId: 'district',
         cityId: 'city',
         areaId: 'old-area',
       );
@@ -99,18 +88,19 @@ void main() {
 
       expect(next.countryId, 'country');
       expect(next.stateId, 'state');
+      expect(next.districtId, 'district');
       expect(next.cityId, 'city');
       expect(next.areaId, 'new-area');
     });
 
-    test('country selection is invalidated when it is no longer available', () {
+    test('deleted selected ID is invalidated', () {
       expect(
         retainAvailableSelection('deleted-country', ['country-a', 'country-b']),
         isNull,
       );
     });
 
-    test('available selection is preserved', () {
+    test('available selected ID is preserved', () {
       expect(
         retainAvailableSelection('country-b', ['country-a', 'country-b']),
         'country-b',
@@ -121,10 +111,11 @@ void main() {
       expect(retainAvailableSelection(null, ['country-a']), isNull);
     });
 
-    test('selecting null parent still clears its descendants', () {
+    test('selecting null parent clears all descendants', () {
       const current = LocationSelectionState(
         countryId: 'country',
         stateId: 'state',
+        districtId: 'district',
         cityId: 'city',
         areaId: 'area',
       );
@@ -133,6 +124,7 @@ void main() {
 
       expect(next.countryId, 'country');
       expect(next.stateId, isNull);
+      expect(next.districtId, isNull);
       expect(next.cityId, isNull);
       expect(next.areaId, isNull);
     });
