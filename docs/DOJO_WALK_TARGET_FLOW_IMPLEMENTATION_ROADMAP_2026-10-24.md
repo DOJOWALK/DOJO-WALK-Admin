@@ -11,7 +11,9 @@ No production accounts, roles, rules, documents, bookings, walkers, or location 
 
 ## 2. Company operating hierarchy
 
-**Founder / CEO → Central Admin → Area Manager → Supervisor → Walker / Partner**
+**Founder / CEO → Central Admin → Area Manager → Walker / Partner**
+
+Supervisor is excluded from the pilot role hierarchy and is not enabled as a distinct role or Admin work queue. Reconsider it only if documented workload evidence supports a separate role and the Founder / CEO explicitly approves the proposal; backend/Rules enforcement and tests must be completed before enabling it.
 
 Customer remains a separate app and customer-facing flow.
 
@@ -20,7 +22,7 @@ Customer remains a separate app and customer-facing flow.
 - **Founder / CEO:** final company authority; approves company-wide policies, pricing/discount limits, coupon rules, payout/refund/cancellation exceptions, service-area launch approvals, and appointments/suspensions of Central Admin. Every high-risk action must record actor, target, reason, timestamp, and audit event.
 - **Central Admin:** manages day-to-day company operations, location setup, booking operations, walker verification, customer support, reconciliation, and Area Manager assignments within Founder-approved policy. Cannot exercise Founder-reserved powers or grant itself Founder authority.
 - **Area Manager:** manages only explicitly assigned Area(s) and their verified descendants. Handles local bookings, walkers, attendance/availability, complaints, and escalation. Cannot access unrelated Areas or expand its own scope.
-- **Supervisor:** operational reporting line under an Area Manager. Supervisor handles only tasks and records explicitly assigned to them within the relevant Area. This is an operational level in the company hierarchy; do not silently grant it global Admin permissions. Its exact UI permissions and whether it needs a distinct authenticated role must be decided and tested before implementation.
+- **Supervisor:** not a pilot role or reporting layer. During the pilot, operational supervision stays with the Area Manager. Do not create a distinct Supervisor identity or permission set without documented workload evidence and explicit Founder / CEO approval.
 - **Walker / Partner:** uses the Partner app; sees only their own onboarding, availability, assigned walks, and permitted walk records.
 - **Customer:** uses the Customer app; sees only their own profile, pets, addresses, bookings, payments and permitted support interactions.
 
@@ -31,15 +33,14 @@ Keep one Admin app with role-appropriate navigation; do not build separate Admin
 1. **Founder Control Center** — company-wide overview and Founder-only approvals/settings.
 2. **Central Admin dashboard** — operational overview and permitted management actions.
 3. **Area Manager dashboard** — assigned-Area-only operational view.
-4. **Supervisor work queue** — assigned tasks and Area-bounded records, subject to a separately reviewed permission contract.
-5. **Shared modules** — Dashboard, Bookings, Walkers/Partners, Service Location, Live Operations, Support/Complaints, Coupons/Payments as allowed by role.
+4. **Shared modules** — Dashboard, Bookings, Walkers/Partners, Service Location, Live Operations, Support/Complaints, Coupons/Payments as allowed by role. There is no separate Supervisor work queue at pilot launch.
 
 The UI may hide unavailable actions, but UI visibility is never the security boundary. Firestore Rules and every privileged backend callable must independently enforce role and data scope.
 
 ## 4. Required authorization contract
 
 - Default deny; explicit module + action + data-scope permissions.
-- The target company roles are Founder/CEO, Central Admin and Area Manager. Supervisor is not automatically treated as a global Admin role; settle its least-privilege role model before coding.
+- The canonical pilot Admin roles are Founder/CEO, Central Admin and Area Manager. Supervisor is excluded at pilot launch; do not code a distinct Supervisor role unless documented workload evidence and explicit Founder/CEO approval are recorded and a separate permission/security review is completed.
 - Never silently convert existing `super_admin` users into Founder or Central Admin. Keep the current legacy gate until a reviewed, tested migration is approved.
 - Role grants, revocations, Area assignments and privileged changes must be server-owned and audited. Users cannot grant themselves roles or scopes.
 - Area access is based on canonical service-location IDs and verified ancestry, not free-text `area`, `zone`, city, or PIN alone.
@@ -68,10 +69,10 @@ The UI may hide unavailable actions, but UI visibility is never the security bou
 - Migrate Customer to the callable with retry/idempotency handling before removing the old direct-write path.
 - Do not expose unresolved legacy bookings to Area Managers; reconcile ambiguous records explicitly.
 
-### Phase D — Walker and Supervisor scope
+### Phase D — Walker / Partner scope
 - Inventory existing walker location fields and assignment data.
 - Introduce reviewed, server-owned canonical Area assignments; do not infer permission from free-text location fields.
-- Define Supervisor's exact task permissions and assigned scope.
+- Keep any future Supervisor-role proposal outside pilot implementation unless documented workload evidence and explicit Founder / CEO approval authorize a separate review.
 - Dry-run backfills, report ambiguous records, manually reconcile uncertain assignments, and audit migration batches.
 
 ### Phase E — Release gates
@@ -87,7 +88,7 @@ The UI may hide unavailable actions, but UI visibility is never the security bou
 - [ ] Founder/CEO can perform Founder-reserved actions; lower roles cannot.
 - [ ] Central Admin has operational access without Founder authority.
 - [ ] Area Manager sees only assigned Areas and permitted descendants.
-- [ ] Supervisor is limited to explicitly assigned work and scope.
+- [ ] No separate Supervisor role or permission set is enabled at pilot launch without documented workload evidence and explicit Founder / CEO approval.
 - [ ] Walker/Partner and Customer data remain tenant/owner-scoped.
 - [ ] No self-grant or client-controlled role/Area assignment.
 - [ ] Booking Area is derived from trusted verified location data.
@@ -97,7 +98,7 @@ The UI may hide unavailable actions, but UI visibility is never the security bou
 
 ## 7. Current status
 
-This file records the target flow and dependency order only. It does **not** mean the role system, Supervisor permissions, trusted booking callable, Area Manager scope, production Rules, or migration are implemented. Continue with review-branch documentation and source checks while preserving the current production setup.
+This file records the target flow and dependency order only. It does **not** mean the canonical role system, trusted booking callable, Area Manager scope, production Rules, or migration are implemented. A future Supervisor role remains excluded from the pilot unless separately justified and approved. Continue with review-branch documentation and source checks while preserving the current production setup.
 
 
 ## 8. Verified source-review findings — 2026-10-24
