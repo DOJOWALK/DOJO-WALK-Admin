@@ -157,6 +157,25 @@ class AdminServiceLocationRepository {
     if (savedId != id) {
       throw StateError('Backend returned an unexpected location ID.');
     }
+
+    // The callable response confirms the transaction result; read the saved
+    // document back as a separate client-visible verification before reporting
+    // success. This also catches a rules/read-permission mismatch.
+    final saved = await _collection(type).doc(id).get();
+    if (!saved.exists) {
+      throw StateError(
+        'The save callable succeeded, but the location record could not be read back.',
+      );
+    }
+    final data = saved.data() ?? const <String, dynamic>{};
+    final statusField = type == 'country' || type == 'state'
+        ? 'isActive'
+        : 'isServiceActive';
+    if (data[statusField] != false) {
+      throw StateError(
+        'The saved record was found, but its inactive status could not be confirmed.',
+      );
+    }
     return id;
   }
 
