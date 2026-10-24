@@ -164,3 +164,31 @@ Re-fetched PR #37 from GitHub and checked the workflow runs associated with its 
 6. Verify deployed Rules/Functions revision parity and Maps runtime configuration.
 
 **Decision:** latest exact-head CI is green, but Admin remains incomplete and not release-ready. Keep PR #37 draft. No merge, deployment, production write, or branch deletion was performed.
+
+
+## Latest exact-head verification — 24 Oct 2026, 18:52 IST
+
+Reviewed the current open draft PR #37 head `97d8074d8dbae60cda4b4565a14bc77144fb6cef` (branch `feature/admin-fresh-architecture-2026-10-24`). This is newer than the previously documented checkpoint.
+
+### Exact-head CI evidence
+
+All three PR-triggered workflows completed successfully on this head:
+- Admin Main Full Validation (No Deploy), run `40097711878`: job `Analyze, test and build Admin Web` — success.
+- Admin Web Build Check (No Deploy), run `40097711870`: job `build-web` — success.
+- Service Location Geometry Tests, run `40097711863`: job `geometry-unit-tests` — success.
+
+This verifies the repository workflows for that exact head; it does **not** prove live Firebase integration, production deployment parity, or launch readiness.
+
+### Source changes rechecked
+
+- Boundary Review now imports `google_maps_flutter` and renders a polygon on a geographic map when at least three valid coordinate points are available. Invalid/out-of-range points are filtered; degenerate bounds are guarded. The UI warns that the polygon source must be verified independently. **Maps key/platform configuration and real-browser runtime behavior remain unverified.**
+- Add Location retains the hierarchy `India → State/UT → District → City → Area → Locality`. If a live catalog update removes a selected parent option, the screen clears that selection and its descendants after the current frame, preventing stale IDs from being submitted.
+- Legacy City records without `districtId` are still not selectable in the District-dependent City picker. The UI displays an explicit compatibility warning; no parent is guessed and no legacy record is mutated.
+- Save success currently reports the callable's returned ID; a server read-back of the newly created record and its inactive state is still a verification gap.
+- The fresh branch still contains legacy `lib/screens/**`, `lib/services/**`, and older feature files. No file deletion/move is authorized until a repository-wide reference/dependency inventory is complete.
+
+### Current gate
+
+PR #37 remains open, draft, and unmerged. Continue with focused tests for parent dropdown reset/stale-option handling and authenticated Emulator save/read-back/duplicate/denied cases; verify Maps runtime configuration and deployed Rules/Functions parity. Company roles and Area Manager assigned-area server enforcement are still unresolved.
+
+**No merge, deployment, production data write, or branch deletion was performed.**
