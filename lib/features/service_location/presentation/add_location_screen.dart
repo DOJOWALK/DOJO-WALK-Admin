@@ -183,6 +183,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                     type: 'state',
                     value: _stateId,
                     countryId: _countryId,
+                    enabled: _countryId != null,
                     onChanged: (value) => setState(() {
                       _stateId = value;
                       _districtId = null;
@@ -199,6 +200,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                     value: _districtId,
                     countryId: _countryId,
                     stateId: _stateId,
+                    enabled: _stateId != null,
                     onChanged: (value) => setState(() => _districtId = value),
                   ),
                   const SizedBox(height: 16),
@@ -211,6 +213,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                     countryId: _countryId,
                     stateId: _stateId,
                     districtId: _districtId,
+                    enabled: _districtId != null,
                     onChanged: (value) => setState(() {
                       _cityId = value;
                       _areaId = null;
@@ -226,6 +229,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                     countryId: _countryId,
                     stateId: _stateId,
                     cityId: _cityId,
+                    enabled: _cityId != null,
                     onChanged: (value) => setState(() => _areaId = value),
                   ),
                   const SizedBox(height: 16),
@@ -334,7 +338,17 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
     String? districtId,
     String? cityId,
     String? areaId,
+    bool enabled = true,
   }) {
+    if (!enabled) {
+      return DropdownButtonFormField<String>(
+        value: null,
+        decoration: InputDecoration(labelText: label, helperText: 'Pehle parent location select karein.'),
+        items: const [],
+        onChanged: null,
+        validator: (_) => '$label select karein.',
+      );
+    }
     final stream = _repository.watchOptions(
       type,
       countryId: countryId,
