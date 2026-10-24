@@ -183,7 +183,7 @@ class _ReviewWarning extends StatelessWidget {
           SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Yeh outline sirf polygon shape ka preview hai, map par exact jagah ka proof nahi. '
+              'Map par polygon ka geographic preview dikhaya gaya hai, lekin yeh apne aap mein boundary source ki authenticity ka proof nahi. '
               'Source/reference ko independently check kiye bina Verify na karein. Verification se City/Area active nahi hota.',
             ),
           ),
