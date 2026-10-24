@@ -77,12 +77,14 @@ class AdminServiceLocationRepository {
         break;
     }
 
-    return query.orderBy('name').snapshots().map(
-          (snapshot) => snapshot.docs
-              .map((doc) => AdminLocationOption.fromMap(doc.id, doc.data()))
-              .where((option) => option.name.trim().isNotEmpty)
-              .toList(growable: false),
-        );
+    return query.snapshots().map((snapshot) {
+      final options = snapshot.docs
+          .map((doc) => AdminLocationOption.fromMap(doc.id, doc.data()))
+          .where((option) => option.name.trim().isNotEmpty)
+          .toList();
+      options.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      return options;
+    });
   }
 
   Future<String> saveLocation({
