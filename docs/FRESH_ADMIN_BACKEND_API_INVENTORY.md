@@ -60,3 +60,29 @@ The client service also uses Firestore reads/streams and trusted unique-name sav
 2. Check current Firebase Actions/emulator tests for the callable contracts above.
 3. Add fresh typed read/write repository methods and contract tests.
 4. Wire fresh auth gate and screens only after these checks; run Flutter analyze/tests/build.
+
+
+## Callable payload audit — 24 Oct 2026
+
+Compared the fresh Dart repository against Firebase `main` source for `saveServiceLocationWithNameIndex` and its schema validator.
+
+| Type | Fresh Admin payload | Backend contract | Result |
+|---|---|---|---|
+| Country | `name, code` | `name, code` | Match |
+| State | `countryId, name` | `countryId, name` | Match |
+| District | `countryId, stateId, name` | `countryId, stateId, name` | Match |
+| City | `countryId, stateId, districtId, name` | District is optional for legacy compatibility | Safe for new records, but stricter than the backend |
+| Area | `countryId, stateId, cityId, name` | Same | Match |
+| Locality | `countryId, stateId, cityId, areaId, name, optional pincode` | Same allowed fields | Match |
+
+The callable creates new records inactive by default and protects activation/boundary fields from client writes. The client checks the returned location ID. City/Area must use the separate trusted boundary-review/activation flow; Locality has no own-polygon requirement.
+
+### Follow-up items before declaring Add Location production-ready
+
+1. **Legacy City compatibility:** fresh dropdown flow requires District for City, Area and Locality selection, but the backend supports existing Cities without `districtId`. This is not a payload vulnerability; it is a UI/legacy-data compatibility gap. Keep legacy records unmodified. Decide whether to show an explicitly labelled legacy/no-District option or migrate those records through a separately reviewed migration before production.
+2. **Parent selection state:** dropdowns clear descendants when an ancestor changes; add widget tests for every parent change and for a selected option disappearing from a live stream.
+3. **Save verification:** after callable success, refresh/re-read the created record and show its server-confirmed inactive status; the current success message is based on callable response plus generated ID and does not itself re-read the record.
+4. **Authorization contract:** `saveServiceLocationWithNameIndex` allows active roles `super_admin` and `admin`, while the fresh UI intentionally allows only active `super_admin`. Keep the stricter UI gate; verify this role split is intentional and test that server-side privileged operations remain super_admin-only.
+5. **Authenticated emulator test gap:** branch CI build/geometry success is not evidence of a real signed-in admin save, duplicate-name rejection, inactive-admin rejection, or the UI refresh path. Add/verify emulator integration tests for these paths before marking Add Location verified.
+
+No production call was made, no Firestore records were changed, and no deployment or merge was performed by this audit.
