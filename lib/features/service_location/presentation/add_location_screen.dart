@@ -201,7 +201,11 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                     countryId: _countryId,
                     stateId: _stateId,
                     enabled: _stateId != null,
-                    onChanged: (value) => setState(() => _districtId = value),
+                    onChanged: (value) => setState(() {
+                      _districtId = value;
+                      _cityId = null;
+                      _areaId = null;
+                    }),
                   ),
                   const SizedBox(height: 16),
                 ],
