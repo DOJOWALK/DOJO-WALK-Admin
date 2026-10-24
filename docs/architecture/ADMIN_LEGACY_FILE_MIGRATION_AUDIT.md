@@ -50,3 +50,19 @@ These are commit-specific GitHub Actions states; they do not prove production re
 4. Verify callable request/response and Firestore read permissions using emulator-backed tests, including save → re-read → inactive state and duplicate handling.
 5. Only remove a legacy file after a full reference scan, passing checks, and explicit confirmation that rollback/preserved functionality is not needed.
 6. Do not merge or deploy without explicit approval.
+
+
+## Latest verified checkpoint — 24 Oct 2026
+
+Reviewed PR #37 current head `6ccf4bac253cc40a15f665afbaa0ac80c111d123` after the earlier checkpoint above.
+
+- PR #37 remains open and draft; no merge or deployment was performed.
+- The three PR-triggered checks associated with this inspected head are complete and successful: Service Location Geometry Tests (`40068826948`), Admin Main Full Validation / No Deploy (`40068826832`), and Admin Web Build Check / No Deploy (`40068826773`).
+- Current navigation has Dashboard, Add Location, and Boundary Review. Live Operations is embedded within Dashboard as requested; it is not a separate navigation destination.
+- Dashboard intentionally displays placeholders instead of invented booking/walker totals. The embedded Live Operations view offers a permission-aware device/browser “My Location” action, labels “Possible Walker Nearby” as “Not checked,” and states that the live feed is not connected.
+- File structure remains **partially normalized, not complete**: fresh files are in feature-first folders, but legacy `lib/screens/**`, `lib/services/**`, and older `lib/features/walkers/**` organization remain. They are preserved intentionally because the full reference/dependency and rollback scan has not been demonstrated.
+- Production blockers remain: authenticated Firebase Emulator coverage for Admin identity revocation and Add Location save/read-back; real geographic map-based boundary review; live walker/booking feed and authorized actions; Founder/CEO approval controls; Area Manager assigned-area server enforcement; and verification that deployed Firebase revisions match reviewed source.
+
+### Migration rule
+
+Do not bulk-delete or bulk-move legacy files merely to make the tree look clean. First run a repository-wide reference/dependency scan, classify each candidate KEEP / MIGRATE / REMOVE, move one coherent feature at a time, and require formatter, analyzer, full tests, web build, and relevant emulator tests after each migration. Keep this PR draft until those gates and explicit review are complete.
