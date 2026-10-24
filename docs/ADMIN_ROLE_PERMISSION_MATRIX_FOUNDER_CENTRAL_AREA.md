@@ -21,7 +21,7 @@
 - Appoint, suspend, and revoke Central Admin access.
 - Control role/permission policy and approve changes to sensitive authority.
 - Set company-wide pricing, discount, coupon, refund, payout, and cancellation policies.
-- Hold reserved approval for first/major Service Area launch where company policy requires it.
+- Require written Founder/CEO GO before an authorized Central Admin performs the first ON of a new Service Area. Company Master D12 marks this for every new Service Area, while a separate follow-up decision gate lists the later-Area approval rule as open; reconcile that source conflict before release. A singleton first-Area gate must not be claimed to cover all Area launches.
 - Review escalations, high-risk financial exceptions, security events, and audit records.
 - Founder-only actions cannot be delegated or self-assigned by another role.
 
@@ -60,7 +60,7 @@ Legend: **Full** = within role's reserved authority; **Policy** = define/approve
 | Admin appointment/revocation | Central Admin and role policy | Only explicitly delegated lower-role tasks | No | No |
 | Role/permission policy | Policy | No self-elevation; only delegated changes | No | No |
 | Service Location records | Full oversight | Operate; request activation | Scoped view/request | View assigned work context only; no activation |
-| Reserved Area launch approval | Full | Request/review | Request | Deny by default until explicitly approved |
+| New Service Area first-ON GO | Full | Prepare launch pack; operate only after valid recorded GO | Request/escalate; cannot activate alone | Deny by default until separately approved |
 | Bookings | Full oversight/escalations | Operate company-wide | Scoped operate | Only assigned booking/task details, if approved |
 | Walker/Partner records | Full oversight/escalations | Operate verification workflow | Scoped operations; escalate verification decisions | Assigned task context only; no verification/role changes |
 | Availability/attendance | Full oversight | Operate company-wide | Scoped | Deny by default until explicitly approved |
