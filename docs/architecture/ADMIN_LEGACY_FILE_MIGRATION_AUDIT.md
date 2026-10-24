@@ -106,3 +106,27 @@ Re-fetched PR #37 and checked PR-triggered Actions against its current head, rat
 - The legacy City-without-`districtId` selection gap, role/scope enforcement, real authenticated Emulator coverage, complete dependency inventory, and deployed Firebase revision parity remain open.
 
 **Decision:** CI is green for this exact Admin branch head, but Admin is **not complete or release-ready**. Keep the PR draft; do not merge, deploy, or delete legacy files/branches on the strength of these checks alone. No production data or deployment was changed.
+
+
+## Verified checkpoint — PR #37 exact HEAD c09350c (24 Oct 2026)
+
+Re-fetched the current PR and checked the Actions runs associated with exact head `c09350c4b3eefa33b3ea01e2fe65e88a11b69d91`.
+
+- PR #37 remains **open, draft, and unmerged**.
+- Service Location Geometry Tests run `40094652622`: completed successfully.
+- Admin Main Full Validation (No Deploy) run `40094652596`: completed successfully.
+- Admin Web Build Check (No Deploy) run `40094652590`: completed successfully.
+- Current Boundary Review source now includes a Google Maps polygon preview from stored coordinates, with range/finite-value checks and a fallback when fewer than three valid points exist. This is a UI preview only; the map key/runtime configuration and official boundary source/accuracy still need verification, and the trusted backend remains authoritative.
+- Add Location repository re-reads the saved record and requires the type-specific active flag to be explicitly `false` before reporting success. This is not yet a demonstrated authenticated Firebase Emulator end-to-end test.
+- Dashboard widget test exists for embedded Live Operations, My Location, and the honest “Possible Walker Nearby: Not checked” / unconnected-feed state.
+
+### Outstanding blockers unchanged
+
+1. Authenticated Emulator coverage for Admin login/role revocation, save/read-back, duplicate-name rejection, and inactive/unauthorized access.
+2. Legacy City records without `districtId` still need a documented, tested compatibility path; do not silently mutate or infer their district.
+3. Founder/CEO → Central Admin → Area Manager role and assigned-area enforcement is not integrated end-to-end in this Admin UI/server policy.
+4. Live walker/booking feeds and authorized live-operation actions remain unconnected.
+5. Full legacy dependency inventory and safe migration/removal of old files remain incomplete.
+6. Deployed Rules/Functions revision parity and real-admin runtime behavior remain unverified.
+
+**Decision:** Latest inspected Admin branch CI is green, but this does not mean Admin is complete or release-ready. Keep PR #37 draft. No merge, deployment, production data write, or branch deletion was performed.
