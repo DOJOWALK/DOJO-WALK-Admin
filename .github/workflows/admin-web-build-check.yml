@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - step-186-main-integration-review
+      - feature/admin-fresh-architecture-2026-10-24
     paths:
       - '**.dart'
       - 'pubspec.yaml'
