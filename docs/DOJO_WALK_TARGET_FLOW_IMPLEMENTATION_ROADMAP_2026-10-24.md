@@ -146,7 +146,7 @@ Regression coverage was updated to exercise:
 
 Firebase head `57f63573ac8665baedb64b1c0bfa9be54cf2a789` completed GitHub Actions run #518 (`40103509770`) successfully. The run completed the Functions build and Firestore Emulator Rules/Functions test step successfully, and the linked Admin checks on Admin commit `13314444a8d9560f6ee5c673bf601eb00730b937` also completed successfully: full analyze/test/web build run `40103547253`, geometry tests run `40103547255`, and web build check run `40103547363`. These are review-branch CI results, not production verification.
 
-A further District/State race regression test has now been added in Firebase commit `ebcacde14f7b97cc99519cc6e223236c4aa1a59c`. It runs State deactivation concurrently with District activation and asserts exactly one transition succeeds and an active District can never remain under an inactive State. **This newest commit still needs its own CI run; do not treat the new race test as passed yet.**
+A further District/State race regression test was added in Firebase commit `ebcacde14f7b97cc99519cc6e223236c4aa1a59c`. GitHub Actions run #519 (`40103781681`) has now completed **SUCCESS** on that commit. The `Build, geometry and callable integration tests` job (`120901138556`) completed the Functions build and the Firestore Emulator Rules/Functions test step successfully. This confirms the regression test passed in the configured CI environment on that commit; it does not prove production deployment parity.
 
 Remaining release tests/reviews:
 1. Confirm the newest race-test commit passes the Firestore Emulator test suite.
