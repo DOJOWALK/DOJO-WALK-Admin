@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/admin_theme.dart';
+import '../../live_operations/presentation/live_operations_screen.dart';
 
 /// Company-operations landing page using a light SaaS + Bento Grid layout.
 ///
@@ -10,11 +11,9 @@ class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({
     super.key,
     required this.onOpenServiceLocation,
-    required this.onOpenLiveOperations,
   });
 
   final VoidCallback onOpenServiceLocation;
-  final VoidCallback onOpenLiveOperations;
 
   @override
   Widget build(BuildContext context) {
@@ -193,20 +192,6 @@ class AdminDashboardScreen extends StatelessWidget {
                       ),
                       SizedBox(
                         width: featureWidth,
-                        child: _WorkspaceCard(
-                          title: 'Live Operations',
-                          subtitle:
-                              'Review live-walk workflows and location availability.',
-                          detail:
-                              'Walker proximity is not confirmed until trusted fresh location data is available.',
-                          icon: Icons.radar_outlined,
-                          accent: const Color(0xFFEAF4FF),
-                          onTap: onOpenLiveOperations,
-                          actionLabel: 'Open operations',
-                        ),
-                      ),
-                      SizedBox(
-                        width: featureWidth,
                         child: const _WorkspaceCard(
                           title: 'Bookings',
                           subtitle:
@@ -233,6 +218,23 @@ class AdminDashboardScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Live operations',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AdminTheme.primaryText,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Walker location and live booking data will appear only after trusted feeds are connected.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: const Color(0xFF6D665F),
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                  const LiveOperationsScreen(embedded: true),
                   const SizedBox(height: 24),
                   const _GovernanceNote(),
                 ],
