@@ -4,7 +4,6 @@ import '../../core/auth/admin_auth_repository.dart';
 import '../../core/auth/admin_identity.dart';
 import '../../core/theme/admin_theme.dart';
 import '../dashboard/presentation/admin_dashboard_screen.dart';
-import '../live_operations/presentation/live_operations_screen.dart';
 import '../service_location/presentation/add_location_screen.dart';
 import '../service_location/presentation/boundary_review_screen.dart';
 
@@ -41,11 +40,6 @@ class _AdminAppShellState extends State<AdminAppShell> {
       selectedIcon: Icon(Icons.fact_check),
       label: 'Boundary Review',
     ),
-    NavigationDestination(
-      icon: Icon(Icons.radar_outlined),
-      selectedIcon: Icon(Icons.radar),
-      label: 'Live Operations',
-    ),
   ];
 
   @override
@@ -56,7 +50,7 @@ class _AdminAppShellState extends State<AdminAppShell> {
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              const ['Dashboard', 'Add Location', 'Boundary Review', 'Live Operations'][_selectedIndex],
+              const ['Dashboard', 'Add Location', 'Boundary Review'][_selectedIndex],
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
             actions: [
@@ -106,11 +100,9 @@ class _AdminAppShellState extends State<AdminAppShell> {
                   children: [
                     AdminDashboardScreen(
                       onOpenServiceLocation: () => setState(() => _selectedIndex = 1),
-                      onOpenLiveOperations: () => setState(() => _selectedIndex = 3),
                     ),
                     const AddLocationScreen(),
                     const BoundaryReviewScreen(),
-                    const LiveOperationsScreen(),
                   ],
                 ),
               ),
