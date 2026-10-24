@@ -54,22 +54,27 @@ class AdminServiceLocationRepository {
         break;
       case 'state':
         filter('countryId', countryId);
+        break;
       case 'district':
         filter('countryId', countryId);
         filter('stateId', stateId);
+        break;
       case 'city':
         filter('countryId', countryId);
         filter('stateId', stateId);
         filter('districtId', districtId);
+        break;
       case 'area':
         filter('countryId', countryId);
         filter('stateId', stateId);
         filter('cityId', cityId);
+        break;
       case 'locality':
         filter('countryId', countryId);
         filter('stateId', stateId);
         filter('cityId', cityId);
         filter('areaId', areaId);
+        break;
     }
 
     return query.orderBy('name').snapshots().map(
@@ -100,19 +105,24 @@ class AdminServiceLocationRepository {
           throw ArgumentError('Country code is required (maximum 16 characters).');
         }
         payload['code'] = cleanCode;
+        break;
       case 'state':
         payload['countryId'] = _parent(parentIds, 'countryId');
+        break;
       case 'district':
         payload['countryId'] = _parent(parentIds, 'countryId');
         payload['stateId'] = _parent(parentIds, 'stateId');
+        break;
       case 'city':
         payload['countryId'] = _parent(parentIds, 'countryId');
         payload['stateId'] = _parent(parentIds, 'stateId');
         payload['districtId'] = _parent(parentIds, 'districtId');
+        break;
       case 'area':
         payload['countryId'] = _parent(parentIds, 'countryId');
         payload['stateId'] = _parent(parentIds, 'stateId');
         payload['cityId'] = _parent(parentIds, 'cityId');
+        break;
       case 'locality':
         payload['countryId'] = _parent(parentIds, 'countryId');
         payload['stateId'] = _parent(parentIds, 'stateId');
@@ -120,6 +130,7 @@ class AdminServiceLocationRepository {
         payload['areaId'] = _parent(parentIds, 'areaId');
         final cleanPin = (pincode ?? '').trim();
         if (cleanPin.isNotEmpty) payload['pincode'] = cleanPin;
+        break;
       default:
         throw ArgumentError.value(type, 'type', 'Unsupported location type.');
     }
