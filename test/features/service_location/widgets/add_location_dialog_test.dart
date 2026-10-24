@@ -79,7 +79,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField).first, 'Uttar Pradesh');
     await tester.tap(find.text('Save Location'));
-    await tester.pumpAndSettle();
+    // The save button shows an indeterminate spinner while the error dialog
+    // is being pushed, so pump the route transition without waiting for all
+    // animations (which cannot settle while that spinner is visible).
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('Unable to save location'), findsOneWidget);
     expect(
