@@ -6,10 +6,12 @@ import 'package:dojo_admin/features/dashboard/presentation/admin_dashboard_scree
 void main() {
   testWidgets('Dashboard contains Live Operations and My Location controls',
       (tester) async {
-    await tester.view.setPhysicalSize(const Size(1440, 1200));
-    await tester.view.setDevicePixelRatio(1);
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+    tester.view.physicalSize = const Size(1440, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
 
     await tester.pumpWidget(
       MaterialApp(
