@@ -42,18 +42,19 @@
 - View only scoped performance reports and records needed for assigned work.
 - Cannot view unrelated Area data, change company-wide pricing/coupons/policies, appoint Central Admin, change roles, or approve financial exceptions beyond an explicit limit.
 
-### Supervisor — operational level, permission contract pending
-- Supervisor appears in the agreed company reporting flow: Founder / CEO → Central Admin → Area Manager → Supervisor → Walker / Partner.
-- Until the Founder/CEO approves the exact permission set, Supervisor is an operational assignment level, not an automatically privileged canonical Admin role.
-- If a distinct authenticated Supervisor role is later approved, it must be explicitly assigned to a specific Area Manager/Area and limited to assigned tasks and necessary records within that scope.
-- No company-wide dashboard, cross-Area access, role management, policy changes, pricing/coupon control, financial approval, or self-assignment of scope by default.
+### Supervisor — not part of the pilot role hierarchy
+- The approved pilot reporting hierarchy is Founder / CEO → Central Admin → Area Manager → Walker / Partner. A separate Supervisor role is **not enabled or included at pilot launch**.
+- Do not create a distinct Supervisor admin identity, permission set, or reporting layer by default. During the pilot, operational supervision remains with the Area Manager.
+- Reconsider a separate Supervisor role only if documented workload evidence supports it and the Founder / CEO explicitly approves the proposed responsibilities and permission boundaries.
+- If approved in a future decision, a Supervisor must be explicitly assigned to a specific Area and limited to approved tasks and minimum necessary records within that scope. Approval alone does not grant access; trusted backend/Rules enforcement and tests are required before enabling it.
+- Until that later approval and implementation, all Supervisor-specific permissions are denied; any delegated task must not be treated as a role grant.
 - Every task assignment, completion, escalation, and permission-sensitive action must be attributable and auditable.
 
 ## 3. Module/action matrix
 
 Legend: **Full** = within role's reserved authority; **Policy** = define/approve policy; **Operate** = perform approved day-to-day actions; **Scoped** = assigned Area only; **Request** = submit for approval; **No** = denied.
 
-| Module / action | Founder / CEO | Central Admin | Area Manager | Supervisor (if approved) |
+| Module / action | Founder / CEO | Central Admin | Area Manager | Supervisor (future only; disabled at pilot) |
 |---|---|---|---| --- |
 | Company dashboard | Full | Operate, company operations | Scoped | Assigned task summary only; no global metrics |
 | Admin appointment/revocation | Central Admin and role policy | Only explicitly delegated lower-role tasks | No | No |
