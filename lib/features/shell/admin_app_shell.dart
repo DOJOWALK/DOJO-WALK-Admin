@@ -106,7 +106,7 @@ class _AdminAppShellState extends State<AdminAppShell> {
                   children: [
                     AdminDashboardScreen(
                       onOpenServiceLocation: () => setState(() => _selectedIndex = 1),
-                      onOpenLiveOperations: () => setState(() => _selectedIndex = 2),
+                      onOpenLiveOperations: () => setState(() => _selectedIndex = 3),
                     ),
                     const AddLocationScreen(),
                     const BoundaryReviewScreen(),
