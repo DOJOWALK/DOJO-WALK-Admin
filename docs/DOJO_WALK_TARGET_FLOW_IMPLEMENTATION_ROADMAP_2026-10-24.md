@@ -46,7 +46,7 @@ The UI may hide unavailable actions, but UI visibility is never the security bou
 - Area access is based on canonical service-location IDs and verified ancestry, not free-text `area`, `zone`, city, or PIN alone.
 - Revocation must take effect in Rules and backend callables; stale UI state is not authority.
 - Founder-only actions must be denied to Central Admin and all lower levels even if they call an API directly.
-- **Service Area launch GO remains a release blocker:** Company Master D12 says written Founder/CEO GO is required before the first ON of every new Service Area, while a separate follow-up decision-gate entry lists the later-Area approval rule as open. Do not assume a singleton first-Area control covers all new Areas; reconcile the source-of-truth conflict and implement/test the agreed scope before release.
+- **Service Area launch GO remains a release blocker:** Company Master D12 says written Founder/CEO GO is required before the first ON of every new Service Area, while a separate follow-up decision-gate entry lists the later-Area approval rule as open. D12 also requires a launch pack covering verified boundaries/location data, Walker capacity, customer-support readiness, booking/payment/assignment/walk-completion end-to-end tests, and failure/refund/cancellation checks. Firebase PR #34's current gate candidate binds GO to an Area and its verified ancestry/boundaries, but the callable takes only `areaId` and a free-text reason; it does not verify a required launch-pack evidence record. Do not assume a singleton first-Area control covers all new Areas; reconcile the source-of-truth conflict, bind GO to the approved evidence package, and test the agreed scope before release.
 
 ## 5. Dependency order — prepare in this order
 
