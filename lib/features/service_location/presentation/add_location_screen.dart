@@ -342,7 +342,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
   }) {
     if (!enabled) {
       return DropdownButtonFormField<String>(
-        value: null,
+        initialValue: null,
         decoration: InputDecoration(labelText: label, helperText: 'Pehle parent location select karein.'),
         items: const [],
         onChanged: null,
