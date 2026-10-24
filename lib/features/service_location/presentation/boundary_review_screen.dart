@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../data/admin_boundary_review_repository.dart';
 
@@ -236,29 +237,13 @@ class _BoundaryCard extends StatelessWidget {
             Text('Source name: ${item.sourceName.isEmpty ? 'Missing' : item.sourceName}'),
             Text('Source reference: ${item.sourceReference.isEmpty ? 'Missing' : item.sourceReference}'),
             const SizedBox(height: 14),
-            Container(
-              height: 160,
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFFAF5),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFFD2AD)),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                height: 260,
+                width: double.infinity,
+                child: _GeographicBoundaryMap(coordinates: item.points),
               ),
-              child: item.points.length < 3
-                  ? const Center(child: Text('Polygon preview unavailable: fewer than 3 points.'))
-                  : CustomPaint(
-                      painter: _PolygonPreviewPainter(item.points),
-                      child: const Center(
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Text(
-                            'Shape preview only — not a geographic map',
-                            style: TextStyle(fontSize: 11),
-                          ),
-                        ),
-                      ),
-                    ),
             ),
             const SizedBox(height: 10),
             ExpansionTile(
@@ -309,58 +294,119 @@ class _BoundaryCard extends StatelessWidget {
   }
 }
 
-class _PolygonPreviewPainter extends CustomPainter {
-  const _PolygonPreviewPainter(this.coordinates);
+class _GeographicBoundaryMap extends StatelessWidget {
+  const _GeographicBoundaryMap({required this.coordinates});
 
   final List<String> coordinates;
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final points = <Offset>[];
+  List<LatLng> get _points {
+    final result = <LatLng>[];
     for (final coordinate in coordinates) {
       final parts = coordinate.split(',');
       if (parts.length != 2) continue;
-      final lat = double.tryParse(parts[0].trim());
-      final lng = double.tryParse(parts[1].trim());
-      if (lat == null || lng == null) continue;
-      points.add(Offset(lng, lat));
+      final latitude = double.tryParse(parts[0].trim());
+      final longitude = double.tryParse(parts[1].trim());
+      if (latitude == null ||
+          longitude == null ||
+          !latitude.isFinite ||
+          !longitude.isFinite ||
+          latitude < -90 ||
+          latitude > 90 ||
+          longitude < -180 ||
+          longitude > 180) {
+        continue;
+      }
+      result.add(LatLng(latitude, longitude));
     }
-    if (points.length < 3) return;
-
-    final minX = points.map((p) => p.dx).reduce((a, b) => a < b ? a : b);
-    final maxX = points.map((p) => p.dx).reduce((a, b) => a > b ? a : b);
-    final minY = points.map((p) => p.dy).reduce((a, b) => a < b ? a : b);
-    final maxY = points.map((p) => p.dy).reduce((a, b) => a > b ? a : b);
-    final spanX = (maxX - minX).abs() < 0.000001 ? 0.000001 : (maxX - minX);
-    final spanY = (maxY - minY).abs() < 0.000001 ? 0.000001 : (maxY - minY);
-    const inset = 18.0;
-    final scaleX = (size.width - inset * 2) / spanX;
-    final scaleY = (size.height - inset * 2 - 20) / spanY;
-    final scale = scaleX < scaleY ? scaleX : scaleY;
-    final polygon = points.map((point) => Offset(
-      inset + (point.dx - minX) * scale,
-      inset + (maxY - point.dy) * scale,
-    )).toList();
-
-    final path = Path()..moveTo(polygon.first.dx, polygon.first.dy);
-    for (final point in polygon.skip(1)) {
-      path.lineTo(point.dx, point.dy);
-    }
-    path.close();
-    final fill = Paint()
-      ..color = const Color(0x33FF7900)
-      ..style = PaintingStyle.fill;
-    final stroke = Paint()
-      ..color = const Color(0xFFFF7900)
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-    canvas.drawPath(path, fill);
-    canvas.drawPath(path, stroke);
+    return result;
   }
 
   @override
-  bool shouldRepaint(covariant _PolygonPreviewPainter oldDelegate) =>
-      oldDelegate.coordinates != coordinates;
+  Widget build(BuildContext context) {
+    final points = _points;
+    if (points.length < 3) {
+      return Container(
+        color: const Color(0xFFFFFAF5),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.all(16),
+        child: const Text(
+          'Geographic map unavailable: at least three valid polygon points are required.',
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
+    final minLatitude = points
+        .map((point) => point.latitude)
+        .reduce((a, b) => a < b ? a : b);
+    final maxLatitude = points
+        .map((point) => point.latitude)
+        .reduce((a, b) => a > b ? a : b);
+    final minLongitude = points
+        .map((point) => point.longitude)
+        .reduce((a, b) => a < b ? a : b);
+    final maxLongitude = points
+        .map((point) => point.longitude)
+        .reduce((a, b) => a > b ? a : b);
+
+    return Stack(
+      children: [
+        GoogleMap(
+          initialCameraPosition: CameraPosition(target: points.first, zoom: 12),
+          polygons: {
+            Polygon(
+              polygonId: const PolygonId('review-boundary'),
+              points: points,
+              fillColor: const Color(0x33FF7900),
+              strokeColor: const Color(0xFFFF7900),
+              strokeWidth: 3,
+              consumeTapEvents: false,
+            ),
+          },
+          mapType: MapType.normal,
+          compassEnabled: true,
+          zoomControlsEnabled: true,
+          mapToolbarEnabled: false,
+          myLocationButtonEnabled: false,
+          onMapCreated: (controller) {
+            // Avoid invalid zero-width/height bounds for malformed or
+            // degenerate polygons. The trusted backend remains authoritative.
+            if (maxLatitude - minLatitude < 0.000001 ||
+                maxLongitude - minLongitude < 0.000001) {
+              return;
+            }
+            controller.animateCamera(
+              CameraUpdate.newLatLngBounds(
+                LatLngBounds(
+                  southwest: LatLng(minLatitude, minLongitude),
+                  northeast: LatLng(maxLatitude, maxLongitude),
+                ),
+                36,
+              ),
+            );
+          },
+        ),
+        Positioned(
+          left: 10,
+          top: 10,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.94),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFFFD2AD)),
+            ),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              child: Text(
+                'Geographic polygon • verify source independently',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _MessageCard extends StatelessWidget {
