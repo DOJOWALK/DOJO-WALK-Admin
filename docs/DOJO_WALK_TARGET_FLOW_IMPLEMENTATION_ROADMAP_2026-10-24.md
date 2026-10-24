@@ -144,13 +144,15 @@ Regression coverage was updated to exercise:
 - an active Locality blocks deactivation even when its Area is inactive;
 - deactivation succeeds after these descendants are inactive.
 
-The new Firebase head is `57f63573ac8665baedb64b1c0bfa9be54cf2a789`. GitHub Actions run #518 (`40103509770`) was still in progress at the time of this note. Do not call this fix tested until that exact-head run completes successfully and the relevant emulator tests are confirmed in its logs.
+Firebase head `57f63573ac8665baedb64b1c0bfa9be54cf2a789` completed GitHub Actions run #518 (`40103509770`) successfully. The run completed the Functions build and Firestore Emulator Rules/Functions test step successfully, and the linked Admin checks on Admin commit `13314444a8d9560f6ee5c673bf601eb00730b937` also completed successfully: full analyze/test/web build run `40103547253`, geometry tests run `40103547255`, and web build check run `40103547363`. These are review-branch CI results, not production verification.
+
+A further District/State race regression test has now been added in Firebase commit `ebcacde14f7b97cc99519cc6e223236c4aa1a59c`. It runs State deactivation concurrently with District activation and asserts exactly one transition succeeds and an active District can never remain under an inactive State. **This newest commit still needs its own CI run; do not treat the new race test as passed yet.**
 
 Remaining release tests/reviews:
-1. Confirm State deactivation rejects an active District even with no active Cities/Areas, plus active legacy Cities directly under State.
-2. Confirm the new District → City → Area → Locality regression tests pass on the exact head.
-3. Add/verify a District ancestor deactivation/descendant activation race test; existing general Country/State and Area/Locality race tests do not by themselves prove this specific District race.
-4. Confirm new District-linked City and legacy City-without-District saves preserve canonical name-index uniqueness and ancestry checks.
+1. Confirm the newest race-test commit passes the Firestore Emulator test suite.
+2. Confirm State deactivation rejects active Districts even with no active Cities/Areas, and rejects active legacy Cities directly under State.
+3. Confirm District → City → Area → Locality descendant regression tests pass on the exact latest head.
+4. Confirm District-linked City and legacy City-without-District saves preserve canonical name-index uniqueness and ancestry checks.
 
 ### Import and hierarchy release gates
 
