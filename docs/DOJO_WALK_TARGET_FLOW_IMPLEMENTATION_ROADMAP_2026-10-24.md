@@ -132,18 +132,25 @@ Reviewed the Admin review branch and Firebase review branch `security/first-area
 - Admin's CSV planner explicitly builds State → District → City → Area nodes in parent-first order. Import is capped and uses the trusted location-save service; it does not activate locations or create boundaries.
 - The inspected Firebase review branch's `location_name_index.ts` allowlists `district`, and its `saveServiceLocationWithNameIndex` callable includes District and supports both legacy two-parent and District-linked three-parent City index tuples. Therefore, saying “District is entirely absent from the current Firebase review branch” would be inaccurate. Production deployment parity is still unverified.
 
-### High-priority status-callable guard gap to resolve before release
+### Status-callable descendant guard review — follow-up in progress
 
-In the inspected Firebase review-branch `functions/src/index.ts`, `setServiceLocationStatus` has District support, but the state deactivation path shown in the source checks active Areas and does not query active `service_districts` children. Its generic child configuration for State checks Cities rather than Districts. This appears to allow a State deactivation attempt to miss an active District when there are no active City/Area descendants. The District deactivation path also queries `service_areas.districtId`, while the reviewed Area allowlist/model does not make `districtId` an Area field; that query alone cannot be relied on to find District descendants. Treat this as a **source-level blocker requiring a regression test and fix in the Firebase review branch**, not as proof that production data was affected.
+The initial source finding has been rechecked against the current Firebase PR #34 head. The State deactivation guard is now present in the review branch: it checks active `service_districts` by `stateId` and also retains the active direct-City/Area checks. This is review-branch source evidence only; it is not proof of deployed behavior.
 
-Required tests in Firebase emulator/callable suite:
+A separate District descendant gap remained: the previous guard queried `service_areas.districtId`, but the authoritative Area schema does not persist `districtId`. A review-branch-only fix has now been committed to resolve District → City → Area → Locality through canonical parent links. It scans District-linked Cities, then Areas by `cityId`, then active Localities by `areaId`. The scan is deliberately bounded and fails closed for unusually large descendant sets that require manual review.
 
-1. State deactivation is rejected when an active District child exists, even when there are no active Cities/Areas.
-2. State deactivation is rejected for active legacy Cities directly under State.
-3. District deactivation is rejected when an active District-linked City exists.
-4. District deactivation is rejected when any active descendant Area/Locality exists, including valid legacy records; do not depend on a field that the Area schema does not persist.
-5. Parent activation/deactivation races remain serialized by transaction guard writes.
-6. New District-linked City and legacy City-without-District saves both preserve canonical name-index uniqueness and ancestry checks.
+Regression coverage was updated to exercise:
+- active District-linked City blocks District deactivation;
+- an active Area blocks deactivation even when its parent City is inactive and the Area has no unsupported `districtId` field;
+- an active Locality blocks deactivation even when its Area is inactive;
+- deactivation succeeds after these descendants are inactive.
+
+The new Firebase head is `57f63573ac8665baedb64b1c0bfa9be54cf2a789`. GitHub Actions run #518 (`40103509770`) was still in progress at the time of this note. Do not call this fix tested until that exact-head run completes successfully and the relevant emulator tests are confirmed in its logs.
+
+Remaining release tests/reviews:
+1. Confirm State deactivation rejects an active District even with no active Cities/Areas, plus active legacy Cities directly under State.
+2. Confirm the new District → City → Area → Locality regression tests pass on the exact head.
+3. Add/verify a District ancestor deactivation/descendant activation race test; existing general Country/State and Area/Locality race tests do not by themselves prove this specific District race.
+4. Confirm new District-linked City and legacy City-without-District saves preserve canonical name-index uniqueness and ancestry checks.
 
 ### Import and hierarchy release gates
 
