@@ -15,7 +15,7 @@ void main() {
       expect(item.locationId, 'city-1');
       expect(item.locationType, 'city');
       expect(item.points, ['28.613900, 77.209000']);
-      expect(item.updatedAt, DateTime.utc(2026, 10, 24));
+      expect(item.updatedAt.toUtc(), DateTime.utc(2026, 10, 24));
     });
 
     test('parses latitude/longitude maps', () {
