@@ -151,7 +151,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 DropdownButtonFormField<String>(
-                  value: _type,
+                  initialValue: _type,
                   decoration: const InputDecoration(labelText: 'What do you want to add?'),
                   items: _types.entries
                       .map((entry) => DropdownMenuItem(
@@ -381,7 +381,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
             ? value
             : null;
         return DropdownButtonFormField<String>(
-          value: validValue,
+          initialValue: validValue,
           decoration: InputDecoration(labelText: label),
           items: options
               .map((option) => DropdownMenuItem(
