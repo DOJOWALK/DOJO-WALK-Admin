@@ -256,6 +256,21 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
+                if (_needsCity && _districtId != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF7EC),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFFFD2AD)),
+                    ),
+                    child: const Text(
+                      'Compatibility note: older City records without a District mapping may not appear here. Do not assign a District by guess; review and migrate those records through the approved data process first.',
+                      style: TextStyle(height: 1.4),
+                    ),
+                  ),
+                ],
                 if (_needsCity) ...[
                   _locationDropdown(
                     label: 'City',
