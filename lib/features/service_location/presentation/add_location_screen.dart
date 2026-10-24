@@ -16,7 +16,6 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Service Location')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(24),
