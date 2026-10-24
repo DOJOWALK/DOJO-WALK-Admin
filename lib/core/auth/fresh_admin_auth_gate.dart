@@ -6,7 +6,11 @@ import 'admin_login_screen.dart';
 import '../../features/shell/admin_app_shell.dart';
 
 class FreshAdminAuthGate extends StatefulWidget {
-  const FreshAdminAuthGate({super.key});
+  const FreshAdminAuthGate({super.key, this.authRepository});
+
+  /// Optional seam for deterministic widget tests. Production uses the default
+  /// Firebase-backed repository when no repository is supplied.
+  final AdminAuthRepository? authRepository;
 
   @override
   State<FreshAdminAuthGate> createState() => _FreshAdminAuthGateState();
@@ -19,7 +23,7 @@ class _FreshAdminAuthGateState extends State<FreshAdminAuthGate> {
   @override
   void initState() {
     super.initState();
-    _authRepository = AdminAuthRepository();
+    _authRepository = widget.authRepository ?? AdminAuthRepository();
     _identityStream = _authRepository.watchAdminIdentity();
   }
 
