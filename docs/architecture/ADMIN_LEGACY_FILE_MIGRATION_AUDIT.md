@@ -139,3 +139,28 @@ Re-fetched the current PR and checked the Actions runs associated with exact hea
 - Boundary Review code now renders a Google Maps polygon preview for valid stored coordinates. This is not proof that the production Maps key, official boundary source, or human verification process is configured correctly.
 - Add Location performs callable save then document read-back and checks the correct inactive flag. The exact-head CI does not replace authenticated Firebase Emulator coverage for save/read-back, duplicate names, inactive-admin rejection, or authorization revocation.
 - No merge, deployment, production write, or branch deletion was performed. Keep PR #37 draft until the outstanding blockers above have evidence-backed closure.
+
+
+## Exact-head verification — 24 Oct 2026, 18:38 IST
+
+Re-fetched PR #37 from GitHub and checked the workflow runs associated with its exact current head.
+
+- Current head: `522c895489ab883bbf16ff4b1e3decd61ad9c3e6`.
+- PR #37 remains open, draft, and unmerged.
+- Admin Main Full Validation run `40095995169`: passed complete Admin analysis, full test suite, and Flutter Web build.
+- Admin Web Build Check run `40095995157`: passed complete Admin analysis, full test suite, and Flutter Web build.
+- Service Location Geometry Tests run `40095995168`: passed geometry/CSV planner analysis and unit tests.
+- The Add Location repository now checks the callable result, reads the created document back, and verifies its location-type-specific active flag is explicitly false before reporting success.
+- Boundary Review now renders a Google Maps polygon preview from stored coordinates and rejects malformed/out-of-range points from the preview. A rendered polygon is not official-source verification; Maps key/runtime configuration, source accuracy, containment and human review still need evidence.
+- The current automated runs do not establish authenticated Firebase Emulator end-to-end coverage for role revocation, callable save/read-back, duplicate-name rejection, or inactive/unauthorized access.
+
+### Remaining gates — unchanged
+
+1. Add authenticated Emulator integration tests for Admin identity and Service Location save/read-back/duplicate/denied paths.
+2. Decide and test a safe explicit compatibility path for legacy City records with no `districtId`; never infer or silently mutate their parent.
+3. Implement and verify the company role model Founder/CEO → Central Admin → Area Manager, including assigned-area server enforcement; the current `super_admin` UI gate is not a substitute.
+4. Connect live walker/booking data and only authorized live-operation actions.
+5. Complete the legacy dependency/reference inventory before file moves or deletions.
+6. Verify deployed Rules/Functions revision parity and Maps runtime configuration.
+
+**Decision:** latest exact-head CI is green, but Admin remains incomplete and not release-ready. Keep PR #37 draft. No merge, deployment, production write, or branch deletion was performed.
