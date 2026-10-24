@@ -148,6 +148,8 @@ Firebase head `57f63573ac8665baedb64b1c0bfa9be54cf2a789` completed GitHub Action
 
 A further District/State race regression test was added in Firebase commit `ebcacde14f7b97cc99519cc6e223236c4aa1a59c`. GitHub Actions run #519 (`40103781681`) has now completed **SUCCESS** on that commit. The `Build, geometry and callable integration tests` job (`120901138556`) completed the Functions build and the Firestore Emulator Rules/Functions test step successfully. This confirms the regression test passed in the configured CI environment on that commit; it does not prove production deployment parity.
 
+The next Firebase run #520 (`40104453597`) built Functions successfully but **failed the emulator integration test step**: an existing District-descendant test expected a rejection while the District had been left inactive by the preceding legacy-State test. The two newly added State guards themselves passed in that run, as did the State/District concurrency test; the failure was test sequencing/state setup, not a production deployment result. The test now explicitly reactivates the District before exercising its active-child guard in Firebase commit `779346119a9f8de2a0d4288e48b5a8e58ef4a804`. CI for that fix is pending and must pass before closing this gate.
+
 Remaining release tests/reviews:
 1. Confirm State deactivation rejects active Districts even with no active Cities/Areas, and rejects active legacy Cities directly under State.
 2. Confirm District → City → Area → Locality descendant regression tests pass on the exact latest head.
