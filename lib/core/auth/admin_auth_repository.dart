@@ -20,7 +20,11 @@ class AdminAuthRepository {
   Stream<AdminIdentity?> watchAdminIdentity() {
     return _auth.authStateChanges().asyncMap((user) async {
       if (user == null) return null;
-      return _loadAuthorizedIdentity(user);
+      final identity = await _loadAuthorizedIdentity(user);
+      if (identity == null) {
+        await _auth.signOut();
+      }
+      return identity;
     });
   }
 
