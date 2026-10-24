@@ -18,13 +18,22 @@ class AdminAuthRepository {
   final FirebaseFirestore _firestore;
 
   Stream<AdminIdentity?> watchAdminIdentity() {
-    return _auth.authStateChanges().asyncMap((user) async {
-      if (user == null) return null;
-      final identity = await _loadAuthorizedIdentity(user);
-      if (identity == null) {
-        await _auth.signOut();
-      }
-      return identity;
+    // Keep the authorization document live. Auth-state changes alone do not
+    // notify the UI when an admin is deactivated or their role is changed.
+    return _auth.authStateChanges().asyncExpand((user) {
+      if (user == null) return Stream<AdminIdentity?>.value(null);
+
+      return _firestore
+          .collection('admin_users')
+          .doc(user.uid)
+          .snapshots()
+          .asyncMap((snapshot) async {
+        final identity = _identityFromSnapshot(user, snapshot);
+        if (identity == null && _auth.currentUser?.uid == user.uid) {
+          await _auth.signOut();
+        }
+        return identity;
+      });
     });
   }
 
@@ -74,7 +83,13 @@ class AdminAuthRepository {
         .collection('admin_users')
         .doc(user.uid)
         .get();
+    return _identityFromSnapshot(user, snapshot);
+  }
 
+  AdminIdentity? _identityFromSnapshot(
+    User user,
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+  ) {
     final data = snapshot.data();
     if (!snapshot.exists || data == null) return null;
 
