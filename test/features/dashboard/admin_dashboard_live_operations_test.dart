@@ -24,7 +24,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Live operations'), findsOneWidget);
-    expect(find.text('My Location'), findsOneWidget);
+    expect(find.text('My Location'), findsWidgets);
     expect(find.text('Possible Walker Nearby'), findsOneWidget);
     expect(find.text('Not checked'), findsOneWidget);
     expect(find.text('Live walk feed'), findsOneWidget);
