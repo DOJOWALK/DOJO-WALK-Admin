@@ -142,3 +142,10 @@ docs/
 - These are GitHub deployment-command results and source checks, **not** a live post-deploy verification of callable behavior. No signed-in real-admin save/review/activation test or unauthorized/inactive-admin live test has been evidenced yet. Do not mark live integration or production readiness complete on this basis.
 - Current Admin feature-branch CI at head `65c96a82cd6cae848c6634b7c90d7eb08ab8e08e`: Service Location Geometry Tests run `40050647845`, Admin Web Build Check (No Deploy) run `40050647854`, and Admin Main Full Validation (No Deploy) run `40050647853` all completed successfully.
 - Safety remains unchanged: this is a documentation-only update on the fresh feature branch; no deployment, merge, production data write, or change to Admin `main` was made.
+
+
+## Company-aligned file structure decision — 24 October 2026
+
+The canonical target is now documented in `docs/architecture/COMPANY_ALIGNED_ADMIN_FILE_STRUCTURE.md`. Use that document for new folders, file moves, role/scope boundaries and migration acceptance. It reflects the approved pilot hierarchy `Founder / CEO → Central Admin → Area Manager → Walker / Partner`; Supervisor is excluded unless separately approved. Keep role hierarchy separate from service geography `India → State/UT → District → City → Area → Locality`.
+
+Repository review found fresh feature-first folders coexisting with legacy `lib/screens`, `lib/services`, and `lib/data`. These are intentionally preserved while imports and dependencies are inventoried; the Admin file structure is therefore **not yet fully normalized**. Do not delete or bulk-move legacy files without dependency evidence and tests. New UI belongs in feature-specific `presentation` folders; Firestore/callable access belongs behind repositories/data adapters; role and geographic scope must be checked server-side as well as reflected in UI navigation.
