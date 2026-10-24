@@ -78,16 +78,14 @@ class AdminBoundaryReviewItem {
     if (rawPoints is Iterable) {
       for (final point in rawPoints) {
         if (point is GeoPoint) {
-          points.add(
-            '${point.latitude.toStringAsFixed(6)}, ${point.longitude.toStringAsFixed(6)}',
-          );
+          points.add(_formatCoordinate(point.latitude, point.longitude));
         } else if (point is Map) {
-          final lat = point['latitude'];
-          final lng = point['longitude'];
+          // Match the trusted backend parser: accept both {latitude, longitude}
+          // (Firestore GeoPoint-like maps) and legacy {lat, lng} maps.
+          final lat = point['latitude'] ?? point['lat'];
+          final lng = point['longitude'] ?? point['lng'];
           if (lat is num && lng is num) {
-            points.add(
-              '${lat.toDouble().toStringAsFixed(6)}, ${lng.toDouble().toStringAsFixed(6)}',
-            );
+            points.add(_formatCoordinate(lat.toDouble(), lng.toDouble()));
           }
         }
       }
@@ -101,7 +99,12 @@ class AdminBoundaryReviewItem {
       sourceName: (data['sourceName'] ?? '').toString(),
       sourceReference: (data['sourceReference'] ?? '').toString(),
       points: List.unmodifiable(points),
-      updatedAt: timestamp is Timestamp ? timestamp.toDate() : DateTime.fromMillisecondsSinceEpoch(0),
+      updatedAt: timestamp is Timestamp
+          ? timestamp.toDate()
+          : DateTime.fromMillisecondsSinceEpoch(0),
     );
   }
+
+  static String _formatCoordinate(double latitude, double longitude) =>
+      '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}';
 }
