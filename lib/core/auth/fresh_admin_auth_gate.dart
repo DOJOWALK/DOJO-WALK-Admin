@@ -14,7 +14,7 @@ class FreshAdminAuthGate extends StatefulWidget {
 
 class _FreshAdminAuthGateState extends State<FreshAdminAuthGate> {
   late final AdminAuthRepository _authRepository;
-  late final Stream<AdminIdentity?> _identityStream;
+  late Stream<AdminIdentity?> _identityStream;
 
   @override
   void initState() {
