@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/auth/admin_auth_repository.dart';
 import '../../core/auth/admin_identity.dart';
 import 'admin_login_screen.dart';
-import '../shell/admin_app_shell.dart';
+import '../../features/shell/admin_app_shell.dart';
 
 class FreshAdminAuthGate extends StatefulWidget {
   const FreshAdminAuthGate({super.key});
