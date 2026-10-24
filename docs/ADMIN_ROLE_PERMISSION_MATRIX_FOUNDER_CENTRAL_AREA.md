@@ -42,29 +42,36 @@
 - View only scoped performance reports and records needed for assigned work.
 - Cannot view unrelated Area data, change company-wide pricing/coupons/policies, appoint Central Admin, change roles, or approve financial exceptions beyond an explicit limit.
 
+### Supervisor — operational level, permission contract pending
+- Supervisor appears in the agreed company reporting flow: Founder / CEO → Central Admin → Area Manager → Supervisor → Walker / Partner.
+- Until the Founder/CEO approves the exact permission set, Supervisor is an operational assignment level, not an automatically privileged canonical Admin role.
+- If a distinct authenticated Supervisor role is later approved, it must be explicitly assigned to a specific Area Manager/Area and limited to assigned tasks and necessary records within that scope.
+- No company-wide dashboard, cross-Area access, role management, policy changes, pricing/coupon control, financial approval, or self-assignment of scope by default.
+- Every task assignment, completion, escalation, and permission-sensitive action must be attributable and auditable.
+
 ## 3. Module/action matrix
 
 Legend: **Full** = within role's reserved authority; **Policy** = define/approve policy; **Operate** = perform approved day-to-day actions; **Scoped** = assigned Area only; **Request** = submit for approval; **No** = denied.
 
-| Module / action | Founder / CEO | Central Admin | Area Manager |
+| Module / action | Founder / CEO | Central Admin | Area Manager | Supervisor (if approved) |
 |---|---|---|---|
-| Company dashboard | Full | Operate, company operations | Scoped |
-| Admin appointment/revocation | Central Admin and role policy | Only explicitly delegated lower-role tasks | No |
-| Role/permission policy | Policy | No self-elevation; only delegated changes | No |
-| Service Location records | Full oversight | Operate; request activation | Scoped view/request |
+| Company dashboard | Full | Operate, company operations | Scoped | Assigned task summary only; no global metrics |
+| Admin appointment/revocation | Central Admin and role policy | Only explicitly delegated lower-role tasks | No | No |
+| Role/permission policy | Policy | No self-elevation; only delegated changes | No | No |
+| Service Location records | Full oversight | Operate; request activation | Scoped view/request | View assigned work context only; no activation |
 | Reserved Area launch approval | Full | Request/review | Request |
-| Bookings | Full oversight/escalations | Operate company-wide | Scoped operate |
-| Walker/Partner records | Full oversight/escalations | Operate verification workflow | Scoped operations; escalate verification decisions |
+| Bookings | Full oversight/escalations | Operate company-wide | Scoped operate | Only assigned booking/task details, if approved |
+| Walker/Partner records | Full oversight/escalations | Operate verification workflow | Scoped operations; escalate verification decisions | Assigned task context only; no verification/role changes |
 | Availability/attendance | Full oversight | Operate company-wide | Scoped |
-| Live operations | Full oversight | Operate company-wide | Scoped; location freshness must be visible |
-| Pricing policy | Policy | Apply policy; request change | No change |
-| Coupons/discounts | Policy and limits | Operate within limits | No change |
+| Live operations | Full oversight | Operate company-wide | Scoped; location freshness must be visible | Assigned tasks only; location access only if approved and necessary |
+| Pricing policy | Policy | Apply policy; request change | No change | No |
+| Coupons/discounts | Policy and limits | Operate within limits | No change | No |
 | Payment/reconciliation reports | Company-wide | Authorized operational/finance access | Scoped/minimum required only |
-| Refunds/payouts | Reserved/high-risk approval per policy | Within explicit limits; otherwise request | Request/review only unless explicitly limited permission granted |
+| Refunds/payouts | Reserved/high-risk approval per policy | Within explicit limits; otherwise request | Request/review only unless explicitly limited permission granted | No approval; escalate only |
 | Customer support | Escalations | Operate company-wide | Scoped |
 | Reports | Company-wide | Authorized operational reports | Scoped |
-| Audit logs | Company-wide sensitive logs | Authorized operational logs | Own/relevant scoped actions |
-| Security settings | Founder-reserved control | No Founder control | No |
+| Audit logs | Company-wide sensitive logs | Authorized operational logs | Own/relevant scoped actions | Own assigned-task actions only, if enabled |
+| Security settings | Founder-reserved control | No Founder control | No | No |
 | Self-elevation | No; Founder identity is provisioned securely | Deny | Deny |
 
 ## 4. Required backend data contract (proposal)
