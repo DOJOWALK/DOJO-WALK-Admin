@@ -51,3 +51,14 @@ Do not add new role screens, assume Area Manager access, or loosen the super_adm
 ## Safe next action
 
 Check CI for the new HEAD. If it passes, add authenticated Firebase Emulator coverage for actual document-change revocation and the Add Location save/read-back path. Keep PR #37 draft; do not merge or deploy until these gates and company-alignment review are complete.
+
+
+## Fresh verification checkpoint — 24 Oct 2026, HEAD e4a9cc70942ef15c21a2381b6bc4acaba325c0d3
+
+- Admin Main Full Validation (No Deploy), run 40095608794: **SUCCESS**. The job completed dependency install, full-project analysis, complete test suite, and Flutter Web build.
+- Admin Web Build Check (No Deploy), run 40095608810: **SUCCESS**. The job completed analysis, full test suite, and Web build.
+- Service Location Geometry Tests, run 40095608860: **SUCCESS**.
+- Current source now includes a geographic polygon map widget in Boundary Review and a save → Firestore read-back → inactive-status confirmation in the Add Location repository. These are source/build/test evidence only; they do not establish that the production Google Maps key/configuration works or that a real authenticated Firebase Emulator scenario has passed.
+- The current focused tests include dashboard/live-operation UI assertions, identity/revocation-guard unit tests, auth-gate retry behavior, and boundary-coordinate parsing. They are not substitutes for the still-missing authenticated Firebase Emulator tests for live admin-document revocation and the complete Add Location callable/Rules/read-back path.
+- PR #37 remains **open and draft**. No merge, deployment, production data write, or branch deletion was performed.
+- Remaining release blockers: verify live map/API configuration; run authenticated Emulator coverage for admin revocation and Add Location save/duplicate/inactive-admin/read-back; implement and test the canonical Founder/CEO → Central Admin → Area Manager scope model with server-enforced assigned-area restrictions; verify deployed Firebase revision parity and complete the required release review.
