@@ -131,18 +131,65 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: ListView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.symmetric(
+          horizontal: MediaQuery.sizeOf(context).width < 760 ? 16 : 28,
+          vertical: 24,
+        ),
         children: [
-          Text(
-            'Add Service Location',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFF0E2), Color(0xFFFFFAF5)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFFFD2AD)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.add_location_alt_outlined,
+                    color: Color(0xFFFF7900),
+                    size: 26,
+                  ),
                 ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Location records trusted Firebase callable ke through save hote hain. '
-            'Parent hierarchy server par verify hoti hai; client protected collections mein direct write nahi karta.',
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Add Service Location',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF252525),
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'India → State / UT → District → City → Area → Locality',
+                        style: TextStyle(fontWeight: FontWeight.w700, height: 1.4),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Location records trusted Firebase callable ke through save hote hain. '
+                        'Parent hierarchy server par verify hoti hai; client protected collections mein direct write nahi karta.',
+                        style: TextStyle(height: 1.45),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 22),
           Form(
