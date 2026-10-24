@@ -8,10 +8,10 @@ Status: target architecture / migration plan; not a claim that all files have al
 
 Pilot management hierarchy (from Company Master / Owner Control Center):
 
-`Founder / CEO → Central Admin → Area Manager → Supervisor → Walker / Partner`
+`Founder / CEO → Central Admin → Area Manager → Walker / Partner`
 
-- Supervisor is included in the agreed company reporting flow, but its exact app permissions and whether it needs a distinct authenticated role must be explicitly defined and tested before implementation.
-- Supervisor is limited to assigned tasks and records within the relevant Area; it must not receive global Admin access by default.
+- A separate Supervisor role is not included in the approved pilot hierarchy and must not be enabled at launch.
+- Reconsider a Supervisor role only if documented workload evidence supports it and the Founder / CEO explicitly approves the proposed responsibilities and boundaries. Approval alone is not authorization; trusted backend/Rules enforcement and tests are required before any later enablement.
 - Founder/CEO retains company-wide policy, access, approval and go/no-go authority.
 - Central Admin operates the company-wide control centre and configures access/scopes.
 - Area Manager works only within assigned service-area scope.
@@ -117,7 +117,7 @@ docs/
 - `auth`: identity/session and active account checks; must not own business-role policy alone.
 - `core/permissions` and `core/scope`: typed role/capability checks and geographic scope model shared by screens. These are UX safeguards; backend authorization remains authoritative.
 - `access_control`: role/status/scope assignment UI and audit history; sensitive changes require trusted server functions and approval policy.
-- `area_management`: maps an Area Manager to explicitly assigned Area IDs and displays only authorized scope; Supervisor tasks must remain within the Area Manager's authorized Area and explicitly assigned work.
+- `area_management`: maps an Area Manager to explicitly assigned Area IDs and displays only authorized scope; no Supervisor access is enabled for the pilot. If a distinct Supervisor role is approved in a future decision, its tasks must be explicitly assigned and remain within the Area Manager's authorized Area.
 - `service_location`: geographic catalog, boundaries, import/reconciliation and trusted activation workflow.
 - `live_operations`: operational status, booking/walker activity, location freshness and privacy-aware location display.
 - `walkers`: partner onboarding, document verification status, weekly availability and leave requests according to approved policy.
@@ -149,7 +149,7 @@ The fresh branch currently contains both the new feature-first areas and legacy 
 
 ## 7. Acceptance checklist
 
-- [ ] Company hierarchy matches Company Master; no unapproved Supervisor tier.
+- [ ] Company hierarchy matches Company Master; no distinct Supervisor role is enabled at pilot launch unless documented workload evidence and explicit Founder / CEO approval support a separate reviewed change.
 - [ ] Role and geographic scope are separate typed concepts.
 - [ ] Role/scope enforcement is verified server-side and in Rules/callables.
 - [ ] Every active feature has a clear data/domain/presentation boundary.
