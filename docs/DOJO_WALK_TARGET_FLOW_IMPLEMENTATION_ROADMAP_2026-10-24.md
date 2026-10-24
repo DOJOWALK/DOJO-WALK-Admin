@@ -161,3 +161,33 @@ Remaining release tests/reviews:
 - Verify the 300-node import limit, stable IDs, immutable run marker, interrupted-run reconciliation, duplicate parent/name paths, and partial failure handling with tests.
 - Keep all imported records inactive. City/Area activation must still require the trusted verified-boundary lifecycle and containment checks.
 - Do not migrate legacy records or deploy these branch changes without explicit release approval.
+
+## 10. Latest CI and District name-index audit — 2026-10-24
+
+### Exact-head CI results
+
+The following checks completed successfully on the Admin review head fb5e474908cd454eaa1517036aab83437d564979:
+
+- Admin Main Full Validation (No Deploy), run 40105057085 (#184): Flutter analysis, complete Admin test suite, and web build succeeded.
+- Admin Web Build Check (No Deploy), run 40105057087 (#863): analysis, tests, and web build succeeded.
+- Service Location Geometry Tests, run 40105057166 (#701): geometry and CSV import planner unit tests succeeded.
+
+Firebase review head 779346119a9f8de2a0d4288e48b5a8e58ef4a804 completed run 40105037875 (#521) with SUCCESS. This includes the previously failing District descendant integration test after its setup explicitly reactivates the District. These results are review-branch CI only; they do not prove production deployment parity or launch readiness.
+
+### Name-index and ancestry review
+
+Static review of the Firebase review branch found:
+
+- The District-aware tuple contract has unit tests for District → City → Area → Locality parent ordering, unsafe/missing IDs, and distinct legacy vs District-aware index IDs.
+- Trusted ancestry helper tests reject mismatched State/District/City/Area links and return no invented District tuple for legacy City records.
+- Legacy City → District preflight is intentionally read-only: missing/ambiguous candidates do not auto-map; even a reviewed manifest still requires a separately approved write implementation.
+- Existing hierarchy integration tests cover legacy parent-scoped name uniqueness, idempotent saves, rename/index replacement, and ancestry mismatch rejection.
+- The callable ancestry test rejects an Area save when a City has a districtId that points to a missing District and verifies no Area/name-index write occurs.
+
+**Important remaining blocker:** the District-aware index contract and trusted tuple helper explicitly are not yet wired into the callable write path; this is deliberate until Admin and Firebase agree on the same tuple and migration protocol. The current review did not find an end-to-end callable test proving atomic dual-index preservation for both District-linked Cities and legacy Cities without District. Pure helper tests alone are not enough to close this release gate.
+
+### Next review steps
+
+1. Add/verify callable-level emulator tests for District-linked City name uniqueness under a District and legacy City uniqueness under State, including attempted duplicate names and index ownership.
+2. Add/verify safe rename/idempotent behavior for District-linked City, Area and Locality with consistent canonical ancestry; legacy records must retain their existing index until a reviewed dual-index migration is approved.
+3. Verify the exact latest Firebase head and rerun the exact Admin head checks after any code changes. Do not merge, deploy, backfill production data, or delete unmerged branches as part of this review.
