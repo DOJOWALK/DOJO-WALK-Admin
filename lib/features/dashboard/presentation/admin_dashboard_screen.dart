@@ -28,7 +28,9 @@ class AdminDashboardScreen extends StatelessWidget {
             final metricColumns = compact ? 1 : (medium ? 2 : 4);
             final metricGap = 14.0;
             final contentWidth =
-                (constraints.maxWidth - horizontalPadding * 2).clamp(0.0, 2000.0);
+                (constraints.maxWidth - horizontalPadding * 2)
+                    .clamp(0.0, 2000.0)
+                    .toDouble();
             final metricWidth = compact
                 ? contentWidth
                 : (contentWidth - metricGap * (metricColumns - 1)) /
