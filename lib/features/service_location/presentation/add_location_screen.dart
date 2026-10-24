@@ -332,6 +332,48 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
     );
   }
 
+  void _clearInvalidSelection(String type, String staleValue) {
+    if (!mounted) return;
+    setState(() {
+      switch (type) {
+        case 'country':
+          if (_countryId != staleValue) return;
+          _countryId = null;
+          _stateId = null;
+          _districtId = null;
+          _cityId = null;
+          _areaId = null;
+          break;
+        case 'state':
+          if (_stateId != staleValue) return;
+          _stateId = null;
+          _districtId = null;
+          _cityId = null;
+          _areaId = null;
+          break;
+        case 'district':
+          if (_districtId != staleValue) return;
+          _districtId = null;
+          _cityId = null;
+          _areaId = null;
+          break;
+        case 'city':
+          if (_cityId != staleValue) return;
+          _cityId = null;
+          _areaId = null;
+          break;
+        case 'area':
+          if (_areaId != staleValue) return;
+          _areaId = null;
+          break;
+        default:
+          return;
+      }
+      _feedback = 'Catalog options changed. Please review the parent selections.';
+      _feedbackIsError = true;
+    });
+  }
+
   Widget _locationDropdown({
     required String label,
     required String type,
@@ -384,6 +426,14 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
         final validValue = options.any((option) => option.id == value)
             ? value
             : null;
+        if (value != null && validValue == null) {
+          // A live catalog update can remove an option after it was selected.
+          // Clear the stale ID (and its descendants) after this frame so the
+          // form cannot submit an ID that is no longer offered by the catalog.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _clearInvalidSelection(type, value);
+          });
+        }
         return DropdownButtonFormField<String>(
           initialValue: validValue,
           decoration: InputDecoration(labelText: label),
