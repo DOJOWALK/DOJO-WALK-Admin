@@ -98,3 +98,24 @@ The UI may hide unavailable actions, but UI visibility is never the security bou
 ## 7. Current status
 
 This file records the target flow and dependency order only. It does **not** mean the role system, Supervisor permissions, trusted booking callable, Area Manager scope, production Rules, or migration are implemented. Continue with review-branch documentation and source checks while preserving the current production setup.
+
+
+## 8. Verified source-review findings — 2026-10-24
+
+These findings are source-review evidence, not production deployment verification:
+
+1. **Legacy Admin identity gate remains:** `lib/core/auth/admin_identity.dart` currently allows entry only when `isActive == true` and `role == 'super_admin'`. This is a UI gate, not a replacement for Firestore Rules or callable authorization. Do not switch it to target roles until membership schema, role grants, scope checks, compatibility, and emulator tests are ready together.
+2. **Service Location writes use trusted callable:** the reviewed Add Location save path routes named-location saves through `saveServiceLocationWithNameIndex`; new locations are intended to remain inactive until their required review/verified-boundary conditions are satisfied. Boundary drafts and import metadata have separate paths and need their own rules/permission review.
+3. **Hierarchy mismatch remains a blocker:** the current Admin/Firebase location model has historically represented City directly under State (with District/City not yet separated into the target canonical chain). The requested State → District → City → Area → Locality model needs a coordinated Admin + callable + Rules + import contract; a UI-only dropdown change is insufficient.
+4. **Booking authorization migration is not ready:** the Customer app's reviewed confirmation screen writes booking documents directly to Firestore and supplies a pickup address ID/map. The canonical saved-address schema and verified Locality linkage are not yet confirmed. Do not change production Rules to require a server-derived Area until a trusted booking-creation path and coordinated Customer migration are tested.
+5. **Live Operations is not yet a verified live feed:** Dashboard embeds the Live Operations screen, and the UI has a My Location affordance. Walker-nearby/live-feed information must remain explicitly unknown or pending until trusted location feeds, consent, freshness, scope checks, and backend actions are verified.
+
+### Review-commit CI evidence
+
+For permission-matrix commit `78f085663656b250bfee797a423557f7763abbac`, the following GitHub Actions checks completed successfully:
+
+- Service Location Geometry Tests — run `40102760422` (#694).
+- Admin Web Build Check (No Deploy) — run `40102760408` (#856).
+- Admin Main Full Validation (No Deploy) — run `40102760396` (#177).
+
+These results validate that commit's CI checks only; they do not prove production deployment, complete role authorization, or that later commits have passed CI.
