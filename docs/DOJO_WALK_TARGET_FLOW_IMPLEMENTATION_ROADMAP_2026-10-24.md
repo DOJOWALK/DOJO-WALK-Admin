@@ -119,3 +119,35 @@ For permission-matrix commit `78f085663656b250bfee797a423557f7763abbac`, the fol
 - Admin Main Full Validation (No Deploy) — run `40102760396` (#177).
 
 These results validate that commit's CI checks only; they do not prove production deployment, complete role authorization, or that later commits have passed CI.
+
+
+## 9. District schema cross-repository review — 2026-10-24
+
+Reviewed the Admin review branch and Firebase review branch `security/first-area-founder-approval-2026-10-24` source. This is a static source finding; no callable, Rules, data, or deployment was changed.
+
+### What is already present
+
+- Admin has a `ServiceDistrict` model and `service_districts` collection contract.
+- Admin's name-index parent helper supports `district` and supports optional `districtId` for City while preserving legacy City records without it.
+- Admin's CSV planner explicitly builds State → District → City → Area nodes in parent-first order. Import is capped and uses the trusted location-save service; it does not activate locations or create boundaries.
+- The inspected Firebase review branch's `location_name_index.ts` allowlists `district`, and its `saveServiceLocationWithNameIndex` callable includes District and supports both legacy two-parent and District-linked three-parent City index tuples. Therefore, saying “District is entirely absent from the current Firebase review branch” would be inaccurate. Production deployment parity is still unverified.
+
+### High-priority status-callable guard gap to resolve before release
+
+In the inspected Firebase review-branch `functions/src/index.ts`, `setServiceLocationStatus` has District support, but the state deactivation path shown in the source checks active Areas and does not query active `service_districts` children. Its generic child configuration for State checks Cities rather than Districts. This appears to allow a State deactivation attempt to miss an active District when there are no active City/Area descendants. The District deactivation path also queries `service_areas.districtId`, while the reviewed Area allowlist/model does not make `districtId` an Area field; that query alone cannot be relied on to find District descendants. Treat this as a **source-level blocker requiring a regression test and fix in the Firebase review branch**, not as proof that production data was affected.
+
+Required tests in Firebase emulator/callable suite:
+
+1. State deactivation is rejected when an active District child exists, even when there are no active Cities/Areas.
+2. State deactivation is rejected for active legacy Cities directly under State.
+3. District deactivation is rejected when an active District-linked City exists.
+4. District deactivation is rejected when any active descendant Area/Locality exists, including valid legacy records; do not depend on a field that the Area schema does not persist.
+5. Parent activation/deactivation races remain serialized by transaction guard writes.
+6. New District-linked City and legacy City-without-District saves both preserve canonical name-index uniqueness and ancestry checks.
+
+### Import and hierarchy release gates
+
+- Keep CSV import disabled for production use until the exact Admin commit and Firebase callable/Rules commit pass together.
+- Verify the 300-node import limit, stable IDs, immutable run marker, interrupted-run reconciliation, duplicate parent/name paths, and partial failure handling with tests.
+- Keep all imported records inactive. City/Area activation must still require the trusted verified-boundary lifecycle and containment checks.
+- Do not migrate legacy records or deploy these branch changes without explicit release approval.
