@@ -29,6 +29,24 @@ void main() {
     expect(find.text('Not checked'), findsOneWidget);
     expect(find.text('Live walk feed'), findsOneWidget);
     expect(find.text('Open operations'), findsNothing);
+
+    // Guard the approved pilot reporting hierarchy against accidental role drift.
+    expect(
+      find.textContaining(
+        'Pilot reporting: Founder / CEO → Central Admin → Area Manager → Walker / Partner.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Supervisor is not an enabled pilot role.'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining(
+        'Founder / CEO → Central Admin → Area Manager → Supervisor → Walker / Partner',
+      ),
+      findsNothing,
+    );
   });
 }
 
