@@ -515,7 +515,7 @@ class _GovernanceNote extends StatelessWidget {
           SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Company hierarchy: Founder / CEO → Central Admin → Area Manager → Walker / Partner. '
+              'Company hierarchy: Founder / CEO → Central Admin → Area Manager → Supervisor → Walker / Partner. '
               'Geographic service coverage is a separate hierarchy: India → State / UT → District → City → Area → Locality.',
               style: TextStyle(height: 1.45),
             ),
