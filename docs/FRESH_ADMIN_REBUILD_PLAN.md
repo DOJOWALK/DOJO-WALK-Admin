@@ -117,3 +117,14 @@ docs/
 - This does not mean the existing UI has already been removed or the new app is complete.
 - `main` remains unchanged by this branch-creation action.
 - Next work: inventory current files and backend contracts, then build the new UI in the new feature-first structure and switch the app entry point only when the replacement is ready.
+
+
+## Progress update — 2026-10-24
+
+- Added a source-based backend/API inventory in `docs/FRESH_ADMIN_BACKEND_API_INVENTORY.md`.
+- Added a fresh admin identity model and auth repository. The UI gate requires both `isActive == true` and `role == super_admin`, matching the reviewed Rules/callable policy.
+- Added a typed callable adapter for status changes, verified City/Area activation, and boundary review in `asia-south1`.
+- Added a fresh email/password login screen and responsive navigation shell, and wired the fresh auth gate/theme into `lib/app/app.dart`.
+- The Dashboard, Add Location, and Live Operations screens remain intentionally scaffold-only. Add Location options are not populated and save/activation remain unavailable; Live Operations location is not connected.
+- Legacy UI files remain in the branch because this branch was created from the current `main` snapshot to retain Firebase setup and backend integration dependencies. The fresh entry point does not import the legacy auth gate/shell, and the new feature screens do not copy legacy screen widgets. No legacy files have been deleted.
+- **Validation status: NOT VERIFIED.** Flutter analyze, unit tests, web build, emulator tests, deployed callable behavior, and production Rules version have not been run/verified for this branch. Do not treat the new app as release-ready.
