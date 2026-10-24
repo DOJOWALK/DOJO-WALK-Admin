@@ -131,3 +131,14 @@ docs/
 - Legacy UI files remain in the branch for preservation while dependencies are inventoried. No legacy files were deleted. `main` has not been merged into or changed by this work; this branch has not been merged or deployed.
 - **CI status for commit `396d6da19644f809ec9a378a55d316530eb7d649`: PASS** — Admin Main Full Validation (run `40050126724`), Admin Web Build Check (run `40050126576`), and Service Location Geometry Tests (run `40050126514`) all completed successfully, including analyze, complete test suite, and web build where shown by the workflows.
 - **Still not production-ready:** emulator/integration testing of auth, Firestore Rules and callable flows; verify deployed Firebase Rules/Functions revisions; test My Location in actual browser/device; connect live operations to trusted live data; add real geographic map-based boundary review; and review all role/scope constraints before merge.
+
+
+## Backend deployment evidence update — 2026-10-24
+
+- Reviewed Firebase repository `dojoplatform2026/DOJO-WALK-Firebase` on `main`, including `firestore.rules`, `functions/src/index.ts`, and both manual deployment workflows.
+- Firestore Rules deployment run `39561167795` completed successfully on commit `60e1e6b92d2b39cf2284c99be28bc42ef2046969`: emulator tests, authentication, and the Rules deploy command all passed.
+- Trusted Location Functions deployment run `39557253165` completed successfully on commit `715ba519e5d8c1574890e855e650f7455f4c1ba2`: build, emulator tests, authentication, and the Functions deploy command all passed. Its workflow deploys five callables: `reviewServiceLocationBoundary`, `activateServiceLocation`, `setServiceLocationStatus`, `manageServiceLocationImportRun`, and `saveServiceLocationWithNameIndex`.
+- Source contract review confirms the fresh Admin location repository calls `saveServiceLocationWithNameIndex` in `asia-south1`; protected writes are routed through the callable rather than direct client writes.
+- These are GitHub deployment-command results and source checks, **not** a live post-deploy verification of callable behavior. No signed-in real-admin save/review/activation test or unauthorized/inactive-admin live test has been evidenced yet. Do not mark live integration or production readiness complete on this basis.
+- Current Admin feature-branch CI at head `65c96a82cd6cae848c6634b7c90d7eb08ab8e08e`: Service Location Geometry Tests run `40050647845`, Admin Web Build Check (No Deploy) run `40050647854`, and Admin Main Full Validation (No Deploy) run `40050647853` all completed successfully.
+- Safety remains unchanged: this is a documentation-only update on the fresh feature branch; no deployment, merge, production data write, or change to Admin `main` was made.
