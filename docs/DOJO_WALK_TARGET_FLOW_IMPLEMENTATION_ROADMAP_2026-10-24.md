@@ -191,3 +191,27 @@ Static review of the Firebase review branch found:
 1. Add/verify callable-level emulator tests for District-linked City name uniqueness under a District and legacy City uniqueness under State, including attempted duplicate names and index ownership.
 2. Add/verify safe rename/idempotent behavior for District-linked City, Area and Locality with consistent canonical ancestry; legacy records must retain their existing index until a reviewed dual-index migration is approved.
 3. Verify the exact latest Firebase head and rerun the exact Admin head checks after any code changes. Do not merge, deploy, backfill production data, or delete unmerged branches as part of this review.
+
+
+## 11. Latest callable tests and exact-head CI — 2026-10-24
+
+### Verified review-branch results
+
+- Firebase commit `f36c7d08f88a3011ee41f93bccac230df27f28ad` added `functions/test/district_city_callable_name_index.test.cjs`.
+- Firebase Actions run #523 (`40108087619`) completed **SUCCESS** on that exact commit. The workflow completed the Functions build and Firestore Emulator Rules/Functions integration-test step, including the new callable-level cases for District-linked City duplicate scope, legacy City two-parent indexing, and District-linked City rename/index replacement.
+- Admin commit `efd0e039684748484ac393541cf19fdc9a9078ee` has now been verified by all three exact-head workflows:
+  - Admin Main Full Validation (No Deploy), run #185 (`40105611329`): SUCCESS.
+  - Admin Web Build Check (No Deploy), run #864 (`40105611382`): SUCCESS.
+  - Service Location Geometry Tests, run #702 (`40105611378`): SUCCESS.
+
+These are review-branch checks only. They do not mean either PR is merged, production Functions/Rules match the branch, or the product is launch-ready.
+
+### Remaining gates
+
+1. Extend callable-level rename/idempotency and dual-index preservation coverage to District-linked Areas and Localities; verify conflicting index ownership is rejected without partial writes.
+2. Review the test fixture cleanup and CI logs for unexpected emulator residue before treating the suite as release evidence.
+3. Keep the production CSV import disabled until Admin and Firebase commits are jointly reviewed against the deployed schema and Rules.
+4. Complete the Admin UI dependency/legacy-file audit and verify the real login + Add Location flow against emulator-backed trusted callables.
+5. Keep Founder/CEO provisioning, canonical role model, Area Manager scope enforcement, deployed Rules/Functions parity, and authorized launch sign-off as explicit blockers.
+
+No merge, deployment, production data migration, or branch deletion was performed.
