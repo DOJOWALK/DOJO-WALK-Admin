@@ -66,3 +66,27 @@ Reviewed PR #37 current head `6ccf4bac253cc40a15f665afbaa0ac80c111d123` after th
 ### Migration rule
 
 Do not bulk-delete or bulk-move legacy files merely to make the tree look clean. First run a repository-wide reference/dependency scan, classify each candidate KEEP / MIGRATE / REMOVE, move one coherent feature at a time, and require formatter, analyzer, full tests, web build, and relevant emulator tests after each migration. Keep this PR draft until those gates and explicit review are complete.
+
+
+## Verified checkpoint — PR #37 HEAD 464fbe5 (24 Oct 2026, latest inspection)
+
+The PR was re-fetched from GitHub and its exact current head was checked against PR-triggered Actions. PR #37 is still **open + draft + unmerged**.
+
+- Exact head: `464fbe5339b062c074401835a0fb87d565cb1beb`.
+- Service Location Geometry Tests run `40092744439`: completed successfully.
+- Admin Web Build Check (No Deploy) run `40092744414`: completed successfully.
+- Admin Main Full Validation (No Deploy) run `40092744423`: completed successfully.
+- Add Location repository now verifies the callable's returned ID, re-reads the created document, and checks that its type-specific active flag is explicitly `false` before reporting success. This is code-level verification, not proof of a real authenticated Firebase Emulator round trip.
+- Boundary Review now contains a Google Maps polygon preview using stored coordinates. This improves on the earlier shape-only preview, but does not by itself verify the boundary's official source, accuracy, containment, or suitability; trusted server review remains required.
+- Dashboard widget coverage checks the embedded Live Operations section, “My Location”, “Possible Walker Nearby” and the honest “Not checked”/unconnected-feed state.
+
+### Still open — do not mark Admin complete
+
+1. No demonstrated authenticated Admin Emulator integration test covering login/role revocation, callable save, read-back, duplicate names and inactive/unauthorized access.
+2. Legacy City records without `districtId` remain a compatibility issue for the District-required City selector used when adding an Area/Locality. Do not silently assign a District or mutate legacy records; implement an explicitly labelled and tested compatibility path before enabling those records for selection.
+3. Canonical Founder/CEO, Central Admin and Area Manager role/scope enforcement is not implemented end-to-end in this Admin UI; UI gating to `super_admin` is not a replacement for server authorization.
+4. Live walker/booking feeds and authorized live-operation actions remain unconnected.
+5. Full legacy import/reference/dependency inventory and safe file migration are not complete.
+6. Deployed Rules/Functions revision parity and real-admin production behavior remain unverified.
+
+No production data was changed. No merge, deployment, branch deletion, or production action was performed by this checkpoint.
