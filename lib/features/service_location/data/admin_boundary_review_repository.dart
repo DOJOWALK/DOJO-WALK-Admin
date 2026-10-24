@@ -78,13 +78,17 @@ class AdminBoundaryReviewItem {
     if (rawPoints is Iterable) {
       for (final point in rawPoints) {
         if (point is GeoPoint) {
-          points.add(_formatCoordinate(point.latitude, point.longitude));
+          if (_isValidCoordinate(point.latitude, point.longitude)) {
+            points.add(_formatCoordinate(point.latitude, point.longitude));
+          }
         } else if (point is Map) {
           // Match the trusted backend parser: accept both {latitude, longitude}
           // (Firestore GeoPoint-like maps) and legacy {lat, lng} maps.
           final lat = point['latitude'] ?? point['lat'];
           final lng = point['longitude'] ?? point['lng'];
-          if (lat is num && lng is num) {
+          if (lat is num &&
+              lng is num &&
+              _isValidCoordinate(lat.toDouble(), lng.toDouble())) {
             points.add(_formatCoordinate(lat.toDouble(), lng.toDouble()));
           }
         }
@@ -104,6 +108,14 @@ class AdminBoundaryReviewItem {
           : DateTime.fromMillisecondsSinceEpoch(0),
     );
   }
+
+  static bool _isValidCoordinate(double latitude, double longitude) =>
+      latitude.isFinite &&
+      longitude.isFinite &&
+      latitude >= -90 &&
+      latitude <= 90 &&
+      longitude >= -180 &&
+      longitude <= 180;
 
   static String _formatCoordinate(double latitude, double longitude) =>
       '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}';
