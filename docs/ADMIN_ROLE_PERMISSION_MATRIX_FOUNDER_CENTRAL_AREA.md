@@ -54,25 +54,25 @@
 Legend: **Full** = within role's reserved authority; **Policy** = define/approve policy; **Operate** = perform approved day-to-day actions; **Scoped** = assigned Area only; **Request** = submit for approval; **No** = denied.
 
 | Module / action | Founder / CEO | Central Admin | Area Manager | Supervisor (if approved) |
-|---|---|---|---|
+|---|---|---|---| --- |
 | Company dashboard | Full | Operate, company operations | Scoped | Assigned task summary only; no global metrics |
 | Admin appointment/revocation | Central Admin and role policy | Only explicitly delegated lower-role tasks | No | No |
 | Role/permission policy | Policy | No self-elevation; only delegated changes | No | No |
 | Service Location records | Full oversight | Operate; request activation | Scoped view/request | View assigned work context only; no activation |
-| Reserved Area launch approval | Full | Request/review | Request |
+| Reserved Area launch approval | Full | Request/review | Request | Deny by default until explicitly approved |
 | Bookings | Full oversight/escalations | Operate company-wide | Scoped operate | Only assigned booking/task details, if approved |
 | Walker/Partner records | Full oversight/escalations | Operate verification workflow | Scoped operations; escalate verification decisions | Assigned task context only; no verification/role changes |
-| Availability/attendance | Full oversight | Operate company-wide | Scoped |
+| Availability/attendance | Full oversight | Operate company-wide | Scoped | Deny by default until explicitly approved |
 | Live operations | Full oversight | Operate company-wide | Scoped; location freshness must be visible | Assigned tasks only; location access only if approved and necessary |
 | Pricing policy | Policy | Apply policy; request change | No change | No |
 | Coupons/discounts | Policy and limits | Operate within limits | No change | No |
-| Payment/reconciliation reports | Company-wide | Authorized operational/finance access | Scoped/minimum required only |
+| Payment/reconciliation reports | Company-wide | Authorized operational/finance access | Scoped/minimum required only | Deny by default until explicitly approved |
 | Refunds/payouts | Reserved/high-risk approval per policy | Within explicit limits; otherwise request | Request/review only unless explicitly limited permission granted | No approval; escalate only |
-| Customer support | Escalations | Operate company-wide | Scoped |
-| Reports | Company-wide | Authorized operational reports | Scoped |
+| Customer support | Escalations | Operate company-wide | Scoped | Deny by default until explicitly approved |
+| Reports | Company-wide | Authorized operational reports | Scoped | Deny by default until explicitly approved |
 | Audit logs | Company-wide sensitive logs | Authorized operational logs | Own/relevant scoped actions | Own assigned-task actions only, if enabled |
 | Security settings | Founder-reserved control | No Founder control | No | No |
-| Self-elevation | No; Founder identity is provisioned securely | Deny | Deny |
+| Self-elevation | No; Founder identity is provisioned securely | Deny | Deny | Deny by default until explicitly approved |
 
 ## 4. Required backend data contract (proposal)
 
@@ -106,3 +106,6 @@ The exact document schema and claims must be reconciled with deployed Firestore 
 - [ ] Existing accounts and legacy role data have a reviewed migration path.
 - [ ] All relevant CI passes on the exact integrated commit.
 - [ ] No production deployment until separately approved.
+
+
+**Matrix rule:** Any Supervisor cell marked “Deny by default until explicitly approved” means no access until a permission is expressly approved, implemented in trusted backend/Rules, and covered by tests. This table is a proposed contract, not deployed authorization.
