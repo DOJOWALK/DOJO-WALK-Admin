@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/admin_location_option.dart';
 import '../data/admin_service_location_repository.dart';
+import '../models/location_selection_state.dart';
 
 class AddLocationScreen extends StatefulWidget {
   const AddLocationScreen({super.key});
@@ -27,11 +28,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
   };
 
   String _type = 'state';
-  String? _countryId;
-  String? _stateId;
-  String? _districtId;
-  String? _cityId;
-  String? _areaId;
+  LocationSelectionState _selection = const LocationSelectionState();
   bool _saving = false;
   String? _feedback;
   bool _feedbackIsError = false;
@@ -54,11 +51,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
     if (value == null) return;
     setState(() {
       _type = value;
-      _countryId = null;
-      _stateId = null;
-      _districtId = null;
-      _cityId = null;
-      _areaId = null;
+      _selection = const LocationSelectionState();
       _feedback = null;
       _nameController.clear();
       _codeController.clear();
@@ -75,11 +68,11 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
 
     try {
       final parents = <String, String>{
-        if (_needsCountry) 'countryId': _countryId ?? '',
-        if (_needsState) 'stateId': _stateId ?? '',
-        if (_needsDistrict) 'districtId': _districtId ?? '',
-        if (_needsCity) 'cityId': _cityId ?? '',
-        if (_needsArea) 'areaId': _areaId ?? '',
+        if (_needsCountry) 'countryId': _selection.countryId ?? '',
+        if (_needsState) 'stateId': _selection.stateId ?? '',
+        if (_needsDistrict) 'districtId': _selection.districtId ?? '',
+        if (_needsCity) 'cityId': _selection.cityId ?? '',
+        if (_needsArea) 'areaId': _selection.areaId ?? '',
       };
       final id = await _repository.saveLocation(
         type: _type,
@@ -213,13 +206,9 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                   _locationDropdown(
                     label: 'Country',
                     type: 'country',
-                    value: _countryId,
+                    value: _selection.countryId,
                     onChanged: (value) => setState(() {
-                      _countryId = value;
-                      _stateId = null;
-                      _districtId = null;
-                      _cityId = null;
-                      _areaId = null;
+                      _selection = _selection.selectCountry(value);
                     }),
                   ),
                   const SizedBox(height: 16),
@@ -228,14 +217,11 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                   _locationDropdown(
                     label: 'State / Union Territory',
                     type: 'state',
-                    value: _stateId,
-                    countryId: _countryId,
-                    enabled: _countryId != null,
+                    value: _selection.stateId,
+                    countryId: _selection.countryId,
+                    enabled: _selection.countryId != null,
                     onChanged: (value) => setState(() {
-                      _stateId = value;
-                      _districtId = null;
-                      _cityId = null;
-                      _areaId = null;
+                      _selection = _selection.selectState(value);
                     }),
                   ),
                   const SizedBox(height: 16),
@@ -244,19 +230,17 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                   _locationDropdown(
                     label: 'District',
                     type: 'district',
-                    value: _districtId,
-                    countryId: _countryId,
-                    stateId: _stateId,
-                    enabled: _stateId != null,
+                    value: _selection.districtId,
+                    countryId: _selection.countryId,
+                    stateId: _selection.stateId,
+                    enabled: _selection.stateId != null,
                     onChanged: (value) => setState(() {
-                      _districtId = value;
-                      _cityId = null;
-                      _areaId = null;
+                      _selection = _selection.selectDistrict(value);
                     }),
                   ),
                   const SizedBox(height: 16),
                 ],
-                if (_needsCity && _districtId != null) ...[
+                if (_needsCity && _selection.districtId != null) ...[
                   Container(
                     padding: const EdgeInsets.all(12),
                     margin: const EdgeInsets.only(bottom: 12),
@@ -275,14 +259,13 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                   _locationDropdown(
                     label: 'City',
                     type: 'city',
-                    value: _cityId,
-                    countryId: _countryId,
-                    stateId: _stateId,
-                    districtId: _districtId,
-                    enabled: _districtId != null,
+                    value: _selection.cityId,
+                    countryId: _selection.countryId,
+                    stateId: _selection.stateId,
+                    districtId: _selection.districtId,
+                    enabled: _selection.districtId != null,
                     onChanged: (value) => setState(() {
-                      _cityId = value;
-                      _areaId = null;
+                      _selection = _selection.selectCity(value);
                     }),
                   ),
                   const SizedBox(height: 16),
@@ -291,12 +274,14 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                   _locationDropdown(
                     label: 'Area',
                     type: 'area',
-                    value: _areaId,
-                    countryId: _countryId,
-                    stateId: _stateId,
-                    cityId: _cityId,
-                    enabled: _cityId != null,
-                    onChanged: (value) => setState(() => _areaId = value),
+                    value: _selection.areaId,
+                    countryId: _selection.countryId,
+                    stateId: _selection.stateId,
+                    cityId: _selection.cityId,
+                    enabled: _selection.cityId != null,
+                    onChanged: (value) => setState(() {
+                      _selection = _selection.selectArea(value);
+                    }),
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -399,34 +384,24 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
     setState(() {
       switch (type) {
         case 'country':
-          if (_countryId != staleValue) return;
-          _countryId = null;
-          _stateId = null;
-          _districtId = null;
-          _cityId = null;
-          _areaId = null;
+          if (_selection.countryId != staleValue) return;
+          _selection = _selection.selectCountry(null);
           break;
         case 'state':
-          if (_stateId != staleValue) return;
-          _stateId = null;
-          _districtId = null;
-          _cityId = null;
-          _areaId = null;
+          if (_selection.stateId != staleValue) return;
+          _selection = _selection.selectState(null);
           break;
         case 'district':
-          if (_districtId != staleValue) return;
-          _districtId = null;
-          _cityId = null;
-          _areaId = null;
+          if (_selection.districtId != staleValue) return;
+          _selection = _selection.selectDistrict(null);
           break;
         case 'city':
-          if (_cityId != staleValue) return;
-          _cityId = null;
-          _areaId = null;
+          if (_selection.cityId != staleValue) return;
+          _selection = _selection.selectCity(null);
           break;
         case 'area':
-          if (_areaId != staleValue) return;
-          _areaId = null;
+          if (_selection.areaId != staleValue) return;
+          _selection = _selection.selectArea(null);
           break;
         default:
           return;
