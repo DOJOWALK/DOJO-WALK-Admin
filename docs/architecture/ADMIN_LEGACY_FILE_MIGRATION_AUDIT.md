@@ -90,3 +90,19 @@ The PR was re-fetched from GitHub and its exact current head was checked against
 6. Deployed Rules/Functions revision parity and real-admin production behavior remain unverified.
 
 No production data was changed. No merge, deployment, branch deletion, or production action was performed by this checkpoint.
+
+
+## Re-verified checkpoint — PR #37 exact HEAD 23adbb3 (24 Oct 2026)
+
+Re-fetched PR #37 and checked PR-triggered Actions against its current head, rather than relying on older audit snapshots.
+
+- Exact head: `23adbb3c81d4836d4a4b15a9194f5a879660e283`.
+- PR #37 remains **open, draft, and unmerged**.
+- Service Location Geometry Tests run `40093383345`: completed successfully.
+- Admin Web Build Check (No Deploy) run `40093383187`: completed successfully.
+- Admin Main Full Validation (No Deploy) run `40093383200`: completed successfully.
+- Source inspection confirms Add Location repository checks the callable-returned ID, re-reads the new document, and requires its type-specific active flag to be explicitly `false` before returning success. This is a client code path; it is not a substitute for authenticated Emulator integration evidence.
+- Dashboard/Live Operations remains deliberately honest: live booking/walker feed is not connected and “Possible Walker Nearby” is not asserted without data.
+- The legacy City-without-`districtId` selection gap, role/scope enforcement, real authenticated Emulator coverage, complete dependency inventory, and deployed Firebase revision parity remain open.
+
+**Decision:** CI is green for this exact Admin branch head, but Admin is **not complete or release-ready**. Keep the PR draft; do not merge, deploy, or delete legacy files/branches on the strength of these checks alone. No production data or deployment was changed.
