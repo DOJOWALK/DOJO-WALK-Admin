@@ -46,7 +46,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
 
   bool get _needsCountry => _type != 'country';
   bool get _needsState => const {'district', 'city', 'area', 'locality'}.contains(_type);
-  bool get _needsDistrict => _type == 'city';
+  bool get _needsDistrict => const {'city', 'area', 'locality'}.contains(_type);
   bool get _needsCity => const {'area', 'locality'}.contains(_type);
   bool get _needsArea => _type == 'locality';
 
@@ -210,7 +210,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                     value: _cityId,
                     countryId: _countryId,
                     stateId: _stateId,
-                    districtId: _type == 'locality' ? null : _districtId,
+                    districtId: _districtId,
                     onChanged: (value) => setState(() {
                       _cityId = value;
                       _areaId = null;
