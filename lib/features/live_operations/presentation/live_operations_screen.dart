@@ -4,7 +4,9 @@ import 'package:geolocator/geolocator.dart';
 import '../../../core/theme/admin_theme.dart';
 
 class LiveOperationsScreen extends StatefulWidget {
-  const LiveOperationsScreen({super.key});
+  const LiveOperationsScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   State<LiveOperationsScreen> createState() => _LiveOperationsScreenState();
@@ -75,6 +77,8 @@ class _LiveOperationsScreenState extends State<LiveOperationsScreen> {
           final compact = constraints.maxWidth < 760;
           final padding = compact ? 16.0 : 28.0;
           return ListView(
+            shrinkWrap: widget.embedded,
+            physics: widget.embedded ? const NeverScrollableScrollPhysics() : null,
             padding: EdgeInsets.all(padding),
             children: [
               Text(
