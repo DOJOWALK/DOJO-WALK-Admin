@@ -215,3 +215,34 @@ These are review-branch checks only. They do not mean either PR is merged, produ
 5. Keep Founder/CEO provisioning, canonical role model, Area Manager scope enforcement, deployed Rules/Functions parity, and authorized launch sign-off as explicit blockers.
 
 No merge, deployment, production data migration, or branch deletion was performed.
+
+
+## 12. Cross-repository verification checkpoint — 24 Oct 2026
+
+### Exact reviewed heads and CI
+
+- Admin PR #37 head: `606637059f23c64f954be2e1e05a85688fde2361` (draft/open, not merged).
+  - Admin Main Full Validation run #186 (`40110437108`): SUCCESS.
+  - Admin Web Build Check run #865 (`40110437589`): SUCCESS.
+  - Service Location Geometry Tests run #703 (`40110437115`): SUCCESS.
+- Firebase PR #34 head: `290c80be2e205dacff1bb826ce772003bcc833b0` (draft/open, not merged).
+  - Trusted Location Geometry and Callable Tests run #526 (`40111078112`): SUCCESS.
+  - The run built Functions and completed the root Firestore Rules/Functions emulator test step successfully.
+
+### Important distinction
+
+CI success confirms the checked code and tests for these commits. It does NOT establish that deployed Firebase Rules/Functions match these branches, that production credentials are provisioned, or that the complete Admin UI has passed an authenticated end-to-end emulator session.
+
+### Remaining release blockers — do not mark complete
+
+1. Admin: add authenticated Firebase Emulator integration coverage for live `admin_users/{uid}` revocation (active → inactive/role change/missing document) and verify the real repository signs out.
+2. Admin: exercise the complete Add Location flow against Firebase Auth + Firestore + Functions emulators: allowed active admin, denied inactive/missing admin, duplicate-name rejection, callable save, read-back and inactive status.
+3. Firebase: district-aware index contract is not yet confirmed wired through all callable write paths. Tests for District-linked Area/Locality rename now assert both legacy and District-aware index replacement; inspect test results and source path before treating the dual-index contract as implemented.
+4. Firebase: verify conflicting index ownership is rejected without partial writes, including all supported location types and legacy records.
+5. Company authorization: Founder/CEO, Central Admin and Area Manager canonical membership/assigned-Area enforcement is not implemented end-to-end. Current Admin UI and legacy Rules still depend on `admin_users/{uid}.role == super_admin`; do not silently map that role to a new role.
+6. Live Operations: live booking/walker feeds and actionable state transitions remain unconnected/unverified. “Possible Walker Nearby” must remain “Not checked” until a trusted, fresh and authorized location feed exists.
+7. Legacy file migration: keep legacy screens/services until a complete import/reference scan, tests and rollback review justify any deletion.
+
+### Safe next action
+
+Inspect the exact-head Firebase #526 test output and the callable write path for District-aware Area/Locality indexes. Then add the authenticated Admin emulator tests above. Keep PR #37 and #34 draft/open; no merge, deployment, production backfill or authority provisioning without explicit release approval.
