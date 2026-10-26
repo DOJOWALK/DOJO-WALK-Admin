@@ -141,7 +141,25 @@ try {
     throw new Error('Inactive admin was denied by message but Dashboard remained visible.');
   }
 
-  console.log('PASS: active super_admin UI login, callable-backed State create/read-back, duplicate rejection, and inactive-admin denial.');
+  // Sign out and verify an active account with a non-privileged role is denied.
+  await page.reload({ waitUntil: 'networkidle' });
+  await enableFlutterSemantics();
+  await page.getByLabel('Admin email').waitFor();
+  await signIn('e2e-operator@dojo.invalid', 'E2eOnly-Operator-2026!');
+  await page.getByText(/Is account ko Admin access nahi hai/).waitFor();
+  const operatorDashboardVisible = await page.getByText('Dashboard', { exact: true }).first().isVisible().catch(() => false);
+  if (operatorDashboardVisible) throw new Error('Non-super-admin operator reached Dashboard.');
+
+  // An authenticated user without an admin_users document must also fail closed.
+  await page.reload({ waitUntil: 'networkidle' });
+  await enableFlutterSemantics();
+  await page.getByLabel('Admin email').waitFor();
+  await signIn('e2e-missing-admin@dojo.invalid', 'E2eOnly-Missing-2026!');
+  await page.getByText(/Is account ko Admin access nahi hai/).waitFor();
+  const missingAdminDashboardVisible = await page.getByText('Dashboard', { exact: true }).first().isVisible().catch(() => false);
+  if (missingAdminDashboardVisible) throw new Error('User without admin_users record reached Dashboard.');
+
+  console.log('PASS: active super_admin UI login, callable-backed State create/read-back, duplicate rejection (HTTP 409), inactive-admin denial, non-super-admin role denial, and missing-admin-record denial.');
 } catch (error) {
   await page.screenshot({ path: '/tmp/admin-location-e2e-failure.png', fullPage: true }).catch(() => {});
   console.error('Admin Service Location browser E2E failed:', error);
