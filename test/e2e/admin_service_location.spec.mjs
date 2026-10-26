@@ -86,7 +86,7 @@ try {
   const stateName = `E2E State ${Date.now()}`;
   await page.getByLabel('State / Union Territory name').fill(stateName);
   await page.getByRole('button', { name: 'Save location' }).click();
-  await page.getByText(/Saved successfully\\. Record ID:/).waitFor();
+  await page.getByText(/Saved successfully\. Record ID:/).waitFor();
 
   // Duplicate names under the same parent must be rejected by the callable.
   await page.getByLabel('State / Union Territory name').fill(stateName);
