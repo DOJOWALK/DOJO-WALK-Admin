@@ -45,7 +45,14 @@ try {
 
   // Positive authorization: the emulator-only active super_admin can sign in.
   await signIn('e2e-admin@dojo.invalid', 'E2eOnly-Admin-2026!');
-  await page.getByText('Dashboard', { exact: true }).first().waitFor();
+  const signInOutcome = await Promise.race([
+    page.getByText('Dashboard', { exact: true }).first().waitFor({ timeout: 20000 }).then(() => 'dashboard'),
+    page.getByText(/Login nahi ho saka|Email ya password sahi nahi hai|Network connection check|Admin access could not be checked|Is account ko Admin access nahi hai/i).first().waitFor({ timeout: 20000 }).then(() => 'error'),
+  ]).catch(() => 'timeout');
+  if (signInOutcome !== 'dashboard') {
+    const visibleText = await page.locator('body').innerText().catch(() => '(body text unavailable)');
+    throw new Error(`Active super_admin did not reach Dashboard (outcome=${signInOutcome}). Visible page text: ${visibleText.slice(0, 2500)}`);
+  }
 
   // Use the actual Flutter Add Location screen and its callable-backed save.
   await page.getByText('Add Location', { exact: true }).last().click();
