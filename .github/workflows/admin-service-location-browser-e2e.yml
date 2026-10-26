@@ -45,14 +45,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: firebase-backend/functions/package-lock.json
-      - name: Install Firebase Functions dependencies
-        working-directory: firebase-backend/functions
-        run: npm ci
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install Firebase CLI and Functions dependencies
+        working-directory: firebase-backend
+        run: |
+          npm install --no-audit --no-fund
+          npm --prefix functions install --no-audit --no-fund
       - name: Build trusted Functions
-        working-directory: firebase-backend/functions
-        run: npm run build
+        working-directory: firebase-backend
+        run: npm --prefix functions run build
       - name: Install Firebase CLI and browser test dependencies
         run: |
           npm install --global firebase-tools
