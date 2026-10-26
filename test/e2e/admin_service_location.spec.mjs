@@ -9,6 +9,10 @@ if (projectId !== 'demo-dojo-platform-b68a3') {
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 page.setDefaultTimeout(15000);
+const browserDiagnostics = [];
+page.on('pageerror', (error) => browserDiagnostics.push(`PAGEERROR: ${error.message}`));
+page.on('console', (message) => { if (message.type() === 'error') browserDiagnostics.push(`CONSOLE: ${message.text()}`); });
+page.on('requestfailed', (request) => browserDiagnostics.push(`REQUESTFAILED: ${request.method()} ${request.url()} ${request.failure()?.errorText ?? ''}`));
 
 async function enableFlutterSemantics() {
   // Flutter Web's accessibility opt-in placeholder may be positioned outside
@@ -105,6 +109,17 @@ try {
   // Duplicate names under the same parent must be rejected by the callable.
   await enterFieldValue(stateNameField, stateName, 'Duplicate State name');
   await page.getByRole('button', { name: 'Save location' }).click();
+  // Capture the actual failure surface before asserting. Flutter Web may paint
+  // dialogs on canvas, so DOM text alone is not sufficient evidence.
+  await page.waitForTimeout(2500);
+  const duplicateVisibleText = await page.locator('body').innerText().catch(() => '(body text unavailable)');
+  const duplicateDialogCount = await page.getByText('Unable to save location', { exact: true }).count().catch(() => -1);
+  const duplicateErrorTextCount = await page.getByText(/Naam check karke try karein|duplicate|already exists|already uses this name|Another location already uses this name/i).count().catch(() => -1);
+  console.log('Duplicate-submit diagnostics:', JSON.stringify({ duplicateVisibleText: duplicateVisibleText.slice(0, 3000), duplicateDialogCount, duplicateErrorTextCount, browserDiagnostics }));
+  if (duplicateDialogCount === 0 && duplicateErrorTextCount === 0) {
+    await page.screenshot({ path: '/tmp/admin-location-e2e-duplicate-state.png', fullPage: true }).catch(() => {});
+    throw new Error(`Duplicate save produced no accessible error dialog/text. Visible DOM: ${duplicateVisibleText.slice(0, 1500)}; browser diagnostics: ${browserDiagnostics.slice(-20).join(' | ')}`);
+  }
   await page.getByText(/Naam check karke try karein|duplicate|already exists|already uses this name|Another location already uses this name/i).waitFor();
 
   // Sign out and prove the UI denies an inactive super_admin.
