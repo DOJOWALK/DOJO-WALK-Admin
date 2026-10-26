@@ -3,6 +3,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/service_location_models.dart';
+import 'add_location_data_source.dart';
 import 'service_location_geometry.dart';
 import 'service_location_index_contract.dart';
 
@@ -22,7 +23,7 @@ import 'service_location_index_contract.dart';
 /// Unique names are enforced by the trusted server callable.
 /// ===========================================================
 
-class ServiceLocationService {
+class ServiceLocationService implements AddLocationDataSource {
   final FirebaseFirestore _firestore;
   final FirebaseFunctions _functions;
   final String? Function() _currentUserIdProvider;
