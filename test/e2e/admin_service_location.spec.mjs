@@ -69,7 +69,10 @@ try {
   }
 
   // Use the actual Flutter Add Location screen and its callable-backed save.
-  await page.getByText('Add Location', { exact: true }).last().click();
+  // The screenshot confirms the sidebar item is visible after login. Use the
+  // first matching semantic label instead of the last match, which can be a
+  // detached/off-screen Flutter semantics node.
+  await page.getByText('Add Location', { exact: true }).first().click();
   await page.getByText('Add Service Location', { exact: true }).waitFor();
   await chooseDropdown('Country', 'India');
   const stateName = `E2E State ${Date.now()}`;
