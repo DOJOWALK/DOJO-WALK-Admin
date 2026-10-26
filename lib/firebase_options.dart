@@ -18,12 +18,12 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'fake-api-key-for-emulator-tests',
+    apiKey: 'AIzaSyBgKva52MnBMmclLW_g3D6yHYfDrxqqmiU',
     appId: '1:177087606182:web:3e3695044e6670e6683367',
     messagingSenderId: '177087606182',
     projectId: _firebaseProjectId,
-    authDomain: 'localhost',
-    storageBucket: 'demo-dojo-platform-b68a3.appspot.com',
+    authDomain: 'dojo-platform-b68a3.firebaseapp.com',
+    storageBucket: 'dojo-platform-b68a3.firebasestorage.app',
     measurementId: 'G-LMY82ERE15',
   );
 }
