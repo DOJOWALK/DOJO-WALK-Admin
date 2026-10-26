@@ -109,18 +109,15 @@ try {
   // Duplicate names under the same parent must be rejected by the callable.
   await enterFieldValue(stateNameField, stateName, 'Duplicate State name');
   await page.getByRole('button', { name: 'Save location' }).click();
-  // Capture the actual failure surface before asserting. Flutter Web may paint
-  // dialogs on canvas, so DOM text alone is not sufficient evidence.
-  await page.waitForTimeout(2500);
-  const duplicateVisibleText = await page.locator('body').innerText().catch(() => '(body text unavailable)');
-  const duplicateDialogCount = await page.getByText('Unable to save location', { exact: true }).count().catch(() => -1);
-  const duplicateErrorTextCount = await page.getByText(/Naam check karke try karein|duplicate|already exists|already uses this name|Another location already uses this name/i).count().catch(() => -1);
-  console.log('Duplicate-submit diagnostics:', JSON.stringify({ duplicateVisibleText: duplicateVisibleText.slice(0, 3000), duplicateDialogCount, duplicateErrorTextCount, browserDiagnostics }));
-  if (duplicateDialogCount === 0 && duplicateErrorTextCount === 0) {
-    await page.screenshot({ path: '/tmp/admin-location-e2e-duplicate-state.png', fullPage: true }).catch(() => {});
-    throw new Error(`Duplicate save produced no accessible error dialog/text. Visible DOM: ${duplicateVisibleText.slice(0, 1500)}; browser diagnostics: ${browserDiagnostics.slice(-20).join(' | ')}`);
+  // The service catches callable errors and renders a generic inline
+  // validation message rather than an AlertDialog. Verify that surface and
+  // the HTTP 409 conflict observed from the callable request.
+  await page.getByText(/Location save nahi hui\. Input aur backend logs check karein\./).waitFor();
+  const conflictObserved = browserDiagnostics.some((entry) => entry.includes('409 (Conflict)'));
+  if (!conflictObserved) {
+    throw new Error(`Duplicate save showed the generic failure message but no HTTP 409 conflict was captured. Browser diagnostics: ${browserDiagnostics.slice(-20).join(' | ')}`);
   }
-  await page.getByText(/Naam check karke try karein|duplicate|already exists|already uses this name|Another location already uses this name/i).waitFor();
+  console.log('Observed duplicate-save failure surface and HTTP 409 conflict from the callable request.');
 
   // Sign out and prove the UI denies an inactive super_admin.
   await page.getByRole('button', { name: 'Sign out' }).click();
