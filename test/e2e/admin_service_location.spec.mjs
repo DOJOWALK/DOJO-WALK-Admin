@@ -121,7 +121,16 @@ try {
 
   // Sign out and prove the UI denies an inactive super_admin.
   await page.getByRole('button', { name: 'Sign out' }).click();
-  await page.getByLabel('Admin email').waitFor();
+  // Wait for the auth stream to settle; if Flutter Web keeps the old semantics
+  // tree after sign-out, reload the local test app and re-enable semantics.
+  await page.waitForTimeout(1000);
+  let loginField = page.getByLabel('Admin email');
+  if (!(await loginField.isVisible().catch(() => false))) {
+    await page.reload({ waitUntil: 'networkidle' });
+    await enableFlutterSemantics();
+    loginField = page.getByLabel('Admin email');
+  }
+  await loginField.waitFor({ timeout: 20000 });
   await signIn('e2e-inactive@dojo.invalid', 'E2eOnly-Inactive-2026!');
   await page.getByText(/Is account ko Admin access nahi hai/).waitFor();
   await page.getByText('Admin Control Center', { exact: true }).waitFor();
