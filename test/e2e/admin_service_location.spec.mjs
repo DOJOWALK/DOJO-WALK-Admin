@@ -1,10 +1,18 @@
 import { chromium } from 'playwright';
+import { initializeApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 
 const baseUrl = 'http://127.0.0.1:4173';
 const projectId = process.env.DOJO_E2E_PROJECT_ID;
 if (projectId !== 'demo-dojo-platform-b68a3') {
   throw new Error('Refusing to run browser tests unless using demo-dojo-platform-b68a3.');
 }
+
+if (!process.env.FIRESTORE_EMULATOR_HOST) {
+  throw new Error('Refusing duplicate-record verification without Firestore emulator host.');
+}
+const adminApp = initializeApp({ projectId }, 'dojo-e2e-record-verification');
+const firestore = getFirestore(adminApp);
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
@@ -117,7 +125,11 @@ try {
   if (!conflictObserved) {
     throw new Error(`Duplicate save showed the generic failure message but no HTTP 409 conflict was captured. Browser diagnostics: ${browserDiagnostics.slice(-20).join(' | ')}`);
   }
-  console.log('Observed duplicate-save failure surface and HTTP 409 conflict from the callable request.');
+  const duplicateSaveCount = (await firestore.collection('service_states').where('name', '==', stateName).get()).size;
+  if (duplicateSaveCount !== 1) {
+    throw new Error(`Duplicate save changed service_states record count (expected 1, found ${duplicateSaveCount}).`);
+  }
+  console.log('Verified duplicate-save HTTP 409 and exactly one matching Firestore State record after both attempts.');
 
   // Sign out and prove the UI denies an inactive super_admin.
   await page.getByRole('button', { name: 'Sign out' }).click();
