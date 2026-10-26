@@ -105,6 +105,7 @@ jobs:
           path: |
             /tmp/dojo-emulators.log
             /tmp/dojo-web.log
+            /tmp/admin-location-e2e-failure.png
       - name: Stop local processes
         if: always()
         run: |
