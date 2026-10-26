@@ -133,7 +133,13 @@ try {
   await loginField.waitFor({ timeout: 20000 });
   await signIn('e2e-inactive@dojo.invalid', 'E2eOnly-Inactive-2026!');
   await page.getByText(/Is account ko Admin access nahi hai/).waitFor();
-  await page.getByText('Admin Control Center', { exact: true }).waitFor();
+  // Authorization denial is the expected terminal state. Do not require the
+  // authenticated shell's title: the login/denial screen intentionally has no
+  // Admin Control Center heading, and Flutter canvas text is not a DOM node.
+  const dashboardVisible = await page.getByText('Dashboard', { exact: true }).first().isVisible().catch(() => false);
+  if (dashboardVisible) {
+    throw new Error('Inactive admin was denied by message but Dashboard remained visible.');
+  }
 
   console.log('PASS: active super_admin UI login, callable-backed State create/read-back, duplicate rejection, and inactive-admin denial.');
 } catch (error) {
