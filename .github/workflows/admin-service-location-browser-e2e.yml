@@ -1,0 +1,108 @@
+name: Admin Service Location Browser E2E
+
+on:
+  pull_request:
+    paths:
+      - "lib/**"
+      - "web/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "test/e2e/**"
+      - ".github/workflows/admin-service-location-browser-e2e.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-location-browser-e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Admin app
+        uses: actions/checkout@v4
+        with:
+          path: admin
+      - name: Checkout pinned Firebase callable test revision
+        uses: actions/checkout@v4
+        with:
+          repository: DOJOWALK/DOJO-WALK-Firebase
+          ref: b6dbb833dfc96405759b794eb7e706c154f5f317
+          path: firebase-backend
+      - name: Verify isolated demo project only
+        run: |
+          test "${{ github.repository }}" = "DOJOWALK/DOJO-WALK-Admin"
+          grep -q 'projectId: const String.fromEnvironment' admin/lib/firebase_options.dart
+          ! grep -R 'FIREBASE_SERVICE_ACCOUNT' -n admin/test/e2e
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: firebase-backend/functions/package-lock.json
+      - name: Install Firebase Functions dependencies
+        working-directory: firebase-backend/functions
+        run: npm ci
+      - name: Build trusted Functions
+        working-directory: firebase-backend/functions
+        run: npm run build
+      - name: Install Firebase CLI and browser test dependencies
+        run: |
+          npm install --global firebase-tools
+          cd admin
+          npm install --no-save playwright firebase-admin
+          npx playwright install --with-deps chromium
+      - name: Start Auth, Firestore and Functions emulators
+        working-directory: firebase-backend
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
+        run: |
+          firebase emulators:start --project demo-dojo-platform-b68a3 --only auth,firestore,functions > /tmp/dojo-emulators.log 2>&1 &
+          echo $! > /tmp/dojo-emulators.pid
+          for i in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:9099/ >/dev/null 2>&1 && curl -fsS http://127.0.0.1:8080/ >/dev/null 2>&1; then
+              echo "Emulators are accepting connections"
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/dojo-emulators.log
+          exit 1
+      - name: Seed emulator-only users and India country
+        working-directory: admin
+        env:
+          FIRESTORE_EMULATOR_HOST: 127.0.0.1:8080
+          FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
+          DOJO_E2E_PROJECT_ID: demo-dojo-platform-b68a3
+        run: node test/e2e/seed_emulator.mjs
+      - name: Build Flutter Web with emulator routing enabled
+        working-directory: admin
+        run: flutter build web --release --dart-define=DOJO_USE_FIREBASE_EMULATORS=true --dart-define=DOJO_FIREBASE_EMULATOR_HOST=127.0.0.1 --dart-define=DOJO_FIREBASE_PROJECT_ID=demo-dojo-platform-b68a3
+      - name: Run browser E2E against local app and emulators
+        working-directory: admin
+        env:
+          DOJO_E2E_PROJECT_ID: demo-dojo-platform-b68a3
+        run: |
+          python3 -m http.server 4173 --directory build/web > /tmp/dojo-web.log 2>&1 &
+          echo $! > /tmp/dojo-web.pid
+          node test/e2e/admin_service_location.spec.mjs
+      - name: Upload emulator logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-location-e2e-diagnostics
+          path: |
+            /tmp/dojo-emulators.log
+            /tmp/dojo-web.log
+      - name: Stop local processes
+        if: always()
+        run: |
+          test ! -f /tmp/dojo-web.pid || kill "$(cat /tmp/dojo-web.pid)" || true
+          test ! -f /tmp/dojo-emulators.pid || kill "$(cat /tmp/dojo-emulators.pid)" || true
