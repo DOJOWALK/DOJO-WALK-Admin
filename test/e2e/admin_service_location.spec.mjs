@@ -144,7 +144,7 @@ try {
   }
   await loginField.waitFor({ timeout: 20000 });
   await signIn('e2e-inactive@dojo.invalid', 'E2eOnly-Inactive-2026!');
-  await page.getByText(/Is account ko Admin access nahi hai/).waitFor();
+  await page.getByText(/You are not authorized as an admin\\.|This admin account is inactive\\./).waitFor();
   // Authorization denial is the expected terminal state. Do not require the
   // authenticated shell's title: the login/denial screen intentionally has no
   // Admin Control Center heading, and Flutter canvas text is not a DOM node.
@@ -158,7 +158,7 @@ try {
   await enableFlutterSemantics();
   await page.getByLabel('Admin email').waitFor();
   await signIn('e2e-operator@dojo.invalid', 'E2eOnly-Operator-2026!');
-  await page.getByText(/Is account ko Admin access nahi hai/).waitFor();
+  await page.getByText(/You are not authorized as an admin\\.|This admin account is inactive\\./).waitFor();
   const operatorDashboardVisible = await page.getByText('Dashboard', { exact: true }).first().isVisible().catch(() => false);
   if (operatorDashboardVisible) throw new Error('Non-super-admin operator reached Dashboard.');
 
@@ -167,7 +167,7 @@ try {
   await enableFlutterSemantics();
   await page.getByLabel('Admin email').waitFor();
   await signIn('e2e-missing-admin@dojo.invalid', 'E2eOnly-Missing-2026!');
-  await page.getByText(/Is account ko Admin access nahi hai/).waitFor();
+  await page.getByText(/You are not authorized as an admin\\.|This admin account is inactive\\./).waitFor();
   const missingAdminDashboardVisible = await page.getByText('Dashboard', { exact: true }).first().isVisible().catch(() => false);
   if (missingAdminDashboardVisible) throw new Error('User without admin_users record reached Dashboard.');
 
