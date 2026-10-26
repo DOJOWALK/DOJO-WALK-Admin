@@ -92,6 +92,7 @@ jobs:
       - name: Run browser E2E against local app and emulators
         working-directory: admin
         env:
+          FIRESTORE_EMULATOR_HOST: 127.0.0.1:8080
           DOJO_E2E_PROJECT_ID: demo-dojo-platform-b68a3
         run: |
           python3 -m http.server 4173 --directory build/web > /tmp/dojo-web.log 2>&1 &
