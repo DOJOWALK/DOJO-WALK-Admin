@@ -86,12 +86,13 @@ try {
   // anchored to the Country field in the fixed 1280x720 viewport.
   await page.mouse.click(220, 335);
   const stateName = `E2E State ${Date.now()}`;
-  await page.getByLabel('State / Union Territory name').fill(stateName);
+  const stateNameField = page.getByLabel('State / Union Territory name');
+  await enterFieldValue(stateNameField, stateName, 'State name');
   await page.getByRole('button', { name: 'Save location' }).click();
-  await page.getByText(/Saved successfully\. Record ID:/).waitFor();
+  await page.getByText(/Saved successfully\\. Record ID:/).waitFor();
 
   // Duplicate names under the same parent must be rejected by the callable.
-  await page.getByLabel('State / Union Territory name').fill(stateName);
+  await enterFieldValue(stateNameField, stateName, 'Duplicate State name');
   await page.getByRole('button', { name: 'Save location' }).click();
   await page.getByText(/Naam check karke try karein|duplicate|already exists/i).waitFor();
 
