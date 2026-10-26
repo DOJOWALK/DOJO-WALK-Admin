@@ -8,19 +8,22 @@ import '../dashboard/admin_shell.dart';
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
-  Future<bool> _isAdmin(User user) async {
-    final doc = await FirebaseFirestore.instance
-        .collection('admin_users')
-        .doc(user.uid)
-        .get();
+  Future<bool> _isAuthorizedAdmin(User user) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('admin_users')
+          .doc(user.uid)
+          .get();
 
-    if (!doc.exists) return false;
-
-    final data = doc.data();
-
-    if (data == null) return false;
-
-    return data['isActive'] == true;
+      final data = doc.data();
+      return doc.exists &&
+          data != null &&
+          data['isActive'] == true &&
+          data['role'] == 'super_admin';
+    } catch (_) {
+      // Authorization lookup errors must fail closed.
+      return false;
+    }
   }
 
   @override
@@ -30,33 +33,27 @@ class AuthGate extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 
         final user = snapshot.data;
-
         if (user == null) {
           return const AdminLoginScreen();
         }
 
         return FutureBuilder<bool>(
-          future: _isAdmin(user),
+          future: _isAuthorizedAdmin(user),
           builder: (context, adminSnapshot) {
-            if (adminSnapshot.connectionState ==
-                ConnectionState.waiting) {
+            if (adminSnapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                body: Center(child: CircularProgressIndicator()),
               );
             }
 
             if (adminSnapshot.data != true) {
+              // Keep unauthorized users out of the shell and clear local auth.
               FirebaseAuth.instance.signOut();
-
               return const AdminLoginScreen();
             }
 
