@@ -36,11 +36,11 @@ jobs:
       - name: Verify isolated demo project only
         run: |
           test "${{ github.repository }}" = "DOJOWALK/DOJO-WALK-Admin"
-          grep -q 'projectId: const String.fromEnvironment' admin/lib/firebase_options.dart
+          grep -q 'DOJO_FIREBASE_PROJECT_ID' admin/lib/firebase_options.dart
           ! grep -R 'FIREBASE_SERVICE_ACCOUNT' -n admin/test/e2e
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.35.7'
           cache: true
       - uses: actions/setup-node@v4
         with:
@@ -67,7 +67,7 @@ jobs:
           firebase emulators:start --project demo-dojo-platform-b68a3 --only auth,firestore,functions > /tmp/dojo-emulators.log 2>&1 &
           echo $! > /tmp/dojo-emulators.pid
           for i in $(seq 1 90); do
-            if curl -fsS http://127.0.0.1:9099/ >/dev/null 2>&1 && curl -fsS http://127.0.0.1:8080/ >/dev/null 2>&1; then
+            if curl -s http://127.0.0.1:9099/ >/dev/null 2>&1 && curl -s http://127.0.0.1:8080/ >/dev/null 2>&1; then
               echo "Emulators are accepting connections"
               exit 0
             fi
