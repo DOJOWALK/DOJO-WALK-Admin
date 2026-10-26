@@ -89,7 +89,7 @@ try {
   const stateNameField = page.getByLabel('State / Union Territory name');
   await enterFieldValue(stateNameField, stateName, 'State name');
   await page.getByRole('button', { name: 'Save location' }).click();
-  await page.getByText(/Saved successfully\\. Record ID:/).waitFor();
+  await page.getByText(/Saved successfully\. Record ID:/).waitFor();
 
   // Duplicate names under the same parent must be rejected by the callable.
   await enterFieldValue(stateNameField, stateName, 'Duplicate State name');
