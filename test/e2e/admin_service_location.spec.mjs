@@ -13,9 +13,16 @@ page.setDefaultTimeout(15000);
 async function enableFlutterSemantics() {
   // Flutter Web initially exposes a small accessibility opt-in control in
   // Chromium. Enable it when present so Playwright uses the real semantics tree.
+  const placeholder = page.locator('flt-semantics-placeholder').first();
+  if (await placeholder.isVisible().catch(() => false)) {
+    await placeholder.click();
+    await page.waitForTimeout(500);
+    return;
+  }
   const enable = page.getByText(/enable accessibility/i).first();
   if (await enable.isVisible().catch(() => false)) {
     await enable.click();
+    await page.waitForTimeout(500);
   }
 }
 
@@ -33,7 +40,7 @@ async function chooseDropdown(label, option) {
 try {
   await page.goto(baseUrl, { waitUntil: 'networkidle' });
   await enableFlutterSemantics();
-  await page.getByText('Admin Control Center', { exact: true }).waitFor();
+  await page.getByLabel('Admin email').waitFor();
 
   // Positive authorization: the emulator-only active super_admin can sign in.
   await signIn('e2e-admin@dojo.invalid', 'E2eOnly-Admin-2026!');
@@ -55,7 +62,7 @@ try {
 
   // Sign out and prove the UI denies an inactive super_admin.
   await page.getByRole('button', { name: 'Sign out' }).click();
-  await page.getByText('Admin Control Center', { exact: true }).waitFor();
+  await page.getByLabel('Admin email').waitFor();
   await signIn('e2e-inactive@dojo.invalid', 'E2eOnly-Inactive-2026!');
   await page.getByText(/Is account ko Admin access nahi hai/).waitFor();
   await page.getByText('Admin Control Center', { exact: true }).waitFor();
