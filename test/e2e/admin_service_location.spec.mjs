@@ -27,19 +27,24 @@ async function enableFlutterSemantics() {
   }
 }
 
+async function enterFieldValue(field, value, label) {
+  await field.click();
+  await page.keyboard.press('Control+A');
+  // Send actual key events to Flutter's editable semantics node. Then assert
+  // the visible field contains the value before trying to authenticate.
+  await field.pressSequentially(value, { delay: 10 });
+  const actual = await field.inputValue();
+  if (actual !== value) {
+    throw new Error(`${label} input mismatch before submit (expected ${value.length} chars, got ${actual.length}).`);
+  }
+}
+
 async function signIn(email, password) {
-  // Flutter Web keeps TextEditingController state in its framework. Drive the
-  // accessible semantic fields with real keyboard input instead of filling a
-  // potentially detached DOM mirror, then submit with Enter from the password.
   const emailField = page.getByLabel('Admin email');
   const passwordField = page.getByLabel('Password');
-  await emailField.click();
-  await page.keyboard.press('Control+A');
-  await page.keyboard.insertText(email);
-  await passwordField.click();
-  await page.keyboard.press('Control+A');
-  await page.keyboard.insertText(password);
-  await page.keyboard.press('Enter');
+  await enterFieldValue(emailField, email, 'Email');
+  await enterFieldValue(passwordField, password, 'Password');
+  await passwordField.press('Enter');
 }
 
 async function chooseDropdown(label, option) {
