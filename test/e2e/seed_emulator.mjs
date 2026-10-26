@@ -34,6 +34,14 @@ for (const entry of users) {
   });
 }
 
+// Create a valid Auth identity without an admin_users record to test fail-closed authorization.
+try {
+  await auth.getUserByEmail('e2e-missing-admin@dojo.invalid');
+} catch (error) {
+  if (error.code !== 'auth/user-not-found') throw error;
+  await auth.createUser({ email: 'e2e-missing-admin@dojo.invalid', password: 'E2eOnly-Missing-2026!', emailVerified: true });
+}
+
 await db.collection('service_countries').doc('e2e-india').set({
   name: 'India',
   code: 'IN',
