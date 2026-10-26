@@ -11,17 +11,18 @@ const page = await browser.newPage();
 page.setDefaultTimeout(15000);
 
 async function enableFlutterSemantics() {
-  // Flutter Web initially exposes a small accessibility opt-in control in
-  // Chromium. Enable it when present so Playwright uses the real semantics tree.
+  // Flutter Web's accessibility opt-in placeholder may be positioned outside
+  // the viewport in headless Chromium. Invoke its own DOM click handler rather
+  // than asking Playwright to scroll/click an off-screen control.
   const placeholder = page.locator('flt-semantics-placeholder').first();
-  if (await placeholder.isVisible().catch(() => false)) {
-    await placeholder.click();
+  if (await placeholder.count()) {
+    await placeholder.evaluate((element) => element.click());
     await page.waitForTimeout(500);
     return;
   }
   const enable = page.getByText(/enable accessibility/i).first();
-  if (await enable.isVisible().catch(() => false)) {
-    await enable.click();
+  if (await enable.count()) {
+    await enable.evaluate((element) => element.click());
     await page.waitForTimeout(500);
   }
 }
@@ -53,7 +54,7 @@ try {
   const stateName = `E2E State ${Date.now()}`;
   await page.getByLabel('State / Union Territory name').fill(stateName);
   await page.getByRole('button', { name: 'Save location' }).click();
-  await page.getByText(/Saved successfully\. Record ID:/).waitFor();
+  await page.getByText(/Saved successfully\\. Record ID:/).waitFor();
 
   // Duplicate names under the same parent must be rejected by the callable.
   await page.getByLabel('State / Union Territory name').fill(stateName);
