@@ -28,14 +28,25 @@ async function enableFlutterSemantics() {
 }
 
 async function enterFieldValue(field, value, label) {
-  // Flutter Web can occasionally drop a character when key events arrive too
-  // quickly. Retry with a slower sequence and verify exact input before submit.
-  for (const delay of [40, 80]) {
-    await field.click();
-    await page.keyboard.press('Control+A');
-    await field.pressSequentially(value, { delay });
+  // Flutter Web's semantics input can report a DOM value before the rendered
+  // TextField has accepted it. Try fill (which dispatches input events), then
+  // keyboard entry; require both the DOM value and a short settle before submit.
+  for (const attempt of ['fill', 'keyboard-40', 'keyboard-100']) {
+    if (attempt === 'fill') {
+      await field.click();
+      await field.fill(value);
+    } else {
+      await field.click();
+      await page.keyboard.press('Control+A');
+      await field.pressSequentially(value, { delay: attempt === 'keyboard-40' ? 40 : 100 });
+    }
+    await page.waitForTimeout(300);
     const actual = await field.inputValue();
-    if (actual === value) return;
+    if (actual === value) {
+      // Let Flutter process the text-editing event before Save is clicked.
+      await page.waitForTimeout(300);
+      return;
+    }
   }
   const actual = await field.inputValue();
   throw new Error(`${label} input mismatch before submit (expected ${value.length} chars, got ${actual.length}).`);
