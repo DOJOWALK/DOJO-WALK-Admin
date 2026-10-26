@@ -31,12 +31,12 @@ async function signIn(email, password) {
   // Flutter Web's semantic label can resolve to the surrounding semantics
   // node rather than the editable DOM input in headless Chromium. Target the
   // actual input elements and verify both values before submitting.
-  const emailInput = page.locator('input[type="email"]').first();
+  const emailInput = page.locator('input:not([type="password"])').first();
   const passwordInput = page.locator('input[type="password"]').first();
   await emailInput.fill(email);
   await passwordInput.fill(password);
   const values = await page.evaluate(() => ({
-    emailLength: document.querySelector('input[type="email"]')?.value?.length ?? 0,
+    emailLength: document.querySelector('input:not([type="password"])')?.value?.length ?? 0,
     passwordLength: document.querySelector('input[type="password"]')?.value?.length ?? 0,
   }));
   if (values.emailLength === 0 || values.passwordLength === 0) {
