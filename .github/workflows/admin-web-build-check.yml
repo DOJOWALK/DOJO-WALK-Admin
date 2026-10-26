@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - feature/admin-fresh-architecture-2026-10-24
       - step-186-main-integration-review
     paths:
       - '**.dart'
