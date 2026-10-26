@@ -74,8 +74,15 @@ try {
   // confirmed by the failure screenshot, rather than retrying a non-existent
   // DOM text locator.
   await page.mouse.click(57, 240);
-  await page.getByText('Add Service Location', { exact: true }).waitFor();
-  await chooseDropdown('Country', 'India');
+  // Flutter paints the form title and dropdowns on its canvas; the title is
+  // visible in screenshots but is not exposed as a DOM text node. Wait for the
+  // rendered form, then open the Country dropdown at its stable viewport spot.
+  await page.waitForTimeout(1000);
+  await page.mouse.click(700, 335);
+  await page.waitForTimeout(400);
+  // India is the first country option in the emulator-seeded list. The menu is
+  // anchored to the Country field in the fixed 1280x720 viewport.
+  await page.mouse.click(220, 335);
   const stateName = `E2E State ${Date.now()}`;
   await page.getByLabel('State / Union Territory name').fill(stateName);
   await page.getByRole('button', { name: 'Save location' }).click();
