@@ -7,7 +7,7 @@ if (projectId !== 'demo-dojo-platform-b68a3') {
 }
 
 const browser = await chromium.launch({ headless: true });
-const page = await browser.newPage();
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 page.setDefaultTimeout(15000);
 
 async function enableFlutterSemantics() {
@@ -68,11 +68,12 @@ try {
     throw new Error(`Active super_admin did not reach Dashboard (outcome=${signInOutcome}). Visible page text: ${visibleText.slice(0, 2500)}`);
   }
 
-  // Use the actual Flutter Add Location screen and its callable-backed save.
-  // The screenshot confirms the sidebar item is visible after login. Use the
-  // first matching semantic label instead of the last match, which can be a
-  // detached/off-screen Flutter semantics node.
-  await page.getByText('Add Location', { exact: true }).first().click();
+  // Flutter paints this sidebar label in the canvas, but does not expose it as
+  // a Playwright text node even after accessibility is enabled. Keep the
+  // browser viewport fixed and click the visible Add Location navigation item
+  // confirmed by the failure screenshot, rather than retrying a non-existent
+  // DOM text locator.
+  await page.mouse.click(57, 240);
   await page.getByText('Add Service Location', { exact: true }).waitFor();
   await chooseDropdown('Country', 'India');
   const stateName = `E2E State ${Date.now()}`;
