@@ -105,7 +105,7 @@ try {
   // Duplicate names under the same parent must be rejected by the callable.
   await enterFieldValue(stateNameField, stateName, 'Duplicate State name');
   await page.getByRole('button', { name: 'Save location' }).click();
-  await page.getByText(/Naam check karke try karein|duplicate|already exists/i).waitFor();
+  await page.getByText(/Naam check karke try karein|duplicate|already exists|already uses this name|Another location already uses this name/i).waitFor();
 
   // Sign out and prove the UI denies an inactive super_admin.
   await page.getByRole('button', { name: 'Sign out' }).click();
