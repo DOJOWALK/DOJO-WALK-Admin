@@ -1,6 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 
+const _firebaseProjectId = String.fromEnvironment(
+  'DOJO_FIREBASE_PROJECT_ID',
+  defaultValue: 'dojo-platform-b68a3',
+);
+
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -13,12 +18,12 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBgKva52MnBMmclLW_g3D6yHYfDrxqqmiU',
+    apiKey: 'fake-api-key-for-emulator-tests',
     appId: '1:177087606182:web:3e3695044e6670e6683367',
     messagingSenderId: '177087606182',
-    projectId: 'dojo-platform-b68a3',
-    authDomain: 'dojo-platform-b68a3.firebaseapp.com',
-    storageBucket: 'dojo-platform-b68a3.firebasestorage.app',
+    projectId: _firebaseProjectId,
+    authDomain: 'localhost',
+    storageBucket: 'demo-dojo-platform-b68a3.appspot.com',
     measurementId: 'G-LMY82ERE15',
   );
 }
