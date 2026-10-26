@@ -15,29 +15,31 @@ class AuthService {
     );
 
     final user = credential.user;
-
     if (user == null) {
       throw Exception('Login failed.');
     }
 
-    final doc = await _firestore
-        .collection('admin_users')
-        .doc(user.uid)
-        .get();
+    try {
+      final doc = await _firestore.collection('admin_users').doc(user.uid).get();
+      final data = doc.data();
 
-    if (!doc.exists) {
+      if (!doc.exists || data == null) {
+        throw Exception('You are not authorized as an admin.');
+      }
+      if (data['isActive'] != true) {
+        throw Exception('Admin account is inactive.');
+      }
+      if (data['role'] != 'super_admin') {
+        throw Exception('You are not authorized as an admin.');
+      }
+
+      return data;
+    } catch (_) {
+      // Fail closed: never leave a successfully authenticated but unauthorized
+      // Firebase user signed in when the admin record cannot be verified.
       await _auth.signOut();
-      throw Exception('You are not authorized as an admin.');
+      rethrow;
     }
-
-    final data = doc.data();
-
-    if (data == null || data['isActive'] != true) {
-      await _auth.signOut();
-      throw Exception('Admin account is inactive.');
-    }
-
-    return data;
   }
 
   Future<void> signOut() async {
