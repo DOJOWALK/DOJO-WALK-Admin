@@ -28,15 +28,17 @@ async function enableFlutterSemantics() {
 }
 
 async function enterFieldValue(field, value, label) {
-  await field.click();
-  await page.keyboard.press('Control+A');
-  // Send actual key events to Flutter's editable semantics node. Then assert
-  // the visible field contains the value before trying to authenticate.
-  await field.pressSequentially(value, { delay: 10 });
-  const actual = await field.inputValue();
-  if (actual !== value) {
-    throw new Error(`${label} input mismatch before submit (expected ${value.length} chars, got ${actual.length}).`);
+  // Flutter Web can occasionally drop a character when key events arrive too
+  // quickly. Retry with a slower sequence and verify exact input before submit.
+  for (const delay of [40, 80]) {
+    await field.click();
+    await page.keyboard.press('Control+A');
+    await field.pressSequentially(value, { delay });
+    const actual = await field.inputValue();
+    if (actual === value) return;
   }
+  const actual = await field.inputValue();
+  throw new Error(`${label} input mismatch before submit (expected ${value.length} chars, got ${actual.length}).`);
 }
 
 async function signIn(email, password) {
