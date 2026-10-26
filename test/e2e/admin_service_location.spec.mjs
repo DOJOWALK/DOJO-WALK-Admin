@@ -28,21 +28,18 @@ async function enableFlutterSemantics() {
 }
 
 async function signIn(email, password) {
-  // Flutter Web's semantic label can resolve to the surrounding semantics
-  // node rather than the editable DOM input in headless Chromium. Target the
-  // actual input elements and verify both values before submitting.
-  const emailInput = page.locator('input:not([type="password"])').first();
-  const passwordInput = page.locator('input[type="password"]').first();
-  await emailInput.fill(email);
-  await passwordInput.fill(password);
-  const values = await page.evaluate(() => ({
-    emailLength: document.querySelector('input:not([type="password"])')?.value?.length ?? 0,
-    passwordLength: document.querySelector('input[type="password"]')?.value?.length ?? 0,
-  }));
-  if (values.emailLength === 0 || values.passwordLength === 0) {
-    throw new Error(`Login form fields were not populated: ${JSON.stringify(values)}`);
-  }
-  await page.getByRole('button', { name: 'Sign in securely' }).click();
+  // Flutter Web keeps TextEditingController state in its framework. Drive the
+  // accessible semantic fields with real keyboard input instead of filling a
+  // potentially detached DOM mirror, then submit with Enter from the password.
+  const emailField = page.getByLabel('Admin email');
+  const passwordField = page.getByLabel('Password');
+  await emailField.click();
+  await page.keyboard.press('Control+A');
+  await page.keyboard.insertText(email);
+  await passwordField.click();
+  await page.keyboard.press('Control+A');
+  await page.keyboard.insertText(password);
+  await page.keyboard.press('Enter');
 }
 
 async function chooseDropdown(label, option) {
