@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/location_selection_state.dart';
 import '../models/service_location_models.dart';
-import '../services/service_location_service.dart';
+import '../services/add_location_data_source.dart';
 import '../services/optional_indian_pincode_validator.dart';
 
 const Color _addLocationOrange = Color(0xFFFF7900);
@@ -14,7 +14,7 @@ class AddLocationDialog extends StatefulWidget {
     required this.onSaved,
   });
 
-  final ServiceLocationService service;
+  final AddLocationDataSource service;
   final ValueChanged<int> onSaved;
 
   @override
