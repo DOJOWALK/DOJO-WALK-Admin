@@ -144,7 +144,16 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
 
     final boundary = await _firestore.collection('service_location_boundaries').doc(boundaryId).get();
     if (!boundary.exists) return null;
-    final rawPoints = boundary.data()?['points'];
+    final boundaryData = boundary.data();
+    // Treat the map center as untrusted unless the referenced boundary is
+    // explicitly verified and belongs to this City. A stale or malformed
+    // verifiedBoundaryId must never steer the editor to another location.
+    if (boundaryData?['verificationStatus'] != 'verified' ||
+        boundaryData?['locationType']?.toString().toLowerCase() != 'city' ||
+        boundaryData?['locationId']?.toString() != cityId) {
+      return null;
+    }
+    final rawPoints = boundaryData?['points'];
     if (rawPoints is! List) return null;
 
     final points = <LatLng>[];
