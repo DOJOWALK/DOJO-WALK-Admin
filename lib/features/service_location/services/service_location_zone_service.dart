@@ -146,6 +146,22 @@ class ServiceLocationZoneService {
     });
   }
 
+  Future<void> requestReactivation({
+    required String zoneId,
+    required String reason,
+  }) async {
+    final normalizedReason = reason.trim();
+    if (normalizedReason.isEmpty || normalizedReason.length > 2000) {
+      throw ArgumentError(
+        'A reactivation reason is required (maximum 2000 characters).',
+      );
+    }
+    await _functions.httpsCallable('requestServiceZoneReactivation').call({
+      'zoneId': _required(zoneId, 'Zone ID'),
+      'reason': normalizedReason,
+    });
+  }
+
   Future<void> suspendForEmergency({
     required String zoneId,
     required String reason,
