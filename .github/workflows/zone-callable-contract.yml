@@ -5,6 +5,7 @@ on:
     paths:
       - 'lib/features/service_location/services/service_location_zone_service.dart'
       - 'tool/verify_zone_callable_contract.mjs'
+      - 'tool/verify_zone_callable_contract.test.mjs'
       - '.github/workflows/zone-callable-contract.yml'
   workflow_dispatch:
 
@@ -21,6 +22,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Test contract verifier with positive and negative fixtures
+        run: node --test tool/verify_zone_callable_contract.test.mjs
       - name: Fetch pinned Firebase callable exports
         env:
           FIREBASE_BASELINE_SHA: 6b1ac42c99564333bf9507a0b5739257c28421eb
