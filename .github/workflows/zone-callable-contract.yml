@@ -1,0 +1,38 @@
+name: Zone Callable Contract Check
+
+on:
+  pull_request:
+    paths:
+      - 'lib/features/service_location/services/service_location_zone_service.dart'
+      - 'tool/verify_zone_callable_contract.mjs'
+      - '.github/workflows/zone-callable-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  zone-callable-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Admin repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch pinned Firebase callable exports
+        env:
+          FIREBASE_BASELINE_SHA: 6b1ac42c99564333bf9507a0b5739257c28421eb
+        run: |
+          set -euo pipefail
+          mkdir -p .contract-tmp
+          curl --fail --silent --show-error --location \
+            "https://raw.githubusercontent.com/DOJOWALK/DOJO-WALK-Firebase/${FIREBASE_BASELINE_SHA}/functions/src/index.ts" \
+            --output .contract-tmp/firebase-index.ts
+          echo "Firebase contract baseline: ${FIREBASE_BASELINE_SHA}"
+      - name: Verify Admin-to-Firebase callable contract
+        run: |
+          node tool/verify_zone_callable_contract.mjs \
+            lib/features/service_location/services/service_location_zone_service.dart \
+            .contract-tmp/firebase-index.ts
