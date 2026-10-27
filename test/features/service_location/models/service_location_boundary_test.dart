@@ -126,11 +126,35 @@ void main() {
       expect(invalid.validate(), contains('Location ID is required.'));
       expect(
         invalid.validate(),
-        contains('Location type must be city or area.'),
+        contains('Location type must be city, area or zone.'),
       );
     });
 
-    test('rejects locality boundaries because trusted review supports city and area only', () {
+    test('accepts Zone boundaries for the Zone approval workflow', () {
+      final valid = ServiceLocationBoundary(
+        id: 'zone-boundary',
+        locationId: 'zone-1',
+        locationType: 'zone',
+        points: const [
+          GeoPoint(28.0, 77.0),
+          GeoPoint(28.1, 77.0),
+          GeoPoint(28.1, 77.1),
+        ],
+        sourceType: BoundarySourceType.manuallyDrawn,
+        sourceName: 'Test source',
+        sourceReference: 'test-reference',
+        verificationStatus: BoundaryVerificationStatus.pending,
+        verifiedBy: null,
+        verifiedAt: null,
+        verificationNotes: null,
+        createdAt: DateTime.utc(2026, 1, 1),
+        updatedAt: DateTime.utc(2026, 1, 1),
+      );
+
+      expect(valid.validate(), isEmpty);
+    });
+
+    test('rejects locality boundaries because trusted review supports city, area and zone only', () {
       final valid = boundary(
         'unsupported-locality',
         BoundaryVerificationStatus.pending,
@@ -153,7 +177,7 @@ void main() {
 
       expect(
         invalid.validate(),
-        contains('Location type must be city or area.'),
+        contains('Location type must be city, area or zone.'),
       );
     });
 
