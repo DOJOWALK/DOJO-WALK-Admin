@@ -85,15 +85,29 @@ try {
   browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, locale: 'en-US', timezoneId: 'Asia/Kolkata' });
   page.setDefaultTimeout(15000);
-  page.on('pageerror', error => console.error('BROWSER_PAGE_ERROR:', error.message));
+  page.on('pageerror', error => console.error('BROWSER_PAGE_ERROR:', error.stack || error.message));
   // The UI test does not depend on Google Maps network/API availability.
   await page.route('https://maps.googleapis.com/**', route => route.abort());
   await page.goto('http://127.0.0.1:4173', { waitUntil: 'domcontentloaded' });
 
   const enableAccessibility = page.getByRole('button', { name: /enable accessibility/i });
+  const placeholder = page.locator('flt-semantics-placeholder');
+  console.log('Flutter accessibility controls:', {
+    namedButtonCount: await enableAccessibility.count().catch(() => 0),
+    placeholderCount: await placeholder.count().catch(() => 0),
+    title: await page.title(),
+  });
   if (await enableAccessibility.count().catch(() => 0)) {
-    await enableAccessibility.first().click();
+    await enableAccessibility.first().click({ force: true });
+  } else if (await placeholder.count().catch(() => 0)) {
+    await placeholder.click({ force: true });
+  } else {
+    // Some Flutter web builds expose the accessibility prompt only on first
+    // keyboard focus; Tab/Enter enables the semantic DOM for browser tests.
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Enter');
   }
+  await page.waitForTimeout(500);
   await page.getByPlaceholder('Enter admin email').fill(email);
   await page.getByPlaceholder('Enter password').fill(password);
   await page.getByRole('button', { name: /sign in/i }).click();
