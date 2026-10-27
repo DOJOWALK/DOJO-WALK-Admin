@@ -147,14 +147,12 @@ try {
     }));
     throw new Error(`Admin login did not reach the dashboard: ${error.message}`);
   }
-  // The sidebar and dashboard shortcut share a similar label. The dashboard
-  // shortcut is the last matching button in the rendered semantics tree.
+  // Navigate through the actual sidebar item, not the dashboard shortcut,
+  // whose semantics label can be ambiguous in Flutter Web.
   await page.getByText('Total Bookings', { exact: true }).waitFor({ timeout: 10000 });
-  const locationShortcuts = page.getByRole('button', { name: /add \/ manage locations/i });
-  await locationShortcuts.last().click();
+  await page.getByText('Service Locations', { exact: true }).last().click();
   await page.getByText('Countries', { exact: true }).waitFor({ timeout: 15000 });
-  // Zones is a real tab in the existing Service Location screen; use its
-  // accessible label directly instead of depending on tab-strip scroll offsets.
+  // Zones is a tab in the existing Service Location screen.
   await page.getByText('Zones', { exact: true }).last().click();
   await page.getByRole('button', { name: /create zone draft/i }).click();
 
