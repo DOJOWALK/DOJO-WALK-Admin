@@ -62,3 +62,69 @@ jobs:
             --project demo-dojo-platform-b68a3 \
             --only auth,functions,firestore \
             "cd functions && npm test"
+
+  zone-admin-browser-e2e:
+    name: Admin browser to Firebase Emulator E2E (no production)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Admin repository
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned Firebase backend
+        uses: actions/checkout@v4
+        with:
+          repository: DOJOWALK/DOJO-WALK-Firebase
+          ref: 6b1ac42c99564333bf9507a0b5739257c28421eb
+          path: firebase-backend
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Set up Java for Firebase Emulators
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install pinned-baseline backend dependencies
+        working-directory: firebase-backend/functions
+        run: npm install --no-audit --no-fund
+
+      - name: Build backend TypeScript
+        working-directory: firebase-backend/functions
+        run: npm run build
+
+      - name: Install Admin browser test dependency
+        run: npm install --no-save --no-package-lock playwright@1.55.0
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build Admin Web with explicit emulator-only configuration
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter build web --release --dart-define=DOJO_USE_FIREBASE_EMULATORS=true
+
+      - name: Run actual browser UI flow against isolated emulators
+        env:
+          CI: "true"
+        run: |
+          set -euo pipefail
+          if [ "${FIREBASE_PROJECT_ID:-}" = "dojo-platform-b68a3" ]; then
+            echo "Refusing to run browser E2E against production project ID."
+            exit 1
+          fi
+          npx --yes firebase-tools@13.35.1 emulators:exec \
+            --project demo-dojo-zone-e2e \
+            --only auth,functions,firestore \
+            "FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 GCLOUD_PROJECT=demo-dojo-zone-e2e node tool/zone_ui_emulator_e2e.mjs"
