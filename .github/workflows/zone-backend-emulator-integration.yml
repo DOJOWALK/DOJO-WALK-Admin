@@ -1,0 +1,64 @@
+name: Zone Backend Emulator Integration
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/zone-backend-emulator-integration.yml"
+      - "docs/ZONE_UI_TO_EMULATOR_E2E_TEST_PLAN.md"
+      - "tool/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  zone-backend-emulator-integration:
+    name: Zone backend callable tests (Firebase Emulator only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout Admin repository
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned Firebase backend test baseline
+        uses: actions/checkout@v4
+        with:
+          repository: DOJOWALK/DOJO-WALK-Firebase
+          ref: 6b1ac42c99564333bf9507a0b5739257c28421eb
+          path: firebase-backend
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: firebase-backend/functions/package.json
+
+      - name: Set up Java for Firestore Emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install pinned-baseline backend dependencies
+        working-directory: firebase-backend/functions
+        run: npm install --no-audit --no-fund
+
+      - name: Build backend TypeScript
+        working-directory: firebase-backend/functions
+        run: npm run build
+
+      - name: Run backend tests against Firestore Emulator only
+        working-directory: firebase-backend
+        env:
+          CI: "true"
+        run: |
+          set -euo pipefail
+          if [ "${FIREBASE_PROJECT_ID:-}" = "dojo-platform-b68a3" ]; then
+            echo "Refusing to run emulator tests against the production project ID."
+            exit 1
+          fi
+          npx --yes firebase-tools@13.35.1 emulators:exec \
+            --project demo-dojo-platform-b68a3 \
+            --only firestore \
+            "cd functions && npm test"
