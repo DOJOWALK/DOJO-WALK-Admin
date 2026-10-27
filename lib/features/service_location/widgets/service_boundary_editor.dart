@@ -278,6 +278,13 @@ class _ServiceBoundaryEditorState
               ),
               onMapCreated: (controller) {
                 _mapController = controller;
+                if (_points.isNotEmpty) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted && identical(_mapController, controller)) {
+                      _fitBoundary();
+                    }
+                  });
+                }
               },
               onTap: _addPoint,
               markers: _markers,
