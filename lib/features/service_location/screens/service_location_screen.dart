@@ -35,6 +35,7 @@ import '../services/service_location_boundary_service.dart';
 import '../services/service_location_service.dart';
 import '../widgets/add_location_dialog.dart';
 import '../widgets/service_boundary_editor.dart';
+import '../widgets/service_location_zone_panel.dart';
 
 const Color _locationOrange = Color(0xFFFF7900);
 const Color _locationBackground = Color(0xFFFFFAF5);
@@ -70,9 +71,10 @@ class _ServiceLocationScreenState
 
   static const List<String> _tabNames = [
     'Countries',
-    'States',
+    'States / UTs',
     'Districts',
     'Cities',
+    'Zones',
     'Areas / Sub-districts',
     'Localities / Villages',
     'Import History',
@@ -187,7 +189,7 @@ class _ServiceLocationScreenState
                   ),
                   SizedBox(height: 3),
                   Text(
-                    'Coverage & boundary management',
+                    'Zone coverage, approval & boundary management',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -246,7 +248,7 @@ class _ServiceLocationScreenState
               controller: _searchController,
               onChanged: (value) => setState(() => _search = value.trim()),
               decoration: InputDecoration(
-                hintText: 'Search state, city, area or code',
+                hintText: 'Search state, district, city, zone or code',
                 hintStyle: const TextStyle(fontSize: 13, color: Colors.black45),
                 prefixIcon: const Icon(Icons.search_rounded, color: _locationOrange),
                 suffixIcon: _search.isEmpty
@@ -363,17 +365,13 @@ class _ServiceLocationScreenState
             spacing: 5,
             runSpacing: 6,
             children: [
-              _hierarchyChip('Country'),
-              _hierarchyArrow(),
-              _hierarchyChip('State'),
+              _hierarchyChip('State / UT'),
               _hierarchyArrow(),
               _hierarchyChip('District'),
               _hierarchyArrow(),
               _hierarchyChip('City'),
               _hierarchyArrow(),
-              _hierarchyChip('Area'),
-              _hierarchyArrow(),
-              _hierarchyChip('Locality (optional)'),
+              _hierarchyChip('Zone · Service activation unit'),
             ],
           ),
           const SizedBox(height: 10),
@@ -679,7 +677,7 @@ class _ServiceLocationScreenState
                     borderRadius: BorderRadius.circular(9),
                   ),
                   child: const Text(
-                    'Orange outlines show active verified City/Area boundaries. '
+                    'Orange outlines show active verified City/Area/Zone boundaries. '
                     'Tap a polygon to identify it; use Manage Boundary to review details.',
                     style: TextStyle(fontSize: 11),
                   ),
@@ -748,10 +746,12 @@ class _ServiceLocationScreenState
       case 3:
         return _buildCities();
       case 4:
-        return _buildAreas();
+        return const ServiceLocationZonePanel();
       case 5:
-        return _buildLocalities();
+        return _buildAreas();
       case 6:
+        return _buildLocalities();
+      case 7:
         return _buildImports();
       default:
         return _buildCountries();
