@@ -147,23 +147,20 @@ try {
     }));
     throw new Error(`Admin login did not reach the dashboard: ${error.message}`);
   }
-  // Use the dashboard's explicit location shortcut instead of a lazy sidebar item.
-  // Flutter Web can paint lazy ListView labels without exposing them as clickable
-  // semantics nodes in the browser DOM, so the shortcut is the stable user path.
+  // Confirm the dashboard route, then use its explicit location shortcut.
+  await page.getByText('Total Bookings', { exact: true }).waitFor({ timeout: 10000 });
   await page.getByRole('button', { name: /add \/ manage locations/i }).click();
-  await page.getByText('Service Locations', { exact: true }).waitFor({ timeout: 10000 });
-  // The tab strip is a horizontal ListView; later chips such as Zones are
-  // lazily built only after the strip is scrolled. Scroll that strip into view
-  // rather than assuming every ChoiceChip already exists in the semantics DOM.
-  await page.getByText('Countries', { exact: true }).waitFor({ timeout: 10000 });
-  const firstLocationTab = await page.getByText('Countries', { exact: true }).boundingBox();
-  assert.ok(firstLocationTab, 'The location tab strip did not expose its first tab.');
-  await page.mouse.move(
-    firstLocationTab.x + firstLocationTab.width / 2,
-    firstLocationTab.y + firstLocationTab.height / 2,
-  );
-  await page.mouse.wheel(1400, 0);
-  await page.getByText('Zones', { exact: true }).waitFor({ timeout: 10000 });
+  // Sidebar also contains this label, so assert a screen-specific heading and
+  // collect visible semantics if navigation fails instead of treating sidebar as success.
+  await page.getByText('Zone coverage, approval & boundary management', { exact: true }).waitFor({ timeout: 15000 });
+  const tabStrip = page.locator('flt-semantics').filter({ hasText: 'Countries' });
+  if (await tabStrip.count().catch(() => 0) === 0) {
+    console.log('SERVICE_LOCATION_DOM_DIAGNOSTIC:', JSON.stringify({
+      bodyText: (await page.locator('body').innerText().catch(() => '')).slice(0, 2400),
+      semantics: await page.locator('flt-semantics').allTextContents().catch(() => []),
+    }));
+  }
+  // Use the exact visible tab label once the location-specific screen is confirmed.
   await page.getByText('Zones', { exact: true }).click();
   await page.getByRole('button', { name: /create zone draft/i }).click();
 
