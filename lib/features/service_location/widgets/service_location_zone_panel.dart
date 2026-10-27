@@ -9,6 +9,7 @@ import '../models/zone_role_permissions.dart';
 import '../services/service_location_boundary_service.dart';
 import '../services/service_location_zone_service.dart';
 import '../widgets/service_boundary_editor.dart';
+import '../widgets/zone_create_draft_action.dart';
 
 const _zoneOrange = Color(0xFFFF7900);
 
@@ -276,7 +277,14 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
         const SizedBox(height: 6),
         const Text('State/UT → District → City → Zone. Central Admin prepares Zone records and boundaries; Founder approval is required before activation. Only Zone controls service availability.'),
         const SizedBox(height: 12),
-        Align(alignment: Alignment.centerRight, child: FilledButton.icon(onPressed: _busy || !_isCentralAdmin ? null : _createZone, icon: const Icon(Icons.add_location_alt_outlined), label: const Text('Create Zone Draft'), style: FilledButton.styleFrom(backgroundColor: _zoneOrange, foregroundColor: Colors.white))),
+        ZoneCreateDraftAction(
+          permissions: ZoneRolePermissions(
+            role: _isCentralAdmin ? ZoneAdminRole.centralAdmin : ZoneAdminRole.other,
+            isActive: _isCentralAdmin,
+          ),
+          busy: _busy,
+          onPressed: _createZone,
+        ),
       ])),
     Expanded(child: StreamBuilder<List<ServiceLocationZone>>(stream: _zones.watchZones(), builder: (context, snapshot) {
       if (snapshot.hasError) return Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('Unable to load Zones. Check service_zones read access.\\n' + snapshot.error.toString())));
