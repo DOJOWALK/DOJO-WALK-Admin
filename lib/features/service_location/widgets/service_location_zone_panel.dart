@@ -75,7 +75,7 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
             items: districtCities.map((d) => DropdownMenuItem(value: d.id, child: Text(d.data()['name']?.toString() ?? d.id))).toList(),
             onChanged: (v) => setDialogState(() => cityId = v)),
           const SizedBox(height: 10),
-          TextField(controller: name, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(labelText: 'Zone name')),
+          TextField(controller: name, textCapitalization: TextCapitalization.words, onChanged: (_) => setDialogState(() {}), decoration: const InputDecoration(labelText: 'Zone name')),
         ]))),
         actions: [
           TextButton(onPressed: saving ? null : () => Navigator.pop(dialogContext), child: const Text('Cancel')),
@@ -129,11 +129,11 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
           setDialogState(() => saving = true);
           try {
             final boundary = ServiceLocationBoundary(
-              id: selected?.id ?? '', locationId: zone.id, locationType: 'zone',
+              id: selected?.verificationStatus == BoundaryVerificationStatus.verified ? '' : (selected?.id ?? ''), locationId: zone.id, locationType: 'zone',
               points: List<GeoPoint>.unmodifiable(points),
               sourceType: selected?.sourceType ?? BoundarySourceType.manuallyDrawn,
               sourceName: sourceName.text.trim(), sourceReference: sourceReference.text.trim(),
-              verificationStatus: selected?.verificationStatus ?? BoundaryVerificationStatus.pending,
+              verificationStatus: selected?.verificationStatus == BoundaryVerificationStatus.verified ? BoundaryVerificationStatus.pending : (selected?.verificationStatus ?? BoundaryVerificationStatus.pending),
               verifiedBy: null, verifiedAt: null, verificationNotes: null,
               createdAt: selected?.createdAt ?? DateTime.now(), updatedAt: DateTime.now(),
             );
@@ -161,7 +161,7 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
         const SizedBox(height: 10),
         DropdownButtonFormField<String>(value: severity, decoration: const InputDecoration(labelText: 'Severity'), items: const ['SEV-1','SEV-2','SEV-3','SEV-4'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) { if (v != null) setDialogState(() => severity = v); }),
         const SizedBox(height: 10),
-        TextField(controller: reason, maxLines: 3, decoration: const InputDecoration(labelText: 'Mandatory reason')),
+        TextField(controller: reason, maxLines: 3, onChanged: (_) => setDialogState(() {}), decoration: const InputDecoration(labelText: 'Mandatory reason')),
       ])),
       actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')), FilledButton(onPressed: reason.text.trim().isEmpty ? null : () => Navigator.pop(context, true), child: const Text('Suspend Zone'))],
     )));
@@ -205,14 +205,14 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
             const SizedBox(height: 12),
             Wrap(spacing: 8, runSpacing: 8, children: [
               OutlinedButton.icon(onPressed: _busy ? null : () => _manageBoundary(zone), icon: const Icon(Icons.map_outlined), label: const Text('Manage Boundary')),
-              if (zone.verifiedBoundaryId != null && !zone.isServiceActive && zone.workflowStatus == ZoneWorkflowStatus.draft)
+              if (zone.verifiedBoundaryId != null && !zone.isServiceActive && (zone.workflowStatus == ZoneWorkflowStatus.draft || zone.workflowStatus == ZoneWorkflowStatus.changesRequired))
                 FilledButton.tonal(onPressed: _busy ? null : () => _run(() => _zones.submitForFounderReview(zone.id), 'Zone submitted for Founder review.'), child: const Text('Submit for Founder Review')),
               if (zone.mayRequestActivation)
                 FilledButton(onPressed: _busy ? null : () => _run(() => _zones.activateZone(zone.id), 'Activation request sent to trusted backend.'), child: const Text('Activate Approved Zone')),
               if (zone.isServiceActive)
                 OutlinedButton(onPressed: _busy ? null : () async {
                   final reason = TextEditingController();
-                  final ok = await showDialog<bool>(context: context, builder: (context) => AlertDialog(title: const Text('Request Zone deactivation'), content: TextField(controller: reason, maxLines: 3, decoration: const InputDecoration(labelText: 'Mandatory reason')), actions: [
+                  final ok = await showDialog<bool>(context: context, builder: (context) => AlertDialog(title: const Text('Request Zone deactivation'), content: TextField(controller: reason, maxLines: 3, onChanged: (_) => setState(() {}), decoration: const InputDecoration(labelText: 'Mandatory reason')), actions: [
                     TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
                     FilledButton(onPressed: reason.text.trim().isEmpty ? null : () => Navigator.pop(context, true), child: const Text('Submit request')),
                   ]));
