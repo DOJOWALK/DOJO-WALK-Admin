@@ -125,6 +125,7 @@ jobs:
             exit 1
           fi
           npx --yes firebase-tools@13.35.1 emulators:exec \
+            --config firebase-backend/firebase.json \
             --project demo-dojo-zone-e2e \
             --only auth,functions,firestore \
             "FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 GCLOUD_PROJECT=demo-dojo-zone-e2e node tool/zone_ui_emulator_e2e.mjs"
