@@ -1,8 +1,8 @@
-/// Typed client-side representation of the Founder-approved Zone workflow.
+/// Typed client-side representation of the Zone workflow stored by Firebase.
 ///
-/// This model deliberately does not grant permissions or decide whether a Zone
-/// can be activated. Firebase callable authorization and transactional checks
-/// are authoritative; UI state must never be treated as a security boundary.
+/// This model is a UI projection, not an authorization boundary. Firebase
+/// callable functions must re-check role, ancestry, verified boundary geometry,
+/// revision and the canonical boundary hash before any state transition.
 enum ZoneWorkflowStatus {
   draft,
   submitted,
@@ -17,14 +17,6 @@ enum ZoneWorkflowStatus {
   deactivated,
 }
 
-enum ZoneApprovalStatus {
-  pending,
-  approved,
-  rejected,
-  changesRequired,
-  reactivationApproved,
-}
-
 class ServiceLocationZone {
   const ServiceLocationZone({
     required this.id,
@@ -35,8 +27,9 @@ class ServiceLocationZone {
     required this.workflowStatus,
     required this.revision,
     required this.isServiceActive,
-    this.boundaryHash,
-    this.approvalStatus,
+    this.verifiedBoundaryId,
+    this.founderDecision,
+    this.approvalUid,
     this.approvedRevision,
     this.approvedBoundaryHash,
   });
@@ -49,28 +42,33 @@ class ServiceLocationZone {
   final ZoneWorkflowStatus workflowStatus;
   final int revision;
   final bool isServiceActive;
-  final String? boundaryHash;
-  final ZoneApprovalStatus? approvalStatus;
+  final String? verifiedBoundaryId;
+
+  /// These names match the actual Zone document fields written by Firebase.
+  final String? founderDecision;
+  final String? approvalUid;
   final int? approvedRevision;
   final String? approvedBoundaryHash;
 
-  /// True only when the client-visible approval references the current
-  /// revision and boundary hash. The backend must re-check this transactionally.
-  bool get hasCurrentFounderApproval {
-    final currentHash = boundaryHash;
-    return approvalStatus == ZoneApprovalStatus.approved &&
-        approvedRevision != null &&
-        approvedRevision == revision &&
-        currentHash != null &&
-        currentHash.isNotEmpty &&
-        approvedBoundaryHash == currentHash;
-  }
-
-  /// UI hint only; activation must always be authorized by the callable.
-  bool get mayRequestActivation =>
+  /// UI hint only: this checks the recorded approval and revision.
+  ///
+  /// It cannot verify that the approved hash still matches the canonical
+  /// boundary document. The activateServiceZone callable performs that check.
+  bool get hasRecordedFounderApprovalForCurrentRevision =>
       workflowStatus == ZoneWorkflowStatus.approved &&
+      founderDecision == 'approve' &&
+      approvalUid != null &&
+      approvalUid!.isNotEmpty &&
+      approvedRevision == revision &&
+      approvedBoundaryHash != null &&
+      approvedBoundaryHash!.isNotEmpty;
+
+  /// UI hint only; backend remains authoritative for activation eligibility.
+  bool get mayRequestActivation =>
       !isServiceActive &&
-      hasCurrentFounderApproval;
+      hasRecordedFounderApprovalForCurrentRevision &&
+      verifiedBoundaryId != null &&
+      verifiedBoundaryId!.isNotEmpty;
 
   factory ServiceLocationZone.fromMap(
     String id,
@@ -115,8 +113,9 @@ class ServiceLocationZone {
       workflowStatus: _parseWorkflowStatus(data['workflowStatus']),
       revision: requiredRevision(),
       isServiceActive: requiredActive(),
-      boundaryHash: optionalString('boundaryHash'),
-      approvalStatus: _parseApprovalStatus(data['approvalStatus']),
+      verifiedBoundaryId: optionalString('verifiedBoundaryId'),
+      founderDecision: optionalString('founderDecision'),
+      approvalUid: optionalString('approvalUid'),
       approvedRevision: optionalInt('approvedRevision'),
       approvedBoundaryHash: optionalString('approvedBoundaryHash'),
     );
@@ -149,24 +148,5 @@ ZoneWorkflowStatus _parseWorkflowStatus(Object? value) {
       return ZoneWorkflowStatus.deactivated;
     default:
       throw FormatException('Unknown Zone workflowStatus: $value');
-  }
-}
-
-ZoneApprovalStatus? _parseApprovalStatus(Object? value) {
-  switch (value) {
-    case null:
-      return null;
-    case 'pending':
-      return ZoneApprovalStatus.pending;
-    case 'approved':
-      return ZoneApprovalStatus.approved;
-    case 'rejected':
-      return ZoneApprovalStatus.rejected;
-    case 'changes_required':
-      return ZoneApprovalStatus.changesRequired;
-    case 'reactivation_approved':
-      return ZoneApprovalStatus.reactivationApproved;
-    default:
-      throw FormatException('Unknown Zone approvalStatus: $value');
   }
 }
