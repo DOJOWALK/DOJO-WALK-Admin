@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:dojo_walk_admin/features/service_location/models/service_location_zone.dart';
+import 'package:dojo_admin/features/service_location/models/service_location_zone.dart';
 
 void main() {
   group('ServiceLocationZone', () {
