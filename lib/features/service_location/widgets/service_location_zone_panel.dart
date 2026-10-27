@@ -12,6 +12,7 @@ import '../widgets/service_boundary_editor.dart';
 import '../widgets/zone_create_draft_action.dart';
 import '../widgets/zone_founder_review_action.dart';
 import '../widgets/zone_deactivation_request_action.dart';
+import '../widgets/zone_emergency_suspend_action.dart';
 
 const _zoneOrange = Color(0xFFFF7900);
 
@@ -381,7 +382,15 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
                 busy: _busy,
                 onPressed: () => _requestDeactivation(zone),
               ),
-              if (_isCentralAdmin) OutlinedButton.icon(onPressed: _busy ? null : () => _emergencySuspend(zone), icon: const Icon(Icons.warning_amber_rounded, color: Colors.red), label: const Text('Emergency Suspend')),
+              ZoneEmergencySuspendAction(
+                permissions: ZoneRolePermissions(
+                  role: _isCentralAdmin ? ZoneAdminRole.centralAdmin : ZoneAdminRole.other,
+                  isActive: _isCentralAdmin,
+                ),
+                zone: zone,
+                busy: _busy,
+                onPressed: () => _emergencySuspend(zone),
+              ),
             ]),
           ])));
       });
