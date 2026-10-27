@@ -34,7 +34,7 @@ jobs:
           cache: npm
           cache-dependency-path: firebase-backend/functions/package.json
 
-      - name: Set up Java for Firestore Emulator
+      - name: Set up Java for Firebase Emulators
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -48,7 +48,7 @@ jobs:
         working-directory: firebase-backend/functions
         run: npm run build
 
-      - name: Run backend tests against Firestore Emulator only
+      - name: Run backend tests against Auth, Functions and Firestore Emulators only
         working-directory: firebase-backend
         env:
           CI: "true"
@@ -60,5 +60,5 @@ jobs:
           fi
           npx --yes firebase-tools@13.35.1 emulators:exec \
             --project demo-dojo-platform-b68a3 \
-            --only firestore \
+            --only auth,functions,firestore \
             "cd functions && npm test"
