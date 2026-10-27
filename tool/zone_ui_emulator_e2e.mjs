@@ -120,6 +120,16 @@ try {
     await page.keyboard.press('Enter');
   }
   await page.waitForTimeout(500);
+  // Flutter Web renders controls to a canvas until its semantics tree is
+  // enabled. Use the browser accessibility shortcut, then wait for semantics.
+  await page.keyboard.press('Control+Alt+z').catch(() => {});
+  await page.waitForTimeout(1000);
+  console.log('Post-semantics DOM controls:', {
+    inputs: await page.locator('input').count(),
+    buttons: await page.locator('button').count(),
+    semanticsNodes: await page.locator('flt-semantics').count(),
+    bodyText: (await page.locator('body').innerText().catch(() => '')).slice(0, 500),
+  });
   await page.getByPlaceholder('Enter admin email').fill(email);
   await page.getByPlaceholder('Enter password').fill(password);
   await page.getByRole('button', { name: /sign in/i }).click();
