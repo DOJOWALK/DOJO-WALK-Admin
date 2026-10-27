@@ -135,7 +135,18 @@ try {
   await inputs.nth(1).fill(password);
   await page.getByText('SIGN IN', { exact: true }).click();
 
-  await page.getByText('DOJO WALK Admin', { exact: false }).first().waitFor();
+  // Do not mistake the login page's DOJO WALK branding for a successful login.
+  // Wait for a dashboard-only marker and print the actual screen if auth fails.
+  try {
+    await page.getByText('Total Bookings', { exact: true }).waitFor({ timeout: 15000 });
+  } catch (error) {
+    console.error('AFTER_LOGIN_DIAGNOSTIC:', JSON.stringify({
+      bodyText: (await page.locator('body').innerText().catch(() => '')).slice(0, 1800),
+      currentUrl: page.url(),
+      inputCount: await page.locator('input').count().catch(() => -1),
+    }));
+    throw new Error(`Admin login did not reach the dashboard: ${error.message}`);
+  }
   await page.getByText('Service Locations', { exact: true }).first().click();
   await page.getByText('Service Locations', { exact: true }).first().waitFor();
   await page.getByText('Zones', { exact: true }).click();
