@@ -215,6 +215,22 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
     notes.dispose();
   }
 
+  Future<void> _requestReactivation(ServiceLocationZone zone) async {
+    final reason = TextEditingController();
+    final confirmed = await showDialog<bool>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
+      title: Text('Request reactivation · ' + zone.name),
+      content: TextField(controller: reason, maxLines: 3, onChanged: (_) => setDialogState(() {}), decoration: const InputDecoration(labelText: 'Mandatory reason')),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
+        FilledButton(onPressed: reason.text.trim().isEmpty ? null : () => Navigator.pop(dialogContext, true), child: const Text('Submit for Founder review')),
+      ],
+    )));
+    if (confirmed == true) {
+      await _run(() => _zones.requestReactivation(zoneId: zone.id, reason: reason.text), 'Reactivation request submitted for Founder review.');
+    }
+    reason.dispose();
+  }
+
   Future<void> _emergencySuspend(ServiceLocationZone zone) async {
     final reason = TextEditingController();
     String severity = 'SEV-2';
@@ -271,6 +287,8 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
               OutlinedButton.icon(onPressed: _busy || !_isCentralAdmin ? null : () => _manageBoundary(zone), icon: const Icon(Icons.map_outlined), label: const Text('Manage Boundary')),
               if (_isCentralAdmin && zone.verifiedBoundaryId != null && !zone.isServiceActive && (zone.workflowStatus == ZoneWorkflowStatus.draft || zone.workflowStatus == ZoneWorkflowStatus.changesRequired))
                 FilledButton.tonal(onPressed: _busy ? null : () => _run(() => _zones.submitForFounderReview(zone.id), 'Zone submitted for Founder review.'), child: const Text('Submit for Founder Review')),
+              if (_isCentralAdmin && !zone.isServiceActive && zone.workflowStatus == ZoneWorkflowStatus.suspended)
+                OutlinedButton(onPressed: _busy ? null : () => _requestReactivation(zone), child: const Text('Request Reactivation')),
               if (_isFounder && (zone.workflowStatus == ZoneWorkflowStatus.submitted || zone.workflowStatus == ZoneWorkflowStatus.deactivationSubmitted || zone.workflowStatus == ZoneWorkflowStatus.reactivationSubmitted))
                 FilledButton.tonal(onPressed: _busy ? null : () => _founderReview(zone), child: const Text('Founder Review')),
               if (_isCentralAdmin && zone.mayRequestActivation)
