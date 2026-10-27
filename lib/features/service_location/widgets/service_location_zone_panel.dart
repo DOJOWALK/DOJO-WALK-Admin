@@ -11,6 +11,7 @@ import '../services/service_location_zone_service.dart';
 import '../widgets/service_boundary_editor.dart';
 import '../widgets/zone_create_draft_action.dart';
 import '../widgets/zone_founder_review_action.dart';
+import '../widgets/zone_deactivation_request_action.dart';
 
 const _zoneOrange = Color(0xFFFF7900);
 
@@ -241,6 +242,43 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
     reason.dispose();
   }
 
+  Future<void> _requestDeactivation(ServiceLocationZone zone) async {
+    final reason = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Request Zone deactivation'),
+          content: TextField(
+            controller: reason,
+            maxLines: 3,
+            onChanged: (_) => setDialogState(() {}),
+            decoration: const InputDecoration(labelText: 'Mandatory reason'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: reason.text.trim().isEmpty
+                  ? null
+                  : () => Navigator.pop(dialogContext, true),
+              child: const Text('Submit request'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (ok == true) {
+      await _run(
+        () => _zones.requestDeactivation(zoneId: zone.id, notes: reason.text),
+        'Deactivation request submitted for Founder review.',
+      );
+    }
+    reason.dispose();
+  }
+
   Future<void> _emergencySuspend(ServiceLocationZone zone) async {
     final reason = TextEditingController();
     String severity = 'SEV-2';
@@ -334,16 +372,15 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
                 FilledButton(onPressed: _busy ? null : () => _run(() => _zones.activateZone(zone.id), 'Activation request sent to trusted backend.'), child: const Text('Activate Approved Zone')),
               if (_isCentralAdmin && zone.workflowStatus == ZoneWorkflowStatus.deactivationApproved && zone.isServiceActive)
                 FilledButton.tonal(onPressed: _busy ? null : () => _run(() => _zones.executeApprovedDeactivation(zone.id), 'Approved Zone deactivation executed.'), child: const Text('Execute Approved Deactivation')),
-              if (_isCentralAdmin && zone.isServiceActive)
-                OutlinedButton(onPressed: _busy ? null : () async {
-                  final reason = TextEditingController();
-                  final ok = await showDialog<bool>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(title: const Text('Request Zone deactivation'), content: TextField(controller: reason, maxLines: 3, onChanged: (_) => setDialogState(() {}), decoration: const InputDecoration(labelText: 'Mandatory reason')), actions: [
-                    TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
-                    FilledButton(onPressed: reason.text.trim().isEmpty ? null : () => Navigator.pop(dialogContext, true), child: const Text('Submit request')),
-                  ])));
-                  if (ok == true) await _run(() => _zones.requestDeactivation(zoneId: zone.id, notes: reason.text), 'Deactivation request submitted for Founder review.');
-                  reason.dispose();
-                }, child: const Text('Request Deactivation')),
+              ZoneDeactivationRequestAction(
+                permissions: ZoneRolePermissions(
+                  role: _isCentralAdmin ? ZoneAdminRole.centralAdmin : ZoneAdminRole.other,
+                  isActive: _isCentralAdmin,
+                ),
+                zone: zone,
+                busy: _busy,
+                onPressed: () => _requestDeactivation(zone),
+              ),
               if (_isCentralAdmin) OutlinedButton.icon(onPressed: _busy ? null : () => _emergencySuspend(zone), icon: const Icon(Icons.warning_amber_rounded, color: Colors.red), label: const Text('Emergency Suspend')),
             ]),
           ])));
