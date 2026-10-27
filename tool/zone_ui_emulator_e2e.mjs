@@ -83,7 +83,7 @@ try {
   assert.equal(ready, true, 'Flutter web server did not become ready.');
 
   browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, locale: 'en-US', timezoneId: 'Asia/Kolkata' });
   page.setDefaultTimeout(15000);
   page.on('pageerror', error => console.error('BROWSER_PAGE_ERROR:', error.message));
   // The UI test does not depend on Google Maps network/API availability.
