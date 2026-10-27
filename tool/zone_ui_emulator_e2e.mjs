@@ -152,6 +152,18 @@ try {
   // semantics nodes in the browser DOM, so the shortcut is the stable user path.
   await page.getByRole('button', { name: /add \/ manage locations/i }).click();
   await page.getByText('Service Locations', { exact: true }).waitFor({ timeout: 10000 });
+  // The tab strip is a horizontal ListView; later chips such as Zones are
+  // lazily built only after the strip is scrolled. Scroll that strip into view
+  // rather than assuming every ChoiceChip already exists in the semantics DOM.
+  await page.getByText('Countries', { exact: true }).waitFor({ timeout: 10000 });
+  const firstLocationTab = await page.getByText('Countries', { exact: true }).boundingBox();
+  assert.ok(firstLocationTab, 'The location tab strip did not expose its first tab.');
+  await page.mouse.move(
+    firstLocationTab.x + firstLocationTab.width / 2,
+    firstLocationTab.y + firstLocationTab.height / 2,
+  );
+  await page.mouse.wheel(1400, 0);
+  await page.getByText('Zones', { exact: true }).waitFor({ timeout: 10000 });
   await page.getByText('Zones', { exact: true }).click();
   await page.getByRole('button', { name: /create zone draft/i }).click();
 
