@@ -41,6 +41,11 @@ import '../widgets/service_location_zone_panel.dart';
 const Color _locationOrange = Color(0xFFFF7900);
 const Color _locationBackground = Color(0xFFFFFAF5);
 
+// Browser E2E can opt into a map placeholder when external Google Maps JS is unavailable.
+// Normal builds keep the real GoogleMap widget.
+const bool _useE2EMapPlaceholder =
+    bool.fromEnvironment('DOJO_E2E_MAP_PLACEHOLDER');
+
 const LatLng _defaultMapCenter = LatLng(28.4744, 77.5040);
 
 class ServiceLocationScreen extends StatefulWidget {
@@ -612,25 +617,28 @@ class _ServiceLocationScreenState
 
           return Stack(
             children: [
-              GoogleMap(
-                initialCameraPosition: const CameraPosition(
-                  target: _defaultMapCenter,
-                  zoom: 11,
-                ),
-                onMapCreated: (controller) {
-                  _mapController = controller;
-                  if (_loadedActiveBoundaryPolygons.isNotEmpty) {
-                    _fitMapToActiveBoundaries(_loadedActiveBoundaryPolygons);
-                  }
-                },
-                polygons: polygons,
-                mapType: MapType.normal,
-                myLocationButtonEnabled: false,
-                myLocationEnabled: false,
-                zoomControlsEnabled: true,
-                compassEnabled: true,
-                mapToolbarEnabled: false,
-              ),
+              if (!_useE2EMapPlaceholder)
+                GoogleMap(
+                  initialCameraPosition: const CameraPosition(
+                    target: _defaultMapCenter,
+                    zoom: 11,
+                  ),
+                  onMapCreated: (controller) {
+                    _mapController = controller;
+                    if (_loadedActiveBoundaryPolygons.isNotEmpty) {
+                      _fitMapToActiveBoundaries(_loadedActiveBoundaryPolygons);
+                    }
+                  },
+                  polygons: polygons,
+                  mapType: MapType.normal,
+                  myLocationButtonEnabled: false,
+                  myLocationEnabled: false,
+                  zoomControlsEnabled: true,
+                  compassEnabled: true,
+                  mapToolbarEnabled: false,
+                )
+              else
+                const ColoredBox(color: Color(0xFFFFF4E9)),
               Positioned(
                 left: 10,
                 top: 10,
