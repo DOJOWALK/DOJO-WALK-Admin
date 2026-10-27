@@ -96,7 +96,7 @@ try {
   }
   await page.getByPlaceholder('Enter admin email').fill(email);
   await page.getByPlaceholder('Enter password').fill(password);
-  await page.getByRole('button', { name: /login/i }).click();
+  await page.getByRole('button', { name: /sign in/i }).click();
 
   await page.getByText('DOJO WALK Admin', { exact: false }).first().waitFor();
   await page.getByText('Service Locations', { exact: true }).first().click();
