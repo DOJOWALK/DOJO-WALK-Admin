@@ -13,7 +13,10 @@ const _zoneOrange = Color(0xFFFF7900);
 
 /// Central Admin Zone workflow UI. Trusted Firebase callables remain authoritative.
 class ServiceLocationZonePanel extends StatefulWidget {
-  const ServiceLocationZonePanel({super.key});
+  const ServiceLocationZonePanel({super.key, this.searchQuery = ''});
+
+  final String searchQuery;
+
   @override
   State<ServiceLocationZonePanel> createState() => _ServiceLocationZonePanelState();
 }
@@ -273,8 +276,23 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
     Expanded(child: StreamBuilder<List<ServiceLocationZone>>(stream: _zones.watchZones(), builder: (context, snapshot) {
       if (snapshot.hasError) return Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('Unable to load Zones. Check service_zones read access.\\n' + snapshot.error.toString())));
       if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: _zoneOrange));
-      final items = snapshot.data!;
-      if (items.isEmpty) return const Center(child: Text('No Zone records found. Create a draft to begin.'));
+      final query = widget.searchQuery.trim().toLowerCase();
+      final items = snapshot.data!.where((zone) {
+        if (query.isEmpty) return true;
+        return zone.name.toLowerCase().contains(query) ||
+            zone.id.toLowerCase().contains(query) ||
+            zone.stateId.toLowerCase().contains(query) ||
+            zone.districtId.toLowerCase().contains(query) ||
+            zone.cityId.toLowerCase().contains(query) ||
+            zone.workflowStatus.name.toLowerCase().contains(query);
+      }).toList(growable: false);
+      if (items.isEmpty) {
+        return Center(
+          child: Text(query.isEmpty
+              ? 'No Zone records found. Create a draft to begin.'
+              : 'No Zones match “${widget.searchQuery.trim()}”.'),
+        );
+      }
       return ListView.separated(padding: const EdgeInsets.fromLTRB(16, 0, 16, 16), itemCount: items.length, separatorBuilder: (_, __) => const SizedBox(height: 10), itemBuilder: (context, index) {
         final zone = items[index];
         return Card(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0xFFECE5DE))),
