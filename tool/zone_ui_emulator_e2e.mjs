@@ -147,16 +147,11 @@ try {
     }));
     throw new Error(`Admin login did not reach the dashboard: ${error.message}`);
   }
-  // The sidebar uses a lazy ListView; scroll it so the final menu item is built.
-  await page.mouse.move(160, 820);
-  await page.mouse.wheel(0, 1200);
-  await page.waitForTimeout(500);
-  console.log('DASHBOARD_MENU_DIAGNOSTIC:', JSON.stringify({
-    bodyText: (await page.locator('body').innerText().catch(() => '')).slice(0, 1800),
-    serviceLocationsMatches: await page.getByText('Service Locations', { exact: true }).count().catch(() => -1),
-  }));
-  await page.getByText('Service Locations', { exact: true }).first().click();
-  await page.getByText('Service Locations', { exact: true }).first().waitFor();
+  // Use the dashboard's explicit location shortcut instead of a lazy sidebar item.
+  // Flutter Web can paint lazy ListView labels without exposing them as clickable
+  // semantics nodes in the browser DOM, so the shortcut is the stable user path.
+  await page.getByRole('button', { name: /add \/ manage locations/i }).click();
+  await page.getByText('Service Locations', { exact: true }).waitFor({ timeout: 10000 });
   await page.getByText('Zones', { exact: true }).click();
   await page.getByRole('button', { name: /create zone draft/i }).click();
 
