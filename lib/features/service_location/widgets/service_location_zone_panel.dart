@@ -13,6 +13,7 @@ import '../widgets/zone_create_draft_action.dart';
 import '../widgets/zone_founder_review_action.dart';
 import '../widgets/zone_deactivation_request_action.dart';
 import '../widgets/zone_emergency_suspend_action.dart';
+import '../widgets/zone_submit_for_founder_review_action.dart';
 
 const _zoneOrange = Color(0xFFFF7900);
 
@@ -356,8 +357,18 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
             const SizedBox(height: 12),
             Wrap(spacing: 8, runSpacing: 8, children: [
               OutlinedButton.icon(onPressed: _busy || !_isCentralAdmin ? null : () => _manageBoundary(zone), icon: const Icon(Icons.map_outlined), label: const Text('Manage Boundary')),
-              if (_isCentralAdmin && zone.verifiedBoundaryId != null && !zone.isServiceActive && (zone.workflowStatus == ZoneWorkflowStatus.draft || zone.workflowStatus == ZoneWorkflowStatus.changesRequired))
-                FilledButton.tonal(onPressed: _busy ? null : () => _run(() => _zones.submitForFounderReview(zone.id), 'Zone submitted for Founder review.'), child: const Text('Submit for Founder Review')),
+              ZoneSubmitForFounderReviewAction(
+                permissions: ZoneRolePermissions(
+                  role: _isCentralAdmin ? ZoneAdminRole.centralAdmin : ZoneAdminRole.other,
+                  isActive: _isCentralAdmin,
+                ),
+                zone: zone,
+                busy: _busy,
+                onPressed: () => _run(
+                  () => _zones.submitForFounderReview(zone.id),
+                  'Zone submitted for Founder review.',
+                ),
+              ),
               if (_isCentralAdmin && !zone.isServiceActive && zone.workflowStatus == ZoneWorkflowStatus.suspended)
                 OutlinedButton(onPressed: _busy ? null : () => _requestReactivation(zone), child: const Text('Request Reactivation')),
               ZoneFounderReviewAction(
