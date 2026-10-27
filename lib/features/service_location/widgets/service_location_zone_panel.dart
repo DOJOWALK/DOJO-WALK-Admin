@@ -10,6 +10,7 @@ import '../services/service_location_boundary_service.dart';
 import '../services/service_location_zone_service.dart';
 import '../widgets/service_boundary_editor.dart';
 import '../widgets/zone_create_draft_action.dart';
+import '../widgets/zone_founder_review_action.dart';
 
 const _zoneOrange = Color(0xFFFF7900);
 
@@ -320,8 +321,15 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
                 FilledButton.tonal(onPressed: _busy ? null : () => _run(() => _zones.submitForFounderReview(zone.id), 'Zone submitted for Founder review.'), child: const Text('Submit for Founder Review')),
               if (_isCentralAdmin && !zone.isServiceActive && zone.workflowStatus == ZoneWorkflowStatus.suspended)
                 OutlinedButton(onPressed: _busy ? null : () => _requestReactivation(zone), child: const Text('Request Reactivation')),
-              if (_isFounder && (zone.workflowStatus == ZoneWorkflowStatus.submitted || zone.workflowStatus == ZoneWorkflowStatus.deactivationSubmitted || zone.workflowStatus == ZoneWorkflowStatus.reactivationSubmitted))
-                FilledButton.tonal(onPressed: _busy ? null : () => _founderReview(zone), child: const Text('Founder Review')),
+              ZoneFounderReviewAction(
+                permissions: ZoneRolePermissions(
+                  role: _isFounder ? ZoneAdminRole.founder : ZoneAdminRole.other,
+                  isActive: _isFounder,
+                ),
+                zone: zone,
+                busy: _busy,
+                onPressed: () => _founderReview(zone),
+              ),
               if (_isCentralAdmin && zone.mayRequestActivation)
                 FilledButton(onPressed: _busy ? null : () => _run(() => _zones.activateZone(zone.id), 'Activation request sent to trusted backend.'), child: const Text('Activate Approved Zone')),
               if (_isCentralAdmin && zone.workflowStatus == ZoneWorkflowStatus.deactivationApproved && zone.isServiceActive)
