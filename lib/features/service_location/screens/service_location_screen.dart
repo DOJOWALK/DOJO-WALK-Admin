@@ -1235,21 +1235,7 @@ class _ServiceLocationScreenState
                                       locationType: 'city',
                                     ),
                                     showServiceToggle: false,
-                                    onToggle: (value) async {
-                                      try {
-                                        await _service.setCityServiceStatus(
-                                          cityId: item.id,
-                                          isActive: value,
-                                        );
-                                        _showMessage(
-                                          value
-                                              ? 'City service activated.'
-                                              : 'City service deactivated.',
-                                        );
-                                      } catch (error) {
-                                        await _showError(error);
-                                      }
-                                    },
+                                    
                                   ),
                               ],
                             );
@@ -1332,22 +1318,7 @@ class _ServiceLocationScreenState
                             locationType: 'area',
                           ),
                           showServiceToggle: false,
-                          onToggle: (value) async {
-                            try {
-                              await _service.setAreaServiceStatus(
-                                areaId: item.id,
-                                isActive: value,
-                              );
-
-                              _showMessage(
-                                value
-                                    ? 'Area service activated.'
-                                    : 'Area service deactivated.',
-                              );
-                            } catch (error) {
-                              await _showError(error);
-                            }
-                          },
+                          
                         ),
                     ],
                   );
@@ -1438,23 +1409,7 @@ class _ServiceLocationScreenState
                                     active: item.isServiceActive,
                                     icon: Icons.place_outlined,
                                     showServiceToggle: false,
-                                    onToggle: (value) async {
-                                      try {
-                                        await _service
-                                            .setLocalityServiceStatus(
-                                          localityId: item.id,
-                                          isActive: value,
-                                        );
-
-                                        _showMessage(
-                                          value
-                                              ? 'Locality service activated.'
-                                              : 'Locality service deactivated.',
-                                        );
-                                      } catch (error) {
-                                        await _showError(error);
-                                      }
-                                    },
+                                    
                                   ),
                               ],
                             );
@@ -3269,7 +3224,7 @@ class _ServiceLocationScreenState
     required String subtitle,
     required bool active,
     required IconData icon,
-    required ValueChanged<bool> onToggle,
+    ValueChanged<bool>? onToggle,
     bool showServiceToggle = true,
     VoidCallback? onManageBoundary,
   }) {
