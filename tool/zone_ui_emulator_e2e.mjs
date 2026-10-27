@@ -110,9 +110,9 @@ try {
     title: await page.title(),
   });
   if (await enableAccessibility.count().catch(() => 0)) {
-    await enableAccessibility.first().click({ force: true });
+    await enableAccessibility.first().evaluate(element => element.click());
   } else if (await placeholder.count().catch(() => 0)) {
-    await placeholder.click({ force: true });
+    await placeholder.evaluate(element => element.click());
   } else {
     // Some Flutter web builds expose the accessibility prompt only on first
     // keyboard focus; Tab/Enter enables the semantic DOM for browser tests.
