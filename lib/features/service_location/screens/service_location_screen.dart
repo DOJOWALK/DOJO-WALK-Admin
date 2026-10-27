@@ -3303,29 +3303,33 @@ class _ServiceLocationScreenState
         ),
         subtitle: Text(subtitle),
         isThreeLine: subtitle.contains('\n'),
-        trailing: SizedBox(
-          width: onManageBoundary == null ? 65 : 190,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              if (onManageBoundary != null)
-                IconButton(
-                  tooltip: 'Manage Boundary',
-                  onPressed: onManageBoundary,
-                  icon: const Icon(
-                    Icons.edit_location_alt_outlined,
-                    color: _locationOrange,
-                  ),
+        trailing: onManageBoundary == null && !showServiceToggle
+            ? null
+            : SizedBox(
+                width: showServiceToggle
+                    ? (onManageBoundary == null ? 65 : 190)
+                    : 48,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (onManageBoundary != null)
+                      IconButton(
+                        tooltip: 'Manage Boundary',
+                        onPressed: onManageBoundary,
+                        icon: const Icon(
+                          Icons.edit_location_alt_outlined,
+                          color: _locationOrange,
+                        ),
+                      ),
+                    if (showServiceToggle)
+                      Switch(
+                        value: active,
+                        activeThumbColor: _locationOrange,
+                        onChanged: onToggle,
+                      ),
+                  ],
                 ),
-              if (showServiceToggle)
-                Switch(
-                  value: active,
-                  activeThumbColor: _locationOrange,
-                  onChanged: onToggle,
-                ),
-            ],
-          ),
-        ),
+              ),
       ),
     );
   }
