@@ -147,6 +147,14 @@ try {
     }));
     throw new Error(`Admin login did not reach the dashboard: ${error.message}`);
   }
+  // The sidebar uses a lazy ListView; scroll it so the final menu item is built.
+  await page.mouse.move(160, 820);
+  await page.mouse.wheel(0, 1200);
+  await page.waitForTimeout(500);
+  console.log('DASHBOARD_MENU_DIAGNOSTIC:', JSON.stringify({
+    bodyText: (await page.locator('body').innerText().catch(() => '')).slice(0, 1800),
+    serviceLocationsMatches: await page.getByText('Service Locations', { exact: true }).count().catch(() => -1),
+  }));
   await page.getByText('Service Locations', { exact: true }).first().click();
   await page.getByText('Service Locations', { exact: true }).first().waitFor();
   await page.getByText('Zones', { exact: true }).click();
