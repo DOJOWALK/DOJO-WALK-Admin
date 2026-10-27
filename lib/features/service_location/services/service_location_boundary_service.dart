@@ -60,7 +60,7 @@ class ServiceLocationBoundaryService {
   }
 
   bool _isSupportedLocationType(String value) {
-    return const {'city', 'area'}
+    return const {'city', 'area', 'zone'}
         .contains(value.trim().toLowerCase());
   }
 
@@ -87,7 +87,7 @@ class ServiceLocationBoundaryService {
 
     if (!_isSupportedLocationType(locationType)) {
       throw ArgumentError(
-        'Location type must be city or area.',
+        'Location type must be city, area or zone.',
       );
     }
   }
@@ -105,7 +105,7 @@ class ServiceLocationBoundaryService {
 
     if (!_isSupportedLocationType(boundary.locationType)) {
       errors.add(
-        'Location type must be city or area.',
+        'Location type must be city, area or zone.',
       );
     }
 
