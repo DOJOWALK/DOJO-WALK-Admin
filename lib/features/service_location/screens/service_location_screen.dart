@@ -26,6 +26,7 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../models/service_location_boundary.dart';
+import '../models/service_location_zone.dart';
 import '../models/service_location_models.dart';
 import '../services/location_csv_preview_parser.dart';
 import '../services/location_csv_import_fingerprint.dart';
@@ -421,6 +422,13 @@ class _ServiceLocationScreenState
   Future<Set<Polygon>> _loadActiveBoundaryPolygons() async {
     final cities = await _service.watchCities().first;
     final areas = await _service.watchAreas().first;
+    final activeZoneSnapshot = await FirebaseFirestore.instance
+        .collection('service_zones')
+        .where('isServiceActive', isEqualTo: true)
+        .get();
+    final activeZones = activeZoneSnapshot.docs.map((document) {
+      return ServiceLocationZone.fromMap(document.id, document.data());
+    }).toList(growable: false);
     final boundarySnapshot = await FirebaseFirestore.instance
         .collection('service_location_boundaries')
         .where('verificationStatus', isEqualTo: 'verified')
@@ -486,6 +494,32 @@ class _ServiceLocationScreenState
           fillColor: _locationOrange.withValues(alpha: 0.18),
           consumeTapEvents: true,
           onTap: () => _showMessage('Active service area: ${area.name}'),
+        ),
+      );
+    }
+
+    for (final zone in activeZones) {
+      final boundaryId = zone.verifiedBoundaryId?.trim() ?? '';
+      if (boundaryId.isEmpty) continue;
+      final boundary = boundariesById[boundaryId];
+      if (boundary == null ||
+          !boundary.isVerified ||
+          boundary.locationId != zone.id ||
+          boundary.locationType.toLowerCase() != 'zone' ||
+          boundary.points.length < 3) {
+        continue;
+      }
+      polygons.add(
+        Polygon(
+          polygonId: PolygonId('service-zone-${zone.id}'),
+          points: boundary.points
+              .map((point) => LatLng(point.latitude, point.longitude))
+              .toList(growable: false),
+          strokeColor: _locationOrange,
+          strokeWidth: 3,
+          fillColor: _locationOrange.withValues(alpha: 0.12),
+          consumeTapEvents: true,
+          onTap: () => _showMessage('Active service Zone: ' + zone.name),
         ),
       );
     }
