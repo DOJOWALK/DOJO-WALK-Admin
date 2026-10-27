@@ -212,10 +212,10 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
               if (zone.isServiceActive)
                 OutlinedButton(onPressed: _busy ? null : () async {
                   final reason = TextEditingController();
-                  final ok = await showDialog<bool>(context: context, builder: (context) => AlertDialog(title: const Text('Request Zone deactivation'), content: TextField(controller: reason, maxLines: 3, onChanged: (_) => setState(() {}), decoration: const InputDecoration(labelText: 'Mandatory reason')), actions: [
-                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                    FilledButton(onPressed: reason.text.trim().isEmpty ? null : () => Navigator.pop(context, true), child: const Text('Submit request')),
-                  ]));
+                  final ok = await showDialog<bool>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(title: const Text('Request Zone deactivation'), content: TextField(controller: reason, maxLines: 3, onChanged: (_) => setDialogState(() {}), decoration: const InputDecoration(labelText: 'Mandatory reason')), actions: [
+                    TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
+                    FilledButton(onPressed: reason.text.trim().isEmpty ? null : () => Navigator.pop(dialogContext, true), child: const Text('Submit request')),
+                  ])));
                   if (ok == true) await _run(() => _zones.requestDeactivation(zoneId: zone.id, notes: reason.text), 'Deactivation request submitted for Founder review.');
                   reason.dispose();
                 }, child: const Text('Request Deactivation')),
