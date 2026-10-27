@@ -151,7 +151,7 @@ class ServiceLocationZoneService {
     required String reason,
     required String severity,
   }) async {
-    const severities = {'critical', 'high', 'medium', 'low'};
+    const severities = {'SEV-1', 'SEV-2', 'SEV-3', 'SEV-4'};
     final normalizedReason = reason.trim();
     if (normalizedReason.isEmpty || normalizedReason.length > 2000) {
       throw ArgumentError(
