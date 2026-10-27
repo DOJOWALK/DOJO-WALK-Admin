@@ -45,6 +45,16 @@ void main() {
       expect(tester.widget<FilledButton>(find.byType(FilledButton)).onPressed, isNotNull);
     });
 
+    testWidgets('Founder can review a pending deactivation request', (tester) async {
+      await pumpAction(tester, role: 'founder', status: ZoneWorkflowStatus.deactivationSubmitted);
+      expect(find.text('Founder Review'), findsOneWidget);
+    });
+
+    testWidgets('Founder can review a pending reactivation request', (tester) async {
+      await pumpAction(tester, role: 'founder', status: ZoneWorkflowStatus.reactivationSubmitted);
+      expect(find.text('Founder Review'), findsOneWidget);
+    });
+
     testWidgets('Central Admin cannot see Founder review action', (tester) async {
       await pumpAction(tester, role: 'central_admin');
       expect(find.text('Founder Review'), findsNothing);
