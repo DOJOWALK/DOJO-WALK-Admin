@@ -24,6 +24,7 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
   final _firestore = FirebaseFirestore.instance;
   bool _busy = false;
   bool _isFounder = false;
+  bool _isCentralAdmin = false;
 
   @override
   void initState() {
@@ -36,9 +37,14 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
     if (user == null) return;
     try {
       final snapshot = await _firestore.collection('admin_users').doc(user.uid).get();
-      if (mounted) setState(() => _isFounder = snapshot.exists && snapshot.data()?['isActive'] == true && snapshot.data()?['role'] == 'founder');
+      if (mounted) setState(() {
+        final data = snapshot.data();
+        final active = snapshot.exists && data?['isActive'] == true;
+        _isFounder = active && data?['role'] == 'founder';
+        _isCentralAdmin = active && data?['role'] == 'central_admin';
+      });
     } catch (_) {
-      if (mounted) setState(() => _isFounder = false);
+      if (mounted) setState(() { _isFounder = false; _isCentralAdmin = false; });
     }
   }
 
@@ -246,7 +252,7 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
         const SizedBox(height: 6),
         const Text('State/UT → District → City → Zone. Central Admin prepares Zone records and boundaries; Founder approval is required before activation. Only Zone controls service availability.'),
         const SizedBox(height: 12),
-        Align(alignment: Alignment.centerRight, child: FilledButton.icon(onPressed: _busy ? null : _createZone, icon: const Icon(Icons.add_location_alt_outlined), label: const Text('Create Zone Draft'), style: FilledButton.styleFrom(backgroundColor: _zoneOrange, foregroundColor: Colors.white))),
+        Align(alignment: Alignment.centerRight, child: FilledButton.icon(onPressed: _busy || !_isCentralAdmin ? null : _createZone, icon: const Icon(Icons.add_location_alt_outlined), label: const Text('Create Zone Draft'), style: FilledButton.styleFrom(backgroundColor: _zoneOrange, foregroundColor: Colors.white))),
       ])),
     Expanded(child: StreamBuilder<List<ServiceLocationZone>>(stream: _zones.watchZones(), builder: (context, snapshot) {
       if (snapshot.hasError) return Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('Unable to load Zones. Check service_zones read access.\\n' + snapshot.error.toString())));
@@ -262,14 +268,16 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
             Text('Revision ' + zone.revision.toString() + ' · Boundary: ' + (zone.verifiedBoundaryId ?? 'Not verified/attached'), style: const TextStyle(fontSize: 12, color: Colors.black54)),
             const SizedBox(height: 12),
             Wrap(spacing: 8, runSpacing: 8, children: [
-              OutlinedButton.icon(onPressed: _busy ? null : () => _manageBoundary(zone), icon: const Icon(Icons.map_outlined), label: const Text('Manage Boundary')),
-              if (zone.verifiedBoundaryId != null && !zone.isServiceActive && (zone.workflowStatus == ZoneWorkflowStatus.draft || zone.workflowStatus == ZoneWorkflowStatus.changesRequired))
+              OutlinedButton.icon(onPressed: _busy || !_isCentralAdmin ? null : () => _manageBoundary(zone), icon: const Icon(Icons.map_outlined), label: const Text('Manage Boundary')),
+              if (_isCentralAdmin && zone.verifiedBoundaryId != null && !zone.isServiceActive && (zone.workflowStatus == ZoneWorkflowStatus.draft || zone.workflowStatus == ZoneWorkflowStatus.changesRequired))
                 FilledButton.tonal(onPressed: _busy ? null : () => _run(() => _zones.submitForFounderReview(zone.id), 'Zone submitted for Founder review.'), child: const Text('Submit for Founder Review')),
               if (_isFounder && (zone.workflowStatus == ZoneWorkflowStatus.submitted || zone.workflowStatus == ZoneWorkflowStatus.deactivationSubmitted || zone.workflowStatus == ZoneWorkflowStatus.reactivationSubmitted))
                 FilledButton.tonal(onPressed: _busy ? null : () => _founderReview(zone), child: const Text('Founder Review')),
-              if (zone.mayRequestActivation)
+              if (_isCentralAdmin && zone.mayRequestActivation)
                 FilledButton(onPressed: _busy ? null : () => _run(() => _zones.activateZone(zone.id), 'Activation request sent to trusted backend.'), child: const Text('Activate Approved Zone')),
-              if (zone.isServiceActive)
+              if (_isCentralAdmin && zone.workflowStatus == ZoneWorkflowStatus.deactivationApproved && zone.isServiceActive)
+                FilledButton.tonal(onPressed: _busy ? null : () => _run(() => _zones.executeApprovedDeactivation(zone.id), 'Approved Zone deactivation executed.'), child: const Text('Execute Approved Deactivation')),
+              if (_isCentralAdmin && zone.isServiceActive)
                 OutlinedButton(onPressed: _busy ? null : () async {
                   final reason = TextEditingController();
                   final ok = await showDialog<bool>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(title: const Text('Request Zone deactivation'), content: TextField(controller: reason, maxLines: 3, onChanged: (_) => setDialogState(() {}), decoration: const InputDecoration(labelText: 'Mandatory reason')), actions: [
@@ -279,7 +287,7 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
                   if (ok == true) await _run(() => _zones.requestDeactivation(zoneId: zone.id, notes: reason.text), 'Deactivation request submitted for Founder review.');
                   reason.dispose();
                 }, child: const Text('Request Deactivation')),
-              OutlinedButton.icon(onPressed: _busy ? null : () => _emergencySuspend(zone), icon: const Icon(Icons.warning_amber_rounded, color: Colors.red), label: const Text('Emergency Suspend')),
+              if (_isCentralAdmin) OutlinedButton.icon(onPressed: _busy ? null : () => _emergencySuspend(zone), icon: const Icon(Icons.warning_amber_rounded, color: Colors.red), label: const Text('Emergency Suspend')),
             ]),
           ])));
       });
