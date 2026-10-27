@@ -135,7 +135,54 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
     name.dispose();
   }
 
+  /// Center a new Zone boundary from the verified parent City's polygon.
+  /// City center coordinates are not currently part of the City schema.
+  Future<LatLng?> _verifiedCityMapCenter(String cityId) async {
+    final city = await _firestore.collection('service_cities').doc(cityId).get();
+    final boundaryId = city.data()?['verifiedBoundaryId']?.toString().trim() ?? '';
+    if (!city.exists || boundaryId.isEmpty) return null;
+
+    final boundary = await _firestore.collection('service_location_boundaries').doc(boundaryId).get();
+    if (!boundary.exists) return null;
+    final rawPoints = boundary.data()?['points'];
+    if (rawPoints is! List) return null;
+
+    final points = <LatLng>[];
+    for (final rawPoint in rawPoints) {
+      double? lat;
+      double? lng;
+      if (rawPoint is GeoPoint) {
+        lat = rawPoint.latitude;
+        lng = rawPoint.longitude;
+      } else if (rawPoint is Map) {
+        final latitude = rawPoint['latitude'];
+        final longitude = rawPoint['longitude'];
+        if (latitude is num && longitude is num) {
+          lat = latitude.toDouble();
+          lng = longitude.toDouble();
+        }
+      }
+      if (lat == null || lng == null || !lat.isFinite || !lng.isFinite ||
+          lat < -90 || lat > 90 || lng < -180 || lng > 180) continue;
+      points.add(LatLng(lat, lng));
+    }
+    if (points.length < 3) return null;
+
+    var minLat = points.first.latitude;
+    var maxLat = minLat;
+    var minLng = points.first.longitude;
+    var maxLng = minLng;
+    for (final point in points.skip(1)) {
+      if (point.latitude < minLat) minLat = point.latitude;
+      if (point.latitude > maxLat) maxLat = point.latitude;
+      if (point.longitude < minLng) minLng = point.longitude;
+      if (point.longitude > maxLng) maxLng = point.longitude;
+    }
+    return LatLng((minLat + maxLat) / 2, (minLng + maxLng) / 2);
+  }
+
   Future<void> _manageBoundary(ServiceLocationZone zone) async {
+    final cityCenter = await _verifiedCityMapCenter(zone.cityId);
     final existing = await _boundaries.watchForLocation(zone.id, locationType: 'zone').first;
     final selected = selectBoundaryForManagement(existing);
     final sourceName = TextEditingController(text: selected?.sourceName ?? '');
@@ -155,7 +202,7 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
         SizedBox(height: 500, child: ServiceBoundaryEditor(
           key: ValueKey('zone-boundary-' + zone.id + '-' + (selected?.id ?? 'new')),
           initialPoints: (selected?.points ?? const <GeoPoint>[]).map((p) => LatLng(p.latitude, p.longitude)).toList(),
-          initialCenter: const LatLng(28.4744, 77.5040),
+          initialCenter: cityCenter ?? const LatLng(28.4744, 77.5040),
           onBoundaryChanged: (value) => points = value.map((p) => GeoPoint(p.latitude, p.longitude)).toList(),
           onSaveRequested: (value) => setDialogState(() => points = value),
         )),
