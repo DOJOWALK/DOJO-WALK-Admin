@@ -130,9 +130,10 @@ try {
     semanticsNodes: await page.locator('flt-semantics').count(),
     bodyText: (await page.locator('body').innerText().catch(() => '')).slice(0, 500),
   });
-  await page.getByPlaceholder('Enter admin email').fill(email);
-  await page.getByPlaceholder('Enter password').fill(password);
-  await page.getByRole('button', { name: /sign in/i }).click();
+  const inputs = page.locator('flt-semantics input');
+  await inputs.nth(0).fill(email);
+  await inputs.nth(1).fill(password);
+  await page.getByText('SIGN IN', { exact: true }).click();
 
   await page.getByText('DOJO WALK Admin', { exact: false }).first().waitFor();
   await page.getByText('Service Locations', { exact: true }).first().click();
