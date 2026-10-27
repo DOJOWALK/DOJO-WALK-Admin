@@ -5,11 +5,12 @@ void main() {
   group('ServiceLocationZone', () {
     Map<String, dynamic> zoneData({
       String workflowStatus = 'approved',
-      String approvalStatus = 'approved',
+      String founderDecision = 'approve',
+      String? approvalUid = 'founder-uid',
       int revision = 3,
       int approvedRevision = 3,
-      String boundaryHash = 'hash-current',
-      String approvedBoundaryHash = 'hash-current',
+      String? verifiedBoundaryId = 'boundary-1',
+      String? approvedBoundaryHash = 'canonical-hash',
     }) => {
       'name': 'Gaur City Zone 1',
       'stateId': 'UP',
@@ -18,16 +19,17 @@ void main() {
       'workflowStatus': workflowStatus,
       'revision': revision,
       'isServiceActive': false,
-      'boundaryHash': boundaryHash,
-      'approvalStatus': approvalStatus,
+      'verifiedBoundaryId': verifiedBoundaryId,
+      'founderDecision': founderDecision,
+      'approvalUid': approvalUid,
       'approvedRevision': approvedRevision,
       'approvedBoundaryHash': approvedBoundaryHash,
     };
 
-    test('accepts activation readiness only for current Founder approval', () {
+    test('recognizes recorded Founder approval for the current revision', () {
       final zone = ServiceLocationZone.fromMap('zone-1', zoneData());
 
-      expect(zone.hasCurrentFounderApproval, isTrue);
+      expect(zone.hasRecordedFounderApprovalForCurrentRevision, isTrue);
       expect(zone.mayRequestActivation, isTrue);
     });
 
@@ -37,21 +39,30 @@ void main() {
         zoneData(revision: 4, approvedRevision: 3),
       );
 
-      expect(zone.hasCurrentFounderApproval, isFalse);
+      expect(zone.hasRecordedFounderApprovalForCurrentRevision, isFalse);
       expect(zone.mayRequestActivation, isFalse);
     });
 
-    test('blocks activation when boundary hash changed after approval', () {
+    test('blocks activation when there is no verified boundary reference', () {
       final zone = ServiceLocationZone.fromMap(
         'zone-1',
-        zoneData(boundaryHash: 'hash-new', approvedBoundaryHash: 'hash-old'),
+        zoneData(verifiedBoundaryId: null),
       );
 
-      expect(zone.hasCurrentFounderApproval, isFalse);
       expect(zone.mayRequestActivation, isFalse);
     });
 
-    test('blocks activation when status is not approved', () {
+    test('blocks activation when Founder approval metadata is missing', () {
+      final zone = ServiceLocationZone.fromMap(
+        'zone-1',
+        zoneData(approvalUid: null, approvedBoundaryHash: null),
+      );
+
+      expect(zone.hasRecordedFounderApprovalForCurrentRevision, isFalse);
+      expect(zone.mayRequestActivation, isFalse);
+    });
+
+    test('blocks activation when workflow status is not approved', () {
       final zone = ServiceLocationZone.fromMap(
         'zone-1',
         zoneData(workflowStatus: 'submitted'),
