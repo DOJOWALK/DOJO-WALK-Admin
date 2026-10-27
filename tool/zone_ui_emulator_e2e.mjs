@@ -147,21 +147,15 @@ try {
     }));
     throw new Error(`Admin login did not reach the dashboard: ${error.message}`);
   }
-  // Confirm the dashboard route, then use its explicit location shortcut.
+  // The sidebar and dashboard shortcut share a similar label. The dashboard
+  // shortcut is the last matching button in the rendered semantics tree.
   await page.getByText('Total Bookings', { exact: true }).waitFor({ timeout: 10000 });
-  await page.getByRole('button', { name: /add \/ manage locations/i }).click();
-  // Sidebar also contains this label, so assert a screen-specific heading and
-  // collect visible semantics if navigation fails instead of treating sidebar as success.
-  await page.getByText('Zone coverage, approval & boundary management', { exact: true }).waitFor({ timeout: 15000 });
-  const tabStrip = page.locator('flt-semantics').filter({ hasText: 'Countries' });
-  if (await tabStrip.count().catch(() => 0) === 0) {
-    console.log('SERVICE_LOCATION_DOM_DIAGNOSTIC:', JSON.stringify({
-      bodyText: (await page.locator('body').innerText().catch(() => '')).slice(0, 2400),
-      semantics: await page.locator('flt-semantics').allTextContents().catch(() => []),
-    }));
-  }
-  // Use the exact visible tab label once the location-specific screen is confirmed.
-  await page.getByText('Zones', { exact: true }).click();
+  const locationShortcuts = page.getByRole('button', { name: /add \/ manage locations/i });
+  await locationShortcuts.last().click();
+  await page.getByText('Countries', { exact: true }).waitFor({ timeout: 15000 });
+  // Zones is a real tab in the existing Service Location screen; use its
+  // accessible label directly instead of depending on tab-strip scroll offsets.
+  await page.getByText('Zones', { exact: true }).last().click();
   await page.getByRole('button', { name: /create zone draft/i }).click();
 
   await page.getByText('State / UT', { exact: true }).click();
