@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../models/service_location_boundary.dart';
 import '../models/service_location_zone.dart';
+import '../models/zone_role_permissions.dart';
 import '../services/service_location_boundary_service.dart';
 import '../services/service_location_zone_service.dart';
 import '../widgets/service_boundary_editor.dart';
@@ -43,8 +44,12 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
       if (mounted) setState(() {
         final data = snapshot.data();
         final active = snapshot.exists && data?['isActive'] == true;
-        _isFounder = active && data?['role'] == 'founder';
-        _isCentralAdmin = active && data?['role'] == 'central_admin';
+        final permissions = ZoneRolePermissions.fromFirestore(
+          role: data?['role']?.toString(),
+          isActive: active,
+        );
+        _isFounder = permissions.canReviewFounderDecision;
+        _isCentralAdmin = permissions.canCreateZone;
       });
     } catch (_) {
       if (mounted) setState(() { _isFounder = false; _isCentralAdmin = false; });
