@@ -203,11 +203,11 @@ class ServiceLocationBoundary {
 
     final normalizedType = locationType.trim().toLowerCase();
 
-    if (!const {'city', 'area'}.contains(
+    if (!const {'city', 'area', 'zone'}.contains(
       normalizedType,
     )) {
       errors.add(
-        'Location type must be city or area.',
+        'Location type must be city, area or zone.',
       );
     }
 
