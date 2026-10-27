@@ -86,9 +86,21 @@ try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, locale: 'en-US', timezoneId: 'Asia/Kolkata' });
   page.setDefaultTimeout(15000);
   page.on('pageerror', error => console.error('BROWSER_PAGE_ERROR:', error.stack || error.message));
+  page.on('console', message => { if (message.type() === 'error') console.error('BROWSER_CONSOLE_ERROR:', message.text()); });
+  page.on('requestfailed', request => console.error('BROWSER_REQUEST_FAILED:', request.url(), request.failure()?.errorText));
   // The UI test does not depend on Google Maps network/API availability.
   await page.route('https://maps.googleapis.com/**', route => route.abort());
   await page.goto('http://127.0.0.1:4173', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(2500);
+  console.log('BROWSER_DOM_DIAGNOSTIC:', JSON.stringify(await page.evaluate(() => ({
+    url: location.href,
+    locale: navigator.language,
+    bodyText: document.body.innerText.slice(0, 500),
+    bodyHtml: document.body.innerHTML.slice(0, 1800),
+    glassPaneCount: document.querySelectorAll('flt-glass-pane').length,
+    canvasCount: document.querySelectorAll('canvas').length,
+    inputCount: document.querySelectorAll('input').length,
+  }))));
 
   const enableAccessibility = page.getByRole('button', { name: /enable accessibility/i });
   const placeholder = page.locator('flt-semantics-placeholder');
