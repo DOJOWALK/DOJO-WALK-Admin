@@ -14,6 +14,7 @@ import '../widgets/zone_founder_review_action.dart';
 import '../widgets/zone_deactivation_request_action.dart';
 import '../widgets/zone_emergency_suspend_action.dart';
 import '../widgets/zone_submit_for_founder_review_action.dart';
+import '../widgets/zone_activate_approved_action.dart';
 
 const _zoneOrange = Color(0xFFFF7900);
 
@@ -380,8 +381,18 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
                 busy: _busy,
                 onPressed: () => _founderReview(zone),
               ),
-              if (_isCentralAdmin && zone.mayRequestActivation)
-                FilledButton(onPressed: _busy ? null : () => _run(() => _zones.activateZone(zone.id), 'Activation request sent to trusted backend.'), child: const Text('Activate Approved Zone')),
+              ZoneActivateApprovedAction(
+                permissions: ZoneRolePermissions(
+                  role: _isCentralAdmin ? ZoneAdminRole.centralAdmin : ZoneAdminRole.other,
+                  isActive: _isCentralAdmin,
+                ),
+                zone: zone,
+                busy: _busy,
+                onPressed: () => _run(
+                  () => _zones.activateZone(zone.id),
+                  'Activation request sent to trusted backend.',
+                ),
+              ),
               if (_isCentralAdmin && zone.workflowStatus == ZoneWorkflowStatus.deactivationApproved && zone.isServiceActive)
                 FilledButton.tonal(onPressed: _busy ? null : () => _run(() => _zones.executeApprovedDeactivation(zone.id), 'Approved Zone deactivation executed.'), child: const Text('Execute Approved Deactivation')),
               ZoneDeactivationRequestAction(
