@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -22,6 +23,24 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
   final _boundaries = ServiceLocationBoundaryService();
   final _firestore = FirebaseFirestore.instance;
   bool _busy = false;
+  bool _isFounder = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentRole();
+  }
+
+  Future<void> _loadCurrentRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      final snapshot = await _firestore.collection('admin_users').doc(user.uid).get();
+      if (mounted) setState(() => _isFounder = snapshot.exists && snapshot.data()?['isActive'] == true && snapshot.data()?['role'] == 'founder');
+    } catch (_) {
+      if (mounted) setState(() => _isFounder = false);
+    }
+  }
 
   void _message(String value) {
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value), behavior: SnackBarBehavior.floating));
@@ -151,6 +170,45 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
     sourceName.dispose(); sourceReference.dispose(); notes.dispose();
   }
 
+  Future<void> _founderReview(ServiceLocationZone zone) async {
+    final notes = TextEditingController();
+    final isDeactivation = zone.workflowStatus == ZoneWorkflowStatus.deactivationSubmitted;
+    final isReactivation = zone.workflowStatus == ZoneWorkflowStatus.reactivationSubmitted;
+    String decision = isDeactivation ? 'deactivate' : (isReactivation ? 'reactivate' : 'approve');
+    const decisions = <String, String>{
+      'approve': 'Approve Zone',
+      'reject': 'Reject submission',
+      'changes_required': 'Request changes',
+      'deactivate': 'Approve deactivation',
+      'reactivate': 'Approve reactivation',
+    };
+    final available = isDeactivation
+        ? const ['deactivate', 'changes_required', 'reject']
+        : isReactivation
+            ? const ['reactivate', 'changes_required', 'reject']
+            : const ['approve', 'changes_required', 'reject'];
+    final confirmed = await showDialog<bool>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
+      title: Text('Founder review · ' + zone.name),
+      content: SizedBox(width: 440, child: Column(mainAxisSize: MainAxisSize.min, children: [
+        const Text('Review the submitted revision and boundary evidence before deciding. The backend rechecks Founder role, revision and boundary hash.'),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(value: decision, isExpanded: true, decoration: const InputDecoration(labelText: 'Decision'),
+          items: available.map((value) => DropdownMenuItem(value: value, child: Text(decisions[value]!))).toList(),
+          onChanged: (value) { if (value != null) setDialogState(() => decision = value); }),
+        const SizedBox(height: 12),
+        TextField(controller: notes, maxLines: 3, onChanged: (_) => setDialogState(() {}), decoration: const InputDecoration(labelText: 'Decision notes', hintText: 'Required except for direct approval')),
+      ])),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
+        FilledButton(onPressed: decision != 'approve' && notes.text.trim().isEmpty ? null : () => Navigator.pop(dialogContext, true), child: const Text('Record decision')),
+      ],
+    )));
+    if (confirmed == true) {
+      await _run(() => _zones.decideFounderApproval(zoneId: zone.id, decision: decision, notes: notes.text), 'Founder decision recorded.');
+    }
+    notes.dispose();
+  }
+
   Future<void> _emergencySuspend(ServiceLocationZone zone) async {
     final reason = TextEditingController();
     String severity = 'SEV-2';
@@ -207,6 +265,8 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
               OutlinedButton.icon(onPressed: _busy ? null : () => _manageBoundary(zone), icon: const Icon(Icons.map_outlined), label: const Text('Manage Boundary')),
               if (zone.verifiedBoundaryId != null && !zone.isServiceActive && (zone.workflowStatus == ZoneWorkflowStatus.draft || zone.workflowStatus == ZoneWorkflowStatus.changesRequired))
                 FilledButton.tonal(onPressed: _busy ? null : () => _run(() => _zones.submitForFounderReview(zone.id), 'Zone submitted for Founder review.'), child: const Text('Submit for Founder Review')),
+              if (_isFounder && (zone.workflowStatus == ZoneWorkflowStatus.submitted || zone.workflowStatus == ZoneWorkflowStatus.deactivationSubmitted || zone.workflowStatus == ZoneWorkflowStatus.reactivationSubmitted))
+                FilledButton.tonal(onPressed: _busy ? null : () => _founderReview(zone), child: const Text('Founder Review')),
               if (zone.mayRequestActivation)
                 FilledButton(onPressed: _busy ? null : () => _run(() => _zones.activateZone(zone.id), 'Activation request sent to trusted backend.'), child: const Text('Activate Approved Zone')),
               if (zone.isServiceActive)
