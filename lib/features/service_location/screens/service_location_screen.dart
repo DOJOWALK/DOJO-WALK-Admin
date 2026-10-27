@@ -947,6 +947,7 @@ class _ServiceLocationScreenState
                   'ID: ${item.id} · Code: ${item.code}',
               active: item.isActive,
               icon: Icons.public,
+              showServiceToggle: false,
               onToggle: (value) async {
                 try {
                   await _service.setCountryStatus(
@@ -1023,6 +1024,7 @@ class _ServiceLocationScreenState
                               'ID: ${item.id} · Country: ${country.name}',
                           active: item.isActive,
                           icon: Icons.map_outlined,
+                          showServiceToggle: false,
                           onToggle: (value) async {
                             try {
                               await _service.setStateStatus(
@@ -1111,6 +1113,7 @@ class _ServiceLocationScreenState
                             'Service: ${district.isActive ? "Active" : "Inactive"}',
                         active: district.isActive,
                         icon: Icons.map_outlined,
+                        showServiceToggle: false,
                         onToggle: (value) async {
                           try {
                             await _service.setDistrictStatus(
@@ -1223,6 +1226,7 @@ class _ServiceLocationScreenState
                                       locationName: item.name,
                                       locationType: 'city',
                                     ),
+                                    showServiceToggle: false,
                                     onToggle: (value) async {
                                       try {
                                         await _service.setCityServiceStatus(
@@ -1319,6 +1323,7 @@ class _ServiceLocationScreenState
                             locationName: item.name,
                             locationType: 'area',
                           ),
+                          showServiceToggle: false,
                           onToggle: (value) async {
                             try {
                               await _service.setAreaServiceStatus(
@@ -1424,6 +1429,7 @@ class _ServiceLocationScreenState
                                         'Service: ${item.isServiceActive ? "Active" : "Inactive"}',
                                     active: item.isServiceActive,
                                     icon: Icons.place_outlined,
+                                    showServiceToggle: false,
                                     onToggle: (value) async {
                                       try {
                                         await _service
@@ -3256,6 +3262,7 @@ class _ServiceLocationScreenState
     required bool active,
     required IconData icon,
     required ValueChanged<bool> onToggle,
+    bool showServiceToggle = true,
     VoidCallback? onManageBoundary,
   }) {
     return Card(
@@ -3310,11 +3317,12 @@ class _ServiceLocationScreenState
                     color: _locationOrange,
                   ),
                 ),
-              Switch(
-                value: active,
-                activeThumbColor: _locationOrange,
-                onChanged: onToggle,
-              ),
+              if (showServiceToggle)
+                Switch(
+                  value: active,
+                  activeThumbColor: _locationOrange,
+                  onChanged: onToggle,
+                ),
             ],
           ),
         ),
