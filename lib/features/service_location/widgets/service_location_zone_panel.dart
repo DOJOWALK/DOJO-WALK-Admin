@@ -135,7 +135,7 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
     await showDialog<void>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
       title: Text('Boundary · ' + zone.name),
       content: SizedBox(width: 820, child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('Status: ' + (selected?.verificationStatus.name ?? 'Not created') + '. Draw the real Zone perimeter; do not use a radius-only approximation.'),
+        Text('Status: ' + (selected?.verificationStatus.name ?? 'Not created') + '. Draw the real Zone perimeter; do not use a radius-only approximation. Saving with verification will immediately run the trusted Central Admin verification checks.'),
         const SizedBox(height: 10),
         TextField(controller: sourceName, decoration: const InputDecoration(labelText: 'Boundary source name')),
         const SizedBox(height: 8),
@@ -168,12 +168,12 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
             final boundaryId = await _boundaries.saveDraft(boundary);
             await _boundaries.markVerified(boundaryId: boundaryId, verificationNotes: notes.text.trim().isEmpty ? 'Submitted for boundary verification from Admin.' : notes.text.trim());
             if (dialogContext.mounted) Navigator.pop(dialogContext);
-            _message('Boundary sent to the trusted verification workflow. Activation remains blocked until verification and Founder approval.');
+            _message('Boundary verification completed by the trusted workflow. Zone activation remains blocked until Founder approval of the current revision.');
           } catch (error) {
             setDialogState(() => saving = false);
             _message(error.toString());
           }
-        }, child: Text(saving ? 'Submitting…' : 'Save & Submit for Verification')),
+        }, child: Text(saving ? 'Saving & verifying…' : 'Save & Verify Boundary')),
       ],
     )));
     sourceName.dispose(); sourceReference.dispose(); notes.dispose();
