@@ -205,27 +205,28 @@ class _ServiceLocationScreenState
           ],
         ),
         actions: [
-          Padding(
-            padding: EdgeInsets.only(right: isMobile ? 8 : 20),
-            child: Center(
-              child: FilledButton.icon(
-                onPressed: _showAddLocationDialog,
-                icon: const Icon(Icons.add_location_alt_outlined, size: 19),
-                label: Text(isMobile ? 'Add' : 'Add Location'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: _locationOrange,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isMobile ? 12 : 18,
-                    vertical: 13,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+          if (_selectedTab != 4)
+            Padding(
+              padding: EdgeInsets.only(right: isMobile ? 8 : 20),
+              child: Center(
+                child: FilledButton.icon(
+                  onPressed: _showAddLocationDialog,
+                  icon: const Icon(Icons.add_location_alt_outlined, size: 19),
+                  label: Text(isMobile ? 'Add' : 'Add Location'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _locationOrange,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isMobile ? 12 : 18,
+                      vertical: 13,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
         ],
       ),
       body: Column(
@@ -780,7 +781,7 @@ class _ServiceLocationScreenState
       case 3:
         return _buildCities();
       case 4:
-        return const ServiceLocationZonePanel();
+        return ServiceLocationZonePanel(searchQuery: _search);
       case 5:
         return _buildAreas();
       case 6:
