@@ -113,7 +113,7 @@ jobs:
         run: |
           set -euo pipefail
           flutter pub get
-          flutter build web --release --dart-define=DOJO_USE_FIREBASE_EMULATORS=true
+          flutter build web --release --dart-define=DOJO_USE_FIREBASE_EMULATORS=true --dart-define=DOJO_E2E_MAP_PLACEHOLDER=true
 
       - name: Run actual browser UI flow against isolated emulators
         env:
