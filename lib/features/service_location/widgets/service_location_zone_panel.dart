@@ -148,9 +148,9 @@ class _ServiceLocationZonePanelState extends State<ServiceLocationZonePanel> {
       content: SizedBox(width: 820, child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Text('Status: ' + (selected?.verificationStatus.name ?? 'Not created') + '. Draw the real Zone perimeter; do not use a radius-only approximation. Saving with verification will immediately run the trusted Central Admin verification checks.'),
         const SizedBox(height: 10),
-        TextField(controller: sourceName, decoration: const InputDecoration(labelText: 'Boundary source name')),
+        TextField(controller: sourceName, onChanged: (_) => setDialogState(() {}), decoration: const InputDecoration(labelText: 'Boundary source name')),
         const SizedBox(height: 8),
-        TextField(controller: sourceReference, decoration: const InputDecoration(labelText: 'Source reference')),
+        TextField(controller: sourceReference, onChanged: (_) => setDialogState(() {}), decoration: const InputDecoration(labelText: 'Source reference')),
         const SizedBox(height: 10),
         SizedBox(height: 500, child: ServiceBoundaryEditor(
           key: ValueKey('zone-boundary-' + zone.id + '-' + (selected?.id ?? 'new')),
