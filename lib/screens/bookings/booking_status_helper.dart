@@ -22,6 +22,7 @@ String displayBookingStatus(dynamic rawValue) {
     case 'accepted':
       return 'Walker Accepted';
     case 'in progress':
+    case 'walk in progress':
     case 'active walk':
     case 'walking':
     case 'walk started':
