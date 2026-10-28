@@ -56,7 +56,7 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
       submittedAt: '2026-10-27 16:40 IST',
       revision: 'Revision 2',
       boundaryStatus: 'Hash changed',
-      boundaryHash: 'Hash changed',
+      boundaryHash: 'EXAMPLE-HASH-CHANGED',
       blockers: 'Re-review required; prior approval must not be reused',
       status: 'Blocked — re-review',
     ),
