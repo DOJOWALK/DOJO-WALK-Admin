@@ -41,6 +41,8 @@ void main() {
 
     await tester.tap(dropdowns.at(3));
     await tester.pumpAndSettle();
+    expect(find.text('Example Zone North (mock)'), findsOneWidget);
+    expect(find.text('Example Zone Central (mock)'), findsOneWidget);
     await tester.tap(find.text('Create new Zone…').last);
     await tester.pumpAndSettle();
 
