@@ -188,15 +188,15 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
               icon: const Icon(Icons.visibility_outlined),
               label: const Text('View example profile'),
             ),
-            const OutlinedButton.icon(
+            OutlinedButton.icon(
               onPressed: null,
-              icon: Icon(Icons.lock_outline),
-              label: Text('Restrict disabled'),
+              icon: const Icon(Icons.lock_outline),
+              label: const Text('Restrict disabled'),
             ),
-            const OutlinedButton.icon(
+            OutlinedButton.icon(
               onPressed: null,
-              icon: Icon(Icons.person_off_outlined),
-              label: Text('Close account disabled'),
+              icon: const Icon(Icons.person_off_outlined),
+              label: const Text('Close account disabled'),
             ),
           ]),
         ],
