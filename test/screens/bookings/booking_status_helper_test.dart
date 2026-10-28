@@ -57,6 +57,28 @@ void main() {
   });
 
   group('bookingStatusQueryAliases', () {
+    test('every queried alias normalizes to its canonical lifecycle label', () {
+      const expected = {
+        'Pending': 'Pending',
+        'Walker Assigned': 'Walker Assigned',
+        'Picked Up': 'Picked Up',
+        'Walker Accepted': 'Walker Accepted',
+        'Walk In Progress': 'Walk In Progress',
+        'Completed': 'Completed',
+        'Cancelled': 'Cancelled',
+      };
+
+      for (final entry in expected.entries) {
+        for (final raw in bookingStatusQueryAliases(entry.key)) {
+          expect(
+            displayBookingStatus(raw),
+            entry.value,
+            reason: 'Raw status "$raw" must map to the canonical label',
+          );
+        }
+      }
+    });
+
     test('covers legacy capitalization and separators for canonical states', () {
       expect(
         bookingStatusQueryAliases('Pending'),
