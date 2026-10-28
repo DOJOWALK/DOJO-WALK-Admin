@@ -30,7 +30,7 @@
 | Audit Logs | `lib/features/audit/screens/admin_audit_logs_screen.dart` | POL-021 Access Control; POL-020 Privacy/retention; India Operating System audit-record standards | UI prototype with actor, role, resource, result, reason and IST timestamp fields; export disabled and no live audit data. |
 | Reports & Analytics | `lib/features/reports/screens/reports_analytics_screen.dart` | India Operating System & Area Launch Master reporting standards; POL-004, POL-009, POL-016, POL-026, POL-029, POL-030, POL-038/POL-040 | Policy-mapped report catalog; no fabricated KPI totals. Open/export/schedule actions disabled until data definitions and permissions are approved. |
 | Finance Operations | `lib/features/finance/screens/finance_operations_screen.dart` | POL-012 Payment/Refund/Reconciliation; POL-033 Earnings/Payouts; POL-029 cancellations/refunds | Cashless payment, refund and payout UI prototype; example amounts/statuses only. Verify/approve/reconcile actions disabled; no gateway or payout provider connected. |
-| Settings | `lib/screens/dashboard/admin_shell.dart` generic placeholder | Needs a precise settings scope from Notion master/policies | Gap: do not invent system settings. Map each setting to an approved source before building. |
+| Settings | `lib/features/settings/screens/settings_governance_screen.dart` | POL-021 Access Control; POL-032 Notifications; POL-009 Support; POL-020/031 Privacy and account lifecycle | Policy-mapped preview for language, security, notifications, privacy/retention and verified support channels. Unconfigured values are explicit; no settings are saved. |
 | Service Locations | `lib/features/service_location/screens/service_location_screen.dart` | POL-040 UI; POL-038 Zone lifecycle; POL-039 Firestore model/rules; POL-041 API; POL-042 test plan | UI work in progress. See `NOTION_POL040_FILE_MAP.md`. State/District/City activation controls removed; legacy City/Area polygons are no longer presented as active Zones. |
 
 ## Feature folder layout
@@ -45,15 +45,14 @@
 
 ## Remaining Admin UI scope
 
-1. Settings: specify exact settings and permissions from Notion before implementation.
-2. Payments & Refunds: map to POL-029/POL-030; existing Bookings screen is not a substitute for a finance workflow.
-3. Reports & Analytics: derive metrics only from authorized, defined data sources; never invent revenue or service KPIs.
-4. Admin audit-log viewer and account-security review: verify existing screens and link to POL-021/POL-020.
-5. Complete role-based visibility and all Loading, Empty, Error, Permission Denied and Success states across every screen.
-6. Run responsive checks and full test suite after UI work; record actual CI evidence.
+1. Complete role-based visibility and all Loading, Empty, Error, Permission Denied and Success states across every screen.
+2. Audit Dashboard, Live Operations, Bookings and Walker Management against their detailed Notion policies; avoid fabricated metrics or status.
+3. Confirm all Admin menu destinations and mobile layouts in responsive widget/integration tests.
+4. Only after the UI is approved, start the planned Firebase/auth/Firestore integration and server-side authorization work.
+5. Run responsive checks and full test suite after UI work; record actual CI evidence.
 
 ## Validation discipline
 
 - A completed run at commit `74b6b547026220086d3bbafd286ab2595d7ad8a7` passed Analyze, the complete test suite and Flutter Web build, including Service Location workflow, Directory/Boundary/Approval previews, Customer/Pet/Support/Notification prototypes and Admin role matrix.
-- Reports & Analytics, Finance Operations and Admin Audit Logs have been added after that run; they still require a fresh run on the latest commit before claiming PASS.
+- Reports & Analytics, Finance Operations, Admin Audit Logs and Settings Governance have been added after that run; they require a fresh run on the latest commit before claiming PASS.
 - No merge or deployment is authorized in this phase.
