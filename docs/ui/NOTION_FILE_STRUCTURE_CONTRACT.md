@@ -64,51 +64,54 @@ The Admin service-location setup hierarchy is State/UT → District → City →
 The branch head must be checked independently before declaring CI green. The latest code head reported during the handoff was `f8ff6a53daba7a70436c9419755a20c3bb9f4b7a`; the PR description explicitly notes that the booking status alias update and current head still require exact-head full CI verification. Historical successful runs are not proof that this later head passes.
 
 
-## 8. Canonical Admin target tree (owner-requested)
+## 8. Canonical Admin structure — aligned to current Notion-to-file maps
 
-The following is the target tree for the Admin repository. It is an architecture target, not a claim that every folder or file already exists.
+The current repository is intentionally hybrid: the Dashboard, Bookings and Live Operations screens remain under `lib/screens/`; newer operational domains use `lib/features/<domain>/`. This is the current ownership map, not a forced migration into a uniform architecture.
 
 ```text
 DOJO-WALK-Admin/
-├── .github/workflows/
-│   └── build_web.yml
+├── .github/workflows/build_web.yml
 ├── docs/
 │   ├── PROJECT_FILE_STRUCTURE.md
 │   ├── LOCATION_MASTER_STATUS.md
 │   ├── architecture/
 │   ├── data_dictionary/
-│   ├── runbooks/
 │   ├── decisions/
+│   ├── runbooks/
+│   ├── reports/
 │   └── ui/
+│       ├── NOTION_FILE_STRUCTURE_CONTRACT.md
+│       ├── ADMIN_UI_NOTION_FILE_MAP.md
+│       └── NOTION_POL040_FILE_MAP.md
 ├── data/reference/india_locations/
-│   ├── source_manifest.md
-│   └── README.md
 ├── lib/
 │   ├── main.dart
 │   ├── app/app.dart
-│   ├── core/
-│   │   ├── constants/
-│   │   ├── errors/
-│   │   ├── routing/
-│   │   ├── theme/
-│   │   └── utils/
-│   ├── data/
-│   │   ├── reference/india_locations/
-│   │   │   ├── india_states.dart
-│   │   │   ├── india_districts.dart
-│   │   │   └── india_sub_districts.dart
-│   │   └── repositories/
+│   ├── core/{constants,errors,routing,theme,utils}/
+│   ├── data/reference/india_locations/
+│   │   ├── india_states.dart
+│   │   ├── india_districts.dart
+│   │   ├── india_sub_districts.dart
+│   │   └── india_location_filters.dart
+│   ├── screens/
+│   │   ├── dashboard/{admin_shell.dart,dashboard_screen.dart}
+│   │   ├── bookings/bookings_screen.dart
+│   │   └── live/{live_operations_screen.dart,live_booking_details_helper.dart}
 │   ├── features/
-│   │   ├── auth/
-│   │   ├── dashboard/
-│   │   ├── bookings/
-│   │   ├── walkers/
-│   │   ├── live_operations/
-│   │   ├── service_location/{models,screens,services,widgets,utils}/
-│   │   └── settings/
+│   │   ├── walkers/screens/
+│   │   ├── customers/screens/
+│   │   ├── pets/screens/
+│   │   ├── notifications/screens/
+│   │   ├── support/screens/
+│   │   ├── access_control/screens/
+│   │   ├── audit/screens/
+│   │   ├── reports/screens/
+│   │   ├── finance/screens/
+│   │   ├── settings/screens/
+│   │   └── service_location/{models,screens,services,utils,widgets}/
 │   ├── shared/{widgets,services}/
 │   └── firebase_options.dart
-├── test/{core,features,data}/
+├── test/{screens,features,data,core}/
 ├── web/
 ├── pubspec.yaml
 ├── analysis_options.yaml
@@ -117,15 +120,15 @@ DOJO-WALK-Admin/
 
 ### Required exceptions and migration safeguards
 
-- The old draft tree mentioned `lib/features/coupons/`. Do **not** create or restore that feature: the current business decision is no coupon-code system, and the Coupons Admin destination was removed. A future policy change must first be approved and recorded in Notion.
-- Create Zone selectors are exactly `State/UT → District → City → Zone`; no Locality selector. Only Zone is service-activatable and polygon verification is required.
-- The live repository currently has established paths outside this target grouping (including dashboard, booking and live screens under `lib/screens/`). Keep those working paths until a per-domain migration is reviewed and tested. Do not create duplicate feature screens to imitate the target tree.
-- The currently working workflow path must not be renamed to `.github/workflows/build_web.yml` until triggers, required checks, branch-protection references and duplicate-workflow risk are audited.
-- The three India location Dart datasets are planned/restoration-pending until their source, declarations, official codes, parent relationships, imports and record counts have been verified. Do not create placeholder data files to make the tree appear complete.
-- Empty directories do not persist in Git by themselves; create a directory only when it has a real tracked file and a defined purpose.
+- Do **not** create or restore a Coupons feature; the business decision is no coupon-code system.
+- Create Zone selectors remain exactly State/UT → District → City → Zone; no Locality selector. Only Zone is service-activatable and polygon verification is required.
+- Dashboard, Bookings and Live Operations already have established `lib/screens/` paths. Keep those paths until a per-domain migration is explicitly mapped, tested, and reviewed; do not create duplicate feature screens to imitate a folder pattern.
+- Keep the current workflow path until its triggers, required checks, branch-protection references and duplicate-workflow risk have been audited.
+- The India location Dart files exist on the working branch. Do not restore duplicates. Verify source provenance, declarations, official codes, parent relationships, imports and record counts before changing or integrating generated data.
+- A folder in this tree is not evidence that the folder exists or that its feature is complete. Avoid empty placeholder directories.
 
 ### File migration ledger
 
 For every planned migration, record: Notion policy; current path; target path; imports/routes affected; test coverage; validation run and exact commit SHA; status (`Planned`, `In progress`, `Verified`, or `Blocked`). Update `docs/ui/NOTION_POL040_FILE_MAP.md` and this contract together when a Service Location path changes.
 
-**Current status:** This section establishes the agreed target and safety rules. It does not certify that the whole repository has been migrated. PR #51 remains Draft; no merge, deployment, or new Firebase integration is authorized during the UI-first phase.
+**Current status:** This section documents current ownership based on the Notion-to-file maps; it does not certify that every listed domain is complete. PR #51 remains Draft; no merge, deployment, or new Firebase integration is authorized during the UI-first phase.
