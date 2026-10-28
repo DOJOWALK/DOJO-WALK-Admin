@@ -15,6 +15,7 @@ import '../../features/notifications/screens/notification_center_screen.dart';
 import '../../features/access_control/screens/admin_access_control_screen.dart';
 import '../../features/reports/screens/reports_analytics_screen.dart';
 import '../../features/finance/screens/finance_operations_screen.dart';
+import '../../features/audit/screens/admin_audit_logs_screen.dart';
 
 const Color adminOrange = Color(0xFFFF7900);
 const Color adminBackground = Color(0xFFFFFAF5);
@@ -78,6 +79,11 @@ class _AdminShellState extends State<AdminShell> {
       icon: Icons.admin_panel_settings_outlined,
     ),
     _AdminMenuItem(
+      title: 'Audit Logs',
+      subtitle: 'Security and activity trail',
+      icon: Icons.history_rounded,
+    ),
+    _AdminMenuItem(
       title: 'Reports & Analytics',
       subtitle: 'Policy-mapped operational reporting',
       icon: Icons.analytics_outlined,
@@ -111,7 +117,7 @@ class _AdminShellState extends State<AdminShell> {
             );
           },
           onOpenServiceLocations: () {
-            setState(() => _selectedIndex = 12);
+            setState(() => _selectedIndex = 13);
           },
         );
 
@@ -140,12 +146,15 @@ class _AdminShellState extends State<AdminShell> {
         return const AdminAccessControlScreen();
 
       case 9:
-        return const ReportsAnalyticsScreen();
+        return const AdminAuditLogsScreen();
 
       case 10:
+        return const ReportsAnalyticsScreen();
+
+      case 11:
         return const FinanceOperationsScreen();
 
-      case 12:
+      case 13:
         return const ServiceLocationScreen();
 
       default:
