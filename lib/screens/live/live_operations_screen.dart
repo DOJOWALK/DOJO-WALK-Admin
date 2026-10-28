@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
+import '../../utils/admin_error_classifier.dart';
+import 'live_booking_details_helper.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'live_map_widget.dart';
@@ -81,9 +84,14 @@ class _LiveOperationsScreenState
     }, onError: (Object error, StackTrace stackTrace) {
       debugPrint('Live walker listener failed: $error');
       if (!mounted) return;
+      final permissionDenied = isPermissionDeniedError(error);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to refresh live walkers. Check connection and permissions.'),
+        SnackBar(
+          content: Text(
+            permissionDenied
+                ? 'Permission denied for live walker data. Ask an authorized administrator to review scope.'
+                : 'Unable to refresh live walkers. Check the connection; the listener will retry.',
+          ),
         ),
       );
     });
@@ -282,27 +290,51 @@ class _LiveOperationsScreenState
         return;
       }
       final data = booking.data() ?? <String, dynamic>{};
-      final details = data.entries
-          .where((entry) => entry.value != null)
-          .take(12)
-          .map((entry) => entry.key + ': ' + entry.value.toString())
-          .join('\n');
+      final details = safeLiveBookingSummary(data);
       await showDialog<void>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Booking Details'),
+          title: Text('Booking summary · $bookingId'),
           content: SingleChildScrollView(
-            child: SelectableText(details.isEmpty ? 'No booking details available.' : details),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (details.isEmpty)
+                  const Text('No approved operational summary fields are available.')
+                else
+                  for (final entry in details.entries)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text('${entry.key}: ${entry.value}'),
+                    ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Sensitive fields are intentionally omitted from this operational summary.',
+                  style: TextStyle(fontSize: 12, color: Colors.black54),
+                ),
+              ],
+            ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Close')),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Close'),
+            ),
           ],
         ),
       );
     } catch (error) {
       if (!mounted) return;
+      final permissionDenied = isPermissionDeniedError(error);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to load booking: ' + error.toString())),
+        SnackBar(
+          content: Text(
+            permissionDenied
+                ? 'Permission denied for booking details.'
+                : 'Unable to load booking details. Please retry.',
+          ),
+        ),
       );
     }
   }
