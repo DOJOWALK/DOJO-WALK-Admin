@@ -45,7 +45,7 @@ The detailed screen-by-screen mapping lives in `docs/ui/NOTION_POL040_FILE_MAP.m
 
 For Service Locations, keep screens in `lib/features/service_location/screens/`; put pure status/formatting logic in the existing `utils/` area; keep data access in the existing `services/` area; and keep reusable visual elements in `widgets/`. Use the existing `models/` folder for typed domain representations when a model is required. Do not introduce a parallel `lib/screens/service_location/` tree.
 
-The required hierarchy is India → State/UT → District → City → Zone → Locality. Only Zone is a service activation unit. The Create Zone UI has four dependent selectors—State/UT → District → City → Zone—and no Locality selector. Founder/CEO approves business decisions; Central Admin prepares requests and executes approved changes only after server checks; Super Admin technical access alone does not grant Founder authority.
+The Admin service-location setup hierarchy is State/UT → District → City → Zone. The Create Zone UI has exactly four dependent selectors—State/UT → District → City → Zone—and must not add a Locality selector or a Locality step to the Zone activation workflow. Only Zone is a service activation unit; State/UT, District and City are reference hierarchy records. Founder/CEO approves business decisions; Central Admin prepares requests and executes approved changes only after server checks; Super Admin technical access alone does not grant Founder authority.
 
 ## Change checklist for every next task
 
