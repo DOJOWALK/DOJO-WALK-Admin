@@ -791,6 +791,33 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
           runSpacing: 10,
           children: actions,
         ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF0E2),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFFFD2AC)),
+          ),
+          child: const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.lock_outline, color: walkerOrange, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Lifecycle actions are disabled until POL-004 authority separation and required audit evidence are approved and tested.',
+                  style: TextStyle(
+                    color: walkerText,
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         if (_actionLoading) ...[
           const SizedBox(height: 12),
           const LinearProgressIndicator(color: walkerOrange),
