@@ -61,3 +61,19 @@ Rechecked directly against PR #51 head `df5562f2166d864f3817d06caff0a480076a3c91
 ## 6. Audit result
 
 **Inventory completed; structural migration not yet performed.** The repository already contains a working mixed layout and a more detailed Notion-driven file map. The next implementation task is to reconcile the user's desired logical tree with that canonical map, then select one low-risk migration only if the mapping proves a real maintenance benefit. No production data or Firebase state was changed.
+
+## 7. Follow-up recheck — 2026-10-29
+
+The repository was rechecked at PR #51 head `97e3fadab6cf51897c4c1389dcecfe750db5c0cc` using GitHub's recursive Git tree API:
+
+- Tree response: `truncated: false`, 394 entries.
+- The four India location Dart files are tracked. The sub-district source blob is 1,830,733 bytes; a content-preview response returned no text for this large file, so that preview must not be interpreted as an empty source file.
+- `lib/core/`, `lib/data/repositories/`, and `lib/shared/` remain absent as tracked paths. Do not create empty directories solely to match the diagram.
+- The four workflows remain present: `admin-main-full-validation.yml`, `admin-web-build-check.yml`, `build_web.yml`, and `service-location-geometry-tests.yml`.
+- Reference data provenance remains **unverified**: the Dart comments identify a user-supplied LGD CSV, but the corresponding raw source file, source URL, retrieval date, licence/terms, checksum and reproducible generation command were not found under `data/reference/india_locations/`. Do not import this data into production Firebase until that evidence and integrity review are complete.
+- Current PR head has no reported commit statuses and no workflow run associated with that exact SHA in the inspected API responses. The latest successful Admin Web Build Check returned by the branch run list is run `40777254854` for older code commit `f8ff6a53daba7a70436c9419755a20c3bb9f4b7a`; it is not proof of a pass on the current head.
+- No source files were moved or deleted during this follow-up. PR #51 remains Draft; no merge, deploy, or backend expansion.
+
+### Next safe structural task
+
+Create a reference-data README that explains the separation between raw source files, generated Dart and audits, and add a source manifest only after the actual source artifact and provenance fields are available. Do not fabricate provenance or regenerate the large Dart data from an unverified source.
