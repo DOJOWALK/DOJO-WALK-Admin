@@ -48,12 +48,32 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
       ? const []
       : (_catalog[_state]?[_district] ?? const []);
 
-  // Placeholder Zone catalog behavior for UI-only development. Until the
-  // approved Zone catalog is connected, the fourth selector exposes only the
-  // create-new path and never pretends example records are live.
-  List<String> get _zoneOptions => _city == null
-      ? const []
-      : const ['Create new Zone…'];
+  // Clearly labelled example catalog for UI-only development. These are
+  // not live Zone records; the approved catalog will replace them after the
+  // Notion-defined data contract is connected.
+  List<String> get _zoneOptions {
+    if (_city == null) return const [];
+    return switch (_city) {
+      'Noida' => const [
+          'Create new Zone…',
+          'Example Zone North (mock)',
+          'Example Zone Central (mock)',
+        ],
+      'Greater Noida' => const [
+          'Create new Zone…',
+          'Example Zone South (mock)',
+        ],
+      'Ghaziabad' => const [
+          'Create new Zone…',
+          'Example Zone East (mock)',
+        ],
+      'New Delhi' => const [
+          'Create new Zone…',
+          'Example Zone Capital (mock)',
+        ],
+      _ => const ['Create new Zone…'],
+    };
+  }
 
   bool get _creatingZone => _zoneSelection == 'Create new Zone…';
 
@@ -199,7 +219,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                             label: 'Zone',
                             value: _zoneSelection,
                             options: _zoneOptions,
-                            helper: 'Fourth dependent selector. Existing Zone catalog is not connected yet.',
+                            helper: 'Fourth dependent selector. Any existing Zone options shown are clearly marked mock records; live catalog is not connected.',
                             onChanged: (value) => setState(() {
                               _zoneSelection = value;
                               if (value != 'Create new Zone…') {
@@ -207,6 +227,21 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                               }
                             }),
                           ),
+                          if (_zoneSelection != null && !_creatingZone) ...[
+                            const SizedBox(height: 10),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFF0DF),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Text(
+                                'Mock existing Zone selected. This form will not edit it; use Zone Details to review records. No live data is loaded.',
+                                style: TextStyle(fontSize: 12, height: 1.4),
+                              ),
+                            ),
+                          ],
                           if (_creatingZone) ...[
                             const SizedBox(height: 16),
                             TextFormField(
