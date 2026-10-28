@@ -33,6 +33,7 @@ import '../services/location_csv_import_service.dart';
 import '../services/location_csv_lgd_validator.dart';
 import '../services/service_location_boundary_service.dart';
 import '../services/service_location_service.dart';
+import 'add_zone_screen.dart';
 import '../widgets/add_location_dialog.dart';
 import '../widgets/service_boundary_editor.dart';
 
@@ -206,9 +207,13 @@ class _ServiceLocationScreenState
             padding: EdgeInsets.only(right: isMobile ? 8 : 20),
             child: Center(
               child: FilledButton.icon(
-                onPressed: _showAddLocationDialog,
-                icon: const Icon(Icons.add_location_alt_outlined, size: 19),
-                label: Text(isMobile ? 'Add' : 'Add Location'),
+                onPressed: () => Navigator.of(context).push<void>(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const AddZoneScreen(),
+                  ),
+                ),
+                icon: const Icon(Icons.add_rounded, size: 19),
+                label: Text(isMobile ? 'Add Zone' : 'Add Service Zone'),
                 style: FilledButton.styleFrom(
                   backgroundColor: _locationOrange,
                   foregroundColor: Colors.white,
@@ -246,7 +251,7 @@ class _ServiceLocationScreenState
               controller: _searchController,
               onChanged: (value) => setState(() => _search = value.trim()),
               decoration: InputDecoration(
-                hintText: 'Search state, city, area or code',
+                hintText: 'Search state, district, city or zone code',
                 hintStyle: const TextStyle(fontSize: 13, color: Colors.black45),
                 prefixIcon: const Icon(Icons.search_rounded, color: _locationOrange),
                 suffixIcon: _search.isEmpty
@@ -363,17 +368,13 @@ class _ServiceLocationScreenState
             spacing: 5,
             runSpacing: 6,
             children: [
-              _hierarchyChip('Country'),
-              _hierarchyArrow(),
-              _hierarchyChip('State'),
+              _hierarchyChip('State / UT'),
               _hierarchyArrow(),
               _hierarchyChip('District'),
               _hierarchyArrow(),
               _hierarchyChip('City'),
               _hierarchyArrow(),
-              _hierarchyChip('Area'),
-              _hierarchyArrow(),
-              _hierarchyChip('Locality (optional)'),
+              _hierarchyChip('Zone'),
             ],
           ),
           const SizedBox(height: 10),
