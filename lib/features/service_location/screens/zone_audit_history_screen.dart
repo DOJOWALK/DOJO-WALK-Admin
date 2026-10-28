@@ -85,7 +85,7 @@ class _ZoneAuditHistoryScreenState extends State<ZoneAuditHistoryScreen> {
                 contentPadding: const EdgeInsets.all(14),
                 leading: CircleAvatar(backgroundColor: _orange.withValues(alpha: 0.12), child: Icon(e.icon, color: _orange)),
                 title: Text(e.event, style: const TextStyle(fontWeight: FontWeight.w700)),
-                subtitle: Padding(padding: const EdgeInsets.only(top: 6), child: Text('${e.zone}\\nActor: ${e.actor}\\n${e.time}')),
+                subtitle: Padding(padding: const EdgeInsets.only(top: 6), child: Text('${e.zone}\nActor: ${e.actor}\n${e.time}')),
                 isThreeLine: true,
                 trailing: Text(e.status, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
               ),
