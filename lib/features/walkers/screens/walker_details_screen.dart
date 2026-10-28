@@ -38,6 +38,11 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
 
   bool _actionLoading = false;
 
+  // POL-004 is still draft and its verifier/approver separation is not yet
+  // represented by the current legacy service action. Keep lifecycle writes
+  // unavailable in this UI-validation branch until that contract is approved.
+  static const bool _lifecycleActionsEnabled = false;
+
   String _text(
     dynamic value, [
     String fallback = 'Not provided',
@@ -731,6 +736,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
           'Reject',
           Icons.close,
           () => _startReasonAction(action: 'reject'),
+          lifecycleAction: true,
         ),
       );
 
@@ -740,6 +746,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
             'Request Correction',
             Icons.edit_note_outlined,
             () => _startReasonAction(action: 'correction'),
+            lifecycleAction: true,
           ),
         );
       }
@@ -1039,7 +1046,9 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     IconData icon,
     VoidCallback onPressed,
   ) {
-    return FilledButton.icon(
+    return Tooltip(
+      message: 'Disabled until POL-004 lifecycle authority and audit requirements are approved and tested.',
+      child: FilledButton.icon(
       style: FilledButton.styleFrom(
         backgroundColor: walkerOrange,
         foregroundColor: Colors.white,
@@ -1051,18 +1060,27 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
           borderRadius: BorderRadius.circular(11),
         ),
       ),
-      onPressed: _actionLoading ? null : onPressed,
+      onPressed: _actionLoading || !_lifecycleActionsEnabled
+          ? null
+          : onPressed,
       icon: Icon(icon, size: 18),
       label: Text(label),
+      ),
     );
   }
 
   Widget _outlineAction(
     String label,
     IconData icon,
-    VoidCallback onPressed,
-  ) {
-    return OutlinedButton.icon(
+    VoidCallback onPressed, {
+    bool lifecycleAction = false,
+  }) {
+    final disabled = lifecycleAction && !_lifecycleActionsEnabled;
+    return Tooltip(
+      message: disabled
+          ? 'Disabled until POL-004 lifecycle authority and audit requirements are approved and tested.'
+          : '',
+      child: OutlinedButton.icon(
       style: OutlinedButton.styleFrom(
         foregroundColor: walkerOrange,
         side: const BorderSide(color: walkerOrange),
@@ -1074,9 +1092,10 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
           borderRadius: BorderRadius.circular(11),
         ),
       ),
-      onPressed: _actionLoading ? null : onPressed,
+      onPressed: _actionLoading || disabled ? null : onPressed,
       icon: Icon(icon, size: 17),
       label: Text(label),
+      ),
     );
   }
 
@@ -1109,11 +1128,14 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
           SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Walker details update live from Firestore. Admin actions '
-              'and audit entries are handled by WalkerAdminService. '
-              'Document replacement, editable profile fields and '
-              'suspected-flag management require separate implementation '
-              'and permissions.',
+              'Walker profile details still read from the existing Firestore source. '
+              'Lifecycle-changing actions (approval, rejection, suspension, '
+              'reactivation and correction requests) are disabled in this UI-validation '
+              'branch until POL-004 verifier/approver separation, allowed transitions '
+              'and complete audit evidence requirements are approved and tested. '
+              'The existing service is not being expanded. Document replacement, '
+              'editable profile fields and suspected-flag management require separate '
+              'implementation and permissions.',
               style: TextStyle(
                 color: walkerText,
                 fontSize: 12,
