@@ -34,4 +34,19 @@ void main() {
     expect(grantButtons.every((button) => button.onPressed == null), isTrue);
     expect(scopeButtons.every((button) => button.onPressed == null), isTrue);
   });
+  testWidgets('remains usable on a narrow mobile viewport', (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(home: AdminAccessControlScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Admin Users & Roles'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
