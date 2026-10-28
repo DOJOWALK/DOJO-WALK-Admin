@@ -169,7 +169,7 @@ class _SuspendedZonesScreenState extends State<SuspendedZonesScreen> {
           ),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            value: _impactFilter,
+            initialValue: _impactFilter,
             decoration: InputDecoration(
               labelText: 'Operational impact',
               filled: true,
