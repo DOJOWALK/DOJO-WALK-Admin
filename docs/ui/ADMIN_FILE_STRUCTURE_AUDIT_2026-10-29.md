@@ -2,13 +2,13 @@
 
 **Audit date:** 2026-10-29  
 **Repository:** `DOJOWALK/DOJO-WALK-Admin`  
-**Audited ref:** PR #51 head `37784f79f234745432952bb49453a6cb3cea36e1`  
+**Audited ref:** PR #51 head `df5562f2166d864f3817d06caff0a480076a3c91`  
 **Working branch:** `ui/notion-brand-foundation-2026-10-28`  
 **Status:** Inventory only; no source files moved or deleted by this audit.
 
 ## 1. Scope and safety
 
-The repository tree was read from the exact PR-head commit. The tree contains 393 entries and GitHub reported `truncated: false`. This is a path inventory, not a claim that every feature is complete or that the application was built during this audit.
+The repository tree was read from the exact PR-head commit. The tree contains 394 entries and GitHub reported `truncated: false`. This is a path inventory, not a claim that every feature is complete or that the application was built during this audit.
 
 Notion remains the source of truth. The user-provided target tree is a desired logical organization, but the current implementation has established legacy paths and a Notion-aligned hybrid layout. Do not move or delete code solely to make the tree visually identical. Each migration needs an import/reference audit, tests, and exact-head CI.
 
@@ -49,6 +49,15 @@ Notion remains the source of truth. The user-provided target tree is a desired l
 5. Record the exact commit SHA and actual workflow run. A missing/empty status response is not a pass.
 6. Do not merge, deploy, or expand Firebase integration during the UI-first phase.
 
-## 5. Audit result
+## 5. Current-head recheck — 2026-10-29
+
+Rechecked directly against PR #51 head `df5562f2166d864f3817d06caff0a480076a3c91`; GitHub returned a complete recursive tree (`truncated: false`, 394 entries).
+
+- `lib/core/`, `lib/data/repositories/`, and `lib/shared/` are not present as tracked paths. They remain target architecture folders only; do not create empty placeholders.
+- Existing dashboard/auth/bookings/live screens remain under `lib/screens/`; do not create duplicate feature copies.
+- All four India reference Dart files are present: `india_states.dart`, `india_districts.dart`, `india_sub_districts.dart`, `india_location_filters.dart`.
+- The branch has a successful Admin Web Build Check at earlier commit `f8ff6a53daba7a70436c9419755a20c3bb9f4b7a` (run `40777254854`). The current PR head is `df5562f2166d864f3817d06caff0a480076a3c91`, so that earlier success is **not** proof that the current head passed. Current-head status response was empty; CI needs a new run or explicit workflow evidence before calling it green.
+
+## 6. Audit result
 
 **Inventory completed; structural migration not yet performed.** The repository already contains a working mixed layout and a more detailed Notion-driven file map. The next implementation task is to reconcile the user's desired logical tree with that canonical map, then select one low-risk migration only if the mapping proves a real maintenance benefit. No production data or Firebase state was changed.
