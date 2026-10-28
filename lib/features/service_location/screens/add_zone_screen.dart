@@ -112,17 +112,24 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
     final fieldsValid = _formKey.currentState!.validate();
     if (!fieldsValid) return;
 
-    // Do not simulate a save or imply that a Zone has been created.
-    // A verified polygon and authoritative location catalog are mandatory.
+    // Existing mock Zones are reference-only and must never be treated as a
+    // new Zone submission.
+    final isCreatingNewZone = _creatingZone;
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Validation incomplete'),
-        content: const Text(
-          'The form fields look valid, but this Zone cannot be submitted yet. '
-          'A real boundary polygon must be drawn or uploaded and verified, '
-          'and the State/UT → District → City options must come from the '
-          'authoritative location catalog. Nothing has been saved.',
+        title: Text(
+          isCreatingNewZone ? 'Validation incomplete' : 'Example Zone selected',
+        ),
+        content: Text(
+          isCreatingNewZone
+              ? 'The form fields look valid, but this Zone cannot be submitted yet. '
+                  'A real boundary polygon must be drawn or uploaded and verified, '
+                  'and the State/UT → District → City options must come from the '
+                  'authoritative location catalog. Nothing has been saved.'
+              : 'Existing Zone options are mock records for preview only. '
+                  'Select “Create new Zone…” to validate a new Zone draft. '
+                  'Nothing has been edited or saved.',
         ),
         actions: [
           TextButton(
