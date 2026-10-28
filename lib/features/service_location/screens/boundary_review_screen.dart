@@ -14,28 +14,57 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
   static const _ink = Color(0xFF252525);
   String _filter = 'All';
 
-  // Illustrative rows only. Never treat these as live service-location records.
+  // Illustrative rows only. IDs and hashes below are not live records.
   final List<_ReviewItem> _examples = const [
     _ReviewItem(
+      zoneId: 'EXAMPLE-ZONE-001',
       zone: 'Example Zone A',
       city: 'Example City',
       owner: 'Central Admin',
       status: 'Pending review',
-      revision: 'Revision 1',
-      boundary: 'Not verified',
+      revision: '1',
+      boundaryStatus: 'Not verified',
+      polygonStatus: 'Polygon evidence pending',
+      boundaryHash: 'Not generated',
     ),
     _ReviewItem(
+      zoneId: 'EXAMPLE-ZONE-002',
       zone: 'Example Zone B',
       city: 'Example City',
       owner: 'Central Admin',
       status: 'Needs changes',
-      revision: 'Revision 2',
-      boundary: 'Hash changed',
+      revision: '2',
+      boundaryStatus: 'Hash changed',
+      polygonStatus: 'Re-verification required',
+      boundaryHash: 'EXAMPLE-HASH-CHANGED',
+    ),
+    _ReviewItem(
+      zoneId: 'EXAMPLE-ZONE-003',
+      zone: 'Example Zone C',
+      city: 'Example City',
+      owner: 'Central Admin',
+      status: 'Verified',
+      revision: '3',
+      boundaryStatus: 'Integrity matched',
+      polygonStatus: 'Polygon check recorded (example)',
+      boundaryHash: 'EXAMPLE-SHA256-ABC123',
+    ),
+    _ReviewItem(
+      zoneId: 'EXAMPLE-ZONE-004',
+      zone: 'Example Zone D',
+      city: 'Example City',
+      owner: 'Central Admin',
+      status: 'Rejected',
+      revision: '1',
+      boundaryStatus: 'Rejected',
+      polygonStatus: 'Evidence incomplete (example)',
+      boundaryHash: 'EXAMPLE-HASH-REJECTED',
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final statuses = ['All', 'Pending review', 'Verified', 'Rejected', 'Needs changes'];
     final items = _filter == 'All'
         ? _examples
         : _examples.where((item) => item.status == _filter).toList();
@@ -58,17 +87,11 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
               children: [
                 const Text(
                   'Zone boundary review',
-                  style: TextStyle(
-                    fontSize: 27,
-                    fontWeight: FontWeight.w800,
-                    color: _ink,
-                  ),
+                  style: TextStyle(fontSize: 27, fontWeight: FontWeight.w800, color: _ink),
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Central Admin checks zone readiness and evidence. '
-                  'Founder/CEO remains the final business approver for launch. '
-                  'This screen is a UI preview; it is not connected to live records.',
+                  'Central Admin checks zone readiness and evidence. Founder/CEO remains the final business approver for launch. This screen is a UI preview; it is not connected to live records.',
                   style: TextStyle(color: Colors.black54, height: 1.5),
                 ),
                 const SizedBox(height: 18),
@@ -83,14 +106,15 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
                   child: const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Required before approval',
-                          style: TextStyle(fontWeight: FontWeight.w800)),
+                      Text('Required before approval', style: TextStyle(fontWeight: FontWeight.w800)),
                       SizedBox(height: 10),
-                      _Requirement('Zone polygon exists and is valid'),
-                      _Requirement('Boundary revision and hash are recorded'),
+                      _Requirement('Zone polygon exists and passes geometry validation'),
+                      _Requirement('Boundary revision and cryptographic hash are recorded'),
                       _Requirement('State / UT → District → City hierarchy is confirmed'),
                       _Requirement('Readiness evidence and audit trail are available'),
-                      _Requirement('Founder/CEO decision is bound to this Zone revision'),
+                      _Requirement('Founder/CEO decision is bound to the exact Zone ID, revision and boundary hash'),
+                      _Requirement('Any boundary revision/hash mismatch invalidates prior approval'),
+                      _Requirement('Radius-only coverage is not sufficient for verification'),
                     ],
                   ),
                 ),
@@ -98,7 +122,7 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: ['All', 'Pending review', 'Needs changes'].map((value) {
+                  children: statuses.map((value) {
                     final selected = _filter == value;
                     return ChoiceChip(
                       label: Text(value),
@@ -113,7 +137,7 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
                   const Card(
                     child: Padding(
                       padding: EdgeInsets.all(28),
-                      child: Center(child: Text('No example items in this filter.')),
+                      child: Center(child: Text('No example items in this filter. Live data is not connected.')),
                     ),
                   )
                 else
@@ -129,13 +153,7 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
                                   const Icon(Icons.map_outlined, color: _orange),
                                   const SizedBox(width: 10),
                                   Expanded(
-                                    child: Text(
-                                      item.zone,
-                                      style: const TextStyle(
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
+                                    child: Text(item.zone, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
                                   ),
                                   _StatusPill(item.status),
                                 ],
@@ -143,23 +161,26 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
                               const SizedBox(height: 12),
                               Wrap(
                                 spacing: 18,
-                                runSpacing: 8,
+                                runSpacing: 12,
                                 children: [
+                                  _Detail('Zone ID', item.zoneId),
                                   _Detail('City', item.city),
                                   _Detail('Submitted by', item.owner),
-                                  _Detail('Revision', item.revision),
-                                  _Detail('Boundary', item.boundary),
+                                  _Detail('Boundary revision', item.revision),
+                                  _Detail('Boundary status', item.boundaryStatus),
+                                  _Detail('Polygon verification', item.polygonStatus),
+                                  _Detail('Boundary hash', item.boundaryHash),
                                 ],
                               ),
                               const SizedBox(height: 14),
                               const Text(
-                                'Actions are disabled in this prototype. Connect the review service '
-                                'and permission checks before enabling decisions.',
+                                'Example data only. Review and decision actions remain disabled until live records, evidence storage and permission checks are implemented.',
                                 style: TextStyle(color: Colors.black54, fontSize: 12),
                               ),
                               const SizedBox(height: 10),
                               Wrap(
                                 spacing: 8,
+                                runSpacing: 8,
                                 children: [
                                   OutlinedButton.icon(
                                     onPressed: null,
@@ -184,7 +205,7 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
                       )),
                 const SizedBox(height: 8),
                 const Text(
-                  'Important: example rows are mock data, not actual pending zones. No approval or activation can be performed here.',
+                  'Important: all rows, IDs and hashes are mock data, not actual pending zones. No approval, rejection, verification or activation can be performed here.',
                   style: TextStyle(color: Colors.black54, fontSize: 12),
                 ),
               ],
@@ -198,20 +219,26 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
 
 class _ReviewItem {
   const _ReviewItem({
+    required this.zoneId,
     required this.zone,
     required this.city,
     required this.owner,
     required this.status,
     required this.revision,
-    required this.boundary,
+    required this.boundaryStatus,
+    required this.polygonStatus,
+    required this.boundaryHash,
   });
 
+  final String zoneId;
   final String zone;
   final String city;
   final String owner;
   final String status;
   final String revision;
-  final String boundary;
+  final String boundaryStatus;
+  final String polygonStatus;
+  final String boundaryHash;
 }
 
 class _Requirement extends StatelessWidget {
@@ -241,22 +268,37 @@ class _StatusPill extends StatelessWidget {
   final String label;
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFF2E7),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFFFD2AC)),
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: Color(0xFF8A4300),
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      );
+  Widget build(BuildContext context) {
+    final Color background;
+    final Color foreground;
+    switch (label) {
+      case 'Verified':
+        background = const Color(0xFFE5F5E9);
+        foreground = const Color(0xFF176534);
+      case 'Rejected':
+        background = const Color(0xFFFFE8E3);
+        foreground = const Color(0xFF9A2F20);
+      case 'Needs changes':
+        background = const Color(0xFFFFF0DF);
+        foreground = const Color(0xFF8A4300);
+      default:
+        background = const Color(0xFFEAF1FF);
+        foreground = const Color(0xFF244A8F);
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: foreground.withValues(alpha: 0.25)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: foreground, fontSize: 11, fontWeight: FontWeight.w700),
+      ),
+    );
+  }
 }
 
 class _Detail extends StatelessWidget {
@@ -267,14 +309,16 @@ class _Detail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        width: 210,
+        width: 240,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: const TextStyle(fontSize: 11, color: Colors.black54)),
+            Text(label, style: const TextStyle(color: Colors.black54, fontSize: 11)),
             const SizedBox(height: 3),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+            SelectableText(value, style: const TextStyle(color: _ink, fontSize: 13, fontWeight: FontWeight.w600)),
           ],
         ),
       );
+
+  static const _ink = Color(0xFF252525);
 }
