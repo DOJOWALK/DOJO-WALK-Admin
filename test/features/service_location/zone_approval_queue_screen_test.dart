@@ -97,8 +97,10 @@ void main() {
 
   testWidgets('approval details remain readable on a narrow mobile viewport',
       (tester) async {
-    await tester.binding.setSurfaceSize(const Size(360, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(
       const MaterialApp(home: ZoneApprovalQueueScreen()),
