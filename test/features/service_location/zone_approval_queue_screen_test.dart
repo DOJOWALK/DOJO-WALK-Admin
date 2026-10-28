@@ -33,18 +33,37 @@ void main() {
       );
 
       expect(find.text('Example Zone A'), findsOneWidget);
-      expect(find.text('Example Zone B'), findsOneWidget);
 
       await tester.tap(find.widgetWithText(ChoiceChip, 'Blocked — re-review'));
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.text('Example Zone B'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
       expect(find.text('Example Zone B'), findsOneWidget);
       expect(find.text('Example Zone A'), findsNothing);
 
+      await tester.drag(find.byType(ListView).first, const Offset(0, 1600));
+      await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(ChoiceChip, 'All'));
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.text('Example Zone A'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
       expect(find.text('Example Zone A'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Example Zone B'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
       expect(find.text('Example Zone B'), findsOneWidget);
     });
   });
