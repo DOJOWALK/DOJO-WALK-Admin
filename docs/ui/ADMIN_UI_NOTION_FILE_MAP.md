@@ -1,0 +1,56 @@
+# DOJO WALK Admin — Notion-to-File UI Map
+
+**Working branch:** `ui/notion-brand-foundation-2026-10-28`  
+**Rule:** Notion is the source of truth. This document records the current UI mapping and gaps; it does not approve draft policies. No new Firebase integration, merge, or deployment is performed in this UI phase.
+
+## Shared UI rules
+
+- Brand: orange `#FF7900`, background `#FFFAF5`, text `#252525`.
+- Use responsive cards/Wrap on mobile; do not force wide action toolbars on small screens.
+- Mark every mock/example record clearly; never present mock data as live.
+- Server-backed actions remain disabled until role/scope authorization, state guards and audit logging are implemented.
+- UI role hiding is not security; backend must enforce permissions.
+- No coupon system; do not re-add Coupons to the menu.
+- Zone is the only service activation unit. State/UT, District and City are hierarchy/reference records.
+- Founder/CEO business approval is distinct from Super Admin technical access.
+
+## Current menu and files
+
+| Admin menu | Current screen/file | Source of truth | Status |
+|---|---|---|---|
+| Dashboard | `lib/screens/dashboard/dashboard_screen.dart` | Owner Dashboard in India Operating System & Area Launch Master; related operational policies | Existing screen. It already has Firestore streams; this UI-first pass does not add new Firebase work. Audit metric provenance and loading/error states separately. |
+| Live Operations | `lib/screens/live/live_operations_screen.dart` | POL-007 Live Walk & Safe Handover; POL-008 Safety; POL-016 Incident & Emergency | Existing screen, now directly accessible from sidebar. Verify severity/incident states and safe handover UI. |
+| Bookings | `lib/screens/bookings/bookings_screen.dart` | POL-026 assignment; POL-029 cancellation/reschedule/refund; POL-030 payment controls | Existing screen. Requires policy-by-policy UI audit. |
+| Walker Management | `lib/features/walkers/screens/walker_management_dashboard_screen.dart` | POL-004 Walker/Partner Management; POL-026 availability/assignment | Existing screen. Requires full Notion parity audit. |
+| Customer Management | `lib/features/customers/screens/customer_management_screen.dart` | POL-031 Customer Account/Profile/Consent; POL-021 Access Control | UI prototype with masked example data, lifecycle filters and disabled restriction/closure actions. No customer data connection. |
+| Pet Management | `lib/features/pets/screens/pet_management_screen.dart` | POL-008 Dog/Customer/Walker Safety; POL-031 customer/pet context | UI prototype with example records, explicit unverified health/handling fields and disabled edit/safety actions. |
+| Notification Center | `lib/features/notifications/screens/notification_center_screen.dart` | POL-032 Notifications/Communication Preferences; POL-020 Privacy | UI prototype with categories, safe message previews and disabled send/retry actions. No channels configured. |
+| Support & Complaints | `lib/features/support/screens/support_center_screen.dart` | POL-009 Support & Complaints; POL-024 Support/Refunds/Disputes; POL-016 incidents | UI prototype with S0–S3 example queue, safety-first ordering and disabled transfer/resolve actions. Severity policy is draft. |
+| Admin Users & Roles | `lib/features/access_control/screens/admin_access_control_screen.dart` | POL-021 Access Control, Admin Roles & Privileged Account Security | UI prototype role matrix. Explicitly separates Founder/CEO from Super Admin. Grants, scope changes and MFA actions disabled. |
+| Settings | `lib/screens/dashboard/admin_shell.dart` generic placeholder | Needs a precise settings scope from Notion master/policies | Gap: do not invent system settings. Map each setting to an approved source before building. |
+| Service Locations | `lib/features/service_location/screens/service_location_screen.dart` | POL-040 UI; POL-038 Zone lifecycle; POL-039 Firestore model/rules; POL-041 API; POL-042 test plan | UI work in progress. See `NOTION_POL040_FILE_MAP.md`. State/District/City activation controls removed; legacy City/Area polygons are no longer presented as active Zones. |
+
+## Feature folder layout
+
+- `lib/features/service_location/screens/` — service-location screens and prototypes.
+- `lib/features/customers/screens/` — customer account UI.
+- `lib/features/pets/screens/` — dog profile/safety UI.
+- `lib/features/notifications/screens/` — notification operations UI.
+- `lib/features/support/screens/` — support case queue UI.
+- `lib/features/access_control/screens/` — admin role matrix UI.
+- Tests mirror the domain folder under `test/features/<domain>/`.
+
+## Remaining Admin UI scope
+
+1. Settings: specify exact settings and permissions from Notion before implementation.
+2. Payments & Refunds: map to POL-029/POL-030; existing Bookings screen is not a substitute for a finance workflow.
+3. Reports & Analytics: derive metrics only from authorized, defined data sources; never invent revenue or service KPIs.
+4. Admin audit-log viewer and account-security review: verify existing screens and link to POL-021/POL-020.
+5. Complete role-based visibility and all Loading, Empty, Error, Permission Denied and Success states across every screen.
+6. Run responsive checks and full test suite after UI work; record actual CI evidence.
+
+## Validation discipline
+
+- A completed run at commit `21063788498d239decea21e55f25fc49b1a91395` passed Analyze, the complete test suite and Flutter Web build, before later Directory/Support/Notification/Access Control additions.
+- Newer UI changes require a fresh run on the latest commit before claiming PASS.
+- No merge or deployment is authorized in this phase.
