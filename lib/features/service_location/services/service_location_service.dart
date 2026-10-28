@@ -790,7 +790,7 @@ class ServiceLocationService {
       );
     }
 
-    // A locality polygon is optional.    // A locality polygon is optional.
+    // A locality polygon is optional.
     if (locality.boundary.isNotEmpty) {
       final validPoints = _readPoints(locality.boundary);
 
