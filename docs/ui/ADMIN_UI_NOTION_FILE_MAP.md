@@ -53,6 +53,5 @@
 
 ## Validation discipline
 
-- A completed run at commit `74b6b547026220086d3bbafd286ab2595d7ad8a7` passed Analyze, the complete test suite and Flutter Web build, including Service Location workflow, Directory/Boundary/Approval previews, Customer/Pet/Support/Notification prototypes and Admin role matrix.
-- Reports & Analytics, Finance Operations, Admin Audit Logs and Settings Governance have been added after that run; they require a fresh run on the latest commit before claiming PASS.
+- Latest UI code validation: run `40685718214` passed `flutter analyze`, the complete test suite and `flutter build web --release` at code commit `7e3c8394ac614a5c7b542833f846618c8340f32e`. This includes Service Location, Customer, Pet, Notification, Support, Admin Users & Roles, Audit Logs, Reports, Finance, Settings and the new UI-state/navigation tests. The only later branch commit is documentation-only.
 - No merge or deployment is authorized in this phase.
