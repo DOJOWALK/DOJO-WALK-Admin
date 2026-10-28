@@ -31,4 +31,19 @@ void main() {
     expect(find.text('NOTICE-EX-002'), findsNothing);
     expect(find.text('NOTICE-EX-004'), findsNothing);
   });
+  testWidgets('remains usable on a narrow mobile viewport', (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(home: NotificationCenterScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Notification Center'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
