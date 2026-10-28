@@ -293,24 +293,48 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: const Color(0xFFE9D9CB)),
                             ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.map_outlined, color: _orange),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    'Boundary status: $_boundaryStatus',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final status = Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.map_outlined, color: _orange),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'Boundary status: $_boundaryStatus',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                                OutlinedButton.icon(
+                                  ],
+                                );
+                                final editorButton = OutlinedButton.icon(
                                   onPressed: null,
                                   icon: const Icon(Icons.upload_file_outlined),
                                   label: const Text('Boundary editor pending'),
-                                ),
-                              ],
+                                );
+
+                                if (constraints.maxWidth < 500) {
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      status,
+                                      const SizedBox(height: 12),
+                                      editorButton,
+                                    ],
+                                  );
+                                }
+
+                                return Row(
+                                  children: [
+                                    Expanded(child: status),
+                                    const SizedBox(width: 12),
+                                    editorButton,
+                                  ],
+                                );
+                              },
                             ),
                           ),
                           const SizedBox(height: 12),
