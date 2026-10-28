@@ -59,6 +59,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
     _district = null;
     _city = null;
     _zoneSelection = null;
+    _zoneName.clear();
   }
 
   InputDecoration _decoration(String label, {String? helper}) =>
