@@ -49,17 +49,6 @@ class ServiceLocationService {
     });
   }
 
-  Future<void> _activateTrustedBoundaryLocation({
-    required String locationType,
-    required String locationId,
-  }) async {
-    final callable = _functions.httpsCallable('activateServiceLocation');
-    await callable.call<void>({
-      'locationType': locationType,
-      'locationId': locationId,
-    });
-  }
-
   // ==========================================================
   // COLLECTIONS
   // ==========================================================
@@ -962,55 +951,6 @@ class ServiceLocationService {
     );
   }
 
-  Future<void> setCityServiceStatus({
-    required String cityId,
-    required bool isActive,
-  }) async {
-    final id = _required(cityId, 'City ID');
-
-    final city = await _requireDocument(
-      _cities,
-      id,
-      'City',
-    );
-
-    if (isActive) {
-      final countryId =
-          city['countryId']?.toString() ?? '';
-
-      final stateId =
-          city['stateId']?.toString() ?? '';
-
-      await _requireActiveCountry(countryId);
-
-      await _requireActiveState(stateId, countryId);
-
-      await _requireVerifiedBoundary(
-        locationId: id,
-        locationType: 'city',
-      );
-    } else {
-      await _ensureNoActiveChildren(
-        parentCollection: 'service_cities',
-        parentId: id,
-        label: 'city',
-      );
-    }
-
-    if (isActive) {
-      await _activateTrustedBoundaryLocation(
-        locationType: 'city',
-        locationId: id,
-      );
-    } else {
-      await _setTrustedStatus(
-        locationType: 'city',
-        locationId: id,
-        isActive: false,
-      );
-    }
-  }
-
   // ==========================================================
   // AREAS / SUB-DISTRICTS
   // ==========================================================
@@ -1170,60 +1110,6 @@ class ServiceLocationService {
       name: name,
       data: savedArea.toMap(),
     );
-  }
-
-  Future<void> setAreaServiceStatus({
-    required String areaId,
-    required bool isActive,
-  }) async {
-    final id = _required(areaId, 'Area ID');
-
-    final area = await _requireDocument(
-      _areas,
-      id,
-      'Area',
-    );
-
-    if (isActive) {
-      final countryId =
-          area['countryId']?.toString() ?? '';
-
-      final stateId =
-          area['stateId']?.toString() ?? '';
-
-      final cityId =
-          area['cityId']?.toString() ?? '';
-
-      await _requireActiveCountry(countryId);
-
-      await _requireActiveState(stateId, countryId);
-
-      await _requireActiveCity(cityId, stateId);
-
-      await _requireVerifiedBoundary(
-        locationId: id,
-        locationType: 'area',
-      );
-    } else {
-      await _ensureNoActiveChildren(
-        parentCollection: 'service_areas',
-        parentId: id,
-        label: 'area',
-      );
-    }
-
-    if (isActive) {
-      await _activateTrustedBoundaryLocation(
-        locationType: 'area',
-        locationId: id,
-      );
-    } else {
-      await _setTrustedStatus(
-        locationType: 'area',
-        locationId: id,
-        isActive: false,
-      );
-    }
   }
 
   // ==========================================================
@@ -1388,48 +1274,6 @@ class ServiceLocationService {
       documentId: id,
       name: name,
       data: savedLocality.toMap(),
-    );
-  }
-
-  Future<void> setLocalityServiceStatus({
-    required String localityId,
-    required bool isActive,
-  }) async {
-    final id = _required(localityId, 'Locality ID');
-
-    final locality = await _requireDocument(
-      _localities,
-      id,
-      'Locality',
-    );
-
-    if (isActive) {
-      final countryId =
-          locality['countryId']?.toString() ?? '';
-
-      final stateId =
-          locality['stateId']?.toString() ?? '';
-
-      final cityId =
-          locality['cityId']?.toString() ?? '';
-
-      final areaId =
-          locality['areaId']?.toString() ?? '';
-
-      await _requireActiveCountry(countryId);
-
-      await _requireActiveState(stateId, countryId);
-
-      await _requireActiveCity(cityId, stateId);
-
-      await _requireActiveArea(areaId, cityId);
-    }
-
-    // No locality polygon requirement; the server validates ancestry.
-    await _setTrustedStatus(
-      locationType: 'locality',
-      locationId: id,
-      isActive: isActive,
     );
   }
 
