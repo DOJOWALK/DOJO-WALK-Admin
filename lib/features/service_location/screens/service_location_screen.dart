@@ -36,6 +36,7 @@ import '../services/service_location_service.dart';
 import 'add_zone_screen.dart';
 import 'boundary_review_screen.dart';
 import 'zone_directory_screen.dart';
+import 'zone_approval_queue_screen.dart';
 import '../widgets/add_location_dialog.dart';
 import '../widgets/service_boundary_editor.dart';
 
@@ -222,6 +223,15 @@ class _ServiceLocationScreenState
               ),
             ),
             icon: const Icon(Icons.fact_check_outlined),
+          ),
+          IconButton(
+            tooltip: 'Founder Approval Queue',
+            onPressed: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => const ZoneApprovalQueueScreen(),
+              ),
+            ),
+            icon: const Icon(Icons.verified_user_outlined),
           ),
           Padding(
             padding: EdgeInsets.only(right: isMobile ? 8 : 20),
