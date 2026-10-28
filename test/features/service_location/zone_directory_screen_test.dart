@@ -50,7 +50,13 @@ void main() {
         const MaterialApp(home: ZoneDirectoryScreen()),
       );
 
-      await tester.tap(find.text('View boundary preview').first);
+      final previewButton = find.text('View boundary preview').first;
+      await tester.scrollUntilVisible(
+        previewButton,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(previewButton);
       await tester.pumpAndSettle();
 
       expect(find.text('Boundary Review'), findsOneWidget);
