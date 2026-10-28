@@ -81,13 +81,53 @@ class _ZoneAuditHistoryScreenState extends State<ZoneAuditHistoryScreen> {
             ...visible.map((e) => Card(
               color: Colors.white, elevation: 0, margin: const EdgeInsets.only(bottom: 10),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0xFFECE5DE))),
-              child: ListTile(
-                contentPadding: const EdgeInsets.all(14),
-                leading: CircleAvatar(backgroundColor: _orange.withValues(alpha: 0.12), child: Icon(e.icon, color: _orange)),
-                title: Text(e.event, style: const TextStyle(fontWeight: FontWeight.w700)),
-                subtitle: Padding(padding: const EdgeInsets.only(top: 6), child: Text('${e.zone}\nActor: ${e.actor}\n${e.time}')),
-                isThreeLine: true,
-                trailing: Text(e.status, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: _orange.withValues(alpha: 0.12),
+                          child: Icon(e.icon, color: _orange),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            e.event,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      e.zone,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    Text('Actor: ${e.actor}', style: const TextStyle(fontSize: 12)),
+                    const SizedBox(height: 4),
+                    Text(e.time, style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                    const SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: _orange.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          e.status,
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             )),
         ],
