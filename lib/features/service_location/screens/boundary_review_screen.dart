@@ -19,7 +19,7 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
   // Illustrative rows only. IDs and hashes below are not live records.
   final List<_ReviewItem> _examples = const [
     _ReviewItem(
-      zoneId: 'EXAMPLE-ZONE-001',
+      zoneId: 'ZONE-EX-001',
       zone: 'Example Zone A',
       city: 'Example City',
       owner: 'Central Admin',
@@ -30,7 +30,7 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
       boundaryHash: 'Not generated',
     ),
     _ReviewItem(
-      zoneId: 'EXAMPLE-ZONE-002',
+      zoneId: 'ZONE-EX-002',
       zone: 'Example Zone B',
       city: 'Example City',
       owner: 'Central Admin',
@@ -41,7 +41,7 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
       boundaryHash: 'EXAMPLE-HASH-CHANGED',
     ),
     _ReviewItem(
-      zoneId: 'EXAMPLE-ZONE-003',
+      zoneId: 'ZONE-EX-003',
       zone: 'Example Zone C',
       city: 'Example City',
       owner: 'Central Admin',
@@ -52,7 +52,7 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
       boundaryHash: 'EXAMPLE-SHA256-ABC123',
     ),
     _ReviewItem(
-      zoneId: 'EXAMPLE-ZONE-004',
+      zoneId: 'ZONE-EX-004',
       zone: 'Example Zone D',
       city: 'Example City',
       owner: 'Central Admin',
