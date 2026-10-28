@@ -458,7 +458,7 @@ class DashboardScreen extends StatelessWidget {
 
           _StatusStreamRow(
             label: 'Picked Up',
-            stream: _countBookingStatus('Walker Assigned'),
+            stream: _countBookingStatus('Picked Up'),
           ),
           const SizedBox(height: 12),
 
