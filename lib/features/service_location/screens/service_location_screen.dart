@@ -12,9 +12,12 @@
 ///   the current Firestore Rules.
 /// - Verified boundaries are read-only.
 /// - Boundary verification and service activation are separate.
-/// - City and Area activation use ServiceLocationService.
-/// - Locality activation does not require its own polygon.
-/// - Legacy Zones are not modified.
+/// - State/UT, District, City and Locality are reference hierarchy only;
+///   they must not expose service activation controls.
+/// - Zone is the only service activation unit and follows the Founder-approved
+///   workflow implemented in ServiceLocationZonePanel.
+/// - Boundary verification, Founder approval and service activation are
+///   separate operations; a saved or verified boundary is not active service.
 
 import 'dart:convert';
 
