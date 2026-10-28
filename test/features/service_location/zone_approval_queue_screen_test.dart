@@ -87,7 +87,7 @@ void main() {
     );
 
     expect(find.text('Founder Approval Queue'), findsOneWidget);
-    expect(find.text('Awaiting decision'), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, 'Awaiting decision'), findsOneWidget);
     expect(find.text('Example Zone C'), findsOneWidget);
     expect(find.text('ZONE-EX-003'), findsOneWidget);
     expect(find.text('Revision 3'), findsOneWidget);
