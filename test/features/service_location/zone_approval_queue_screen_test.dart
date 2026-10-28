@@ -11,6 +11,7 @@ void main() {
       );
 
       expect(find.text('Founder Approval Queue'), findsOneWidget);
+      expect(find.text('EXAMPLE-ZONE-001'), findsOneWidget);
       expect(find.text('Business approval gate'), findsOneWidget);
       expect(find.textContaining('Founder/CEO makes the final business decision'),
           findsOneWidget);
@@ -44,6 +45,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Example Zone B'), findsOneWidget);
+      expect(find.text('EXAMPLE-ZONE-002'), findsOneWidget);
       expect(find.text('Example Zone A'), findsNothing);
 
       await tester.drag(find.byType(ListView).first, const Offset(0, 1600));
