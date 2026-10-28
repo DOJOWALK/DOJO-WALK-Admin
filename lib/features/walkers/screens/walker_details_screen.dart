@@ -1047,24 +1047,25 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
     VoidCallback onPressed,
   ) {
     return Tooltip(
-      message: 'Disabled until POL-004 lifecycle authority and audit requirements are approved and tested.',
+      message:
+          'Disabled until POL-004 lifecycle authority and audit requirements are approved and tested.',
       child: FilledButton.icon(
-      style: FilledButton.styleFrom(
-        backgroundColor: walkerOrange,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+        style: FilledButton.styleFrom(
+          backgroundColor: walkerOrange,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(11),
+          ),
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(11),
-        ),
-      ),
-      onPressed: _actionLoading || !_lifecycleActionsEnabled
-          ? null
-          : onPressed,
-      icon: Icon(icon, size: 18),
-      label: Text(label),
+        onPressed: _actionLoading || !_lifecycleActionsEnabled
+            ? null
+            : onPressed,
+        icon: Icon(icon, size: 18),
+        label: Text(label),
       ),
     );
   }
@@ -1081,20 +1082,20 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
           ? 'Disabled until POL-004 lifecycle authority and audit requirements are approved and tested.'
           : '',
       child: OutlinedButton.icon(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: walkerOrange,
-        side: const BorderSide(color: walkerOrange),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 13,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: walkerOrange,
+          side: const BorderSide(color: walkerOrange),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 13,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(11),
+          ),
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(11),
-        ),
-      ),
-      onPressed: _actionLoading || disabled ? null : onPressed,
-      icon: Icon(icon, size: 17),
-      label: Text(label),
+        onPressed: _actionLoading || disabled ? null : onPressed,
+        icon: Icon(icon, size: 17),
+        label: Text(label),
       ),
     );
   }
