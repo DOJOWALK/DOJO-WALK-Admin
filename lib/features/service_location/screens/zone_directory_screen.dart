@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'boundary_review_screen.dart';
 import 'zone_approval_queue_screen.dart';
+import 'zone_details_screen.dart';
 
 /// UI-only directory preview. The records are illustrative and are not live data.
 class ZoneDirectoryScreen extends StatefulWidget {
@@ -227,6 +228,25 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
                                 spacing: 8,
                                 runSpacing: 8,
                                 children: [
+                                  OutlinedButton.icon(
+                                    onPressed: () => Navigator.of(context).push<void>(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => ZoneDetailsScreen(
+                                          zoneId: row.zoneId,
+                                          zoneName: row.name,
+                                          parentPath: row.parentPath,
+                                          status: row.status,
+                                          revision: row.revision,
+                                          boundaryStatus: row.boundaryStatus,
+                                          readinessBlocker: row.readinessBlocker,
+                                          updatedAt: row.updatedAt,
+                                          updatedBy: row.updatedBy,
+                                        ),
+                                      ),
+                                    ),
+                                    icon: const Icon(Icons.info_outline),
+                                    label: const Text('View details'),
+                                  ),
                                   OutlinedButton.icon(
                                     onPressed: () => Navigator.of(context).push<void>(
                                       MaterialPageRoute<void>(
