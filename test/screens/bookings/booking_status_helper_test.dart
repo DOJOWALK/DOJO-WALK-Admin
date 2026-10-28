@@ -18,4 +18,41 @@ void main() {
       expect(displayBookingStatus('  '), 'Unknown');
     });
   });
+  group('bookingEmptyStateMessage', () {
+    test('distinguishes empty data from filtered results', () {
+      expect(
+        bookingEmptyStateMessage(
+          totalRecords: 0,
+          search: '',
+          selectedStatus: 'All',
+        ),
+        'No bookings found in Firestore.',
+      );
+      expect(
+        bookingEmptyStateMessage(
+          totalRecords: 8,
+          search: '',
+          selectedStatus: 'Completed',
+        ),
+        'No bookings with status "Completed".',
+      );
+      expect(
+        bookingEmptyStateMessage(
+          totalRecords: 8,
+          search: 'zone-12',
+          selectedStatus: 'All',
+        ),
+        'No bookings match your search.',
+      );
+      expect(
+        bookingEmptyStateMessage(
+          totalRecords: 8,
+          search: 'zone-12',
+          selectedStatus: 'Completed',
+        ),
+        'No bookings match your search and selected status.',
+      );
+    });
+  });
+
 }
