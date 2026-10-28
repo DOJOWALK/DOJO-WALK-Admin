@@ -31,6 +31,11 @@ class _AdminShellState extends State<AdminShell> {
       icon: Icons.dashboard_rounded,
     ),
     _AdminMenuItem(
+      title: 'Live Operations',
+      subtitle: 'Live walks, GPS and operational alerts',
+      icon: Icons.radar_rounded,
+    ),
+    _AdminMenuItem(
       title: 'Bookings',
       subtitle: 'Manage customer bookings',
       icon: Icons.calendar_month_rounded,
@@ -84,17 +89,20 @@ class _AdminShellState extends State<AdminShell> {
             );
           },
           onOpenServiceLocations: () {
-            setState(() => _selectedIndex = 8);
+            setState(() => _selectedIndex = 9);
           },
         );
 
       case 1:
         return const BookingsScreen();
 
+      case 3:
+        return const LiveOperationsScreen();
+
       case 2:
         return const WalkerManagementDashboardScreen();
 
-      case 8:
+      case 9:
         return const ServiceLocationScreen();
 
       default:
