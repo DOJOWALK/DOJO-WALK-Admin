@@ -35,13 +35,10 @@ void main() {
         const MaterialApp(home: SuspendedZonesScreen()),
       );
 
-      // Filter controls appear before the zone cards; interact with them
-      // before scrolling down the list so the test never tries to scroll
-      // toward a control that is already above the current viewport.
-      final deactivatedChip =
-          find.widgetWithText(ChoiceChip, 'Deactivated');
-      expect(deactivatedChip, findsOneWidget);
-      await tester.tap(deactivatedChip);
+      // The header and metric cards may place filter controls below the
+      // initial viewport, so reveal the text before interacting with it.
+      await scrollTo(tester, find.text('Deactivated'));
+      await tester.tap(find.text('Deactivated').first);
       await tester.pumpAndSettle();
 
       await scrollTo(tester, find.text('Example Zone South'));
@@ -49,13 +46,11 @@ void main() {
       expect(find.text('Example Zone North'), findsNothing);
       expect(find.text('Example Zone Central'), findsNothing);
 
-      // Return to the top to select the Suspended filter.
-      await tester.drag(find.byType(ListView).first, const Offset(0, 1600));
+      // Return to the top of the list before selecting another filter.
+      await tester.drag(find.byType(ListView).first, const Offset(0, 2000));
       await tester.pumpAndSettle();
-
-      final suspendedChip = find.widgetWithText(ChoiceChip, 'Suspended');
-      expect(suspendedChip, findsOneWidget);
-      await tester.tap(suspendedChip);
+      await scrollTo(tester, find.text('Suspended'));
+      await tester.tap(find.text('Suspended').first);
       await tester.pumpAndSettle();
 
       await scrollTo(tester, find.text('Example Zone North'));
