@@ -3,7 +3,6 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/service_location_models.dart';
-import 'service_location_geometry.dart';
 import 'service_location_index_contract.dart';
 
 /// ===========================================================
@@ -59,9 +58,6 @@ class ServiceLocationService {
   CollectionReference<Map<String, dynamic>> get _imports =>
       _firestore.collection('service_location_imports');
 
-  CollectionReference<Map<String, dynamic>> get _boundaries =>
-      _firestore.collection('service_location_boundaries');
-
   // ==========================================================
   // GENERAL HELPERS
   // ==========================================================
@@ -113,22 +109,6 @@ class ServiceLocationService {
     }
 
     return result;
-  }
-
-  bool _hasValidPolygon(dynamic value) {
-    final points = _readPoints(value);
-
-    if (points.length < 3) return false;
-
-    final unique = points
-        .map(
-          (point) =>
-              '${point.latitude.toStringAsFixed(7)},'
-              '${point.longitude.toStringAsFixed(7)}',
-        )
-        .toSet();
-
-    return unique.length >= 3;
   }
 
   // ==========================================================
