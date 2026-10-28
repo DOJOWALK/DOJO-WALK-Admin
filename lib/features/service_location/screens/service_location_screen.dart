@@ -37,6 +37,7 @@ import 'add_zone_screen.dart';
 import 'boundary_review_screen.dart';
 import 'zone_directory_screen.dart';
 import 'zone_approval_queue_screen.dart';
+import 'suspended_zones_screen.dart';
 import '../widgets/add_location_dialog.dart';
 import '../widgets/service_boundary_editor.dart';
 
@@ -232,6 +233,15 @@ class _ServiceLocationScreenState
               ),
             ),
             icon: const Icon(Icons.verified_user_outlined),
+          ),
+          IconButton(
+            tooltip: 'Suspended / Deactivated Zones',
+            onPressed: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => const SuspendedZonesScreen(),
+              ),
+            ),
+            icon: const Icon(Icons.pause_circle_outline),
           ),
           Padding(
             padding: EdgeInsets.only(right: isMobile ? 8 : 20),
