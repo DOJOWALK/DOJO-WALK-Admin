@@ -14,6 +14,7 @@ import '../../features/pets/screens/pet_management_screen.dart';
 import '../../features/notifications/screens/notification_center_screen.dart';
 import '../../features/access_control/screens/admin_access_control_screen.dart';
 import '../../features/reports/screens/reports_analytics_screen.dart';
+import '../../features/finance/screens/finance_operations_screen.dart';
 
 const Color adminOrange = Color(0xFFFF7900);
 const Color adminBackground = Color(0xFFFFFAF5);
@@ -82,6 +83,11 @@ class _AdminShellState extends State<AdminShell> {
       icon: Icons.analytics_outlined,
     ),
     _AdminMenuItem(
+      title: 'Finance Operations',
+      subtitle: 'Payments, refunds, payouts and reconciliation',
+      icon: Icons.account_balance_wallet_outlined,
+    ),
+    _AdminMenuItem(
       title: 'Settings',
       subtitle: 'Admin preferences',
       icon: Icons.settings_rounded,
@@ -105,7 +111,7 @@ class _AdminShellState extends State<AdminShell> {
             );
           },
           onOpenServiceLocations: () {
-            setState(() => _selectedIndex = 11);
+            setState(() => _selectedIndex = 12);
           },
         );
 
@@ -136,7 +142,10 @@ class _AdminShellState extends State<AdminShell> {
       case 9:
         return const ReportsAnalyticsScreen();
 
-      case 11:
+      case 10:
+        return const FinanceOperationsScreen();
+
+      case 12:
         return const ServiceLocationScreen();
 
       default:
