@@ -1,0 +1,197 @@
+import 'package:flutter/material.dart';
+
+/// UI-only Founder approval queue prototype.
+/// Example rows are illustrative; no live requests can be approved here.
+class ZoneApprovalQueueScreen extends StatefulWidget {
+  const ZoneApprovalQueueScreen({super.key});
+
+  @override
+  State<ZoneApprovalQueueScreen> createState() => _ZoneApprovalQueueScreenState();
+}
+
+class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
+  static const _orange = Color(0xFFFF7900);
+  static const _ink = Color(0xFF252525);
+  String _filter = 'Awaiting decision';
+
+  final List<_ApprovalItem> _examples = const [
+    _ApprovalItem(
+      name: 'Example Zone A',
+      city: 'Example City',
+      request: 'Initial launch',
+      revision: 'Revision 1',
+      boundaryHash: 'Not verified',
+      status: 'Awaiting decision',
+    ),
+    _ApprovalItem(
+      name: 'Example Zone B',
+      city: 'Example City',
+      request: 'Boundary change',
+      revision: 'Revision 2',
+      boundaryHash: 'Hash changed',
+      status: 'Blocked — re-review',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = _filter == 'All'
+        ? _examples
+        : _examples.where((item) => item.status == _filter).toList();
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFFFFAF5),
+      appBar: AppBar(
+        title: const Text('Founder Approval Queue'),
+        backgroundColor: Colors.white,
+        foregroundColor: _ink,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFFFD2AC)),
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Business approval gate',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: _ink)),
+                SizedBox(height: 8),
+                Text(
+                  'Founder/CEO makes the final business decision for Zone launch, activation, material boundary changes, deactivation and reactivation. Central Admin prepares the request; Super Admin does not inherit Founder approval authority.',
+                  style: TextStyle(height: 1.45, color: Color(0xFF5D5148)),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Prototype only · Example records · No server actions enabled',
+                  style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF9A4D00)),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final label in ['Awaiting decision', 'Blocked — re-review', 'All'])
+                ChoiceChip(
+                  label: Text(label),
+                  selected: _filter == label,
+                  selectedColor: _orange,
+                  labelStyle: TextStyle(
+                    color: _filter == label ? Colors.white : _ink,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  onSelected: (_) => setState(() => _filter = label),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (rows.isEmpty)
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text('No example requests match this filter. Live queue is not connected.'),
+              ),
+            )
+          else
+            for (final item in rows) _approvalCard(item),
+        ],
+      ),
+    );
+  }
+
+  Widget _approvalCard(_ApprovalItem item) {
+    final blocked = item.status.startsWith('Blocked');
+    return Card(
+      color: Colors.white,
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Color(0xFFECE5DE)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.location_on_outlined, color: _orange),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(item.name,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _ink)),
+                ),
+                Chip(
+                  label: Text(item.status, style: const TextStyle(fontSize: 11)),
+                  backgroundColor: blocked ? const Color(0xFFFFE8E3) : const Color(0xFFFFF0DF),
+                  side: BorderSide.none,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _detail('City', item.city),
+            _detail('Request', item.request),
+            _detail('Zone revision', item.revision),
+            _detail('Boundary integrity', item.boundaryHash),
+            const SizedBox(height: 10),
+            const Text(
+              'Before a real decision: verify Zone ID, exact revision, boundary polygon and boundary hash. Any mismatch must invalidate the approval.',
+              style: TextStyle(fontSize: 12, height: 1.4, color: Color(0xFF6D625A)),
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: OutlinedButton.icon(
+                onPressed: null,
+                icon: const Icon(Icons.lock_outline, size: 17),
+                label: const Text('Decision disabled — not connected'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _detail(String label, String value) => Padding(
+        padding: const EdgeInsets.only(bottom: 5),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 132,
+              child: Text(label, style: const TextStyle(color: Color(0xFF756960), fontSize: 12)),
+            ),
+            Expanded(
+              child: Text(value, style: const TextStyle(color: _ink, fontSize: 12, fontWeight: FontWeight.w600)),
+            ),
+          ],
+        ),
+      );
+}
+
+class _ApprovalItem {
+  const _ApprovalItem({
+    required this.name,
+    required this.city,
+    required this.request,
+    required this.revision,
+    required this.boundaryHash,
+    required this.status,
+  });
+
+  final String name;
+  final String city;
+  final String request;
+  final String revision;
+  final String boundaryHash;
+  final String status;
+}
