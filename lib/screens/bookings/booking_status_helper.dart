@@ -66,18 +66,23 @@ List<String> bookingStatusQueryAliases(String canonicalLabel) {
     case 'Pending':
       return const ['pending', 'Pending'];
     case 'Walker Assigned':
-      return const ['assigned', 'walker_assigned', 'Walker Assigned'];
+      return const ['assigned', 'walker_assigned', 'walker-assigned', 'Walker Assigned'];
     case 'Walker Accepted':
-      return const ['accepted', 'walker_accepted', 'Walker Accepted'];
+      return const ['accepted', 'walker_accepted', 'walker-accepted', 'Walker Accepted'];
     case 'Picked Up':
-      return const ['picked_up', 'picked up', 'Picked Up', 'pickup_complete'];
+      return const ['picked_up', 'picked-up', 'picked up', 'Picked Up', 'pickup_complete', 'pickup-complete'];
     case 'Walk In Progress':
       return const [
         'walking',
         'in_progress',
+        'in-progress',
         'Walk In Progress',
         'walk_started',
+        'walk-started',
+        'walk started',
         'active_walk',
+        'active-walk',
+        'active walk',
       ];
     case 'Completed':
       return const ['completed', 'Completed', 'complete', 'Complete'];
