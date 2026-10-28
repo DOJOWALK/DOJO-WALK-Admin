@@ -46,6 +46,15 @@ void main() {
 
     expect(find.text('New Zone name'), findsOneWidget);
     expect(find.text('Locality'), findsNothing);
+
+    // Changing an upstream parent clears all downstream selections.
+    await tester.tap(dropdowns.at(0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delhi').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('New Zone name'), findsNothing);
+    expect(find.text('Please select Zone'), findsNothing);
   });
 
   testWidgets('clearly states polygon is mandatory and radius alone is insufficient', (tester) async {
