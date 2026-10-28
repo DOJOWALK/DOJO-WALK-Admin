@@ -35,3 +35,22 @@ String displayBookingStatus(dynamic rawValue) {
       return raw;
   }
 }
+
+/// Returns an empty-state message that reflects both search and status filters.
+String bookingEmptyStateMessage({
+  required int totalRecords,
+  required String search,
+  required String selectedStatus,
+}) {
+  if (totalRecords == 0) return 'No bookings found in Firestore.';
+
+  final hasSearch = search.trim().isNotEmpty;
+  final hasStatus = selectedStatus != 'All';
+
+  if (hasSearch && hasStatus) {
+    return 'No bookings match your search and selected status.';
+  }
+  if (hasSearch) return 'No bookings match your search.';
+  if (hasStatus) return 'No bookings with status "$selectedStatus".';
+  return 'No bookings match the current filters.';
+}
