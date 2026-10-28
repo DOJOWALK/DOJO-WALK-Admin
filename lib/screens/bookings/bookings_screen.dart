@@ -14,6 +14,13 @@ class BookingsScreen extends StatefulWidget {
 class _BookingsScreenState extends State<BookingsScreen> {
   String _selectedStatus = 'All';
   String _search = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   final List<String> _statuses = const [
     'All',
@@ -107,6 +114,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 ),
                 const SizedBox(height: 18),
                 TextField(
+                  controller: _searchController,
                   onChanged: (value) {
                     setState(() => _search = value.trim().toLowerCase());
                   },
@@ -118,6 +126,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                         : IconButton(
                             tooltip: 'Clear search',
                             onPressed: () {
+                              _searchController.clear();
                               setState(() => _search = '');
                             },
                             icon: const Icon(Icons.close),
