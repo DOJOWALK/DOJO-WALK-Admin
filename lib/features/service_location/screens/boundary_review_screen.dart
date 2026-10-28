@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'zone_approval_queue_screen.dart';
+
 /// UI-only boundary review queue prototype.
 /// No records are loaded, approved, rejected, or changed on the server.
 class BoundaryReviewScreen extends StatefulWidget {
@@ -94,7 +96,20 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
                   'Central Admin checks zone readiness and evidence. Founder/CEO remains the final business approver for launch. This screen is a UI preview; it is not connected to live records.',
                   style: TextStyle(color: Colors.black54, height: 1.5),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 14),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).push<void>(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const ZoneApprovalQueueScreen(),
+                      ),
+                    ),
+                    icon: const Icon(Icons.verified_user_outlined),
+                    label: const Text('Preview Founder Approval Queue'),
+                  ),
+                ),
+                const SizedBox(height: 4),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
