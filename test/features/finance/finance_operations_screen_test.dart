@@ -33,5 +33,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('PAYOUT-EX-001'), findsOneWidget);
     expect(find.text('REF-EX-001'), findsNothing);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Reconciliation'));
+    await tester.pumpAndSettle();
+    expect(find.text('RECON-EX-001'), findsOneWidget);
+    expect(find.text('PAYOUT-EX-001'), findsNothing);
   });
 }
