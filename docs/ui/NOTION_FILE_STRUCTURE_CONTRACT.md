@@ -94,6 +94,7 @@ DOJO-WALK-Admin/
 │   │   ├── india_sub_districts.dart
 │   │   └── india_location_filters.dart
 │   ├── screens/
+│   │   ├── auth/{admin_login_screen.dart,auth_gate.dart}
 │   │   ├── dashboard/{admin_shell.dart,dashboard_screen.dart}
 │   │   ├── bookings/bookings_screen.dart
 │   │   └── live/{live_operations_screen.dart,live_booking_details_helper.dart}
@@ -109,6 +110,8 @@ DOJO-WALK-Admin/
 │   │   ├── finance/screens/
 │   │   ├── settings/screens/
 │   │   └── service_location/{models,screens,services,utils,widgets}/
+│   ├── services/auth_service.dart
+│   ├── utils/
 │   ├── shared/{widgets,services}/
 │   └── firebase_options.dart
 ├── test/{screens,features,data,core}/
