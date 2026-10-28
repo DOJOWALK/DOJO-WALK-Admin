@@ -150,20 +150,50 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Icon(Icons.location_on_outlined, color: _orange),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(item.name,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _ink)),
-                ),
-                Chip(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final statusChip = Chip(
                   label: Text(item.status, style: const TextStyle(fontSize: 11)),
-                  backgroundColor: blocked ? const Color(0xFFFFE8E3) : const Color(0xFFFFF0DF),
+                  backgroundColor:
+                      blocked ? const Color(0xFFFFE8E3) : const Color(0xFFFFF0DF),
                   side: BorderSide.none,
-                ),
-              ],
+                );
+                final titleRow = Row(
+                  children: [
+                    const Icon(Icons.location_on_outlined, color: _orange),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        item.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: _ink,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+
+                if (constraints.maxWidth < 420) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      titleRow,
+                      const SizedBox(height: 6),
+                      statusChip,
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    Expanded(child: titleRow),
+                    const SizedBox(width: 8),
+                    statusChip,
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 8),
             _detail('Zone ID', item.zoneId),
