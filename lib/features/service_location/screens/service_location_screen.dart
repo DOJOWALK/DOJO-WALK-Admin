@@ -959,16 +959,6 @@ class _ServiceLocationScreenState
               active: item.isActive,
               icon: Icons.public,
               showServiceToggle: false,
-              onToggle: (value) async {
-                try {
-                  await _service.setCountryStatus(
-                    countryId: item.id,
-                    isActive: value,
-                  );
-                } catch (error) {
-                  await _showError(error);
-                }
-              },
             );
           },
         );
@@ -1036,16 +1026,6 @@ class _ServiceLocationScreenState
                           active: item.isActive,
                           icon: Icons.map_outlined,
                           showServiceToggle: false,
-                          onToggle: (value) async {
-                            try {
-                              await _service.setStateStatus(
-                                stateId: item.id,
-                                isActive: value,
-                              );
-                            } catch (error) {
-                              await _showError(error);
-                            }
-                          },
                         ),
                     ],
                   );
@@ -1125,21 +1105,6 @@ class _ServiceLocationScreenState
                         active: district.isActive,
                         icon: Icons.map_outlined,
                         showServiceToggle: false,
-                        onToggle: (value) async {
-                          try {
-                            await _service.setDistrictStatus(
-                              districtId: district.id,
-                              isActive: value,
-                            );
-                            _showMessage(
-                              value
-                                  ? 'District activated.'
-                                  : 'District deactivated.',
-                            );
-                          } catch (error) {
-                            await _showError(error);
-                          }
-                        },
                       ),
                   ],
                 );
