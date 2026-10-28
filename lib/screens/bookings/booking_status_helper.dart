@@ -54,3 +54,31 @@ String bookingEmptyStateMessage({
   if (hasStatus) return 'No bookings with status "$selectedStatus".';
   return 'No bookings match the current filters.';
 }
+
+/// Known raw Firestore values for each canonical booking lifecycle label.
+/// Keep this list in sync with [displayBookingStatus] so Dashboard counts
+/// do not silently miss legacy capitalization/underscore variants.
+List<String> bookingStatusQueryAliases(String canonicalLabel) {
+  switch (canonicalLabel) {
+    case 'Pending':
+      return const ['pending', 'Pending'];
+    case 'Walker Assigned':
+      return const ['assigned', 'walker_assigned', 'Walker Assigned'];
+    case 'Walker Accepted':
+      return const ['accepted', 'walker_accepted', 'Walker Accepted'];
+    case 'Walk In Progress':
+      return const [
+        'walking',
+        'in_progress',
+        'Walk In Progress',
+        'walk_started',
+        'active_walk',
+      ];
+    case 'Completed':
+      return const ['completed', 'Completed', 'complete', 'Complete'];
+    case 'Cancelled':
+      return const ['cancelled', 'canceled', 'Cancelled', 'Canceled'];
+    default:
+      return const [];
+  }
+}
