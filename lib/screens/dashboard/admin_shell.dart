@@ -11,6 +11,7 @@ import '../../features/service_location/screens/service_location_screen.dart';
 import '../../features/customers/screens/customer_management_screen.dart';
 import '../../features/support/screens/support_center_screen.dart';
 import '../../features/pets/screens/pet_management_screen.dart';
+import '../../features/notifications/screens/notification_center_screen.dart';
 
 const Color adminOrange = Color(0xFFFF7900);
 const Color adminBackground = Color(0xFFFFFAF5);
@@ -110,6 +111,9 @@ class _AdminShellState extends State<AdminShell> {
 
       case 5:
         return const PetManagementScreen();
+
+      case 6:
+        return const NotificationCenterScreen();
 
       case 7:
         return const SupportCenterScreen();
