@@ -94,12 +94,12 @@ class _AdminShellState extends State<AdminShell> {
         );
 
       case 1:
-        return const BookingsScreen();
-
-      case 3:
         return const LiveOperationsScreen();
 
       case 2:
+        return const BookingsScreen();
+
+      case 3:
         return const WalkerManagementDashboardScreen();
 
       case 9:
