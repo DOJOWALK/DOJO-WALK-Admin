@@ -21,6 +21,8 @@ void main() {
 
       expect(find.text('Suspended / Deactivated Zones'), findsOneWidget);
       expect(find.textContaining('PROTOTYPE ONLY'), findsOneWidget);
+      expect(find.textContaining('narrowly scoped emergency safety suspension'), findsOneWidget);
+      expect(find.textContaining('prompt Founder/CEO notification'), findsOneWidget);
 
       await scrollTo(tester, find.text('Required safeguards'));
       expect(find.text('Required safeguards'), findsOneWidget);
