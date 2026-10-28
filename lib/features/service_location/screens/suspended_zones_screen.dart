@@ -121,7 +121,7 @@ class _SuspendedZonesScreenState extends State<SuspendedZonesScreen> {
                     style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: _ink)),
                 SizedBox(height: 8),
                 Text(
-                  'Only a Zone can be Active, Suspended or Deactivated. State/UT, District and City are hierarchy records, not service activation controls. Central Admin prepares and manages the case; Founder/CEO approval is required for business activation/deactivation decisions. Super Admin does not automatically inherit Founder authority.',
+                  'Only a Zone can be Active, Suspended or Deactivated. State/UT, District and City are hierarchy records, not service activation controls. Central Admin prepares and manages the case; Founder/CEO approval is required for business activation/deactivation decisions. A narrowly scoped emergency safety suspension may be applied only to prevent immediate harm, with an append-only audit record and prompt Founder/CEO notification; it is not a substitute for the normal approval gate. Super Admin does not automatically inherit Founder authority.',
                   style: TextStyle(height: 1.45, color: Color(0xFF5D5148)),
                 ),
                 SizedBox(height: 10),
