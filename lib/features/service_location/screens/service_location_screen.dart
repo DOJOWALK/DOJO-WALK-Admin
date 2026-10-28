@@ -3018,19 +3018,4 @@ class _ServiceLocationScreenState
   // ADD LOCATION
   // ============================================================
 
-  Future<void> _showAddLocationDialog() async {
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AddLocationDialog(
-        service: _service,
-        onSaved: (tab) {
-          if (!mounted) return;
-
-          setState(() => _selectedTab = tab);
-          _showMessage('Location saved successfully.');
-        },
-      ),
-    );
   }
-}
