@@ -27,6 +27,7 @@
 | Notification Center | `lib/features/notifications/screens/notification_center_screen.dart` | POL-032 Notifications/Communication Preferences; POL-020 Privacy | UI prototype with categories, safe message previews and disabled send/retry actions. No channels configured. |
 | Support & Complaints | `lib/features/support/screens/support_center_screen.dart` | POL-009 Support & Complaints; POL-024 Support/Refunds/Disputes; POL-016 incidents | UI prototype with S0–S3 example queue, safety-first ordering and disabled transfer/resolve actions. Severity policy is draft. |
 | Admin Users & Roles | `lib/features/access_control/screens/admin_access_control_screen.dart` | POL-021 Access Control, Admin Roles & Privileged Account Security | UI prototype role matrix. Explicitly separates Founder/CEO from Super Admin. Grants, scope changes and MFA actions disabled. |
+| Audit Logs | `lib/features/audit/screens/admin_audit_logs_screen.dart` | POL-021 Access Control; POL-020 Privacy/retention; India Operating System audit-record standards | UI prototype with actor, role, resource, result, reason and IST timestamp fields; export disabled and no live audit data. |
 | Reports & Analytics | `lib/features/reports/screens/reports_analytics_screen.dart` | India Operating System & Area Launch Master reporting standards; POL-004, POL-009, POL-016, POL-026, POL-029, POL-030, POL-038/POL-040 | Policy-mapped report catalog; no fabricated KPI totals. Open/export/schedule actions disabled until data definitions and permissions are approved. |
 | Finance Operations | `lib/features/finance/screens/finance_operations_screen.dart` | POL-012 Payment/Refund/Reconciliation; POL-033 Earnings/Payouts; POL-029 cancellations/refunds | Cashless payment, refund and payout UI prototype; example amounts/statuses only. Verify/approve/reconcile actions disabled; no gateway or payout provider connected. |
 | Settings | `lib/screens/dashboard/admin_shell.dart` generic placeholder | Needs a precise settings scope from Notion master/policies | Gap: do not invent system settings. Map each setting to an approved source before building. |
@@ -54,5 +55,5 @@
 ## Validation discipline
 
 - A completed run at commit `74b6b547026220086d3bbafd286ab2595d7ad8a7` passed Analyze, the complete test suite and Flutter Web build, including Service Location workflow, Directory/Boundary/Approval previews, Customer/Pet/Support/Notification prototypes and Admin role matrix.
-- Reports & Analytics and Finance Operations have been added after that run; they still require a fresh run on the latest commit before claiming PASS.
+- Reports & Analytics, Finance Operations and Admin Audit Logs have been added after that run; they still require a fresh run on the latest commit before claiming PASS.
 - No merge or deployment is authorized in this phase.
