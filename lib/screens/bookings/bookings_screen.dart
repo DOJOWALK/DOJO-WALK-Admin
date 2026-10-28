@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import 'booking_status_helper.dart';
+
 class BookingsScreen extends StatefulWidget {
   const BookingsScreen({super.key});
 
@@ -67,6 +69,15 @@ class _BookingsScreenState extends State<BookingsScreen> {
     return '$day/$month/${local.year} '
         '${local.hour.toString().padLeft(2, '0')}:'
         '${local.minute.toString().padLeft(2, '0')}';
+  }
+
+  int _timestampMillis(dynamic value) {
+    if (value is Timestamp) return value.millisecondsSinceEpoch;
+    if (value is DateTime) return value.millisecondsSinceEpoch;
+    if (value is String) {
+      return DateTime.tryParse(value)?.millisecondsSinceEpoch ?? 0;
+    }
+    return 0;
   }
 
   @override
@@ -142,13 +153,48 @@ class _BookingsScreenState extends State<BookingsScreen> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return const Center(
+                  final permissionDenied = snapshot.error
+                          .toString()
+                          .toLowerCase()
+                          .contains('permission-denied') ||
+                      snapshot.error
+                          .toString()
+                          .toLowerCase()
+                          .contains('permission denied');
+                  return Center(
                     child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Text(
-                        'Could not load bookings. Check Firestore rules '
-                        'and internet connection.',
-                        textAlign: TextAlign.center,
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            permissionDenied
+                                ? Icons.lock_outline
+                                : Icons.error_outline,
+                            size: 42,
+                            color: permissionDenied
+                                ? Colors.orange
+                                : Colors.redAccent,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            permissionDenied
+                                ? 'Permission denied'
+                                : 'Could not load bookings',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            permissionDenied
+                                ? 'Your current Admin role or assigned scope may not allow access to these bookings. Ask an authorized administrator to review access.'
+                                : 'Check the connection and data access configuration. No booking status has been changed.',
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
                     ),
                   );
@@ -166,7 +212,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
                 final filtered = docs.where((doc) {
                   final data = doc.data();
-                  final status = _text(data['status'], 'Unknown');
+                  final status = displayBookingStatus(data['status']);
 
                   if (_selectedStatus != 'All' &&
                       status.toLowerCase() !=
@@ -186,16 +232,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 }).toList();
 
                 filtered.sort((a, b) {
-                  final aDate = a.data()['createdAt'];
-                  final bDate = b.data()['createdAt'];
-
-                  final aTime = aDate is Timestamp
-                      ? aDate.millisecondsSinceEpoch
-                      : 0;
-                  final bTime = bDate is Timestamp
-                      ? bDate.millisecondsSinceEpoch
-                      : 0;
-
+                  final aTime = _timestampMillis(a.data()['createdAt']);
+                  final bTime = _timestampMillis(b.data()['createdAt']);
                   return bTime.compareTo(aTime);
                 });
 
