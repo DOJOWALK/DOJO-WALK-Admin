@@ -13,7 +13,7 @@ void main() {
       expect(find.text('Founder Approval Queue'), findsOneWidget);
       await tester.tap(find.widgetWithText(ChoiceChip, 'Blocked — boundary pending'));
       await tester.pumpAndSettle();
-      expect(find.text('EXAMPLE-ZONE-001'), findsOneWidget);
+      expect(find.text('ZONE-EX-001'), findsOneWidget);
       expect(find.text('Blocked — boundary pending'), findsWidgets);
       expect(find.textContaining('Founder decision must wait'), findsOneWidget);
       expect(find.text('Business approval gate'), findsOneWidget);
@@ -51,7 +51,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Example Zone B'), findsOneWidget);
-      expect(find.text('EXAMPLE-ZONE-002'), findsOneWidget);
+      expect(find.text('ZONE-EX-002'), findsOneWidget);
       expect(find.text('Example Zone A'), findsNothing);
       expect(find.text('Revision 2'), findsOneWidget);
       expect(find.text('Hash changed'), findsWidgets);
@@ -89,7 +89,7 @@ void main() {
     expect(find.text('Founder Approval Queue'), findsOneWidget);
     expect(find.text('Awaiting decision'), findsOneWidget);
     expect(find.text('Example Zone C'), findsOneWidget);
-    expect(find.text('EXAMPLE-ZONE-003'), findsOneWidget);
+    expect(find.text('ZONE-EX-003'), findsOneWidget);
     expect(find.text('Verified (example)'), findsOneWidget);
     expect(find.text('Example Zone A'), findsNothing);
     expect(find.text('Example Zone B'), findsNothing);
