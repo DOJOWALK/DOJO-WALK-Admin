@@ -20,7 +20,7 @@
 |---|---|---|---|
 | Dashboard | `lib/screens/dashboard/dashboard_screen.dart` | Owner Dashboard in India Operating System & Area Launch Master; related operational policies | Existing screen. It already has Firestore streams; this UI-first pass does not add new Firebase work. Audit metric provenance and loading/error states separately. |
 | Live Operations | `lib/screens/live/live_operations_screen.dart` | POL-007 Live Walk & Safe Handover; POL-008 Safety; POL-016 Incident & Emergency | Existing screen, now directly accessible from sidebar. Verify severity/incident states and safe handover UI. |
-| Bookings | `lib/screens/bookings/bookings_screen.dart` | POL-026 assignment; POL-029 cancellation/reschedule/refund; POL-030 payment controls | Existing screen. Requires policy-by-policy UI audit. |
+| Bookings | `lib/screens/bookings/bookings_screen.dart`; `lib/screens/bookings/booking_status_helper.dart` | POL-026 assignment; POL-029 cancellation/reschedule/refund; POL-030 payment controls | Existing stream remains; UI now normalizes known lifecycle status values, parses timestamp variants for sorting, and distinguishes permission-denied from generic load errors. Status helper has unit tests. Full policy audit still required. |
 | Walker Management | `lib/features/walkers/screens/walker_management_dashboard_screen.dart` | POL-004 Walker/Partner Management; POL-026 availability/assignment | Existing screen. Requires full Notion parity audit. |
 | Customer Management | `lib/features/customers/screens/customer_management_screen.dart` | POL-031 Customer Account/Profile/Consent; POL-021 Access Control | UI prototype with masked example data, lifecycle filters and disabled restriction/closure actions. No customer data connection. |
 | Pet Management | `lib/features/pets/screens/pet_management_screen.dart` | POL-008 Dog/Customer/Walker Safety; POL-031 customer/pet context | UI prototype with example records, explicit unverified health/handling fields and disabled edit/safety actions. |
@@ -53,5 +53,5 @@
 
 ## Validation discipline
 
-- Latest UI code validation: run `40685718214` passed `flutter analyze`, the complete test suite and `flutter build web --release` at code commit `7e3c8394ac614a5c7b542833f846618c8340f32e`. This includes Service Location, Customer, Pet, Notification, Support, Admin Users & Roles, Audit Logs, Reports, Finance, Settings and the new UI-state/navigation tests. The only later branch commit is documentation-only.
+- Latest UI code validation: run `40686531389` passed `flutter analyze`, the complete test suite and `flutter build web --release` at commit `c97c40138d3bfa15a48d81d023cba587d52da89c`. This includes Service Location, Customer, Pet, Notification, Support, Admin Users & Roles, Audit Logs, Reports, Finance, Settings, booking status/error UI updates, and the new UI-state/navigation tests.
 - No merge or deployment is authorized in this phase.
