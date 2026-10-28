@@ -54,6 +54,35 @@ void main() {
       expect(find.text('Example Zone F'), findsNothing);
     });
 
+    testWidgets('clear search restores examples and lifecycle controls stay disabled',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(home: ZoneDirectoryScreen()),
+      );
+
+      final search = find.byType(TextField).first;
+      await tester.enterText(search, 'does-not-exist');
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('No example zones match'), findsOneWidget);
+      expect(find.text('Example Zone A'), findsNothing);
+
+      await tester.tap(find.byTooltip('Clear search'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Example Zone A'), findsOneWidget);
+      expect(find.textContaining('No example zones match'), findsNothing);
+
+      final lifecycleButtons = tester.widgetList<OutlinedButton>(
+        find.widgetWithText(OutlinedButton, 'Lifecycle actions disabled'),
+      );
+      expect(lifecycleButtons, isNotEmpty);
+      expect(
+        lifecycleButtons.every((button) => button.onPressed == null),
+        isTrue,
+      );
+    });
+
     testWidgets('opens Zone Details with hierarchy and readiness metadata',
         (tester) async {
       await tester.pumpWidget(
