@@ -21,11 +21,11 @@
 | POL-040 screen / requirement | Current file(s) | Audit status based on repository inspection |
 |---|---|---|
 | Location Dashboard / overview | `lib/features/service_location/screens/service_location_screen.dart` | Partial: existing Service Locations screen has hierarchy tabs/map preview; compare summary cards, attention panel, recent changes, and failure states against spec. |
-| Location Directory | `lib/features/service_location/screens/zone_directory_screen.dart`, `service_location_screen.dart` | Partial: directory screen exists; verify exact Zone-only status semantics, filters, readiness blockers, pagination, and action gating. |
-| Add Location / Create Zone | `lib/features/service_location/screens/add_zone_screen.dart` | Prototype now has four dependent selectors (State/UT → District → City → Zone). The fourth selector currently offers only the create-new path because the approved Zone catalog is not connected; name input appears after choosing it. Boundary editor is disabled; no save/submission. |
+| Location Directory | `lib/features/service_location/screens/zone_directory_screen.dart`, `service_location_screen.dart` | Prototype: search/status filters, parent path, Zone ID, boundary/readiness metadata, update metadata, links to review screens, and disabled lifecycle actions. Live pagination and data-backed states remain pending. |
+| Add Location / Create Zone | `lib/features/service_location/screens/add_zone_screen.dart` | Prototype has four dependent selectors (State/UT → District → City → Zone). The fourth selector currently offers only the create-new path because the approved Zone catalog is not connected; name input appears after choosing it. A clearly labelled preview navigation opens Boundary Review without submitting. Boundary drawing, save and submission remain unavailable. |
 | Location Details | Existing detail handling in service-location module | Gap to audit: no dedicated Location Details screen was found in the inspected screen list. Do not create a competing details flow until existing handlers are reviewed. |
-| Boundary Review | `lib/features/service_location/screens/boundary_review_screen.dart` | Prototype: example rows and evidence labels; no live boundary data or decision actions. |
-| Founder Approval Queue | `lib/features/service_location/screens/zone_approval_queue_screen.dart` | Prototype: example rows and disabled decision action; approval remains separate from activation. |
+| Boundary Review | `lib/features/service_location/screens/boundary_review_screen.dart` | Prototype: example rows, explicit unconnected map placeholder and evidence labels; no live boundary data or decision actions. Preview navigation opens Founder Approval Queue. |
+| Founder Approval Queue | `lib/features/service_location/screens/zone_approval_queue_screen.dart` | Prototype: example rows with parent path, submitter, timestamp, revision, boundary status/hash and blockers; decision action remains disabled and approval remains separate from activation. |
 | Activate / Suspend / Deactivate / Reactivate | `lib/features/service_location/screens/suspended_zones_screen.dart`, service-location service files | Partial: suspension/deactivation screen is a mock UI; verify activation lifecycle screen/guards and safe handling of bookings/running walks. No new Firebase actions in UI-only phase. |
 | Import & Reconciliation | `service_location_screen.dart`, `services/location_csv_*.dart` | Existing UI/service files: audit visual states and alignment with POL-040; no claim that full acceptance suite passes. |
 | Audit History | `audit_history_screen.dart`, `zone_audit_history_screen.dart` | Screens exist; verify loading, empty, error, permission-denied and success states and that mock data is not confused with live audit records. |
@@ -44,9 +44,9 @@ The Unified UI/UX Design System and POL-038/POL-040 explicitly require exactly f
 
 ## Validation record
 
-- The last observed completed run before the latest fixes failed in `SuspendedZonesScreen UI prototype filters example zones by status` with `Bad state: No element` in `scrollUntilVisible`; the test was attempting to scroll down to a filter control after it had already scrolled past it.
-- The filter test was updated to reveal lazy filter controls before interacting; the next CI run must confirm whether that resolves the actual failure.
-- Added a widget test for the fourth dependent Zone selector and the create-new Zone name field; the next CI run must validate it.
+- The earlier completed run `40682258094` passed Analyze, the full test suite, and Flutter Web build at commit `21063788498d239decea21e55f25fc49b1a91395`. This run predates the later Directory/Approval Queue metadata and preview-navigation changes, so those changes still require their own validation.
+- The Suspended Zones filter test was updated to reveal lazy filter controls before interacting; it passed in a later full test run.
+- Added widget tests for the fourth dependent Zone selector, parent-change resets, Approval Queue safeguards, Directory metadata/search, and preview navigation. The newest CI run must confirm these newest changes.
 - A separate widget test was added for Founder Approval Queue authority copy, disabled decision buttons, and status filtering.
 - Latest workflow runs must be inspected for their final results before declaring PASS. Do not infer success from an in-progress run.
 - No merge, deployment, or new Firebase integration is authorized by this file.
