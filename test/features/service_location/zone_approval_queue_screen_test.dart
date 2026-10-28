@@ -47,6 +47,10 @@ void main() {
       expect(find.text('Example Zone B'), findsOneWidget);
       expect(find.text('EXAMPLE-ZONE-002'), findsOneWidget);
       expect(find.text('Example Zone A'), findsNothing);
+      expect(find.text('Revision 2'), findsOneWidget);
+      expect(find.text('Hash changed'), findsWidgets);
+      expect(find.textContaining('prior approval must not be reused'), findsOneWidget);
+      expect(find.text('Decision disabled — not connected'), findsOneWidget);
 
       await tester.drag(find.byType(ListView).first, const Offset(0, 1600));
       await tester.pumpAndSettle();
