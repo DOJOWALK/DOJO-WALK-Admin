@@ -55,6 +55,7 @@ void main() {
       expect(find.text('Example Zone A'), findsNothing);
       expect(find.text('Revision 2'), findsOneWidget);
       expect(find.text('Hash changed'), findsWidgets);
+      expect(find.text('EXAMPLE-HASH-CHANGED'), findsOneWidget);
       expect(find.textContaining('prior approval must not be reused'), findsOneWidget);
       expect(find.text('Decision disabled — not connected'), findsOneWidget);
 
