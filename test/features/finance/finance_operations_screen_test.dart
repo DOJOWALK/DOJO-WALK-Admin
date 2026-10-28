@@ -61,4 +61,19 @@ void main() {
     expect(find.text('RECON-EX-001'), findsOneWidget);
     expect(find.text('PAYOUT-EX-001'), findsNothing);
   });
+  testWidgets('remains usable on a narrow mobile viewport', (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(home: FinanceOperationsScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Finance Operations'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
