@@ -150,12 +150,36 @@ class ZoneDetailsScreen extends StatelessWidget {
 
   static Widget _detail(String label, String value) => Padding(
         padding: const EdgeInsets.only(bottom: 10),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(width: 170, child: Text(label, style: const TextStyle(color: Colors.black54, fontSize: 12))),
-            Expanded(child: Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600))),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final labelStyle = const TextStyle(
+              color: Colors.black54,
+              fontSize: 12,
+            );
+            final valueStyle = const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            );
+
+            if (constraints.maxWidth < 480) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: labelStyle),
+                  const SizedBox(height: 4),
+                  Text(value, style: valueStyle),
+                ],
+              );
+            }
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(width: 170, child: Text(label, style: labelStyle)),
+                Expanded(child: Text(value, style: valueStyle)),
+              ],
+            );
+          },
         ),
       );
 }
