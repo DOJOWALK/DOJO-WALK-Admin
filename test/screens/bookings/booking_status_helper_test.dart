@@ -55,4 +55,36 @@ void main() {
     });
   });
 
+  group('bookingStatusQueryAliases', () {
+    test('covers legacy capitalization and separators for canonical states', () {
+      expect(
+        bookingStatusQueryAliases('Pending'),
+        containsAll(['pending', 'Pending']),
+      );
+      expect(
+        bookingStatusQueryAliases('Walker Assigned'),
+        containsAll(['assigned', 'walker_assigned', 'Walker Assigned']),
+      );
+      expect(
+        bookingStatusQueryAliases('Walker Accepted'),
+        containsAll(['accepted', 'walker_accepted', 'Walker Accepted']),
+      );
+      expect(
+        bookingStatusQueryAliases('Walk In Progress'),
+        containsAll([
+          'walking',
+          'in_progress',
+          'Walk In Progress',
+          'walk_started',
+          'active_walk',
+        ]),
+      );
+      expect(
+        bookingStatusQueryAliases('Completed'),
+        containsAll(['completed', 'Completed', 'complete', 'Complete']),
+      );
+      expect(bookingStatusQueryAliases('Unknown'), isEmpty);
+    });
+  });
+
 }
