@@ -34,6 +34,7 @@ import '../services/location_csv_lgd_validator.dart';
 import '../services/service_location_boundary_service.dart';
 import '../services/service_location_service.dart';
 import 'add_zone_screen.dart';
+import 'audit_history_screen.dart';
 import 'boundary_review_screen.dart';
 import 'zone_directory_screen.dart';
 import 'zone_approval_queue_screen.dart';
@@ -233,6 +234,15 @@ class _ServiceLocationScreenState
               ),
             ),
             icon: const Icon(Icons.verified_user_outlined),
+          ),
+          IconButton(
+            tooltip: 'Location Audit History',
+            onPressed: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => const LocationAuditHistoryScreen(),
+              ),
+            ),
+            icon: const Icon(Icons.history_rounded),
           ),
           IconButton(
             tooltip: 'Suspended / Deactivated Zones',
