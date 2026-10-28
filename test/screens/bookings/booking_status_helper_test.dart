@@ -64,24 +64,29 @@ void main() {
       );
       expect(
         bookingStatusQueryAliases('Walker Assigned'),
-        containsAll(['assigned', 'walker_assigned', 'Walker Assigned']),
+        containsAll(['assigned', 'walker_assigned', 'walker-assigned', 'Walker Assigned']),
       );
       expect(
         bookingStatusQueryAliases('Picked Up'),
-        containsAll(['picked_up', 'picked up', 'Picked Up', 'pickup_complete']),
+        containsAll(['picked_up', 'picked-up', 'picked up', 'Picked Up', 'pickup_complete', 'pickup-complete']),
       );
       expect(
         bookingStatusQueryAliases('Walker Accepted'),
-        containsAll(['accepted', 'walker_accepted', 'Walker Accepted']),
+        containsAll(['accepted', 'walker_accepted', 'walker-accepted', 'Walker Accepted']),
       );
       expect(
         bookingStatusQueryAliases('Walk In Progress'),
         containsAll([
           'walking',
           'in_progress',
+          'in-progress',
           'Walk In Progress',
           'walk_started',
+          'walk-started',
+          'walk started',
           'active_walk',
+          'active-walk',
+          'active walk',
         ]),
       );
       expect(
