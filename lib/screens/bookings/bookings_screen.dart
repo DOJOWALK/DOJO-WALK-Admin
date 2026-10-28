@@ -113,6 +113,15 @@ class _BookingsScreenState extends State<BookingsScreen> {
                   decoration: InputDecoration(
                     hintText: 'Search booking, customer or status',
                     prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _search.isEmpty
+                        ? null
+                        : IconButton(
+                            tooltip: 'Clear search',
+                            onPressed: () {
+                              setState(() => _search = '');
+                            },
+                            icon: const Icon(Icons.close),
+                          ),
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
