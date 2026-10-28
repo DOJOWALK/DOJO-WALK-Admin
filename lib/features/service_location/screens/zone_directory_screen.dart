@@ -55,6 +55,54 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
       updatedAt: '2026-10-26 12:05 IST',
       updatedBy: 'Central Admin (example)',
     ),
+    _ZoneRow(
+      name: 'Example Zone D',
+      city: 'Example City',
+      status: 'Draft',
+      revision: 'Revision 1',
+      zoneId: 'ZONE-EX-004',
+      parentPath: 'Example State/UT → Example District → Example City',
+      boundaryStatus: 'Not started',
+      readinessBlocker: 'Required details and polygon evidence incomplete',
+      updatedAt: '2026-10-25 10:10 IST',
+      updatedBy: 'Central Admin (example)',
+    ),
+    _ZoneRow(
+      name: 'Example Zone E',
+      city: 'Example City',
+      status: 'Active',
+      revision: 'Revision 3',
+      zoneId: 'ZONE-EX-005',
+      parentPath: 'Example State/UT → Example District → Example City',
+      boundaryStatus: 'Verified (example)',
+      readinessBlocker: 'None — example only',
+      updatedAt: '2026-10-24 13:20 IST',
+      updatedBy: 'Central Admin (example)',
+    ),
+    _ZoneRow(
+      name: 'Example Zone F',
+      city: 'Example City',
+      status: 'Suspended',
+      revision: 'Revision 2',
+      zoneId: 'ZONE-EX-006',
+      parentPath: 'Example State/UT → Example District → Example City',
+      boundaryStatus: 'Verified (example)',
+      readinessBlocker: 'Review existing bookings and active walks; never stop a running walk silently',
+      updatedAt: '2026-10-23 18:05 IST',
+      updatedBy: 'Central Admin (example)',
+    ),
+    _ZoneRow(
+      name: 'Example Zone G',
+      city: 'Example City',
+      status: 'Deactivated',
+      revision: 'Revision 4',
+      zoneId: 'ZONE-EX-007',
+      parentPath: 'Example State/UT → Example District → Example City',
+      boundaryStatus: 'Verified (example)',
+      readinessBlocker: 'New bookings blocked; historical records retained',
+      updatedAt: '2026-10-22 14:45 IST',
+      updatedBy: 'Central Admin (example)',
+    ),
   ];
 
   @override
@@ -116,7 +164,7 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: ['All', 'Pending review', 'Needs changes', 'Not activated']
+                  children: ['All', 'Draft', 'Pending review', 'Needs changes', 'Not activated', 'Active', 'Suspended', 'Deactivated']
                       .map((status) => ChoiceChip(
                             label: Text(status),
                             selected: _status == status,
