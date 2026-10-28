@@ -148,18 +148,57 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(children: [
-                const Icon(Icons.notifications_none_rounded, color: orange),
-                const SizedBox(width: 10),
-                Expanded(child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(item.title, style: const TextStyle(fontWeight: FontWeight.w800, color: ink)),
-                    Text(item.id, style: const TextStyle(fontSize: 12, color: Colors.black54)),
-                  ],
-                )),
-                Chip(label: Text(item.status)),
-              ]),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final identity = Row(
+                    children: [
+                      const Icon(Icons.notifications_none_rounded, color: orange),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.title,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: ink,
+                              ),
+                            ),
+                            Text(
+                              item.id,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                  final statusChip = Chip(label: Text(item.status));
+
+                  if (constraints.maxWidth < 420) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        identity,
+                        const SizedBox(height: 8),
+                        statusChip,
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      Expanded(child: identity),
+                      const SizedBox(width: 8),
+                      statusChip,
+                    ],
+                  );
+                },
+              ),
               const Divider(height: 24),
               _detail('Category', item.category),
               _detail('Channel', item.channel),
