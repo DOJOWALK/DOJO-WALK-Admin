@@ -24,7 +24,7 @@ void main() {
     expect(find.text('Verified'), findsWidgets);
     expect(find.text('Rejected'), findsWidgets);
     expect(find.text('Needs changes'), findsWidgets);
-    expect(find.text('EXAMPLE-ZONE-001'), findsOneWidget);
+    expect(find.text('ZONE-EX-001'), findsOneWidget);
     expect(find.text('Not verified'), findsWidgets);
     expect(find.text('Hash changed'), findsWidgets);
     expect(find.text('EXAMPLE-SHA256-ABC123'), findsOneWidget);
