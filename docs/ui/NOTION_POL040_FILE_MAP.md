@@ -38,9 +38,11 @@
 - Existing Firebase/service imports are already present in the repository. This UI-only phase must not expand or change backend integration.
 - Coupons must not be reintroduced as an Admin menu item; the business decision is no coupon system.
 
-## Specification ambiguity to resolve before changing the form
+## Confirmed form gap — fourth Zone selector
 
-POL-038/POL-040's confirmed override says the Create Zone form has exactly four dependent selectors: State/UT → District → City → Zone. The current prototype has three hierarchy dropdowns plus a free-text Zone name field. Because a new Zone normally needs a name rather than selection of an existing Zone, do not convert the Zone name into an existing-record dropdown by assumption. Resolve the intended fourth-selector behavior against the latest Notion master before changing it.
+The Unified UI/UX Design System and POL-038/POL-040 explicitly require exactly four dependent selectors: State/UT → District → City → Zone. The current prototype has only three dropdowns plus a free-text Zone name field, so it does not yet meet this requirement.
+
+Next UI implementation must add the fourth Zone selector after City, with the create-new path clearly represented. Existing Zone options must come from an authoritative catalog once available; until then, any illustrative options must be explicitly marked as examples and must not imply live data. Keep the Zone name/details input available only for the create-new path. Do not add a Locality selector. Changing State/UT, District or City must clear all downstream selections.
 
 ## Validation record
 
