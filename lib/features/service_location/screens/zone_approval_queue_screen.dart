@@ -16,6 +16,7 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
 
   final List<_ApprovalItem> _examples = const [
     _ApprovalItem(
+      zoneId: 'EXAMPLE-ZONE-001',
       name: 'Example Zone A',
       city: 'Example City',
       request: 'Initial launch',
@@ -30,6 +31,7 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
       status: 'Awaiting decision',
     ),
     _ApprovalItem(
+      zoneId: 'EXAMPLE-ZONE-002',
       name: 'Example Zone B',
       city: 'Example City',
       request: 'Boundary change',
@@ -149,6 +151,7 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
               ],
             ),
             const SizedBox(height: 8),
+            _detail('Zone ID', item.zoneId),
             _detail('Type', item.zoneType),
             _detail('City', item.city),
             _detail('Parent path', item.parentPath),
@@ -218,6 +221,7 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
 
 class _ApprovalItem {
   const _ApprovalItem({
+    required this.zoneId,
     required this.name,
     required this.city,
     required this.request,
@@ -232,6 +236,7 @@ class _ApprovalItem {
     required this.status,
   });
 
+  final String zoneId;
   final String name;
   final String city;
   final String request;
