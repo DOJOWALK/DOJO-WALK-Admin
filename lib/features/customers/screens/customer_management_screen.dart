@@ -149,22 +149,66 @@ class _CustomerManagementScreenState extends State<CustomerManagementScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            Container(
-              width: 42, height: 42,
-              decoration: BoxDecoration(color: orange.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(13)),
-              child: const Icon(Icons.person_outline, color: orange),
-            ),
-            const SizedBox(width: 10),
-            Expanded(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(c.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: ink)),
-                Text(c.id, style: const TextStyle(fontSize: 12, color: Colors.black54)),
-              ],
-            )),
-            Chip(label: Text(c.status)),
-          ]),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final identity = Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: orange.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                    child: const Icon(Icons.person_outline, color: orange),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          c.name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: ink,
+                          ),
+                        ),
+                        Text(
+                          c.id,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+              final statusChip = Chip(label: Text(c.status));
+
+              if (constraints.maxWidth < 420) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    identity,
+                    const SizedBox(height: 8),
+                    statusChip,
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(child: identity),
+                  const SizedBox(width: 8),
+                  statusChip,
+                ],
+              );
+            },
+          ),
           const Divider(height: 24),
           Wrap(spacing: 22, runSpacing: 14, children: [
             _detail('Phone (masked)', c.phone),
