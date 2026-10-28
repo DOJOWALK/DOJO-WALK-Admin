@@ -44,9 +44,9 @@ The Unified UI/UX Design System and POL-038/POL-040 explicitly require exactly f
 
 ## Validation record
 
-- Latest UI code validation: GitHub Actions run `40686531389` completed successfully at commit `c97c40138d3bfa15a48d81d023cba587d52da89c`: `flutter analyze`, the complete test suite, and `flutter build web --release` all PASS. This includes the latest Zone selector, submission gates, booking-status normalization and permission-denied UI updates.
+- Latest UI code validation: GitHub Actions run `40687163413` completed successfully at commit `c41a1568bc54d0f2de16112fd1ece3c1ae4af7c7`: `flutter analyze`, the complete test suite, and `flutter build web --release` all PASS. This includes the latest Zone selector, submission gates, booking-status normalization, permission-denied UI and privacy-safe Live Operations summary.
 - The Suspended Zones filter test was updated to reveal lazy filter controls before interacting; it passed in a later full test run.
-- Widget tests for the fourth dependent Zone selector, city-dependent mock options, parent-change resets, disabled Save Draft/Submit, Approval Queue safeguards, Directory lifecycle filters, Zone Details metadata, preview navigation, booking-status normalization and permission error classification passed in run `40686531389`.
+- Widget tests for the fourth dependent Zone selector, city-dependent mock options, parent-change resets, disabled Save Draft/Submit, Approval Queue safeguards, Directory lifecycle filters, Zone Details metadata, preview navigation, booking-status normalization, permission error classification and sensitive-field omission passed in run `40687163413`.
 - A separate widget test was added for Founder Approval Queue authority copy, disabled decision buttons, and status filtering.
 - Do not infer success from an in-progress run; record the run ID and commit for every PASS claim.
 - No merge, deployment, or new Firebase integration is authorized by this file.
