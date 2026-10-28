@@ -12,6 +12,8 @@ void main() {
 
       expect(find.text('Founder Approval Queue'), findsOneWidget);
       expect(find.text('EXAMPLE-ZONE-001'), findsOneWidget);
+      expect(find.text('Blocked — boundary pending'), findsOneWidget);
+      expect(find.textContaining('Founder decision must wait'), findsOneWidget);
       expect(find.text('Business approval gate'), findsOneWidget);
       expect(find.textContaining('Founder/CEO makes the final business decision'),
           findsOneWidget);
