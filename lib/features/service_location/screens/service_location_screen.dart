@@ -496,78 +496,10 @@ class _ServiceLocationScreenState
   // ============================================================
 
   Future<Set<Polygon>> _loadActiveBoundaryPolygons() async {
-    final cities = await _service.watchCities().first;
-    final areas = await _service.watchAreas().first;
-    final boundarySnapshot = await FirebaseFirestore.instance
-        .collection('service_location_boundaries')
-        .where('verificationStatus', isEqualTo: 'verified')
-        .get();
-    final boundariesById = {
-      for (final document in boundarySnapshot.docs)
-        document.id: ServiceLocationBoundary.fromMap(
-          document.id,
-          document.data(),
-        ),
-    };
-    final polygons = <Polygon>{};
-
-    for (final city in cities.where((item) => item.isServiceActive)) {
-      final boundaryId = city.verifiedBoundaryId.trim();
-      if (boundaryId.isEmpty) continue;
-
-      final boundary = boundariesById[boundaryId];
-      if (boundary == null ||
-          !boundary.isVerified ||
-          boundary.locationId != city.id ||
-          boundary.locationType.toLowerCase() != 'city' ||
-          boundary.points.length < 3) {
-        continue;
-      }
-
-      polygons.add(
-        Polygon(
-          polygonId: PolygonId('service-city-${city.id}'),
-          points: boundary.points
-              .map((point) => LatLng(point.latitude, point.longitude))
-              .toList(growable: false),
-          strokeColor: _locationOrange,
-          strokeWidth: 2,
-          fillColor: _locationOrange.withValues(alpha: 0.05),
-          consumeTapEvents: true,
-          onTap: () => _showMessage('Active city boundary: ${city.name}'),
-        ),
-      );
-    }
-
-    for (final area in areas.where((item) => item.isServiceActive)) {
-      final boundaryId = area.verifiedBoundaryId.trim();
-      if (boundaryId.isEmpty) continue;
-
-      final boundary = boundariesById[boundaryId];
-      if (boundary == null ||
-          !boundary.isVerified ||
-          boundary.locationId != area.id ||
-          boundary.locationType.toLowerCase() != 'area' ||
-          boundary.points.length < 3) {
-        continue;
-      }
-
-      polygons.add(
-        Polygon(
-          polygonId: PolygonId('service-area-${area.id}'),
-          points: boundary.points
-              .map((point) => LatLng(point.latitude, point.longitude))
-              .toList(growable: false),
-          strokeColor: _locationOrange,
-          strokeWidth: 2,
-          fillColor: _locationOrange.withValues(alpha: 0.18),
-          consumeTapEvents: true,
-          onTap: () => _showMessage('Active service area: ${area.name}'),
-        ),
-      );
-    }
-
-    return polygons;
+    // Do not display legacy City/Area polygons as active service Zones.
+    // The Zone-specific boundary data contract will be connected after the
+    // UI and Notion screen workflow are finalized.
+    return <Polygon>{};
   }
 
   Future<void> _fitMapToActiveBoundaries(Set<Polygon> polygons) async {
@@ -754,8 +686,8 @@ class _ServiceLocationScreenState
                     borderRadius: BorderRadius.circular(9),
                   ),
                   child: const Text(
-                    'Orange outlines show active verified City/Area boundaries. '
-                    'Tap a polygon to identify it; use Manage Boundary to review details.',
+                    'Verified Zone polygons will appear here when the Zone-specific boundary source is connected. '
+                    'State/UT, District and City are hierarchy records, not service activation units.',
                     style: TextStyle(fontSize: 11),
                   ),
                 ),
