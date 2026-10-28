@@ -8,6 +8,7 @@ void main() {
       expect(displayBookingStatus('walker-accepted'), 'Walker Accepted');
       expect(displayBookingStatus('in_progress'), 'Walk In Progress');
       expect(displayBookingStatus('walk_started'), 'Walk In Progress');
+      expect(displayBookingStatus('picked_up'), 'Picked Up');
       expect(displayBookingStatus('active-walk'), 'Walk In Progress');
       expect(displayBookingStatus('canceled'), 'Cancelled');
     });
@@ -64,6 +65,10 @@ void main() {
       expect(
         bookingStatusQueryAliases('Walker Assigned'),
         containsAll(['assigned', 'walker_assigned', 'Walker Assigned']),
+      );
+      expect(
+        bookingStatusQueryAliases('Picked Up'),
+        containsAll(['picked_up', 'picked up', 'Picked Up', 'pickup_complete']),
       );
       expect(
         bookingStatusQueryAliases('Walker Accepted'),
