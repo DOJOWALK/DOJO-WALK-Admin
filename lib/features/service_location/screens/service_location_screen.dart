@@ -1,20 +1,13 @@
-/// DOJO WALK Admin
+/// DOJO WALK Admin — Service Locations UI.
 ///
-/// Service Locations management screen.
+/// State/UT, District and City are hierarchy/reference records only.
+/// Zone is the sole service activation unit under the current Notion rules.
 ///
-/// Boundary lifecycle supported by the current Firestore Rules:
-/// Pending -> Verified
-/// Pending -> Rejected -> Edit and resubmit
-///
-/// Important:
-/// - New boundaries are saved directly as Pending.
-/// - A separate persisted Draft status is not supported by
-///   the current Firestore Rules.
-/// - Verified boundaries are read-only.
-/// - Boundary verification and service activation are separate.
-/// - City and Area activation use ServiceLocationService.
-/// - Locality activation does not require its own polygon.
-/// - Legacy Zones are not modified.
+/// The Zone-specific boundary preview and approval screens are UI prototypes
+/// until their approved data contract is implemented. This screen must not
+/// present legacy City/Area boundaries or status flags as active service Zones.
+/// Existing data services are retained for the hierarchy/import tabs; this
+/// UI-only work does not add or change Firebase lifecycle operations.
 
 import 'dart:convert';
 
