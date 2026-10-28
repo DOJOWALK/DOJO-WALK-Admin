@@ -22,7 +22,7 @@
 |---|---|---|
 | Location Dashboard / overview | `lib/features/service_location/screens/service_location_screen.dart` | Partial: existing Service Locations screen has hierarchy tabs/map preview; compare summary cards, attention panel, recent changes, and failure states against spec. |
 | Location Directory | `lib/features/service_location/screens/zone_directory_screen.dart`, `service_location_screen.dart` | Partial: directory screen exists; verify exact Zone-only status semantics, filters, readiness blockers, pagination, and action gating. |
-| Add Location / Create Zone | `lib/features/service_location/screens/add_zone_screen.dart` | Prototype: State/UT, District, City and Zone name; boundary editor is disabled; data catalog is placeholder; no save/submission. |
+| Add Location / Create Zone | `lib/features/service_location/screens/add_zone_screen.dart` | Prototype now has four dependent selectors (State/UT → District → City → Zone). The fourth selector currently offers only the create-new path because the approved Zone catalog is not connected; name input appears after choosing it. Boundary editor is disabled; no save/submission. |
 | Location Details | Existing detail handling in service-location module | Gap to audit: no dedicated Location Details screen was found in the inspected screen list. Do not create a competing details flow until existing handlers are reviewed. |
 | Boundary Review | `lib/features/service_location/screens/boundary_review_screen.dart` | Prototype: example rows and evidence labels; no live boundary data or decision actions. |
 | Founder Approval Queue | `lib/features/service_location/screens/zone_approval_queue_screen.dart` | Prototype: example rows and disabled decision action; approval remains separate from activation. |
@@ -40,14 +40,13 @@
 
 ## Confirmed form gap — fourth Zone selector
 
-The Unified UI/UX Design System and POL-038/POL-040 explicitly require exactly four dependent selectors: State/UT → District → City → Zone. The current prototype has only three dropdowns plus a free-text Zone name field, so it does not yet meet this requirement.
-
-Next UI implementation must add the fourth Zone selector after City, with the create-new path clearly represented. Existing Zone options must come from an authoritative catalog once available; until then, any illustrative options must be explicitly marked as examples and must not imply live data. Keep the Zone name/details input available only for the create-new path. Do not add a Locality selector. Changing State/UT, District or City must clear all downstream selections.
+The Unified UI/UX Design System and POL-038/POL-040 explicitly require exactly four dependent selectors: State/UT → District → City → Zone. The prototype now includes the fourth Zone selector after City. Because the approved Zone catalog is not connected, it currently exposes only the create-new path; this is intentionally not represented as live Zone data. Existing Zone choices must come from an authoritative catalog when the UI data contract is approved. The Zone name/details input appears only for the create-new path. Do not add a Locality selector. Changing State/UT, District or City must clear all downstream selections.
 
 ## Validation record
 
 - The last observed completed run before the latest fixes failed in `SuspendedZonesScreen UI prototype filters example zones by status` with `Bad state: No element` in `scrollUntilVisible`; the test was attempting to scroll down to a filter control after it had already scrolled past it.
-- Test was changed to interact with the filter first, then scroll to result rows and return to the top before selecting another filter.
+- The filter test was updated to reveal lazy filter controls before interacting; the next CI run must confirm whether that resolves the actual failure.
+- Added a widget test for the fourth dependent Zone selector and the create-new Zone name field; the next CI run must validate it.
 - A separate widget test was added for Founder Approval Queue authority copy, disabled decision buttons, and status filtering.
 - Latest workflow runs must be inspected for their final results before declaring PASS. Do not infer success from an in-progress run.
 - No merge, deployment, or new Firebase integration is authorized by this file.
