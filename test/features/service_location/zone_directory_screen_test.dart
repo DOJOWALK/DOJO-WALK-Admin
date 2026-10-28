@@ -85,6 +85,24 @@ void main() {
       );
     });
 
+    testWidgets('Zone Directory remains readable on a narrow mobile viewport',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const MaterialApp(home: ZoneDirectoryScreen()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Zone Directory'), findsOneWidget);
+      expect(find.text('Example Zone A'), findsOneWidget);
+      expect(find.text('ZONE-EX-001'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('opens Zone Details with hierarchy and readiness metadata',
         (tester) async {
       await tester.pumpWidget(
