@@ -28,6 +28,8 @@ class _LiveOperationsScreenState
   final Map<String, Map<String, dynamic>> _walkers = {};
 
   String? _selectedWalkerId;
+  bool _isLoadingWalkers = true;
+  String? _walkerLoadError;
 
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
@@ -69,6 +71,8 @@ class _LiveOperationsScreenState
       if (!mounted) return;
 
       setState(() {
+        _isLoadingWalkers = false;
+        _walkerLoadError = null;
         _walkers
           ..clear()
           ..addAll(updated);
@@ -85,6 +89,12 @@ class _LiveOperationsScreenState
       debugPrint('Live walker listener failed: $error');
       if (!mounted) return;
       final permissionDenied = isPermissionDeniedError(error);
+      setState(() {
+        _isLoadingWalkers = false;
+        _walkerLoadError = permissionDenied
+            ? 'Permission denied for live walker data. Ask an authorized administrator to review scope.'
+            : 'Unable to refresh live walkers. Check the connection; the listener will retry.';
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -408,11 +418,16 @@ class _LiveOperationsScreenState
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '${_walkers.length} walkers online',
-                        style:
-                            const TextStyle(
-                          fontWeight:
-                              FontWeight.w700,
+                        _isLoadingWalkers
+                            ? 'Loading live walkers…'
+                            : _walkerLoadError != null
+                                ? 'Live data unavailable'
+                                : '${_walkers.length} walkers online',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: _walkerLoadError != null
+                              ? const Color(0xFFB91C1C)
+                              : const Color(0xFF292524),
                         ),
                       ),
                     ],
@@ -421,6 +436,49 @@ class _LiveOperationsScreenState
               ],
             ),
           ),
+
+          if (_walkerLoadError != null)
+            Positioned(
+              top: 82,
+              left: 20,
+              right: 20,
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF1F0),
+                    border: Border.all(
+                      color: const Color(0xFFFECACA),
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Color(0xFFB91C1C),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _walkerLoadError!,
+                          style: const TextStyle(
+                            color: Color(0xFF991B1B),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
 
           // ======================================================
           // SELECTED WALKER PANEL
