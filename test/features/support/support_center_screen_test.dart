@@ -66,4 +66,22 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('keeps case and delivery mutations disabled', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: SupportCenterScreen()),
+    );
+
+    for (final label in ["Transfer disabled","Resolve disabled"]) {
+      final buttons = tester.widgetList<OutlinedButton>(
+        find.widgetWithText(OutlinedButton, label),
+      );
+      expect(buttons, isNotEmpty, reason: 'Expected disabled control: $label');
+      expect(
+        buttons.every((button) => button.onPressed == null),
+        isTrue,
+        reason: '$label must remain disabled until authorized backend workflows exist',
+      );
+    }
+  });
+
 }
