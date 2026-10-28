@@ -39,6 +39,7 @@ import 'boundary_review_screen.dart';
 import 'zone_directory_screen.dart';
 import 'zone_approval_queue_screen.dart';
 import 'suspended_zones_screen.dart';
+import 'zone_audit_history_screen.dart';
 import '../widgets/add_location_dialog.dart';
 import '../widgets/service_boundary_editor.dart';
 
@@ -240,6 +241,15 @@ class _ServiceLocationScreenState
             onPressed: () => Navigator.of(context).push<void>(
               MaterialPageRoute<void>(
                 builder: (_) => const LocationAuditHistoryScreen(),
+              ),
+            ),
+            icon: const Icon(Icons.history_rounded),
+          ),
+          IconButton(
+            tooltip: 'Zone Audit History',
+            onPressed: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => const ZoneAuditHistoryScreen(),
               ),
             ),
             icon: const Icon(Icons.history_rounded),
