@@ -870,7 +870,15 @@ class _StatCard extends StatelessWidget {
                   stream: stream,
                   builder:
                       (context, snapshot) {
-                    if (snapshot.hasError) return const Tooltip(message: 'Unable to load this count', child: Icon(Icons.error_outline, color: Colors.redAccent));
+                    if (snapshot.hasError) {
+                      final denied = isPermissionDeniedError(snapshot.error);
+                      return Tooltip(
+                        message: denied
+                            ? 'Access denied for this metric.'
+                            : 'Unable to load this metric. Check connection.',
+                        child: const Icon(Icons.error_outline, color: Colors.redAccent),
+                      );
+                    }
                     if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) return const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2));
                     return Text('${snapshot.data ?? 0}', style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800));
                   },
@@ -960,7 +968,15 @@ class _RevenueCard extends StatelessWidget {
                   stream: stream,
                   builder:
                       (context, snapshot) {
-                    if (snapshot.hasError) return const Tooltip(message: 'Unable to load revenue', child: Icon(Icons.error_outline, color: Colors.redAccent));
+                    if (snapshot.hasError) {
+                      final denied = isPermissionDeniedError(snapshot.error);
+                      return Tooltip(
+                        message: denied
+                            ? 'Access denied for revenue data.'
+                            : 'Unable to load revenue. Check connection.',
+                        child: const Icon(Icons.error_outline, color: Colors.redAccent),
+                      );
+                    }
                     if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) return const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2));
                     final value = snapshot.data ?? 0;
                     return Text('₹${value.toStringAsFixed(0)}', style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800));
