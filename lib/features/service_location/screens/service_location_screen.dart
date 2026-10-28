@@ -825,8 +825,40 @@ class _ServiceLocationScreenState
                   countryId: country.id,
                 ),
                 builder: (context, snapshot) {
-                  if (snapshot.hasError || !snapshot.hasData) {
-                    return const SizedBox.shrink();
+                  if (snapshot.hasError) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Text(
+                        'Unable to load states for ${country.name}. Check your access or try again later.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    );
+                  }
+
+                  if (!snapshot.hasData) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: _locationOrange,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Text('Loading states…'),
+                        ],
+                      ),
+                    );
                   }
 
                   final items = snapshot.data!
