@@ -88,10 +88,16 @@ void main() {
 
     expect(find.text('Founder Approval Queue'), findsOneWidget);
     expect(find.text('Awaiting decision'), findsOneWidget);
-    expect(find.text('No example requests match this filter. Live queue is not connected.'),
-        findsOneWidget);
+    expect(find.text('Example Zone C'), findsOneWidget);
+    expect(find.text('EXAMPLE-ZONE-003'), findsOneWidget);
+    expect(find.text('Verified (example)'), findsOneWidget);
     expect(find.text('Example Zone A'), findsNothing);
     expect(find.text('Example Zone B'), findsNothing);
+    expect(find.text('Decision disabled — not connected'), findsOneWidget);
+    final decisionButtons = tester.widgetList<OutlinedButton>(
+      find.widgetWithText(OutlinedButton, 'Decision disabled — not connected'),
+    );
+    expect(decisionButtons.every((button) => button.onPressed == null), isTrue);
     expect(tester.takeException(), isNull);
   });
 
