@@ -27,8 +27,8 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
       revision: 'Revision 1',
       boundaryStatus: 'Not verified',
       boundaryHash: 'Not generated',
-      blockers: 'Polygon evidence and verification pending',
-      status: 'Awaiting decision',
+      blockers: 'Polygon evidence and verification pending; Founder decision must wait',
+      status: 'Blocked — boundary pending',
     ),
     _ApprovalItem(
       zoneId: 'EXAMPLE-ZONE-002',
@@ -93,7 +93,7 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final label in ['Awaiting decision', 'Blocked — re-review', 'All'])
+              for (final label in ['Awaiting decision', 'Blocked — boundary pending', 'Blocked — re-review', 'All'])
                 ChoiceChip(
                   label: Text(label),
                   selected: _filter == label,
