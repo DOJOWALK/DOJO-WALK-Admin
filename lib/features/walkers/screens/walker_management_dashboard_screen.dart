@@ -198,7 +198,10 @@ class _WalkerManagementDashboardScreenState
     );
   }
 
-  Widget _emptyState() {
+  Widget _emptyState({
+    required String title,
+    required String message,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
@@ -210,27 +213,28 @@ class _WalkerManagementDashboardScreenState
         border: Border.all(color: _border),
         borderRadius: BorderRadius.circular(14),
       ),
-      child: const Column(
+      child: Column(
         children: [
-          Icon(
+          const Icon(
             Icons.person_search_outlined,
             size: 40,
             color: _muted,
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
-            'No walkers found',
-            style: TextStyle(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
               color: _text,
               fontSize: 14,
               fontWeight: FontWeight.w800,
             ),
           ),
-          SizedBox(height: 5),
+          const SizedBox(height: 5),
           Text(
-            'Search बदलें या दूसरे tab में देखें।',
+            message,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: _muted,
               fontSize: 11,
             ),
@@ -294,7 +298,15 @@ class _WalkerManagementDashboardScreenState
     required Set<String> runningWalkerIds,
   }) {
     if (walkers.isEmpty) {
-      return _emptyState();
+      final query = _searchController.text.trim();
+      return _emptyState(
+        title: query.isNotEmpty
+            ? 'No walkers match your search'
+            : 'No walkers in ${_tabs[_selectedTab]}',
+        message: query.isNotEmpty
+            ? 'Try another name, phone, email or Walker ID.'
+            : 'This list is empty for the selected status. Try another tab if you need to review other walkers.',
+      );
     }
 
     return Column(
