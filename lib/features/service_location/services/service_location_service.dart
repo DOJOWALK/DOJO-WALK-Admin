@@ -228,91 +228,6 @@ class ServiceLocationService {
     return snapshot.data()!;
   }
 
-  Future<void> _requireActiveCountry(
-    String countryId,
-  ) async {
-    final data = await _requireDocument(
-      _countries,
-      countryId,
-      'Country',
-    );
-
-    if (data['isActive'] != true) {
-      throw StateError(
-        'The selected country is not active.',
-      );
-    }
-  }
-
-  Future<void> _requireActiveState(
-    String stateId,
-    String countryId,
-  ) async {
-    final data = await _requireDocument(
-      _states,
-      stateId,
-      'State',
-    );
-
-    if (data['countryId'] != countryId) {
-      throw StateError(
-        'The state does not belong to the selected country.',
-      );
-    }
-
-    if (data['isActive'] != true) {
-      throw StateError(
-        'The selected state is not active.',
-      );
-    }
-  }
-
-  Future<void> _requireActiveCity(
-    String cityId,
-    String stateId,
-  ) async {
-    final data = await _requireDocument(
-      _cities,
-      cityId,
-      'City',
-    );
-
-    if (data['stateId'] != stateId) {
-      throw StateError(
-        'The city does not belong to the selected state.',
-      );
-    }
-
-    if (data['isServiceActive'] != true) {
-      throw StateError(
-        'The selected city is not active for service.',
-      );
-    }
-  }
-
-  Future<void> _requireActiveArea(
-    String areaId,
-    String cityId,
-  ) async {
-    final data = await _requireDocument(
-      _areas,
-      areaId,
-      'Area',
-    );
-
-    if (data['cityId'] != cityId) {
-      throw StateError(
-        'The area does not belong to the selected city.',
-      );
-    }
-
-    if (data['isServiceActive'] != true) {
-      throw StateError(
-        'The selected area is not active for service.',
-      );
-    }
-  }
-
   // ==========================================================
   // VERIFIED BOUNDARY LOOKUP
   // ==========================================================
@@ -733,18 +648,7 @@ class ServiceLocationService {
       );
     }
 
-    String verifiedBoundaryId = city.verifiedBoundaryId.trim();
-
-    if (city.isServiceActive) {
-      await _requireActiveCountry(countryId);
-
-      await _requireActiveState(stateId, countryId);
-
-      verifiedBoundaryId = await _requireVerifiedBoundary(
-        locationId: id,
-        locationType: 'city',
-      );
-    }
+    final verifiedBoundaryId = city.verifiedBoundaryId.trim();
 
     final existingSnapshot = await _cities.doc(id).get();
 
@@ -872,47 +776,7 @@ class ServiceLocationService {
       );
     }
 
-    String verifiedBoundaryId = area.verifiedBoundaryId.trim();
-
-    if (area.isServiceActive) {
-      await _requireActiveCountry(countryId);
-
-      await _requireActiveState(stateId, countryId);
-
-      await _requireActiveCity(cityId, stateId);
-
-      verifiedBoundaryId = await _requireVerifiedBoundary(
-        locationId: id,
-        locationType: 'area',
-      );
-
-      final city = await _requireDocument(
-        _cities,
-        cityId,
-        'City',
-      );
-      final cityBoundaryId =
-          city['verifiedBoundaryId']?.toString().trim() ?? '';
-      final cityBoundaryPoints = await _requireVerifiedBoundaryPoints(
-        boundaryId: cityBoundaryId,
-        locationId: cityId,
-        locationType: 'city',
-      );
-      final areaBoundaryPoints = await _requireVerifiedBoundaryPoints(
-        boundaryId: verifiedBoundaryId,
-        locationId: id,
-        locationType: 'area',
-      );
-
-      if (!ServiceLocationGeometry.isPolygonContained(
-        parent: cityBoundaryPoints,
-        child: areaBoundaryPoints,
-      )) {
-        throw StateError(
-          'The Area boundary must be fully inside or on the parent City boundary.',
-        );
-      }
-    }
+    final verifiedBoundaryId = area.verifiedBoundaryId.trim();
 
     final existingSnapshot = await _areas.doc(id).get();
 
@@ -1057,17 +921,7 @@ class ServiceLocationService {
       );
     }
 
-    if (locality.isServiceActive) {
-      await _requireActiveCountry(countryId);
-
-      await _requireActiveState(stateId, countryId);
-
-      await _requireActiveCity(cityId, stateId);
-
-      await _requireActiveArea(areaId, cityId);
-    }
-
-    // A locality polygon is optional.
+    // A locality polygon is optional.    // A locality polygon is optional.
     if (locality.boundary.isNotEmpty) {
       final validPoints = _readPoints(locality.boundary);
 
