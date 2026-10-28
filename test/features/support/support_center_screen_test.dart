@@ -37,7 +37,13 @@ void main() {
       const MaterialApp(home: SupportCenterScreen()),
     );
 
-    await tester.tap(find.text('View example case').first);
+    final caseButton = find.text('View example case').first;
+    await tester.scrollUntilVisible(
+      caseButton,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(caseButton);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('No live support or incident data was accessed'),
