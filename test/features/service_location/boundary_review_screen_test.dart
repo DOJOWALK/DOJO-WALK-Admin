@@ -31,6 +31,17 @@ void main() {
     expect(find.text('Polygon verification'), findsWidgets);
   });
 
+  testWidgets('opens Founder Approval Queue preview from Boundary Review',
+      (tester) async {
+    await tester.pumpWidget(app());
+
+    await tester.tap(find.text('Preview Founder Approval Queue'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Founder Approval Queue'), findsOneWidget);
+    expect(find.textContaining('No server actions enabled'), findsOneWidget);
+  });
+
   testWidgets('review and decision actions are disabled in prototype', (tester) async {
     await tester.pumpWidget(app());
 
