@@ -121,11 +121,24 @@ class _ServiceLocationScreenState
   Future<void> _showError(Object error) async {
     if (!mounted) return;
 
+    // Keep raw exception details out of the UI; backend/provider messages can
+    // contain implementation details. Show a useful, non-sensitive next step.
+    final errorText = error.toString().toLowerCase();
+    final isPermissionError = errorText.contains('permission-denied') ||
+        errorText.contains('permission denied') ||
+        errorText.contains('unauthorized');
+
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Action could not be completed'),
-        content: SelectableText(error.toString()),
+        title: Text(
+          isPermissionError ? 'Access not available' : 'Action could not be completed',
+        ),
+        content: Text(
+          isPermissionError
+              ? 'Your account may not have permission for this action. Check your assigned role or contact Central Admin.'
+              : 'No changes were confirmed. Please try again. If the problem continues, contact Central Admin.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
