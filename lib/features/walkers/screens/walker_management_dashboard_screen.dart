@@ -33,7 +33,10 @@ class _WalkerManagementDashboardScreenState
     'Available',
     'Running',
     'Verification',
+    'Training Required',
     'Rejected',
+    'Suspended',
+    'Inactive / Offboarded',
     'All Walkers',
   ];
 
@@ -88,6 +91,8 @@ class _WalkerManagementDashboardScreenState
       walker.area,
       walker.city,
       walker.state,
+      walker.status,
+      walker.verificationStatus,
     ].join(' ').toLowerCase();
 
     return searchable.contains(query);
@@ -403,8 +408,21 @@ class _WalkerManagementDashboardScreenState
                 case 'Verification':
                   return walker.isUnderReview;
 
+                case 'Training Required':
+                  return WalkerAdminHelpers.isTrainingRequired(
+                    walker.rawData,
+                  );
+
                 case 'Rejected':
                   return walker.isRejected;
+
+                case 'Suspended':
+                  return walker.isSuspended;
+
+                case 'Inactive / Offboarded':
+                  return WalkerAdminHelpers.isInactiveOrOffboarded(
+                    walker.rawData,
+                  );
 
                 case 'All Walkers':
                   return true;
