@@ -413,6 +413,11 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Submit remains disabled until polygon evidence is drawn and verified, the boundary hash is recorded, and readiness blockers are cleared. No draft or approval request is saved in this UI-only preview.',
+                    style: TextStyle(fontSize: 12, color: Colors.black54, height: 1.45),
+                  ),
                 ],
               ),
             ),
