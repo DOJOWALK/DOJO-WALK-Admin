@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'booking_status_helper.dart';
+import '../../utils/admin_error_classifier.dart';
 
 class BookingsScreen extends StatefulWidget {
   const BookingsScreen({super.key});
@@ -153,14 +154,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  final permissionDenied = snapshot.error
-                          .toString()
-                          .toLowerCase()
-                          .contains('permission-denied') ||
-                      snapshot.error
-                          .toString()
-                          .toLowerCase()
-                          .contains('permission denied');
+                  final permissionDenied =
+                      isPermissionDeniedError(snapshot.error);
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
