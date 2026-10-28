@@ -35,6 +35,7 @@ import '../services/service_location_boundary_service.dart';
 import '../services/service_location_service.dart';
 import 'add_zone_screen.dart';
 import 'boundary_review_screen.dart';
+import 'zone_directory_screen.dart';
 import '../widgets/add_location_dialog.dart';
 import '../widgets/service_boundary_editor.dart';
 
@@ -204,6 +205,15 @@ class _ServiceLocationScreenState
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'Zone Directory',
+            onPressed: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => const ZoneDirectoryScreen(),
+              ),
+            ),
+            icon: const Icon(Icons.list_alt_outlined),
+          ),
           IconButton(
             tooltip: 'Boundary Review',
             onPressed: () => Navigator.of(context).push<void>(
