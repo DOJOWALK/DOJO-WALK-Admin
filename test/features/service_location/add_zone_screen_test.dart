@@ -57,6 +57,23 @@ void main() {
     expect(find.text('Please select Zone'), findsNothing);
   });
 
+  testWidgets('opens Boundary Review preview without submitting a Zone',
+      (tester) async {
+    await tester.pumpWidget(app());
+
+    final previewButton = find.text('Preview Boundary Review');
+    await tester.scrollUntilVisible(
+      previewButton,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(previewButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Boundary Review'), findsOneWidget);
+    expect(find.textContaining('not connected to live records'), findsOneWidget);
+  });
+
   testWidgets('clearly states polygon is mandatory and radius alone is insufficient', (tester) async {
     await tester.pumpWidget(app());
 
