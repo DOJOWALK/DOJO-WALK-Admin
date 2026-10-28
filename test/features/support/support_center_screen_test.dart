@@ -51,4 +51,19 @@ void main() {
     await tester.tap(find.text('Close'));
     await tester.pumpAndSettle();
   });
+  testWidgets('remains usable on a narrow mobile viewport', (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(home: SupportCenterScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Support & Complaints'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
