@@ -18,6 +18,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
   String? _state;
   String? _district;
   String? _city;
+  String? _zoneSelection;
   String _boundaryStatus = 'Not uploaded';
   bool _saving = false;
 
@@ -45,9 +46,19 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
       ? const []
       : (_catalog[_state]?[_district] ?? const []);
 
+  // Placeholder Zone catalog behavior for UI-only development. Until the
+  // approved Zone catalog is connected, the fourth selector exposes only the
+  // create-new path and never pretends example records are live.
+  List<String> get _zoneOptions => _city == null
+      ? const []
+      : const ['Create new Zone…'];
+
+  bool get _creatingZone => _zoneSelection == 'Create new Zone…';
+
   void _resetBelowState() {
     _district = null;
     _city = null;
+    _zoneSelection = null;
   }
 
   InputDecoration _decoration(String label, {String? helper}) =>
@@ -175,22 +186,40 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                             label: 'City',
                             value: _city,
                             options: _cities,
-                            onChanged: (value) => setState(() => _city = value),
+                            onChanged: (value) => setState(() {
+                              _city = value;
+                              _zoneSelection = null;
+                            }),
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _zoneName,
-                            decoration: _decoration(
-                              'Zone name',
-                              helper: 'Use a stable Zone ID in the system; '
-                                  'the display name is not the identity.',
-                            ),
-                            textCapitalization: TextCapitalization.words,
-                            validator: (value) => value == null ||
-                                    value.trim().length < 2
-                                ? 'Enter a zone name'
-                                : null,
+                          _selector(
+                            label: 'Zone',
+                            value: _zoneSelection,
+                            options: _zoneOptions,
+                            helper: 'Fourth dependent selector. Existing Zone catalog is not connected yet.',
+                            onChanged: (value) => setState(() {
+                              _zoneSelection = value;
+                              if (value != 'Create new Zone…') {
+                                _zoneName.clear();
+                              }
+                            }),
                           ),
+                          if (_creatingZone) ...[
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _zoneName,
+                              decoration: _decoration(
+                                'New Zone name',
+                                helper: 'Use a stable Zone ID in the system; '
+                                    'the display name is not the identity.',
+                              ),
+                              textCapitalization: TextCapitalization.words,
+                              validator: (value) => !_creatingZone ||
+                                      (value != null && value.trim().length >= 2)
+                                  ? null
+                                  : 'Enter a zone name',
+                            ),
+                          ],
                         ],
                       ),
                     ),
