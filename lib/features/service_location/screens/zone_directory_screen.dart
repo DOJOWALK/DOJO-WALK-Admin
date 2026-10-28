@@ -197,10 +197,10 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
                                     icon: const Icon(Icons.verified_user_outlined),
                                     label: const Text('Open approval queue'),
                                   ),
-                                  const OutlinedButton.icon(
+                                  OutlinedButton.icon(
                                     onPressed: null,
-                                    icon: Icon(Icons.lock_outline),
-                                    label: Text('Lifecycle actions disabled'),
+                                    icon: const Icon(Icons.lock_outline),
+                                    label: const Text('Lifecycle actions disabled'),
                                   ),
                                 ],
                               ),
