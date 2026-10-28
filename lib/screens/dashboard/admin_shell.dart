@@ -16,6 +16,7 @@ import '../../features/access_control/screens/admin_access_control_screen.dart';
 import '../../features/reports/screens/reports_analytics_screen.dart';
 import '../../features/finance/screens/finance_operations_screen.dart';
 import '../../features/audit/screens/admin_audit_logs_screen.dart';
+import '../../features/settings/screens/settings_governance_screen.dart';
 
 const Color adminOrange = Color(0xFFFF7900);
 const Color adminBackground = Color(0xFFFFFAF5);
@@ -153,6 +154,9 @@ class _AdminShellState extends State<AdminShell> {
 
       case 11:
         return const FinanceOperationsScreen();
+
+      case 12:
+        return const SettingsGovernanceScreen();
 
       case 13:
         return const ServiceLocationScreen();
