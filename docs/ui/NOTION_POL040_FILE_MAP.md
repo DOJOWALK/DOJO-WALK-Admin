@@ -31,6 +31,18 @@
 | Audit History | `audit_history_screen.dart`, `zone_audit_history_screen.dart` | Screens exist; verify loading, empty, error, permission-denied and success states and that mock data is not confused with live audit records. |
 | Required UX states | All screens | Not yet proven complete: Loading, Empty, Error, Permission Denied and Success must be checked screen by screen. |
 
+## Cross-screen Zone identity and evidence contract
+
+The UI-only examples intentionally share the same illustrative Zone ID, revision and boundary hash across Directory, Boundary Review and Founder Approval Queue. These are test fixtures only, not live Zone records.
+
+| Example | Stable Zone ID | Revision | Boundary evidence | Expected workflow state |
+|---|---|---|---|---|
+| Example Zone A | `ZONE-EX-001` | Revision 1 | Not verified; hash not generated | Blocked — boundary pending; Founder decision must wait |
+| Example Zone B | `ZONE-EX-002` | Revision 2 | `EXAMPLE-HASH-CHANGED`; re-verification required | Blocked — re-review; previous approval must not be reused |
+| Example Zone C | `ZONE-EX-003` | Revision 3 | `EXAMPLE-SHA256-VERIFIED-003`; integrity matched | Boundary Review shows Verified; Founder queue shows Awaiting decision; Directory remains Not activated until approval and activation steps are completed |
+
+Tests in the three screen suites assert stable IDs/revisions and the corresponding boundary evidence. Founder decision controls stay disabled because server authorization, readiness checks and append-only audit logging are not connected.
+
 ## Structural observations
 
 - Service-location screens are grouped under `lib/features/service_location/screens/`; models, services and widgets have separate folders. Keep new work in these existing feature folders unless the source-of-truth architecture explicitly requires a change.
@@ -49,7 +61,7 @@ The Unified UI/UX Design System and POL-038/POL-040 explicitly require exactly f
 - The Suspended Zones filter test was updated to reveal lazy filter controls before interacting; it passed in a later full test run.
 - Widget tests for the fourth dependent Zone selector, city-dependent mock options, parent-change resets, disabled Save Draft/Submit, Approval Queue safeguards, Directory lifecycle filters, Zone Details metadata, preview navigation, booking-status normalization, permission error classification and sensitive-field omission passed in run `40687163413`.
 - A separate widget test was added for Founder Approval Queue authority copy, disabled decision buttons, and status filtering.
-- Latest verified CI check (2026-10-29): runs [40757393216](https://github.com/DOJOWALK/DOJO-WALK-Admin/actions/runs/40757393216) and [40757415352](https://github.com/DOJOWALK/DOJO-WALK-Admin/actions/runs/40757415352) both failed in the complete test suite (199 passed, 3 failed); Analyze passed and Web Build was skipped. The failure was in Founder Approval Queue tests that assumed blocked example rows were visible under the default “Awaiting decision” filter. Test fixes were committed to the working branch, including an explicit regression test that blocked examples remain absent from “Awaiting decision”. Latest follow-up commit at this documentation check: `269591ea1b29a4f21c48194f8728c4ceac88acc7`; a fresh full CI result for the follow-up commits has not yet been verified. Do not mark the branch green until Analyze, all tests and Web Build pass on the latest head.
+- Latest full validation status (2026-10-29): previous Founder Approval Queue runs failed on test assumptions, a mobile status-chip overflow, and inconsistent example revision/hash labels. Follow-up changes align shared Zone IDs, revisions and hashes across Directory, Boundary Review and Founder Approval Queue; add regression assertions; and stack the queue status chip on narrow screens. Run [40761196701](https://github.com/DOJOWALK/DOJO-WALK-Admin/actions/runs/40761196701) is the latest full validation run for code commit `64b4a2e9163ce02f2617e23ee0f796fcf36cdb36` and was still in progress when this file was updated. Do not mark the branch green until Analyze, all tests and Web Build pass on the latest code head.
 - Suspended Zones UI now explicitly documents the narrow emergency safety-suspension exception: only to prevent immediate harm, with an append-only audit record and prompt Founder/CEO notification. A corresponding widget assertion was added; latest full CI result remains unverified.
 - Main Service Locations map status was corrected: the UI no longer reports `Active boundaries: 0` when the Zone-specific source is an intentional empty placeholder. It now explicitly says `Zone boundary source not connected` (or a loading/error state), so an unconnected data source is not misrepresented as verified zero coverage. Commit `a263ac2a8c2db9481a2486f91708fe808eebc597`; latest full CI result remains unverified.
 - The boundary preview status logic is now isolated in `lib/features/service_location/utils/boundary_preview_status.dart` with four unit cases (loading, error, disconnected/empty source, and a non-empty polygon count). Added in commits `7068735699bde166f0f3c05d478a401e771a6397`, `a7bd0d363153b079444ed9e6428284d45b86fb87`, and `995ec6c050d953c8ed3f450c512d24d0e9e7ac70`. These new tests have not yet been confirmed by a full CI run.
