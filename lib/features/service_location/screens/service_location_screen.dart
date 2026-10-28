@@ -1963,6 +1963,14 @@ class _ServiceLocationScreenState
             )
             .toList();
 
+        if (items.isEmpty) {
+          return _emptyState(
+            _search.trim().isEmpty
+                ? 'No import history yet. Preview and validate a CSV before starting an authorized import.'
+                : 'No import records match your search.',
+          );
+        }
+
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
