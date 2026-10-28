@@ -15,6 +15,7 @@ on:
   push:
     branches:
       - step-119-boundary-geometry
+      - ui/notion-brand-foundation-2026-10-28
     paths:
       - '**.dart'
       - 'pubspec.yaml'
