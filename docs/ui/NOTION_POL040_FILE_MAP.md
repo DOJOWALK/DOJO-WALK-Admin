@@ -44,7 +44,7 @@ The Unified UI/UX Design System and POL-038/POL-040 explicitly require exactly f
 
 ## Validation record
 
-- Latest UI code validation: GitHub Actions run `40687163413` completed successfully at commit `c41a1568bc54d0f2de16112fd1ece3c1ae4af7c7`: `flutter analyze`, the complete test suite, and `flutter build web --release` all PASS. This includes the latest Zone selector, submission gates, booking-status normalization, permission-denied UI and privacy-safe Live Operations summary.
+- Baseline validation: GitHub Actions run `40687163413` completed successfully at commit `c41a1568bc54d0f2de16112fd1ece3c1ae4af7c7`. For recent UI changes, run `40741909918` passed at `3dd6943244944e31f5e7d2acd73c9238cf70b60e` (Zone Directory clear-search); run `40742326990` passed at `152e0e3eddf020375dd6be56cf37bf51632cf7a8` (Zone Audit History clear-search); and run `40742444471` passed at `d84a6a50b39f4a1cef9a768a9c100198f6b7071d` (Zone Audit History detail line breaks). Each run completed `flutter analyze`, the complete test suite, and Flutter Web release build successfully.
 - The Suspended Zones filter test was updated to reveal lazy filter controls before interacting; it passed in a later full test run.
 - Widget tests for the fourth dependent Zone selector, city-dependent mock options, parent-change resets, disabled Save Draft/Submit, Approval Queue safeguards, Directory lifecycle filters, Zone Details metadata, preview navigation, booking-status normalization, permission error classification and sensitive-field omission passed in run `40687163413`.
 - A separate widget test was added for Founder Approval Queue authority copy, disabled decision buttons, and status filtering.
@@ -53,8 +53,7 @@ The Unified UI/UX Design System and POL-038/POL-040 explicitly require exactly f
 
 ## Next UI-only sequence
 
-1. Finish run `40685274460`; fix any actual failing assertion before declaring PASS.
-2. Confirm the newest Web Build succeeds after the full test suite.
-3. Audit existing Dashboard, Live Operations, Bookings and Walker Management screens against their Notion policies, including loading/empty/error/permission-denied/success states.
-4. Run a final full validation against the latest branch head and record the exact run link.
-5. Only after UI and tests are complete, start the planned Firebase/auth/Firestore integration.
+1. Continue the Service Location screen-by-screen audit against POL-040, especially hierarchy navigation, empty/error/permission-denied states and disabled lifecycle actions.
+2. Audit existing Dashboard, Live Operations, Bookings and Walker Management screens against their Notion policies, including loading/empty/error/permission-denied/success states.
+3. Run final full validation against the latest branch head and record the exact run link.
+4. Only after UI and tests are complete, start the planned Firebase/auth/Firestore integration.
