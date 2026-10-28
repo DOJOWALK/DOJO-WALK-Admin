@@ -57,6 +57,20 @@ void main() {
     expect(find.text('Please select Zone'), findsNothing);
   });
 
+  testWidgets('keeps draft save and review submission disabled without backend',
+      (tester) async {
+    await tester.pumpWidget(app());
+
+    final saveDraft = tester.widget<OutlinedButton>(
+      find.widgetWithText(OutlinedButton, 'Save Draft disabled'),
+    );
+    final submit = tester.widget<OutlinedButton>(
+      find.widgetWithText(OutlinedButton, 'Submit for Review disabled'),
+    );
+    expect(saveDraft.onPressed, isNull);
+    expect(submit.onPressed, isNull);
+  });
+
   testWidgets('opens Boundary Review preview without submitting a Zone',
       (tester) async {
     await tester.pumpWidget(app());
