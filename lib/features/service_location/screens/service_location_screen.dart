@@ -871,7 +871,19 @@ class _ServiceLocationScreenState
                       .toList();
 
                   if (items.isEmpty) {
-                    return const SizedBox.shrink();
+                    if (_search.trim().isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Text(
+                        'No States match your search in ${country.name}.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    );
                   }
 
                   return Column(
@@ -1018,9 +1030,40 @@ class _ServiceLocationScreenState
                             stateId: state.id,
                           ),
                           builder: (context, citySnapshot) {
-                            if (citySnapshot.hasError ||
-                                !citySnapshot.hasData) {
-                              return const SizedBox.shrink();
+                            if (citySnapshot.hasError) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                child: Text(
+                                  'Unable to load cities for ${state.name}. Check your access or try again later.',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              );
+                            }
+
+                            if (!citySnapshot.hasData) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: _locationOrange,
+                                      ),
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text('Loading cities…'),
+                                  ],
+                                ),
+                              );
                             }
 
                             final cities = citySnapshot.data!.where((item) {
@@ -1034,7 +1077,19 @@ class _ServiceLocationScreenState
                             }).toList();
 
                             if (cities.isEmpty) {
-                              return const SizedBox.shrink();
+                              if (_search.trim().isEmpty) {
+                                return const SizedBox.shrink();
+                              }
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                child: Text(
+                                  'No Cities match your search under ${state.name}.',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              );
                             }
 
                             return Column(
