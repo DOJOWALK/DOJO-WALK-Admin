@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../access_control/screens/admin_access_control_screen.dart';
-import '../notifications/screens/notification_center_screen.dart';
+import '../../access_control/screens/admin_access_control_screen.dart';
+import '../../notifications/screens/notification_center_screen.dart';
 
 /// Settings preview surfaces policy-defined configuration areas without
 /// inventing defaults or claiming that a setting is live.
