@@ -61,7 +61,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
     String? helper,
   }) {
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       isExpanded: true,
       decoration: _decoration(label, helper: helper),
       items: options
