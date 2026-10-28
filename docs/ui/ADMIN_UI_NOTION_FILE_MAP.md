@@ -10,7 +10,7 @@
 - Mark every mock/example record clearly; never present mock data as live.
 - Server-backed actions remain disabled until role/scope authorization, state guards and audit logging are implemented.
 - UI role hiding is not security; backend must enforce permissions.
-- No coupon system; do not re-add Coupons to the menu.
+- No coupon system; do not re-add Coupons to the menu. The obsolete `lib/screens/coupons/coupons_screen.dart` was removed from this working branch; discount rules remain policy-controlled, not coupon-code based.
 - Zone is the only service activation unit. State/UT, District and City are hierarchy/reference records.
 - Founder/CEO business approval is distinct from Super Admin technical access.
 
