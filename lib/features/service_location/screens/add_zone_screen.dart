@@ -74,17 +74,28 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
     );
   }
 
-  Future<void> _saveDraft() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _saving = true);
-    await Future<void>.delayed(const Duration(milliseconds: 250));
-    if (!mounted) return;
-    setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'UI preview only: draft was not saved to the server.',
+  Future<void> _validateForm() async {
+    final fieldsValid = _formKey.currentState!.validate();
+    if (!fieldsValid) return;
+
+    // Do not simulate a save or imply that a Zone has been created.
+    // A verified polygon and authoritative location catalog are mandatory.
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Validation incomplete'),
+        content: const Text(
+          'The form fields look valid, but this Zone cannot be submitted yet. '
+          'A real boundary polygon must be drawn or uploaded and verified, '
+          'and the State/UT → District → City options must come from the '
+          'authoritative location catalog. Nothing has been saved.',
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }
@@ -228,11 +239,9 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                                   ),
                                 ),
                                 OutlinedButton.icon(
-                                  onPressed: () => setState(() {
-                                    _boundaryStatus = 'Required — not verified';
-                                  }),
+                                  onPressed: null,
                                   icon: const Icon(Icons.upload_file_outlined),
-                                  label: const Text('Add boundary'),
+                                  label: const Text('Boundary editor pending'),
                                 ),
                               ],
                             ),
@@ -303,7 +312,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                           backgroundColor: _orange,
                           foregroundColor: Colors.white,
                         ),
-                        onPressed: _saving ? null : _saveDraft,
+                        onPressed: _saving ? null : _validateForm,
                         icon: _saving
                             ? const SizedBox(
                                 width: 16,
@@ -314,7 +323,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                                 ),
                               )
                             : const Icon(Icons.save_outlined),
-                        label: Text(_saving ? 'Checking…' : 'Validate form'),
+                        label: const Text('Validate readiness'),
                       ),
                     ],
                   ),
