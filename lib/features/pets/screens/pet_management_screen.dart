@@ -144,23 +144,66 @@ class _PetManagementScreenState extends State<PetManagementScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(color: orange.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(13)),
-                  child: const Icon(Icons.pets_outlined, color: orange),
-                ),
-                const SizedBox(width: 10),
-                Expanded(child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(pet.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: ink)),
-                    Text(pet.id, style: const TextStyle(fontSize: 12, color: Colors.black54)),
-                  ],
-                )),
-                Chip(label: Text(pet.handling)),
-              ]),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final identity = Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: orange.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        child: const Icon(Icons.pets_outlined, color: orange),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              pet.name,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: ink,
+                              ),
+                            ),
+                            Text(
+                              pet.id,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                  final handlingChip = Chip(label: Text(pet.handling));
+
+                  if (constraints.maxWidth < 420) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        identity,
+                        const SizedBox(height: 8),
+                        handlingChip,
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      Expanded(child: identity),
+                      const SizedBox(width: 8),
+                      handlingChip,
+                    ],
+                  );
+                },
+              ),
               const Divider(height: 24),
               _detail('Customer reference', pet.customerId),
               _detail('Breed / size', pet.breedSize),
