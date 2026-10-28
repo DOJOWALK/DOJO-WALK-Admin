@@ -19,16 +19,28 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
       name: 'Example Zone A',
       city: 'Example City',
       request: 'Initial launch',
+      zoneType: 'Service Zone',
+      parentPath: 'Example State/UT → Example District → Example City',
+      submittedBy: 'Central Admin (example)',
+      submittedAt: '2026-10-28 09:15 IST',
       revision: 'Revision 1',
-      boundaryHash: 'Not verified',
+      boundaryStatus: 'Not verified',
+      boundaryHash: 'Not generated',
+      blockers: 'Polygon evidence and verification pending',
       status: 'Awaiting decision',
     ),
     _ApprovalItem(
       name: 'Example Zone B',
       city: 'Example City',
       request: 'Boundary change',
+      zoneType: 'Service Zone',
+      parentPath: 'Example State/UT → Example District → Example City',
+      submittedBy: 'Central Admin (example)',
+      submittedAt: '2026-10-27 16:40 IST',
       revision: 'Revision 2',
+      boundaryStatus: 'Hash changed',
       boundaryHash: 'Hash changed',
+      blockers: 'Re-review required; prior approval must not be reused',
       status: 'Blocked — re-review',
     ),
   ];
@@ -137,10 +149,16 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
               ],
             ),
             const SizedBox(height: 8),
+            _detail('Type', item.zoneType),
             _detail('City', item.city),
+            _detail('Parent path', item.parentPath),
             _detail('Request', item.request),
+            _detail('Submitted by', item.submittedBy),
+            _detail('Submitted at', item.submittedAt),
             _detail('Zone revision', item.revision),
+            _detail('Boundary status', item.boundaryStatus),
             _detail('Boundary integrity', item.boundaryHash),
+            _detail('Readiness blockers', item.blockers),
             const SizedBox(height: 10),
             const Text(
               'Before a real decision: verify Zone ID, exact revision, boundary polygon and boundary hash. Any mismatch must invalidate the approval.',
@@ -183,15 +201,27 @@ class _ApprovalItem {
     required this.name,
     required this.city,
     required this.request,
+    required this.zoneType,
+    required this.parentPath,
+    required this.submittedBy,
+    required this.submittedAt,
     required this.revision,
+    required this.boundaryStatus,
     required this.boundaryHash,
+    required this.blockers,
     required this.status,
   });
 
   final String name;
   final String city;
   final String request;
+  final String zoneType;
+  final String parentPath;
+  final String submittedBy;
+  final String submittedAt;
   final String revision;
+  final String boundaryStatus;
   final String boundaryHash;
+  final String blockers;
   final String status;
 }
