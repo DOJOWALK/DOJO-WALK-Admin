@@ -277,7 +277,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                   itemBuilder: (context, index) {
                     final doc = filtered[index];
                     final data = doc.data();
-                    final status = _text(data['status'], 'Unknown');
+                    final status = displayBookingStatus(data['status']);
                     final color = _statusColor(status);
 
                     final customerName = _text(
