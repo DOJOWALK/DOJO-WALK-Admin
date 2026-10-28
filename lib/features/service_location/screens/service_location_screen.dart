@@ -23,6 +23,7 @@ import '../services/location_csv_import_fingerprint.dart';
 import '../services/location_csv_import_service.dart';
 import '../services/location_csv_lgd_validator.dart';
 import '../services/service_location_service.dart';
+import '../utils/boundary_preview_status.dart';
 import 'add_zone_screen.dart';
 import 'audit_history_screen.dart';
 import 'boundary_review_screen.dart';
@@ -626,13 +627,11 @@ class _ServiceLocationScreenState
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        snapshot.connectionState == ConnectionState.waiting
-                            ? 'Loading boundary preview…'
-                            : snapshot.hasError
-                                ? 'Boundary source unavailable'
-                                : polygons.isEmpty
-                                    ? 'Zone boundary source not connected'
-                                    : 'Active boundaries: ${polygons.length}',
+                        boundaryPreviewStatusLabel(
+                          isLoading: snapshot.connectionState == ConnectionState.waiting,
+                          hasError: snapshot.hasError,
+                          polygonCount: polygons.length,
+                        ),
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ],
