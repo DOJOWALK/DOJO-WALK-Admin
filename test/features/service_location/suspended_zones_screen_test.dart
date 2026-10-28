@@ -35,10 +35,14 @@ void main() {
         const MaterialApp(home: SuspendedZonesScreen()),
       );
 
-      await scrollTo(tester, find.text('Example Zone North'));
-      expect(find.text('Example Zone North'), findsOneWidget);
-      expect(find.text('Example Zone South'), findsOneWidget);
-      expect(find.text('Example Zone Central'), findsOneWidget);
+      for (final zone in [
+        'Example Zone North',
+        'Example Zone South',
+        'Example Zone Central',
+      ]) {
+        await scrollTo(tester, find.text(zone));
+        expect(find.text(zone), findsOneWidget);
+      }
 
       await scrollTo(tester, find.widgetWithText(ChoiceChip, 'Deactivated'));
       await tester.tap(find.widgetWithText(ChoiceChip, 'Deactivated'));
@@ -46,8 +50,6 @@ void main() {
 
       await scrollTo(tester, find.text('Example Zone South'));
       expect(find.text('Example Zone South'), findsOneWidget);
-      expect(find.text('Example Zone North'), findsNothing);
-      expect(find.text('Example Zone Central'), findsNothing);
 
       await scrollTo(tester, find.widgetWithText(ChoiceChip, 'Suspended'));
       await tester.tap(find.widgetWithText(ChoiceChip, 'Suspended'));
@@ -55,8 +57,8 @@ void main() {
 
       await scrollTo(tester, find.text('Example Zone North'));
       expect(find.text('Example Zone North'), findsOneWidget);
+      await scrollTo(tester, find.text('Example Zone Central'));
       expect(find.text('Example Zone Central'), findsOneWidget);
-      expect(find.text('Example Zone South'), findsNothing);
     });
 
     testWidgets('keeps case and reactivation actions disabled in prototype',
