@@ -16,7 +16,7 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
 
   final List<_ApprovalItem> _examples = const [
     _ApprovalItem(
-      zoneId: 'EXAMPLE-ZONE-001',
+      zoneId: 'ZONE-EX-001',
       name: 'Example Zone A',
       city: 'Example City',
       request: 'Initial launch',
@@ -31,7 +31,7 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
       status: 'Blocked — boundary pending',
     ),
     _ApprovalItem(
-      zoneId: 'EXAMPLE-ZONE-003',
+      zoneId: 'ZONE-EX-003',
       name: 'Example Zone C',
       city: 'Example City',
       request: 'Initial launch',
@@ -46,7 +46,7 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
       status: 'Awaiting decision',
     ),
     _ApprovalItem(
-      zoneId: 'EXAMPLE-ZONE-002',
+      zoneId: 'ZONE-EX-002',
       name: 'Example Zone B',
       city: 'Example City',
       request: 'Boundary change',
