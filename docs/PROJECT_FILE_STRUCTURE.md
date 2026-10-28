@@ -14,30 +14,38 @@ This document defines the intended, maintainable file structure for the DOJO WAL
 
 Keep app-specific UI and logic in its own repository. Shared data contracts should be documented and versioned; do not copy whole app folders across repositories.
 
-## 2. Admin repository — target structure
+## 2. Admin repository — Notion-aligned structure
+
+The existing repository uses a **hybrid layout**: Dashboard, Bookings and Live Operations are under `lib/screens/`; newer operational domains are grouped under `lib/features/<domain>/`. Keep these established paths. Do not move files merely to make the tree look uniform.
 
 ```text
-dojo-admin/
+DOJO-WALK-Admin/
 ├── .github/
 │   └── workflows/
-│       └── build_web.yml
+│       └── build_web.yml                         # existing workflow path
 ├── docs/
 │   ├── PROJECT_FILE_STRUCTURE.md
 │   ├── LOCATION_MASTER_STATUS.md
 │   ├── architecture/
+│   │   └── DOJO_WALK_COMPANY_FLOW_AND_FILE_STRUCTURE.md
 │   ├── data_dictionary/
+│   ├── decisions/
 │   ├── runbooks/
-│   └── decisions/
+│   ├── reports/
+│   └── ui/
+│       ├── NOTION_FILE_STRUCTURE_CONTRACT.md
+│       ├── ADMIN_UI_NOTION_FILE_MAP.md
+│       └── NOTION_POL040_FILE_MAP.md
 ├── data/
 │   └── reference/
 │       └── india_locations/
-│           ├── source_manifest.md
+│           ├── source_manifest.md                # create only when provenance is recorded
 │           └── README.md
 ├── lib/
-│   ├── main.dart
+│   ├── main.dart                                 # existing
 │   ├── app/
-│   │   └── app.dart
-│   ├── core/
+│   │   └── app.dart                              # existing
+│   ├── core/                                     # add only when a real shared responsibility needs it
 │   │   ├── constants/
 │   │   ├── errors/
 │   │   ├── routing/
@@ -46,49 +54,84 @@ dojo-admin/
 │   ├── data/
 │   │   ├── reference/
 │   │   │   └── india_locations/
-│   │   │       ├── india_states.dart
-│   │   │       ├── india_districts.dart
-│   │   │       └── india_sub_districts.dart
+│   │   │       ├── india_states.dart             # present on working branch; verify provenance
+│   │   │       ├── india_districts.dart          # present on working branch; verify provenance
+│   │   │       ├── india_sub_districts.dart      # present on working branch; verify provenance
+│   │   │       └── india_location_filters.dart   # present on working branch
 │   │   └── repositories/
-│   ├── features/
-│   │   ├── auth/
+│   ├── screens/
 │   │   ├── dashboard/
+│   │   │   ├── admin_shell.dart                  # existing
+│   │   │   └── dashboard_screen.dart             # existing
 │   │   ├── bookings/
+│   │   │   └── bookings_screen.dart               # existing
+│   │   └── live/
+│   │       ├── live_operations_screen.dart        # existing
+│   │       └── live_booking_details_helper.dart   # existing
+│   ├── features/
 │   │   ├── walkers/
-│   │   ├── live_operations/
-│   │   ├── service_location/
-│   │   │   ├── models/
-│   │   │   ├── screens/
-│   │   │   ├── services/
-│   │   │   └── widgets/
-│   │   ├── coupons/
-│   │   └── settings/
+│   │   │   └── screens/
+│   │   ├── customers/
+│   │   │   └── screens/
+│   │   ├── pets/
+│   │   │   └── screens/
+│   │   ├── notifications/
+│   │   │   └── screens/
+│   │   ├── support/
+│   │   │   └── screens/
+│   │   ├── access_control/
+│   │   │   └── screens/
+│   │   ├── audit/
+│   │   │   └── screens/
+│   │   ├── reports/
+│   │   │   └── screens/
+│   │   ├── finance/
+│   │   │   └── screens/
+│   │   ├── settings/
+│   │   │   └── screens/
+│   │   └── service_location/
+│   │       ├── models/
+│   │       ├── screens/
+│   │       ├── services/
+│   │       ├── utils/
+│   │       └── widgets/
 │   ├── shared/
 │   │   ├── widgets/
 │   │   └── services/
 │   └── firebase_options.dart
 ├── test/
-│   ├── core/
-│   ├── features/
-│   └── data/
+│   ├── screens/
+│   │   ├── dashboard/
+│   │   ├── bookings/
+│   │   └── live/
+│   └── features/
+│       ├── service_location/
+│       ├── walkers/
+│       ├── customers/
+│       ├── pets/
+│       ├── notifications/
+│       ├── support/
+│       ├── access_control/
+│       ├── audit/
+│       ├── reports/
+│       ├── finance/
+│       └── settings/
 ├── web/
 ├── pubspec.yaml
 ├── analysis_options.yaml
 └── README.md
 ```
 
-### Current known paths confirmed on the repository default branch
+### Structure rules
 
-- `lib/main.dart`
-- `lib/app/app.dart` (imported by `main.dart`)
-- `lib/features/service_location/models/service_location_models.dart`
-- `lib/features/service_location/services/service_location_service.dart`
-- `lib/features/service_location/widgets/service_boundary_dialog.dart`
-- `.github/workflows/build_web.yml`
-- `pubspec.yaml`
-- `docs/LOCATION_MASTER_STATUS.md`
-
-Current working-branch audit (2026-10-29) confirms `lib/data/reference/india_locations/india_states.dart`, `india_districts.dart`, and `india_sub_districts.dart` exist, alongside `india_location_filters.dart`. Treat the older absence note as historical and do not restore duplicate files. Verify declarations, source provenance, imports, IDs, and parent-child integrity before changing or integrating generated data. Some folders in the illustrative target tree remain planned rather than existing.
+- The tree above records known ownership and intended placement; a listed folder is not proof that it currently contains tracked files.
+- Keep Dashboard, Bookings and Live Operations at their existing `lib/screens/` paths unless a dedicated, tested migration is approved.
+- Keep newer domain screens in their existing `lib/features/<domain>/screens/` paths. Service Location keeps its separate `models/`, `services/`, `utils/` and `widgets/` responsibilities.
+- Do not add `lib/features/coupons/` or restore the Coupons menu. DOJO WALK has no coupon-code system.
+- Do not create a second screen/model/service for a domain just to match a generic folder pattern.
+- Tests should follow the existing domain path under `test/`; do not create empty placeholder directories solely to match this diagram.
+- The Admin Create Zone selectors remain exactly State/UT → District → City → Zone. Locality is not a selector; only Zone is service-activatable.
+- For authoritative screen ownership and gaps, use `docs/ui/ADMIN_UI_NOTION_FILE_MAP.md` and `docs/ui/NOTION_POL040_FILE_MAP.md`. For change safeguards, use `docs/ui/NOTION_FILE_STRUCTURE_CONTRACT.md`.
 
 ## 3. Reference data rules
 
