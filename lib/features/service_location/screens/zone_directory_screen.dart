@@ -156,6 +156,16 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
                   decoration: InputDecoration(
                     hintText: 'Search zone or city',
                     prefixIcon: const Icon(Icons.search, color: _orange),
+                    suffixIcon: _search.text.isEmpty
+                        ? null
+                        : IconButton(
+                            tooltip: 'Clear search',
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _search.clear();
+                              setState(() {});
+                            },
+                          ),
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
