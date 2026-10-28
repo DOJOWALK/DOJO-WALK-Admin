@@ -18,6 +18,28 @@ void main() {
     expect(find.text('Reconcile disabled'), findsWidgets);
   });
 
+  testWidgets('keeps all financial mutation controls disabled', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: FinanceOperationsScreen()),
+    );
+
+    for (final label in [
+      'Verify disabled',
+      'Approve disabled',
+      'Reconcile disabled',
+    ]) {
+      final buttons = tester.widgetList<OutlinedButton>(
+        find.widgetWithText(OutlinedButton, label),
+      );
+      expect(buttons, isNotEmpty, reason: 'Expected control: $label');
+      expect(
+        buttons.every((button) => button.onPressed == null),
+        isTrue,
+        reason: '$label must remain disabled until authorized finance APIs exist',
+      );
+    }
+  });
+
   testWidgets('switches between payment, refund and payout examples',
       (tester) async {
     await tester.pumpWidget(
