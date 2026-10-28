@@ -229,7 +229,7 @@ class _ServiceLocationScreenState
               ),
             ),
           ),
-        ]
+        ],
       ),
       body: Column(
         children: [
