@@ -70,13 +70,15 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
     if (date == null) return 'Date unavailable';
 
-    final local = date.toLocal();
-    final day = local.day.toString().padLeft(2, '0');
-    final month = local.month.toString().padLeft(2, '0');
+    // Operational timestamps must display in India Standard Time (IST),
+    // independent of the browser/device timezone.
+    final ist = date.toUtc().add(const Duration(hours: 5, minutes: 30));
+    final day = ist.day.toString().padLeft(2, '0');
+    final month = ist.month.toString().padLeft(2, '0');
 
-    return '$day/$month/${local.year} '
-        '${local.hour.toString().padLeft(2, '0')}:'
-        '${local.minute.toString().padLeft(2, '0')}';
+    return '$day/$month/${ist.year} '
+        '${ist.hour.toString().padLeft(2, '0')}:'
+        '${ist.minute.toString().padLeft(2, '0')} IST';
   }
 
   int _timestampMillis(dynamic value) {
