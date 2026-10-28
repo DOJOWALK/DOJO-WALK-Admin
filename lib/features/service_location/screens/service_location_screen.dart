@@ -68,14 +68,14 @@ class _ServiceLocationScreenState
   Set<Polygon> _loadedActiveBoundaryPolygons = <Polygon>{};
   String? _lastFittedPolygonSignature;
 
+  // India-only navigation aligned to the Notion location hierarchy.
+  // Zone workflow screens are being added separately; legacy Area/Locality
+  // management is intentionally not exposed as a primary navigation tab.
   static const List<String> _tabNames = [
-    'Countries',
-    'States',
+    'State / UT',
     'Districts',
     'Cities',
-    'Areas / Sub-districts',
-    'Localities / Villages',
-    'Import History',
+    'Import & Reconciliation',
   ];
 
   @override
@@ -740,21 +740,15 @@ class _ServiceLocationScreenState
   Widget _buildSelectedList() {
     switch (_selectedTab) {
       case 0:
-        return _buildCountries();
-      case 1:
         return _buildStates();
-      case 2:
+      case 1:
         return _buildDistricts();
-      case 3:
+      case 2:
         return _buildCities();
-      case 4:
-        return _buildAreas();
-      case 5:
-        return _buildLocalities();
-      case 6:
+      case 3:
         return _buildImports();
       default:
-        return _buildCountries();
+        return _buildStates();
     }
   }
 
