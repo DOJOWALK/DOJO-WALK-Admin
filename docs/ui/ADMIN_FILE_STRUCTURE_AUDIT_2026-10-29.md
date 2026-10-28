@@ -80,3 +80,21 @@ The repository was rechecked at PR #51 head `97e3fadab6cf51897c4c1389dcecfe750db
 - `data/reference/india_locations/source_manifest.md` is intentionally **not created yet** because the raw source artifact and its provenance fields are not available in the repository. Creating a manifest with guessed URLs, dates, licences or checksums would be misleading.
 - The README-only commit does not change Dart code. Exact-head CI status is still unreported; historical CI success remains limited to the earlier code commit noted above.
 - Next safe task: obtain the actual LGD CSV/source artifact and verify its provenance, then populate the manifest and audit the generated dataset. Until then, do not regenerate or import reference data.
+
+
+## 8. Latest exact-head recheck — 2026-10-29
+
+This section supersedes earlier head-specific counts and CI observations above where they conflict.
+
+- Pull request: #51, still **open and Draft**; base `main`; working branch `ui/notion-brand-foundation-2026-10-28`.
+- Exact PR head inspected: `9b9724796d69620e6dac1ec87946df1b2689d744`.
+- Recursive Git tree inspection returned **397 paths**. The current tree includes `.github/workflows/build_web.yml`, the other existing validation workflows, `docs/ui/` maps/contracts, the established `lib/screens/` and `lib/features/` hybrid layout, and the four India reference Dart files.
+- Current canonical file ownership remains documented in `docs/ui/NOTION_FILE_STRUCTURE_CONTRACT.md` and `docs/ui/ADMIN_UI_NOTION_FILE_MAP.md`. The user's simplified tree is a logical target, not permission to move files mechanically.
+- `lib/core/`, `lib/data/repositories/`, and a generic `lib/shared/` layer are not present as tracked paths. Do not add empty placeholders. Introduce them only alongside a real responsibility and a tested migration.
+- Do **not** create `lib/features/coupons/`; coupon-code functionality is excluded by the product decision.
+- Exact-head CI recheck for `9b9724796d69620e6dac1ec87946df1b2689d744` returned no commit statuses and no associated PR workflow runs in the inspected responses. Therefore, current-head CI is **unverified**, not passed. The older successful run does not establish a pass for this SHA.
+- No production files were moved or deleted during this audit. No Firebase/backend expansion, merge, or deployment was performed.
+
+### Next action
+
+Continue with a path-by-path Notion mapping audit. Prefer documenting the canonical location and gaps over cosmetic moves. Before any code move, check imports, routes, tests, workflow triggers and release gates; then make one isolated change and verify CI against its exact resulting SHA.
