@@ -666,7 +666,7 @@ class _ServiceLocationScreenState
                       borderRadius: BorderRadius.circular(9),
                     ),
                     child: Text(
-                      'Unable to load active boundaries: ${snapshot.error}',
+                      'Unable to load active boundaries. Check your access or try again later.',
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.red.shade700,
@@ -803,7 +803,7 @@ class _ServiceLocationScreenState
       stream: _service.watchCountries(),
       builder: (context, countrySnapshot) {
         if (countrySnapshot.hasError) {
-          return _emptyState('${countrySnapshot.error}');
+          return _emptyState('Unable to load location data. Check your access or try again later.');
         }
 
         if (!countrySnapshot.hasData) {
@@ -872,7 +872,7 @@ class _ServiceLocationScreenState
       stream: _service.watchCountries(),
       builder: (context, countrySnapshot) {
         if (countrySnapshot.hasError) {
-          return _emptyState('Unable to load Countries: ${countrySnapshot.error}');
+          return _emptyState('Unable to load location data. Check your access or try again later.');
         }
         if (!countrySnapshot.hasData) return _loadingState();
 
@@ -880,7 +880,7 @@ class _ServiceLocationScreenState
           stream: _service.watchStates(),
           builder: (context, stateSnapshot) {
             if (stateSnapshot.hasError) {
-              return _emptyState('Unable to load States: ${stateSnapshot.error}');
+              return _emptyState('Unable to load location data. Check your access or try again later.');
             }
             if (!stateSnapshot.hasData) return _loadingState();
 
@@ -889,7 +889,7 @@ class _ServiceLocationScreenState
               builder: (context, districtSnapshot) {
                 if (districtSnapshot.hasError) {
                   return _emptyState(
-                    'Unable to load Districts: ${districtSnapshot.error}',
+                    'Unable to load location data. Check your access or try again later.',
                   );
                 }
                 if (!districtSnapshot.hasData) return _loadingState();
@@ -948,7 +948,7 @@ class _ServiceLocationScreenState
       stream: _service.watchCountries(),
       builder: (context, countrySnapshot) {
         if (countrySnapshot.hasError) {
-          return _emptyState('${countrySnapshot.error}');
+          return _emptyState('Unable to load location data. Check your access or try again later.');
         }
         if (!countrySnapshot.hasData) return _loadingState();
 
@@ -956,7 +956,7 @@ class _ServiceLocationScreenState
           stream: _service.watchStates(),
           builder: (context, stateSnapshot) {
             if (stateSnapshot.hasError) {
-              return _emptyState('${stateSnapshot.error}');
+              return _emptyState('Unable to load location data. Check your access or try again later.');
             }
             if (!stateSnapshot.hasData) return _loadingState();
 
@@ -964,7 +964,7 @@ class _ServiceLocationScreenState
               stream: _service.watchDistricts(),
               builder: (context, districtSnapshot) {
                 if (districtSnapshot.hasError) {
-                  return _emptyState('${districtSnapshot.error}');
+                  return _emptyState('Unable to load location data. Check your access or try again later.');
                 }
                 if (!districtSnapshot.hasData) return _loadingState();
 
@@ -1859,7 +1859,7 @@ class _ServiceLocationScreenState
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return _emptyState(
-            'Unable to load import history:\n${snapshot.error}',
+            'Unable to load import history. Check your access or try again later.',
           );
         }
 
