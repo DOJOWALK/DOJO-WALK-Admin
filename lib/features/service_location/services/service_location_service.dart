@@ -34,11 +34,7 @@ class ServiceLocationService {
         _currentUserIdProvider = currentUserIdProvider ??
             (() => FirebaseAuth.instance.currentUser?.uid);
 
-  Future<void> _setTrustedStatus({
-    required String locationType,
-    required String locationId,
-    required bool isActive,
-  }) async {
+  ) async {
     final callable = _functions.httpsCallable('setServiceLocationStatus');
     await callable.call<void>({
       'locationType': locationType,
@@ -572,10 +568,7 @@ class ServiceLocationService {
     );
   }
 
-  Future<void> setCountryStatus({
-    required String countryId,
-    required bool isActive,
-  }) async {
+  ) async {
     final id = _required(countryId, 'Country ID');
 
     if (!isActive) {
@@ -664,10 +657,7 @@ class ServiceLocationService {
     );
   }
 
-  Future<void> setStateStatus({
-    required String stateId,
-    required bool isActive,
-  }) async {
+  ) async {
     final id = _required(stateId, 'State ID');
 
     if (isActive) {
@@ -760,10 +750,7 @@ class ServiceLocationService {
     );
   }
 
-  Future<void> setDistrictStatus({
-    required String districtId,
-    required bool isActive,
-  }) async {
+  ) async {
     final id = _required(districtId, 'District ID');
     if (isActive) {
       final district = await _requireDocument(_districts, id, 'District');
