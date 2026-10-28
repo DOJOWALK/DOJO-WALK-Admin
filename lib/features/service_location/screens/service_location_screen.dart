@@ -920,18 +920,7 @@ class _ServiceLocationScreenState
                           title: item.name,
                           subtitle:
                               'ID: ${item.id} · Country: ${country.name}',
-                          active: item.isActive,
                           icon: Icons.map_outlined,
-                          onToggle: (value) async {
-                            try {
-                              await _service.setStateStatus(
-                                stateId: item.id,
-                                isActive: value,
-                              );
-                            } catch (error) {
-                              await _showError(error);
-                            }
-                          },
                         ),
                     ],
                   );
@@ -1006,25 +995,8 @@ class _ServiceLocationScreenState
                       _locationCard(
                         title: district.name,
                         subtitle: 'State: ${statesById[district.stateId]?.name ?? "Unknown State"}\n'
-                            'Country: ${countriesById[district.countryId]?.name ?? "Unknown Country"}\n'
-                            'Service: ${district.isActive ? "Active" : "Inactive"}',
-                        active: district.isActive,
+                            'Country: ${countriesById[district.countryId]?.name ?? "Unknown Country"}',
                         icon: Icons.map_outlined,
-                        onToggle: (value) async {
-                          try {
-                            await _service.setDistrictStatus(
-                              districtId: district.id,
-                              isActive: value,
-                            );
-                            _showMessage(
-                              value
-                                  ? 'District activated.'
-                                  : 'District deactivated.',
-                            );
-                          } catch (error) {
-                            await _showError(error);
-                          }
-                        },
                       ),
                   ],
                 );
@@ -1111,32 +1083,8 @@ class _ServiceLocationScreenState
                                     title: item.name,
                                     subtitle:
                                         'ID: ${item.id}\n'
-                                        'District: ${districtsById[item.districtId]?.name ?? (item.districtId.isEmpty ? "Not linked (legacy City)" : "Unknown District")}\n'
-                                        'Legacy boundary points: ${item.boundary.length}\n'
-                                        'Legacy verified: ${item.boundaryVerified ? "Yes" : "No"}\n'
-                                        'Service: ${item.isServiceActive ? "Active" : "Inactive"}',
-                                    active: item.isServiceActive,
+                                        'District: ${districtsById[item.districtId]?.name ?? (item.districtId.isEmpty ? "Not linked (legacy City)" : "Unknown District")}',
                                     icon: Icons.location_city,
-                                    onManageBoundary: () => _manageBoundary(
-                                      locationId: item.id,
-                                      locationName: item.name,
-                                      locationType: 'city',
-                                    ),
-                                    onToggle: (value) async {
-                                      try {
-                                        await _service.setCityServiceStatus(
-                                          cityId: item.id,
-                                          isActive: value,
-                                        );
-                                        _showMessage(
-                                          value
-                                              ? 'City service activated.'
-                                              : 'City service deactivated.',
-                                        );
-                                      } catch (error) {
-                                        await _showError(error);
-                                      }
-                                    },
                                   ),
                               ],
                             );
@@ -2959,10 +2907,7 @@ class _ServiceLocationScreenState
   Widget _locationCard({
     required String title,
     required String subtitle,
-    required bool active,
     required IconData icon,
-    required ValueChanged<bool> onToggle,
-    VoidCallback? onManageBoundary,
   }) {
     return Card(
       color: Colors.white,
@@ -3002,28 +2947,6 @@ class _ServiceLocationScreenState
         ),
         subtitle: Text(subtitle),
         isThreeLine: subtitle.contains('\n'),
-        trailing: SizedBox(
-          width: onManageBoundary == null ? 65 : 190,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              if (onManageBoundary != null)
-                IconButton(
-                  tooltip: 'Manage Boundary',
-                  onPressed: onManageBoundary,
-                  icon: const Icon(
-                    Icons.edit_location_alt_outlined,
-                    color: _locationOrange,
-                  ),
-                ),
-              Switch(
-                value: active,
-                activeThumbColor: _locationOrange,
-                onChanged: onToggle,
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
