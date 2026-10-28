@@ -627,8 +627,12 @@ class _ServiceLocationScreenState
                       const SizedBox(width: 6),
                       Text(
                         snapshot.connectionState == ConnectionState.waiting
-                            ? 'Loading active boundaries…'
-                            : 'Active boundaries: ${polygons.length}',
+                            ? 'Loading boundary preview…'
+                            : snapshot.hasError
+                                ? 'Boundary source unavailable'
+                                : polygons.isEmpty
+                                    ? 'Zone boundary source not connected'
+                                    : 'Active boundaries: ${polygons.length}',
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ],
@@ -642,7 +646,7 @@ class _ServiceLocationScreenState
                   color: Colors.white.withValues(alpha: 0.95),
                   shape: const CircleBorder(),
                   child: IconButton(
-                    tooltip: 'Refresh active boundaries',
+                    tooltip: 'Refresh boundary preview',
                     onPressed: () {
                       setState(() {
                         _lastFittedPolygonSignature = null;
