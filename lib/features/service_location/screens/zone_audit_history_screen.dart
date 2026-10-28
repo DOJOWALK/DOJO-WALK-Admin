@@ -26,6 +26,11 @@ class _ZoneAuditHistoryScreenState extends State<ZoneAuditHistoryScreen> {
     super.dispose();
   }
 
+  void _clearSearch() {
+    _search.clear();
+    setState(() => _query = '');
+  }
+
   @override
   Widget build(BuildContext context) {
     final visible = _entries.where((e) =>
@@ -53,6 +58,13 @@ class _ZoneAuditHistoryScreenState extends State<ZoneAuditHistoryScreen> {
             decoration: InputDecoration(
               hintText: 'Search event, zone, actor or status',
               prefixIcon: const Icon(Icons.search, color: _orange),
+              suffixIcon: _query.isNotEmpty
+                  ? IconButton(
+                      tooltip: 'Clear search',
+                      icon: const Icon(Icons.close),
+                      onPressed: _clearSearch,
+                    )
+                  : null,
               filled: true, fillColor: Colors.white,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
@@ -73,7 +85,7 @@ class _ZoneAuditHistoryScreenState extends State<ZoneAuditHistoryScreen> {
                 contentPadding: const EdgeInsets.all(14),
                 leading: CircleAvatar(backgroundColor: _orange.withValues(alpha: 0.12), child: Icon(e.icon, color: _orange)),
                 title: Text(e.event, style: const TextStyle(fontWeight: FontWeight.w700)),
-                subtitle: Padding(padding: const EdgeInsets.only(top: 6), child: Text('${e.zone}\nActor: ${e.actor}\n${e.time}')),
+                subtitle: Padding(padding: const EdgeInsets.only(top: 6), child: Text('${e.zone}\\nActor: ${e.actor}\\n${e.time}')),
                 isThreeLine: true,
                 trailing: Text(e.status, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
               ),
