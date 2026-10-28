@@ -4,6 +4,7 @@ import '../models/walker_admin_model.dart';
 import '../services/walker_admin_service.dart';
 import '../utils/walker_admin_helpers.dart';
 import '../widgets/walker_admin_widgets.dart';
+import '../../../utils/admin_error_classifier.dart';
 import 'walker_details_screen.dart';
 
 class WalkerManagementDashboardScreen extends StatefulWidget {
@@ -239,39 +240,48 @@ class _WalkerManagementDashboardScreenState
     );
   }
 
-  Widget _errorState() {
+  Widget _errorState(Object? error) {
+    final permissionDenied = isPermissionDeniedError(error);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(
-          color: const Color(0xFFFECACA),
+          color: permissionDenied
+              ? const Color(0xFFFFD2AC)
+              : const Color(0xFFFECACA),
         ),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Column(
+      child: Column(
         children: [
           Icon(
-            Icons.error_outline,
-            color: _red,
+            permissionDenied ? Icons.lock_outline : Icons.error_outline,
+            color: permissionDenied ? _orange : _red,
             size: 30,
           ),
-          SizedBox(height: 9),
+          const SizedBox(height: 9),
           Text(
-            'Walker data load नहीं हुआ',
-            style: TextStyle(
+            permissionDenied
+                ? 'Permission denied'
+                : 'Walker data load नहीं हुआ',
+            style: const TextStyle(
               color: _text,
               fontWeight: FontWeight.w800,
             ),
-          ),
-          SizedBox(height: 6),
-          Text(
-            'Connection और Admin permissions जाँचें।',
             textAlign: TextAlign.center,
-            style: TextStyle(
+          ),
+          const SizedBox(height: 6),
+          Text(
+            permissionDenied
+                ? 'Your Admin role or assigned scope may not allow access to this walker or booking data. Ask an authorized administrator to review permissions.'
+                : 'Connection और data access configuration जाँचें। No status has been changed.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
               color: _muted,
               fontSize: 11,
+              height: 1.45,
             ),
           ),
         ],
@@ -312,7 +322,7 @@ class _WalkerManagementDashboardScreenState
       stream: _service.watchWalkers(),
       builder: (context, walkerSnapshot) {
         if (walkerSnapshot.hasError) {
-          return _errorState();
+          return _errorState(walkerSnapshot.error);
         }
 
         if (walkerSnapshot.connectionState == ConnectionState.waiting &&
@@ -331,7 +341,7 @@ class _WalkerManagementDashboardScreenState
           stream: _service.watchBookings(),
           builder: (context, bookingSnapshot) {
             if (bookingSnapshot.hasError) {
-              return _errorState();
+              return _errorState(bookingSnapshot.error);
             }
 
             if (bookingSnapshot.connectionState ==
