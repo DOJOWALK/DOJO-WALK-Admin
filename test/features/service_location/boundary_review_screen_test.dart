@@ -51,4 +51,22 @@ void main() {
     expect(tester.widget<OutlinedButton>(find.widgetWithText(OutlinedButton, 'Review evidence').first).onPressed, isNull);
     expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Founder decision').first).onPressed, isNull);
   });
+
+  testWidgets('boundary review remains readable on a narrow mobile viewport',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Boundary Review'), findsOneWidget);
+    expect(find.text('Zone boundary review'), findsOneWidget);
+    expect(find.text('Boundary map preview'), findsOneWidget);
+    expect(find.text('Required before approval'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
