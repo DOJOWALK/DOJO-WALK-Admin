@@ -34,16 +34,7 @@ class ServiceLocationService {
         _currentUserIdProvider = currentUserIdProvider ??
             (() => FirebaseAuth.instance.currentUser?.uid);
 
-  ) async {
-    final callable = _functions.httpsCallable('setServiceLocationStatus');
-    await callable.call<void>({
-      'locationType': locationType,
-      'locationId': locationId,
-      'isActive': isActive,
-    });
-  }
-
-  // ==========================================================
+    // ==========================================================
   // COLLECTIONS
   // ==========================================================
 
@@ -568,25 +559,7 @@ class ServiceLocationService {
     );
   }
 
-  ) async {
-    final id = _required(countryId, 'Country ID');
-
-    if (!isActive) {
-      await _ensureNoActiveChildren(
-        parentCollection: 'service_countries',
-        parentId: id,
-        label: 'country',
-      );
-    }
-
-    await _setTrustedStatus(
-      locationType: 'country',
-      locationId: id,
-      isActive: isActive,
-    );
-  }
-
-  // ==========================================================
+    // ==========================================================
   // STATES
   // ==========================================================
 
@@ -657,35 +630,7 @@ class ServiceLocationService {
     );
   }
 
-  ) async {
-    final id = _required(stateId, 'State ID');
-
-    if (isActive) {
-      final state = await _requireDocument(
-        _states,
-        id,
-        'State',
-      );
-
-      await _requireActiveCountry(
-        state['countryId']?.toString() ?? '',
-      );
-    } else {
-      await _ensureNoActiveChildren(
-        parentCollection: 'service_states',
-        parentId: id,
-        label: 'state',
-      );
-    }
-
-    await _setTrustedStatus(
-      locationType: 'state',
-      locationId: id,
-      isActive: isActive,
-    );
-  }
-
-  // ==========================================================
+    // ==========================================================
   // DISTRICTS
   // ==========================================================
 
@@ -750,23 +695,7 @@ class ServiceLocationService {
     );
   }
 
-  ) async {
-    final id = _required(districtId, 'District ID');
-    if (isActive) {
-      final district = await _requireDocument(_districts, id, 'District');
-      final countryId = district['countryId']?.toString() ?? '';
-      final stateId = district['stateId']?.toString() ?? '';
-      await _requireActiveCountry(countryId);
-      await _requireActiveState(stateId, countryId);
-    }
-    await _setTrustedStatus(
-      locationType: 'district',
-      locationId: id,
-      isActive: isActive,
-    );
-  }
-
-  // ==========================================================
+    // ==========================================================
   // SINGLE CITY LOOKUP
   // ==========================================================
 
