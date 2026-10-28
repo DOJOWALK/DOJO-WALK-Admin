@@ -29,7 +29,7 @@ void main() {
     expect(find.text('Revision 3'), findsOneWidget);
     expect(find.text('Not verified'), findsWidgets);
     expect(find.text('Hash changed'), findsWidgets);
-    expect(find.text('EXAMPLE-SHA256-ABC123'), findsOneWidget);
+    expect(find.text('EXAMPLE-SHA256-VERIFIED-003'), findsOneWidget);
     expect(find.text('Polygon verification'), findsWidgets);
   });
 
