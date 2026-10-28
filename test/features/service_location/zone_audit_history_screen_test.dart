@@ -33,6 +33,11 @@ void main() {
     expect(find.text('3 examples'), findsOneWidget);
     expect(find.text('Zone readiness submitted'), findsOneWidget);
     expect(find.text('Boundary revision requested'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Zone suspended for safety review'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
     expect(find.text('Zone suspended for safety review'), findsOneWidget);
   });
 
