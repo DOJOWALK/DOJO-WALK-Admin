@@ -60,6 +60,9 @@ DOJO-WALK-Admin/
 │   │   │       └── india_location_filters.dart   # present on working branch
 │   │   └── repositories/
 │   ├── screens/
+│   │   ├── auth/
+│   │   │   ├── admin_login_screen.dart          # existing
+│   │   │   └── auth_gate.dart                   # existing
 │   │   ├── dashboard/
 │   │   │   ├── admin_shell.dart                  # existing
 │   │   │   └── dashboard_screen.dart             # existing
@@ -95,6 +98,9 @@ DOJO-WALK-Admin/
 │   │       ├── services/
 │   │       ├── utils/
 │   │       └── widgets/
+│   ├── services/
+│   │   └── auth_service.dart                    # existing
+│   ├── utils/                                   # existing shared utilities
 │   ├── shared/
 │   │   ├── widgets/
 │   │   └── services/
