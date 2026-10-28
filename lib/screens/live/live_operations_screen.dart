@@ -431,16 +431,27 @@ class _LiveOperationsScreenState
               left: 20,
               right: 20,
               bottom: 20,
-              child: _WalkerDetailsCard(
-                data: selected,
-                onViewBooking: () => _showBookingDetails(selected['currentBookingId']?.toString()),
-                onViewRoute: () => _loadWalkerRoute(selected['id']?.toString() ?? _selectedWalkerId!),
-                onClose: () {
-                  setState(() {
-                    _selectedWalkerId = null;
-                    _polylines = {};
-                  });
-                },
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(context).height * 0.48,
+                ),
+                child: SingleChildScrollView(
+                  child: _WalkerDetailsCard(
+                    data: selected,
+                    onViewBooking: () => _showBookingDetails(
+                      selected['currentBookingId']?.toString(),
+                    ),
+                    onViewRoute: () => _loadWalkerRoute(
+                      selected['id']?.toString() ?? _selectedWalkerId!,
+                    ),
+                    onClose: () {
+                      setState(() {
+                        _selectedWalkerId = null;
+                        _polylines = {};
+                      });
+                    },
+                  ),
+                ),
               ),
             ),
         ],
