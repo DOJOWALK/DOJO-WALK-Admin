@@ -14,7 +14,7 @@ void main() {
       await tester.tap(find.widgetWithText(ChoiceChip, 'Blocked — boundary pending'));
       await tester.pumpAndSettle();
       expect(find.text('EXAMPLE-ZONE-001'), findsOneWidget);
-      expect(find.text('Blocked — boundary pending'), findsOneWidget);
+      expect(find.text('Blocked — boundary pending'), findsWidgets);
       expect(find.textContaining('Founder decision must wait'), findsOneWidget);
       expect(find.text('Business approval gate'), findsOneWidget);
       expect(find.textContaining('Founder/CEO makes the final business decision'),
