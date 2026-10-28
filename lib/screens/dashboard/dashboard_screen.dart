@@ -945,11 +945,18 @@ class _RevenueCard extends StatelessWidget {
                   CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Total Revenue',
+                  'Paid Payments (All Time)',
                   style: TextStyle(
-                    color:
-                        Colors.grey.shade600,
+                    color: Colors.grey.shade600,
                     fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                const Text(
+                  'Gross paid amount; refunds and fees not deducted',
+                  style: TextStyle(
+                    color: Color(0xFF78716C),
+                    fontSize: 10,
                   ),
                 ),
                 const SizedBox(height: 5),
