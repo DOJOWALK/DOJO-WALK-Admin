@@ -19,7 +19,7 @@
 | Admin menu | Current screen/file | Source of truth | Status |
 |---|---|---|---|
 | Dashboard | `lib/screens/dashboard/dashboard_screen.dart` | Owner Dashboard in India Operating System & Area Launch Master; related operational policies | Existing screen. It already has Firestore streams; this UI-first pass does not add new Firebase work. Audit metric provenance and loading/error states separately. |
-| Live Operations | `lib/screens/live/live_operations_screen.dart` | POL-007 Live Walk & Safe Handover; POL-008 Safety; POL-016 Incident & Emergency | Existing screen, now directly accessible from sidebar. Verify severity/incident states and safe handover UI. |
+| Live Operations | `lib/screens/live/live_operations_screen.dart`; `lib/screens/live/live_booking_details_helper.dart` | POL-007 Live Walk & Safe Handover; POL-008 Safety; POL-016 Incident & Emergency; POL-020 Privacy | Existing screen now gives permission-aware stream/route error messages and displays only whitelisted operational booking fields instead of dumping arbitrary Firestore fields. Helper tests confirm phone/address/payment-secret/private-note fields are omitted. Backend authorization still governs actual reads. |
 | Bookings | `lib/screens/bookings/bookings_screen.dart`; `lib/screens/bookings/booking_status_helper.dart` | POL-026 assignment; POL-029 cancellation/reschedule/refund; POL-030 payment controls | Existing stream remains; UI now normalizes known lifecycle status values, parses timestamp variants for sorting, and distinguishes permission-denied from generic load errors. Status helper has unit tests. Full policy audit still required. |
 | Walker Management | `lib/features/walkers/screens/walker_management_dashboard_screen.dart` | POL-004 Walker/Partner Management; POL-026 availability/assignment | Existing screen. Requires full Notion parity audit. |
 | Customer Management | `lib/features/customers/screens/customer_management_screen.dart` | POL-031 Customer Account/Profile/Consent; POL-021 Access Control | UI prototype with masked example data, lifecycle filters and disabled restriction/closure actions. No customer data connection. |
@@ -53,5 +53,5 @@
 
 ## Validation discipline
 
-- Latest UI code validation: run `40686531389` passed `flutter analyze`, the complete test suite and `flutter build web --release` at commit `c97c40138d3bfa15a48d81d023cba587d52da89c`. This includes Service Location, Customer, Pet, Notification, Support, Admin Users & Roles, Audit Logs, Reports, Finance, Settings, booking status/error UI updates, and the new UI-state/navigation tests.
+- Latest UI code validation: run `40687163413` passed `flutter analyze`, the complete test suite and `flutter build web --release` at commit `c41a1568bc54d0f2de16112fd1ece3c1ae4af7c7`. This includes Service Location, Customer, Pet, Notification, Support, Admin Users & Roles, Audit Logs, Reports, Finance, Settings, booking status/error UI updates, and privacy-safe Live Operations booking summaries.
 - No merge or deployment is authorized in this phase.
