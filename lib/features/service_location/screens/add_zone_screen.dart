@@ -348,6 +348,16 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                         icon: const Icon(Icons.fact_check_outlined),
                         label: const Text('Preview Boundary Review'),
                       ),
+                      OutlinedButton.icon(
+                        onPressed: null,
+                        icon: const Icon(Icons.save_outlined),
+                        label: const Text('Save Draft disabled'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: null,
+                        icon: const Icon(Icons.send_outlined),
+                        label: const Text('Submit for Review disabled'),
+                      ),
                       FilledButton.icon(
                         style: FilledButton.styleFrom(
                           backgroundColor: _orange,
