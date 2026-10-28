@@ -74,6 +74,9 @@ The repository was rechecked at PR #51 head `97e3fadab6cf51897c4c1389dcecfe750db
 - Current PR head has no reported commit statuses and no workflow run associated with that exact SHA in the inspected API responses. The latest successful Admin Web Build Check returned by the branch run list is run `40777254854` for older code commit `f8ff6a53daba7a70436c9419755a20c3bb9f4b7a`; it is not proof of a pass on the current head.
 - No source files were moved or deleted during this follow-up. PR #51 remains Draft; no merge, deploy, or backend expansion.
 
-### Next safe structural task
+### Follow-up result and remaining blocker
 
-Create a reference-data README that explains the separation between raw source files, generated Dart and audits, and add a source manifest only after the actual source artifact and provenance fields are available. Do not fabricate provenance or regenerate the large Dart data from an unverified source.
+- Added `data/reference/india_locations/README.md` in documentation commit `2ceb58f1849fbff8cbc491421f2d34cacd909cd9`. It documents the separation between source artifacts, staging, audits and generated Dart, plus the validation gates before production import.
+- `data/reference/india_locations/source_manifest.md` is intentionally **not created yet** because the raw source artifact and its provenance fields are not available in the repository. Creating a manifest with guessed URLs, dates, licences or checksums would be misleading.
+- The README-only commit does not change Dart code. Exact-head CI status is still unreported; historical CI success remains limited to the earlier code commit noted above.
+- Next safe task: obtain the actual LGD CSV/source artifact and verify its provenance, then populate the manifest and audit the generated dataset. Until then, do not regenerate or import reference data.
