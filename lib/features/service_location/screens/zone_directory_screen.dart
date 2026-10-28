@@ -48,7 +48,7 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
       name: 'Example Zone C',
       city: 'Example City',
       status: 'Not activated',
-      revision: 'Revision 1',
+      revision: 'Revision 3',
       zoneId: 'ZONE-EX-003',
       parentPath: 'Example State/UT → Example District → Example City',
       boundaryStatus: 'Verified (example)',
