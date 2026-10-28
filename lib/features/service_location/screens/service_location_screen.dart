@@ -1146,7 +1146,6 @@ class _ServiceLocationScreenState
                                       locationType: 'city',
                                     ),
                                     showServiceToggle: false,
-                                    
                                   ),
                               ],
                             );
@@ -1229,7 +1228,6 @@ class _ServiceLocationScreenState
                             locationType: 'area',
                           ),
                           showServiceToggle: false,
-                          
                         ),
                     ],
                   );
@@ -1320,7 +1318,6 @@ class _ServiceLocationScreenState
                                     active: item.isServiceActive,
                                     icon: Icons.place_outlined,
                                     showServiceToggle: false,
-                                    
                                   ),
                               ],
                             );
