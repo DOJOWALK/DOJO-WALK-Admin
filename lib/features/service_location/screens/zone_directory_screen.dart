@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'boundary_review_screen.dart';
+import 'zone_approval_queue_screen.dart';
+
 /// UI-only directory preview. The records are illustrative and are not live data.
 class ZoneDirectoryScreen extends StatefulWidget {
   const ZoneDirectoryScreen({super.key});
@@ -170,6 +173,36 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
                                 'Activation, deactivation and approval actions remain disabled until '
                                 'the authoritative Zone service, permissions and audit logging are connected.',
                                 style: TextStyle(color: Colors.black54, fontSize: 12, height: 1.4),
+                              ),
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  OutlinedButton.icon(
+                                    onPressed: () => Navigator.of(context).push<void>(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => const BoundaryReviewScreen(),
+                                      ),
+                                    ),
+                                    icon: const Icon(Icons.map_outlined),
+                                    label: const Text('View boundary preview'),
+                                  ),
+                                  OutlinedButton.icon(
+                                    onPressed: () => Navigator.of(context).push<void>(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => const ZoneApprovalQueueScreen(),
+                                      ),
+                                    ),
+                                    icon: const Icon(Icons.verified_user_outlined),
+                                    label: const Text('Open approval queue'),
+                                  ),
+                                  const OutlinedButton.icon(
+                                    onPressed: null,
+                                    icon: Icon(Icons.lock_outline),
+                                    label: Text('Lifecycle actions disabled'),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
