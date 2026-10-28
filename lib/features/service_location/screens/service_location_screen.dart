@@ -1990,7 +1990,7 @@ class _ServiceLocationScreenState
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'Preview and validate State, District, City and Area rows before import. '
+                      'Legacy reference-data import only: preview State, District, City and Area rows. This is not the Create Zone flow and does not create or activate a service Zone. '
                       'Import is restricted to active super_admin accounts. New records stay inactive; '
                       'service activation still requires separate boundary verification.',
                     ),
