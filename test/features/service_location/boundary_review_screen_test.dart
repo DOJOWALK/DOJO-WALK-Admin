@@ -10,27 +10,32 @@ void main() {
 
     expect(find.text('Boundary Review'), findsOneWidget);
     expect(find.textContaining('not connected to live records'), findsOneWidget);
-    expect(find.textContaining('example rows are mock data'), findsOneWidget);
+    expect(find.textContaining('mock data'), findsOneWidget);
   });
 
-  testWidgets('shows readable review status and revision/boundary details', (tester) async {
+  testWidgets('shows explicit statuses, Zone ID, revision, polygon and hash evidence', (tester) async {
     await tester.pumpWidget(app());
 
     expect(find.text('Pending review'), findsOneWidget);
+    expect(find.text('Verified'), findsOneWidget);
+    expect(find.text('Rejected'), findsOneWidget);
     expect(find.text('Needs changes'), findsOneWidget);
-    expect(find.text('Revision 1'), findsOneWidget);
-    expect(find.text('Revision 2'), findsOneWidget);
+    expect(find.text('EXAMPLE-ZONE-001'), findsOneWidget);
+    expect(find.text('1'), findsNWidgets(2));
+    expect(find.text('2'), findsOneWidget);
     expect(find.text('Not verified'), findsOneWidget);
     expect(find.text('Hash changed'), findsOneWidget);
+    expect(find.text('EXAMPLE-SHA256-ABC123'), findsOneWidget);
+    expect(find.text('Polygon verification'), findsNWidgets(4));
   });
 
   testWidgets('review and decision actions are disabled in prototype', (tester) async {
     await tester.pumpWidget(app());
 
-    expect(find.widgetWithText(OutlinedButton, 'Review evidence'), findsOneWidget);
-    expect(find.widgetWithText(OutlinedButton, 'Request changes'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, 'Founder decision'), findsOneWidget);
-    expect(tester.widget<OutlinedButton>(find.widgetWithText(OutlinedButton, 'Review evidence')).onPressed, isNull);
-    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Founder decision')).onPressed, isNull);
+    expect(find.widgetWithText(OutlinedButton, 'Review evidence'), findsNWidgets(4));
+    expect(find.widgetWithText(OutlinedButton, 'Request changes'), findsNWidgets(4));
+    expect(find.widgetWithText(FilledButton, 'Founder decision'), findsNWidgets(4));
+    expect(tester.widget<OutlinedButton>(find.widgetWithText(OutlinedButton, 'Review evidence').first).onPressed, isNull);
+    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Founder decision').first).onPressed, isNull);
   });
 }
