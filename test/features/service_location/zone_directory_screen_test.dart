@@ -54,6 +54,28 @@ void main() {
       expect(find.text('Example Zone F'), findsNothing);
     });
 
+    testWidgets('opens Zone Details with hierarchy and readiness metadata',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(home: ZoneDirectoryScreen()),
+      );
+
+      final detailsButton = find.text('View details').first;
+      await tester.scrollUntilVisible(
+        detailsButton,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(detailsButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Zone Details'), findsOneWidget);
+      expect(find.text('ZONE-EX-001 · Revision 1'), findsOneWidget);
+      expect(find.text('Parent path'), findsOneWidget);
+      expect(find.text('Readiness blockers'), findsOneWidget);
+      expect(find.textContaining('not connected to the Zone service'), findsOneWidget);
+    });
+
     testWidgets('directory routes to boundary review preview',
         (tester) async {
       await tester.pumpWidget(
