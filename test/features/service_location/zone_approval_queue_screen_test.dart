@@ -80,6 +80,21 @@ void main() {
     });
   });
 
+  testWidgets('default Awaiting decision filter excludes blocked examples',
+      (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: ZoneApprovalQueueScreen()),
+    );
+
+    expect(find.text('Founder Approval Queue'), findsOneWidget);
+    expect(find.text('Awaiting decision'), findsOneWidget);
+    expect(find.text('No example requests match this filter. Live queue is not connected.'),
+        findsOneWidget);
+    expect(find.text('Example Zone A'), findsNothing);
+    expect(find.text('Example Zone B'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('approval details remain readable on a narrow mobile viewport',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(360, 800));
