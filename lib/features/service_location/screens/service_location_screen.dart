@@ -429,8 +429,6 @@ class _ServiceLocationScreenState
   // ============================================================
 
   Future<Set<Polygon>> _loadActiveBoundaryPolygons() async {
-    final cities = await _service.watchCities().first;
-    final areas = await _service.watchAreas().first;
     final activeZoneSnapshot = await FirebaseFirestore.instance
         .collection('service_zones')
         .where('isServiceActive', isEqualTo: true)
@@ -451,62 +449,7 @@ class _ServiceLocationScreenState
     };
     final polygons = <Polygon>{};
 
-    for (final city in cities.where((item) => item.isServiceActive)) {
-      final boundaryId = city.verifiedBoundaryId.trim();
-      if (boundaryId.isEmpty) continue;
-
-      final boundary = boundariesById[boundaryId];
-      if (boundary == null ||
-          !boundary.isVerified ||
-          boundary.locationId != city.id ||
-          boundary.locationType.toLowerCase() != 'city' ||
-          boundary.points.length < 3) {
-        continue;
-      }
-
-      polygons.add(
-        Polygon(
-          polygonId: PolygonId('service-city-${city.id}'),
-          points: boundary.points
-              .map((point) => LatLng(point.latitude, point.longitude))
-              .toList(growable: false),
-          strokeColor: _locationOrange,
-          strokeWidth: 2,
-          fillColor: _locationOrange.withValues(alpha: 0.05),
-          consumeTapEvents: true,
-          onTap: () => _showMessage('Active city boundary: ${city.name}'),
-        ),
-      );
-    }
-
-    for (final area in areas.where((item) => item.isServiceActive)) {
-      final boundaryId = area.verifiedBoundaryId.trim();
-      if (boundaryId.isEmpty) continue;
-
-      final boundary = boundariesById[boundaryId];
-      if (boundary == null ||
-          !boundary.isVerified ||
-          boundary.locationId != area.id ||
-          boundary.locationType.toLowerCase() != 'area' ||
-          boundary.points.length < 3) {
-        continue;
-      }
-
-      polygons.add(
-        Polygon(
-          polygonId: PolygonId('service-area-${area.id}'),
-          points: boundary.points
-              .map((point) => LatLng(point.latitude, point.longitude))
-              .toList(growable: false),
-          strokeColor: _locationOrange,
-          strokeWidth: 2,
-          fillColor: _locationOrange.withValues(alpha: 0.18),
-          consumeTapEvents: true,
-          onTap: () => _showMessage('Active service area: ${area.name}'),
-        ),
-      );
-    }
-
+    // POL-038: only active Zone polygons represent service coverage.
     for (final zone in activeZones) {
       final boundaryId = zone.verifiedBoundaryId?.trim() ?? '';
       if (boundaryId.isEmpty) continue;
