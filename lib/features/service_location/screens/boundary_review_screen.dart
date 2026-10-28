@@ -271,19 +271,18 @@ class _StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color background;
     final Color foreground;
-    switch (label) {
-      case 'Verified':
-        background = const Color(0xFFE5F5E9);
-        foreground = const Color(0xFF176534);
-      case 'Rejected':
-        background = const Color(0xFFFFE8E3);
-        foreground = const Color(0xFF9A2F20);
-      case 'Needs changes':
-        background = const Color(0xFFFFF0DF);
-        foreground = const Color(0xFF8A4300);
-      default:
-        background = const Color(0xFFEAF1FF);
-        foreground = const Color(0xFF244A8F);
+    if (label == 'Verified') {
+      background = const Color(0xFFE5F5E9);
+      foreground = const Color(0xFF176534);
+    } else if (label == 'Rejected') {
+      background = const Color(0xFFFFE8E3);
+      foreground = const Color(0xFF9A2F20);
+    } else if (label == 'Needs changes') {
+      background = const Color(0xFFFFF0DF);
+      foreground = const Color(0xFF8A4300);
+    } else {
+      background = const Color(0xFFEAF1FF);
+      foreground = const Color(0xFF244A8F);
     }
 
     return Container(
