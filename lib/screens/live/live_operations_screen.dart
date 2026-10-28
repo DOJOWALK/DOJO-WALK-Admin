@@ -54,6 +54,7 @@ class _LiveOperationsScreenState
   // ============================================================
 
   void _listenToWalkers() {
+    _walkerSubscription?.cancel();
     _walkerSubscription = _firestore
         .collection('walkers')
         .where('isOnline', isEqualTo: true)
@@ -93,7 +94,7 @@ class _LiveOperationsScreenState
         _isLoadingWalkers = false;
         _walkerLoadError = permissionDenied
             ? 'Permission denied for live walker data. Ask an authorized administrator to review scope.'
-            : 'Unable to refresh live walkers. Check the connection; the listener will retry.';
+            : 'Live walker data could not be refreshed. Check the connection and retry.';
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -105,6 +106,14 @@ class _LiveOperationsScreenState
         ),
       );
     });
+  }
+
+  void _retryLiveWalkers() {
+    setState(() {
+      _isLoadingWalkers = true;
+      _walkerLoadError = null;
+    });
+    _listenToWalkers();
   }
 
   // ============================================================
@@ -473,6 +482,11 @@ class _LiveOperationsScreenState
                             fontSize: 12,
                           ),
                         ),
+                      ),
+                      const SizedBox(width: 8),
+                      TextButton(
+                        onPressed: _retryLiveWalkers,
+                        child: const Text('Retry'),
                       ),
                     ],
                   ),
