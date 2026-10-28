@@ -13,6 +13,7 @@ import '../../features/support/screens/support_center_screen.dart';
 import '../../features/pets/screens/pet_management_screen.dart';
 import '../../features/notifications/screens/notification_center_screen.dart';
 import '../../features/access_control/screens/admin_access_control_screen.dart';
+import '../../features/reports/screens/reports_analytics_screen.dart';
 
 const Color adminOrange = Color(0xFFFF7900);
 const Color adminBackground = Color(0xFFFFFAF5);
@@ -76,6 +77,11 @@ class _AdminShellState extends State<AdminShell> {
       icon: Icons.admin_panel_settings_outlined,
     ),
     _AdminMenuItem(
+      title: 'Reports & Analytics',
+      subtitle: 'Policy-mapped operational reporting',
+      icon: Icons.analytics_outlined,
+    ),
+    _AdminMenuItem(
       title: 'Settings',
       subtitle: 'Admin preferences',
       icon: Icons.settings_rounded,
@@ -99,7 +105,7 @@ class _AdminShellState extends State<AdminShell> {
             );
           },
           onOpenServiceLocations: () {
-            setState(() => _selectedIndex = 10);
+            setState(() => _selectedIndex = 11);
           },
         );
 
@@ -127,7 +133,10 @@ class _AdminShellState extends State<AdminShell> {
       case 8:
         return const AdminAccessControlScreen();
 
-      case 10:
+      case 9:
+        return const ReportsAnalyticsScreen();
+
+      case 11:
         return const ServiceLocationScreen();
 
       default:
