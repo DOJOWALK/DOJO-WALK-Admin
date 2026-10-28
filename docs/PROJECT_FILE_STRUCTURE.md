@@ -1,12 +1,14 @@
 # DOJO WALK — Company Project File Structure
 
-Last updated: 2026-10-16
+Last updated: 2026-10-29
+
+> **Notion precedence:** This document contains an older target-tree snapshot. For the Admin repository's current file ownership and UI mapping, follow `docs/ui/NOTION_FILE_STRUCTURE_CONTRACT.md`, `docs/ui/ADMIN_UI_NOTION_FILE_MAP.md`, and `docs/ui/NOTION_POL040_FILE_MAP.md`. Do not move files to match the legacy tree below without a Notion-backed migration plan.
 
 This document defines the intended, maintainable file structure for the DOJO WALK repositories. It distinguishes existing paths from planned paths; a documented target folder is not proof that the folder already exists in GitHub.
 
 ## 1. Repository boundaries
 
-- `dojo-admin`: Admin web portal, service-location operations, boundary review, administrative workflows.
+- `DOJO-WALK-Admin`: Admin web portal, company operations UI, service-location operations, boundary review and administrative workflows.
 - `dojo-walk-customer`: Customer app, profile, dogs, addresses, booking and walk tracking views.
 - `dojo-partner`: Walker/partner onboarding, availability, assigned walks and active walk operations.
 
@@ -86,7 +88,7 @@ dojo-admin/
 - `pubspec.yaml`
 - `docs/LOCATION_MASTER_STATUS.md`
 
-The three `lib/data/reference/india_locations/*.dart` files were checked and were not present at the expected paths at the time of this update. Matching generated data files exist in the ChatGPT Library and are pending a safe restore and compatibility check. Some folders in the target tree are architectural targets and may not yet exist.
+Current working-branch audit (2026-10-29) confirms `lib/data/reference/india_locations/india_states.dart`, `india_districts.dart`, and `india_sub_districts.dart` exist, alongside `india_location_filters.dart`. Treat the older absence note as historical and do not restore duplicate files. Verify declarations, source provenance, imports, IDs, and parent-child integrity before changing or integrating generated data. Some folders in the illustrative target tree remain planned rather than existing.
 
 ## 3. Reference data rules
 
@@ -100,8 +102,10 @@ The three `lib/data/reference/india_locations/*.dart` files were checked and wer
 
 ## 4. Service-location domain
 
-Expected hierarchy:
-`Country -> State/UT -> City/District -> Area/Sub-district -> Locality/Village`
+Current Admin Create Zone form hierarchy (latest POL-038/POL-040):
+`State/UT -> District -> City -> Zone`
+
+**Do not add a Locality selector to Create Zone.** This four-selector UI contract supersedes the older broader reference-data hierarchy below. Reference datasets may contain additional government geography levels, but they are not extra Create Zone selectors.
 
 Expected responsibilities:
 - `models/`: typed models and serialization only.
@@ -109,7 +113,7 @@ Expected responsibilities:
 - `screens/`: page-level UI and navigation.
 - `widgets/`: reusable UI components such as boundary editor/dialog.
 - Boundary draft saving, boundary verification and service activation are separate operations.
-- City/Area activation requires a verified polygon and valid parent state. A radius-only circle is not a substitute for a verified area polygon.
+- Zone is the only service activation unit. State/UT, District and City are reference hierarchy records, not independently activated service areas. Zone launch/activation requires a verified polygon and valid parent chain. A radius-only circle is not a substitute for a verified Zone polygon.
 - Customer pickup/drop-off addresses remain separate from the service-area reference hierarchy.
 
 ## 5. Customer repository — target feature grouping
@@ -199,3 +203,16 @@ Company flow and implementation boundary: `docs/architecture/DOJO_WALK_COMPANY_F
 - Inspect the current feature tree and ensure files are placed under the existing architecture rather than creating duplicate model/service layers.
 - Add focused tests for reference-data counts, key uniqueness and parent-child integrity.
 - Run the actual web build and record the result.
+
+
+## 9. Current GitHub structure audit — 2026-10-29
+
+Verified against the open UI branch `ui/notion-brand-foundation-2026-10-28` at `fd18275d5fa0822653a06c435cee9098a18960ce`:
+
+- Existing domain code is organized primarily under `lib/features/<domain>/`; the dashboard, auth, bookings and Live Operations retain their established `lib/screens/` paths. Preserve these real paths; do not create duplicate `lib/features/dashboard/`, `lib/features/bookings/`, or `lib/features/live_operations/` trees just to make the layout look uniform.
+- Service Location uses `lib/features/service_location/{models,screens,services,utils,widgets}/`; its tests mirror it under `test/features/service_location/`.
+- India reference data currently exists under `lib/data/reference/india_locations/`; integrity tests are under `test/data/reference/india_locations/` and `test/reference_data_integrity_test.dart`.
+- UI mapping contracts are `docs/ui/NOTION_FILE_STRUCTURE_CONTRACT.md`, `docs/ui/ADMIN_UI_NOTION_FILE_MAP.md`, and `docs/ui/NOTION_POL040_FILE_MAP.md`.
+- No coupon-code system: do not restore a Coupons screen/menu from the legacy example tree.
+- The `build_web.yml` workflow exists, as do `admin-web-build-check.yml`, `admin-main-full-validation.yml`, and `service-location-geometry-tests.yml`. Keep workflow responsibilities distinct; do not delete or rename workflows without checking triggers and branch protections.
+- Structural changes require: Notion requirement → path mapping update → compatibility/import audit → focused tests → analyzer/full test suite/Web release build. Record exact commit and run evidence. Do not merge, deploy, or add Firebase integration in this UI phase.
