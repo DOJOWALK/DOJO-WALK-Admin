@@ -1,12 +1,12 @@
 # DOJO WALK — Company Project File Structure
 
-Last updated: 2026-10-16
+Last updated: 2026-10-28
 
 This document defines the intended, maintainable file structure for the DOJO WALK repositories. It distinguishes existing paths from planned paths; a documented target folder is not proof that the folder already exists in GitHub.
 
 ## 1. Repository boundaries
 
-- `dojo-admin`: Admin web portal, service-location operations, boundary review, administrative workflows.
+- `DOJOWALK/DOJO-WALK-Admin`: Admin web portal, service-location operations, boundary review, administrative workflows.
 - `dojo-walk-customer`: Customer app, profile, dogs, addresses, booking and walk tracking views.
 - `dojo-partner`: Walker/partner onboarding, availability, assigned walks and active walk operations.
 
@@ -59,7 +59,7 @@ dojo-admin/
 │   │   │   ├── screens/
 │   │   │   ├── services/
 │   │   │   └── widgets/
-│   │   ├── coupons/
+│   │   ├── discounts/
 │   │   └── settings/
 │   ├── shared/
 │   │   ├── widgets/
@@ -100,8 +100,8 @@ The three `lib/data/reference/india_locations/*.dart` files were checked and wer
 
 ## 4. Service-location domain
 
-Expected hierarchy:
-`Country -> State/UT -> City/District -> Area/Sub-district -> Locality/Village`
+Expected India service-location hierarchy:
+`India -> State/UT -> District -> City -> Zone -> Locality`
 
 Expected responsibilities:
 - `models/`: typed models and serialization only.
@@ -109,7 +109,11 @@ Expected responsibilities:
 - `screens/`: page-level UI and navigation.
 - `widgets/`: reusable UI components such as boundary editor/dialog.
 - Boundary draft saving, boundary verification and service activation are separate operations.
-- City/Area activation requires a verified polygon and valid parent state. A radius-only circle is not a substitute for a verified area polygon.
+- State/UT, District and City are reference hierarchy only; they do not have service activation controls.
+- Zone is the only service activation unit. Zone activation/reactivation requires Founder approval bound to the current Zone revision and verified boundary; Central Admin executes the approved lifecycle.
+- Locality belongs to a Zone and has no independent service activation status.
+- Zone boundary verification, Founder approval and service activation are distinct steps. A radius-only circle is not a substitute for a verified Zone polygon.
+- Legacy City/Area/Locality status methods must not be exposed through UI controls; remove legacy methods only after references, schema compatibility and tests are reviewed.
 - Customer pickup/drop-off addresses remain separate from the service-area reference hierarchy.
 
 ## 5. Customer repository — target feature grouping
@@ -195,7 +199,9 @@ Company flow and implementation boundary: `docs/architecture/DOJO_WALK_COMPANY_F
 
 ## 8. Immediate next actions
 
-- Restore the three generated Dart reference files from the Library after checking declarations, IDs and import usage.
+- Reconcile this target structure with the current repository before moving files; do not create duplicate model/service layers.
+- Replace the legacy Service Location tabs with the POL-040 screen flow in a separately reviewed UI change.
+- Keep coupon functionality out of Admin navigation; the approved business direction is discounts without coupon codes.
 - Inspect the current feature tree and ensure files are placed under the existing architecture rather than creating duplicate model/service layers.
 - Add focused tests for reference-data counts, key uniqueness and parent-child integrity.
 - Run the actual web build and record the result.
