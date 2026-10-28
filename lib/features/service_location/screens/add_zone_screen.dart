@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'boundary_review_screen.dart';
+
 /// UI-only Zone creation form based on DOJO WALK POL-040.
 /// This screen intentionally does not write to Firebase yet.
 class AddZoneScreen extends StatefulWidget {
@@ -336,6 +338,15 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                       OutlinedButton(
                         onPressed: _saving ? null : () => Navigator.maybePop(context),
                         child: const Text('Cancel'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () => Navigator.of(context).push<void>(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const BoundaryReviewScreen(),
+                          ),
+                        ),
+                        icon: const Icon(Icons.fact_check_outlined),
+                        label: const Text('Preview Boundary Review'),
                       ),
                       FilledButton.icon(
                         style: FilledButton.styleFrom(
