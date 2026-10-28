@@ -34,7 +34,7 @@
 ## Structural observations
 
 - Service-location screens are grouped under `lib/features/service_location/screens/`; models, services and widgets have separate folders. Keep new work in these existing feature folders unless the source-of-truth architecture explicitly requires a change.
-- The main Admin shell is `lib/screens/dashboard/admin_shell.dart`. Several top-level menu entries currently use a generic “coming soon” screen; these are broader Admin UI gaps and need their own Notion specification mapping before implementation.
+- The main Admin shell is `lib/screens/dashboard/admin_shell.dart`. Top-level destinations now route to UI prototypes or existing screens for Live Operations, Bookings, Walkers, Customers, Pets, Notifications, Support, Admin Users & Roles, Audit Logs, Reports, Finance, Settings Governance and Service Locations. Existing Dashboard/Bookings/Walker/Live Operations screens still need a policy-by-policy visual/interaction audit.
 - Existing Firebase/service imports are already present in the repository. This UI-only phase must not expand or change backend integration.
 - Coupons must not be reintroduced as an Admin menu item; the business decision is no coupon system.
 
@@ -44,17 +44,17 @@ The Unified UI/UX Design System and POL-038/POL-040 explicitly require exactly f
 
 ## Validation record
 
-- The earlier completed run `40682258094` passed Analyze, the full test suite, and Flutter Web build at commit `21063788498d239decea21e55f25fc49b1a91395`. This run predates the later Directory/Approval Queue metadata and preview-navigation changes, so those changes still require their own validation.
+- Earlier completed runs passed Analyze, the full test suite and Flutter Web build for the incremental Add Zone/Zone Directory/Finance/Audit UI commits. The latest code commit `b7db5707b9de7e452623d174086bd87addd3b640` has Analyze PASS; the full test suite is still running in GitHub Actions run `40685274460`, and Web Build has not started yet.
 - The Suspended Zones filter test was updated to reveal lazy filter controls before interacting; it passed in a later full test run.
-- Added widget tests for the fourth dependent Zone selector, parent-change resets, Approval Queue safeguards, Directory metadata/search, and preview navigation. The newest CI run must confirm these newest changes.
+- Added widget tests for the fourth dependent Zone selector, parent-change resets, disabled Save Draft/Submit, Approval Queue safeguards, Directory lifecycle filters, Zone Details metadata and preview navigation. Run `40685274460` must finish before these newest changes can be marked PASS.
 - A separate widget test was added for Founder Approval Queue authority copy, disabled decision buttons, and status filtering.
 - Latest workflow runs must be inspected for their final results before declaring PASS. Do not infer success from an in-progress run.
 - No merge, deployment, or new Firebase integration is authorized by this file.
 
 ## Next UI-only sequence
 
-1. Confirm the latest workflow result and fix the first real failing assertion/root cause.
-2. Complete Service Location navigation and test coverage for Add Zone, Boundary Review, Founder Approval Queue, Suspended/Deactivated Zones and Audit History.
-3. Audit Location Directory and details flow against POL-040, avoiding duplicate screens.
-4. Map every top-level Admin menu item to its Notion specification and existing files before expanding the broader Admin UI.
-5. Run full analyze, tests and web build; record exact run links and outcomes.
+1. Finish run `40685274460`; fix any actual failing assertion before declaring PASS.
+2. Confirm the newest Web Build succeeds after the full test suite.
+3. Audit existing Dashboard, Live Operations, Bookings and Walker Management screens against their Notion policies, including loading/empty/error/permission-denied/success states.
+4. Run a final full validation against the latest branch head and record the exact run link.
+5. Only after UI and tests are complete, start the planned Firebase/auth/Firestore integration.
