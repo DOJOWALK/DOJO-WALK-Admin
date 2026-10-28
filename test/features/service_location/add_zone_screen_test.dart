@@ -133,6 +133,23 @@ void main() {
     expect(find.textContaining('not connected to live records'), findsOneWidget);
   });
 
+  testWidgets('Create Zone form remains usable on a narrow mobile viewport',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add Service Zone'), findsOneWidget);
+    expect(find.text('State / UT'), findsOneWidget);
+    expect(find.text('Zone'), findsOneWidget);
+    expect(find.text('Boundary editor pending'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('clearly states polygon is mandatory and radius alone is insufficient', (tester) async {
     await tester.pumpWidget(app());
 
