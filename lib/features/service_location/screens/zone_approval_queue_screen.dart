@@ -181,17 +181,37 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
 
   Widget _detail(String label, String value) => Padding(
         padding: const EdgeInsets.only(bottom: 5),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 132,
-              child: Text(label, style: const TextStyle(color: Color(0xFF756960), fontSize: 12)),
-            ),
-            Expanded(
-              child: Text(value, style: const TextStyle(color: _ink, fontSize: 12, fontWeight: FontWeight.w600)),
-            ),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            const labelStyle = TextStyle(
+              color: Color(0xFF756960),
+              fontSize: 12,
+            );
+            const valueStyle = TextStyle(
+              color: _ink,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            );
+
+            if (constraints.maxWidth < 420) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: labelStyle),
+                  const SizedBox(height: 3),
+                  Text(value, style: valueStyle),
+                ],
+              );
+            }
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(width: 132, child: Text(label, style: labelStyle)),
+                Expanded(child: Text(value, style: valueStyle)),
+              ],
+            );
+          },
         ),
       );
 }
