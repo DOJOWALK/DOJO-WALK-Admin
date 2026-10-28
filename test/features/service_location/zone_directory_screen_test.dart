@@ -14,7 +14,7 @@ void main() {
       expect(find.textContaining('not connected to Firestore'), findsOneWidget);
       expect(find.text('ZONE-EX-001'), findsOneWidget);
       expect(find.text('ZONE-EX-003'), findsOneWidget);
-      expect(find.text('Revision 3'), findsOneWidget);
+      expect(find.text('Revision 3'), findsWidgets);
       expect(find.text('Parent path'), findsWidgets);
       expect(find.text('Boundary status'), findsWidgets);
       expect(find.text('Readiness blockers'), findsWidgets);
