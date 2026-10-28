@@ -15,6 +15,9 @@ String displayBookingStatus(dynamic rawValue) {
     case 'walker assigned':
     case 'assigned':
       return 'Walker Assigned';
+    case 'picked up':
+    case 'pickup complete':
+      return 'Picked Up';
     case 'walker accepted':
     case 'accepted':
       return 'Walker Accepted';
@@ -66,6 +69,8 @@ List<String> bookingStatusQueryAliases(String canonicalLabel) {
       return const ['assigned', 'walker_assigned', 'Walker Assigned'];
     case 'Walker Accepted':
       return const ['accepted', 'walker_accepted', 'Walker Accepted'];
+    case 'Picked Up':
+      return const ['picked_up', 'picked up', 'Picked Up', 'pickup_complete'];
     case 'Walk In Progress':
       return const [
         'walking',
