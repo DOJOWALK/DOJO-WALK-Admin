@@ -470,11 +470,7 @@ class DashboardScreen extends StatelessWidget {
 
           _StatusStreamRow(
             label: 'In Progress',
-            stream: _countWhere(
-              'bookings',
-              'status',
-              'walking',
-            ),
+            stream: _countBookingStatus('Walk In Progress'),
           ),
           const SizedBox(height: 12),
 
