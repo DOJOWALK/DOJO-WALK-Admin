@@ -16,9 +16,42 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
   String _status = 'All';
 
   final List<_ZoneRow> _examples = const [
-    _ZoneRow('Example Zone A', 'Example City', 'Pending review', 'Revision 1'),
-    _ZoneRow('Example Zone B', 'Example City', 'Needs changes', 'Revision 2'),
-    _ZoneRow('Example Zone C', 'Example City', 'Not activated', 'Revision 1'),
+    _ZoneRow(
+      name: 'Example Zone A',
+      city: 'Example City',
+      status: 'Pending review',
+      revision: 'Revision 1',
+      zoneId: 'ZONE-EX-001',
+      parentPath: 'Example State/UT → Example District → Example City',
+      boundaryStatus: 'Not verified',
+      readinessBlocker: 'Polygon evidence pending',
+      updatedAt: '2026-10-28 09:15 IST',
+      updatedBy: 'Central Admin (example)',
+    ),
+    _ZoneRow(
+      name: 'Example Zone B',
+      city: 'Example City',
+      status: 'Needs changes',
+      revision: 'Revision 2',
+      zoneId: 'ZONE-EX-002',
+      parentPath: 'Example State/UT → Example District → Example City',
+      boundaryStatus: 'Hash changed',
+      readinessBlocker: 'Boundary re-verification required',
+      updatedAt: '2026-10-27 16:40 IST',
+      updatedBy: 'Central Admin (example)',
+    ),
+    _ZoneRow(
+      name: 'Example Zone C',
+      city: 'Example City',
+      status: 'Not activated',
+      revision: 'Revision 1',
+      zoneId: 'ZONE-EX-003',
+      parentPath: 'Example State/UT → Example District → Example City',
+      boundaryStatus: 'Verified (example)',
+      readinessBlocker: 'Founder/CEO approval or activation pending',
+      updatedAt: '2026-10-26 12:05 IST',
+      updatedBy: 'Central Admin (example)',
+    ),
   ];
 
   @override
@@ -32,7 +65,8 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
     final query = _search.text.trim().toLowerCase();
     final rows = _examples.where((row) {
       final matchesQuery =
-          query.isEmpty || '${row.name} ${row.city}'.toLowerCase().contains(query);
+          query.isEmpty || '${row.name} ${row.city} ${row.zoneId} ${row.parentPath} '
+                  '${row.boundaryStatus} ${row.readinessBlocker}'.toLowerCase().contains(query);
       final matchesStatus = _status == 'All' || row.status == _status;
       return matchesQuery && matchesStatus;
     }).toList();
@@ -122,9 +156,13 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
                                 spacing: 18,
                                 runSpacing: 8,
                                 children: [
-                                  _Meta('City', row.city),
+                                  _Meta('Zone ID', row.zoneId),
+                                  _Meta('Parent path', row.parentPath),
                                   _Meta('Revision', row.revision),
-                                  _Meta('Zone ID', 'Not assigned in preview'),
+                                  _Meta('Boundary status', row.boundaryStatus),
+                                  _Meta('Readiness blockers', row.readinessBlocker),
+                                  _Meta('Last updated', row.updatedAt),
+                                  _Meta('Updated by', row.updatedBy),
                                 ],
                               ),
                               const SizedBox(height: 12),
@@ -152,11 +190,29 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
 }
 
 class _ZoneRow {
-  const _ZoneRow(this.name, this.city, this.status, this.revision);
+  const _ZoneRow({
+    required this.name,
+    required this.city,
+    required this.status,
+    required this.revision,
+    required this.zoneId,
+    required this.parentPath,
+    required this.boundaryStatus,
+    required this.readinessBlocker,
+    required this.updatedAt,
+    required this.updatedBy,
+  });
+
   final String name;
   final String city;
   final String status;
   final String revision;
+  final String zoneId;
+  final String parentPath;
+  final String boundaryStatus;
+  final String readinessBlocker;
+  final String updatedAt;
+  final String updatedBy;
 }
 
 class _StatusLabel extends StatelessWidget {
