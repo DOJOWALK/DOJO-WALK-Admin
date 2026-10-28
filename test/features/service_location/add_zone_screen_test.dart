@@ -71,6 +71,10 @@ void main() {
     );
     expect(saveDraft.onPressed, isNull);
     expect(submit.onPressed, isNull);
+    expect(
+      find.textContaining('polygon evidence is drawn and verified'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('opens Boundary Review preview without submitting a Zone',
