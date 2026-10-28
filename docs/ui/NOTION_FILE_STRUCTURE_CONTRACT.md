@@ -62,3 +62,70 @@ The Admin service-location setup hierarchy is State/UT → District → City →
 ## Current validation caveat
 
 The branch head must be checked independently before declaring CI green. The latest code head reported during the handoff was `f8ff6a53daba7a70436c9419755a20c3bb9f4b7a`; the PR description explicitly notes that the booking status alias update and current head still require exact-head full CI verification. Historical successful runs are not proof that this later head passes.
+
+
+## 8. Canonical Admin target tree (owner-requested)
+
+The following is the target tree for the Admin repository. It is an architecture target, not a claim that every folder or file already exists.
+
+```text
+DOJO-WALK-Admin/
+├── .github/workflows/
+│   └── build_web.yml
+├── docs/
+│   ├── PROJECT_FILE_STRUCTURE.md
+│   ├── LOCATION_MASTER_STATUS.md
+│   ├── architecture/
+│   ├── data_dictionary/
+│   ├── runbooks/
+│   ├── decisions/
+│   └── ui/
+├── data/reference/india_locations/
+│   ├── source_manifest.md
+│   └── README.md
+├── lib/
+│   ├── main.dart
+│   ├── app/app.dart
+│   ├── core/
+│   │   ├── constants/
+│   │   ├── errors/
+│   │   ├── routing/
+│   │   ├── theme/
+│   │   └── utils/
+│   ├── data/
+│   │   ├── reference/india_locations/
+│   │   │   ├── india_states.dart
+│   │   │   ├── india_districts.dart
+│   │   │   └── india_sub_districts.dart
+│   │   └── repositories/
+│   ├── features/
+│   │   ├── auth/
+│   │   ├── dashboard/
+│   │   ├── bookings/
+│   │   ├── walkers/
+│   │   ├── live_operations/
+│   │   ├── service_location/{models,screens,services,widgets,utils}/
+│   │   └── settings/
+│   ├── shared/{widgets,services}/
+│   └── firebase_options.dart
+├── test/{core,features,data}/
+├── web/
+├── pubspec.yaml
+├── analysis_options.yaml
+└── README.md
+```
+
+### Required exceptions and migration safeguards
+
+- The old draft tree mentioned `lib/features/coupons/`. Do **not** create or restore that feature: the current business decision is no coupon-code system, and the Coupons Admin destination was removed. A future policy change must first be approved and recorded in Notion.
+- Create Zone selectors are exactly `State/UT → District → City → Zone`; no Locality selector. Only Zone is service-activatable and polygon verification is required.
+- The live repository currently has established paths outside this target grouping (including dashboard, booking and live screens under `lib/screens/`). Keep those working paths until a per-domain migration is reviewed and tested. Do not create duplicate feature screens to imitate the target tree.
+- The currently working workflow path must not be renamed to `.github/workflows/build_web.yml` until triggers, required checks, branch-protection references and duplicate-workflow risk are audited.
+- The three India location Dart datasets are planned/restoration-pending until their source, declarations, official codes, parent relationships, imports and record counts have been verified. Do not create placeholder data files to make the tree appear complete.
+- Empty directories do not persist in Git by themselves; create a directory only when it has a real tracked file and a defined purpose.
+
+### File migration ledger
+
+For every planned migration, record: Notion policy; current path; target path; imports/routes affected; test coverage; validation run and exact commit SHA; status (`Planned`, `In progress`, `Verified`, or `Blocked`). Update `docs/ui/NOTION_POL040_FILE_MAP.md` and this contract together when a Service Location path changes.
+
+**Current status:** This section establishes the agreed target and safety rules. It does not certify that the whole repository has been migrated. PR #51 remains Draft; no merge, deployment, or new Firebase integration is authorized during the UI-first phase.
