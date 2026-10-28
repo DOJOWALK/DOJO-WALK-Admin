@@ -42,6 +42,16 @@ void main() {
       expect(find.text('Example Zone B'), findsOneWidget);
       expect(find.text('Example Zone A'), findsNothing);
       expect(find.text('Example Zone C'), findsNothing);
+
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Suspended'));
+      await tester.pumpAndSettle();
+      expect(find.text('Example Zone F'), findsOneWidget);
+      expect(find.text('Example Zone B'), findsNothing);
+
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Deactivated'));
+      await tester.pumpAndSettle();
+      expect(find.text('Example Zone G'), findsOneWidget);
+      expect(find.text('Example Zone F'), findsNothing);
     });
 
     testWidgets('directory routes to boundary review preview',
