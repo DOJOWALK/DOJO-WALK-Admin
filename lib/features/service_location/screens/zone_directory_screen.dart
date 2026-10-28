@@ -186,10 +186,58 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
                 ),
                 const SizedBox(height: 16),
                 if (rows.isEmpty)
-                  const Card(
+                  Card(
                     child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Center(child: Text('No example zones match this filter.')),
+                      padding: const EdgeInsets.all(24),
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.search_off_outlined,
+                              size: 36,
+                              color: _orange,
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              query.isNotEmpty
+                                  ? 'No example zones match “${_search.text.trim()}”.'
+                                  : 'No example zones with status “$_status”.',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: _ink,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'These are sample records only. Clear the search or select All to view the examples.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.black54),
+                            ),
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 8,
+                              alignment: WrapAlignment.center,
+                              children: [
+                                if (query.isNotEmpty)
+                                  OutlinedButton(
+                                    onPressed: () {
+                                      _search.clear();
+                                      setState(() {});
+                                    },
+                                    child: const Text('Clear search'),
+                                  ),
+                                if (_status != 'All')
+                                  OutlinedButton(
+                                    onPressed: () => setState(() => _status = 'All'),
+                                    child: const Text('Show all statuses'),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   )
                 else
