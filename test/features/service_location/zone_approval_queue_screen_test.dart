@@ -67,4 +67,20 @@ void main() {
       expect(find.text('Example Zone B'), findsOneWidget);
     });
   });
+
+  testWidgets('approval details remain readable on a narrow mobile viewport',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      const MaterialApp(home: ZoneApprovalQueueScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Founder Approval Queue'), findsOneWidget);
+    expect(find.text('Example Zone A'), findsOneWidget);
+    expect(find.text('Boundary integrity'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
