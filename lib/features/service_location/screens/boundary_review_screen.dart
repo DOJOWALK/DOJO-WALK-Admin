@@ -417,15 +417,25 @@ class _Detail extends StatelessWidget {
   final String value;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-        width: 240,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: const TextStyle(color: Colors.black54, fontSize: 11)),
-            const SizedBox(height: 3),
-            SelectableText(value, style: const TextStyle(color: _ink, fontSize: 13, fontWeight: FontWeight.w600)),
-          ],
+  Widget build(BuildContext context) => ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 240),
+        child: SizedBox(
+          width: 200,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(color: Colors.black54, fontSize: 11)),
+              const SizedBox(height: 3),
+              SelectableText(
+                value,
+                style: const TextStyle(
+                  color: _ink,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       );
 
