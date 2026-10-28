@@ -38,9 +38,22 @@ class _FinanceOperationsScreenState extends State<FinanceOperationsScreen> {
         'Failure reason and retry provider not connected', '2026-10-27 12:00 IST'),
   ];
 
+  final reconciliation = const [
+    _FinanceRow('RECON-EX-001', 'GATEWAY-SETTLEMENT-EX-001', '₹4,998', 'Matched (example)',
+        'Illustrative only; no provider settlement file was loaded', '2026-10-28 10:00 IST'),
+    _FinanceRow('RECON-EX-002', 'GATEWAY-SETTLEMENT-EX-002', '₹1,200', 'Mismatch (example)',
+        'Needs evidence review; do not mark paid or refunded from this preview', '2026-10-27 14:30 IST'),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final rows = tab == 'Payments' ? payments : tab == 'Refunds' ? refunds : payouts;
+    final rows = tab == 'Payments'
+        ? payments
+        : tab == 'Refunds'
+            ? refunds
+            : tab == 'Walker payouts'
+                ? payouts
+                : reconciliation;
     return Scaffold(
       backgroundColor: const Color(0xFFFFFAF5),
       appBar: AppBar(
@@ -90,7 +103,7 @@ class _FinanceOperationsScreenState extends State<FinanceOperationsScreen> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    for (final value in ['Payments', 'Refunds', 'Walker payouts'])
+                    for (final value in ['Payments', 'Refunds', 'Walker payouts', 'Reconciliation'])
                       ChoiceChip(
                         label: Text(value),
                         selected: tab == value,
