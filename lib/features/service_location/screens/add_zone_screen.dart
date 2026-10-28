@@ -202,6 +202,8 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                             onChanged: (value) => setState(() {
                               _district = value;
                               _city = null;
+                              _zoneSelection = null;
+                              _zoneName.clear();
                             }),
                           ),
                           const SizedBox(height: 16),
@@ -212,6 +214,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                             onChanged: (value) => setState(() {
                               _city = value;
                               _zoneSelection = null;
+                              _zoneName.clear();
                             }),
                           ),
                           const SizedBox(height: 16),
