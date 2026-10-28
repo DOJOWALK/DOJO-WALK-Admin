@@ -40,6 +40,27 @@ class DashboardScreen extends StatelessWidget {
         .map((snapshot) => snapshot.size);
   }
 
+  Stream<int> _countWhereAny(
+    String collection,
+    String field,
+    List<String> values,
+  ) {
+    if (values.isEmpty) return Stream<int>.value(0);
+    return FirebaseFirestore.instance
+        .collection(collection)
+        .where(field, whereIn: values)
+        .snapshots()
+        .map((snapshot) => snapshot.size);
+  }
+
+  Stream<int> _countBookingStatus(String canonicalLabel) {
+    return _countWhereAny(
+      'bookings',
+      'status',
+      bookingStatusQueryAliases(canonicalLabel),
+    );
+  }
+
   // ============================================================
   // REVENUE
   // ============================================================
@@ -387,11 +408,7 @@ class DashboardScreen extends StatelessWidget {
           _LiveStreamRow(
             label: 'Active Walks',
             icon: Icons.directions_walk,
-            stream: _countWhere(
-              'bookings',
-              'status',
-              'walking',
-            ),
+            stream: _countBookingStatus('Walk In Progress'),
           ),
           const Divider(),
 
@@ -409,22 +426,14 @@ class DashboardScreen extends StatelessWidget {
           _LiveStreamRow(
             label: 'Waiting Assignment',
             icon: Icons.hourglass_empty,
-            stream: _countWhere(
-              'bookings',
-              'status',
-              'pending',
-            ),
+            stream: _countBookingStatus('Pending'),
           ),
           const Divider(),
 
           _LiveStreamRow(
             label: 'Completed Walks',
             icon: Icons.check_circle_outline,
-            stream: _countWhere(
-              'bookings',
-              'status',
-              'completed',
-            ),
+            stream: _countBookingStatus('Completed'),
           ),
         ],
       ),
@@ -443,31 +452,19 @@ class DashboardScreen extends StatelessWidget {
         children: [
           _StatusStreamRow(
             label: 'Pending',
-            stream: _countWhere(
-              'bookings',
-              'status',
-              'Pending',
-            ),
+            stream: _countBookingStatus('Pending'),
           ),
           const SizedBox(height: 12),
 
           _StatusStreamRow(
             label: 'Picked Up',
-            stream: _countWhere(
-              'bookings',
-              'status',
-              'picked_up',
-            ),
+            stream: _countBookingStatus('Walker Assigned'),
           ),
           const SizedBox(height: 12),
 
           _StatusStreamRow(
             label: 'Accepted',
-            stream: _countWhere(
-              'bookings',
-              'status',
-              'accepted',
-            ),
+            stream: _countBookingStatus('Walker Accepted'),
           ),
           const SizedBox(height: 12),
 
@@ -483,11 +480,7 @@ class DashboardScreen extends StatelessWidget {
 
           _StatusStreamRow(
             label: 'Completed',
-            stream: _countWhere(
-              'bookings',
-              'status',
-              'Completed',
-            ),
+            stream: _countBookingStatus('Completed'),
           ),
         ],
       ),
