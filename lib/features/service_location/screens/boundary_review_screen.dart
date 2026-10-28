@@ -245,13 +245,26 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Icon(Icons.map_outlined, color: _orange),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(item.zone, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Icon(Icons.map_outlined, color: _orange),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          item.zone,
+                                          style: const TextStyle(
+                                            fontSize: 17,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                  const SizedBox(height: 8),
                                   _StatusPill(item.status),
                                 ],
                               ),
