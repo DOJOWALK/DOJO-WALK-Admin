@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../utils/admin_error_classifier.dart';
+import '../bookings/booking_status_helper.dart';
+
 class DashboardScreen extends StatelessWidget {
   final VoidCallback? onOpenLiveOperations;
   final VoidCallback? onOpenServiceLocations;
@@ -523,6 +526,7 @@ class DashboardScreen extends StatelessWidget {
           if (snapshot.hasError) {
             return _errorMessage(
               'Unable to load recent bookings.',
+              error: snapshot.error,
             );
           }
 
@@ -539,9 +543,7 @@ class DashboardScreen extends StatelessWidget {
             children: docs.map((doc) {
               final data = doc.data();
 
-              final status =
-                  data['status']?.toString() ??
-                      'Pending';
+              final status = displayBookingStatus(data['status'] ?? 'Pending');
 
               final petId =
                   data['petId']?.toString() ?? '';
@@ -686,30 +688,16 @@ class DashboardScreen extends StatelessWidget {
           if (snapshot.hasError) {
             return _errorMessage(
               'Unable to load activity.',
+              error: snapshot.error,
             );
           }
 
           final docs = snapshot.data?.docs ?? [];
 
           if (docs.isEmpty) {
-            return Column(
-              children: const [
-                _ActivityItem(
-                  title: 'Dashboard connected',
-                  subtitle:
-                      'Firebase realtime connection ready',
-                  icon:
-                      Icons.cloud_done_outlined,
-                ),
-                Divider(),
-                _ActivityItem(
-                  title: 'Admin security active',
-                  subtitle:
-                      'Role verification enabled',
-                  icon:
-                      Icons.security_outlined,
-                ),
-              ],
+            return _emptyMessage(
+              'No audit activity available yet.',
+              Icons.history_toggle_off_outlined,
             );
           }
 
@@ -748,14 +736,30 @@ class DashboardScreen extends StatelessWidget {
   // HELPERS
   // ============================================================
 
-  Widget _errorMessage(String message) {
+  Widget _errorMessage(String message, {Object? error}) {
+    final permissionDenied = isPermissionDeniedError(error);
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Text(
-        message,
-        style: TextStyle(
-          color: Colors.grey.shade600,
-        ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            permissionDenied ? Icons.lock_outline : Icons.error_outline,
+            color: permissionDenied ? Colors.orange.shade800 : Colors.redAccent,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              permissionDenied
+                  ? 'Permission denied. Your Admin role or assigned scope may not allow access to this data.'
+                  : message,
+              style: TextStyle(
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
