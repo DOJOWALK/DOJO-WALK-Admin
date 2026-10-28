@@ -11,6 +11,8 @@ void main() {
       );
 
       expect(find.text('Founder Approval Queue'), findsOneWidget);
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Blocked — boundary pending'));
+      await tester.pumpAndSettle();
       expect(find.text('EXAMPLE-ZONE-001'), findsOneWidget);
       expect(find.text('Blocked — boundary pending'), findsOneWidget);
       expect(find.textContaining('Founder decision must wait'), findsOneWidget);
@@ -35,6 +37,8 @@ void main() {
         const MaterialApp(home: ZoneApprovalQueueScreen()),
       );
 
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Blocked — boundary pending'));
+      await tester.pumpAndSettle();
       expect(find.text('Example Zone A'), findsOneWidget);
 
       await tester.tap(find.widgetWithText(ChoiceChip, 'Blocked — re-review'));
@@ -87,6 +91,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Founder Approval Queue'), findsOneWidget);
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Blocked — boundary pending'));
+    await tester.pumpAndSettle();
     expect(find.text('Example Zone A'), findsOneWidget);
     expect(find.text('Boundary integrity'), findsOneWidget);
     expect(tester.takeException(), isNull);
