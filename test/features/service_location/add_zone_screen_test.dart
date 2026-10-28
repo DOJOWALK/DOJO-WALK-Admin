@@ -59,6 +59,45 @@ void main() {
     expect(find.text('Please select Zone'), findsNothing);
   });
 
+  testWidgets('selecting an example Zone never presents it as a new Zone',
+      (tester) async {
+    await tester.pumpWidget(app());
+
+    final dropdowns = find.byType(DropdownButtonFormField<String>);
+    await tester.tap(dropdowns.at(0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Uttar Pradesh').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(dropdowns.at(1));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Gautam Buddha Nagar').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(dropdowns.at(2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Noida').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(dropdowns.at(3));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Example Zone North (mock)').last);
+    await tester.pumpAndSettle();
+
+    final validateButton = find.text('Validate readiness');
+    await tester.scrollUntilVisible(
+      validateButton,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(validateButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Example Zone selected'), findsOneWidget);
+    expect(find.textContaining('Nothing has been edited or saved.'), findsOneWidget);
+    expect(find.text('Validation incomplete'), findsNothing);
+  });
+
   testWidgets('keeps draft save and review submission disabled without backend',
       (tester) async {
     await tester.pumpWidget(app());
