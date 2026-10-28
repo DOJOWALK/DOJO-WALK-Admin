@@ -11,6 +11,10 @@ void main() {
     expect(find.text('Boundary Review'), findsOneWidget);
     expect(find.textContaining('not connected to live records'), findsOneWidget);
     expect(find.textContaining('mock data'), findsOneWidget);
+    expect(find.text('Boundary map preview'), findsOneWidget);
+    expect(find.text('Not connected'), findsOneWidget);
+    expect(find.text('Zone polygon overlay will appear here'), findsOneWidget);
+    expect(find.textContaining('not proof of boundary verification'), findsOneWidget);
   });
 
   testWidgets('shows status, Zone ID, revision, polygon and hash evidence', (tester) async {
