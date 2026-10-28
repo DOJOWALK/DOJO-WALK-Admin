@@ -49,7 +49,7 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
       revision: 'Revision 3',
       boundaryStatus: 'Integrity matched',
       polygonStatus: 'Polygon check recorded (example)',
-      boundaryHash: 'EXAMPLE-SHA256-ABC123',
+      boundaryHash: 'EXAMPLE-SHA256-VERIFIED-003',
     ),
     _ReviewItem(
       zoneId: 'ZONE-EX-004',
