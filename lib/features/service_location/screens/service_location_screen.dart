@@ -97,6 +97,30 @@ class _ServiceLocationScreenState
     super.dispose();
   }
 
+  void _openLocationAction(String action) {
+    final Widget screen;
+    switch (action) {
+      case 'directory':
+        screen = const ZoneDirectoryScreen();
+      case 'boundary':
+        screen = const BoundaryReviewScreen();
+      case 'approval':
+        screen = const ZoneApprovalQueueScreen();
+      case 'location-audit':
+        screen = const LocationAuditHistoryScreen();
+      case 'zone-audit':
+        screen = const ZoneAuditHistoryScreen();
+      case 'suspended':
+        screen = const SuspendedZonesScreen();
+      default:
+        return;
+    }
+
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(builder: (_) => screen),
+    );
+  }
+
   void _showMessage(String message) {
     if (!mounted) return;
 
@@ -117,151 +141,69 @@ class _ServiceLocationScreenState
         title: const Text('Action could not be completed'),
         content: SelectableText(error.toString()),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  bool _matches(String value) {
-    final query = _search.trim().toLowerCase();
-
-    if (query.isEmpty) return true;
-
-    return value.toLowerCase().contains(query);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final isMobile = width < 600;
-
-    return Scaffold(
-      backgroundColor: _locationBackground,
-      appBar: AppBar(
-        toolbarHeight: isMobile ? 68 : 76,
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF242424),
-        surfaceTintColor: Colors.transparent,
-        shadowColor: _locationOrange.withValues(alpha: 0.12),
-        elevation: 3,
-        titleSpacing: 18,
-        title: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFFFFA64D), _locationOrange, Color(0xFFE85F00)],
+          if (isMobile)
+            PopupMenuButton<String>(
+              tooltip: 'More location actions',
+              onSelected: _openLocationAction,
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: 'directory',
+                  child: Text('Zone Directory'),
                 ),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: _locationOrange.withValues(alpha: 0.28),
-                    blurRadius: 14,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.location_on_rounded,
-                color: _locationOrange,
-                size: 23,
-              ),
+                PopupMenuItem(
+                  value: 'boundary',
+                  child: Text('Boundary Review'),
+                ),
+                PopupMenuItem(
+                  value: 'approval',
+                  child: Text('Founder Approval Queue'),
+                ),
+                PopupMenuItem(
+                  value: 'suspended',
+                  child: Text('Suspended / Deactivated Zones'),
+                ),
+                PopupMenuItem(
+                  value: 'location-audit',
+                  child: Text('Location Audit History'),
+                ),
+                PopupMenuItem(
+                  value: 'zone-audit',
+                  child: Text('Zone Audit History'),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Service Locations',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 18,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  SizedBox(height: 3),
-                  Text(
-                    'Coverage & boundary management',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.black54,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
+          if (!isMobile) ...[
+            IconButton(
+              tooltip: 'Zone Directory',
+              onPressed: () => _openLocationAction('directory'),
+              icon: const Icon(Icons.list_alt_outlined),
+            ),
+            IconButton(
+              tooltip: 'Boundary Review',
+              onPressed: () => _openLocationAction('boundary'),
+              icon: const Icon(Icons.fact_check_outlined),
+            ),
+            IconButton(
+              tooltip: 'Founder Approval Queue',
+              onPressed: () => _openLocationAction('approval'),
+              icon: const Icon(Icons.verified_user_outlined),
+            ),
+            IconButton(
+              tooltip: 'Location Audit History',
+              onPressed: () => _openLocationAction('location-audit'),
+              icon: const Icon(Icons.history_rounded),
+            ),
+            IconButton(
+              tooltip: 'Zone Audit History',
+              onPressed: () => _openLocationAction('zone-audit'),
+              icon: const Icon(Icons.history_rounded),
+            ),
+            IconButton(
+              tooltip: 'Suspended / Deactivated Zones',
+              onPressed: () => _openLocationAction('suspended'),
+              icon: const Icon(Icons.pause_circle_outline),
             ),
           ],
-        ),
-        actions: [
-          IconButton(
-            tooltip: 'Zone Directory',
-            onPressed: () => Navigator.of(context).push<void>(
-              MaterialPageRoute<void>(
-                builder: (_) => const ZoneDirectoryScreen(),
-              ),
-            ),
-            icon: const Icon(Icons.list_alt_outlined),
-          ),
-          IconButton(
-            tooltip: 'Boundary Review',
-            onPressed: () => Navigator.of(context).push<void>(
-              MaterialPageRoute<void>(
-                builder: (_) => const BoundaryReviewScreen(),
-              ),
-            ),
-            icon: const Icon(Icons.fact_check_outlined),
-          ),
-          IconButton(
-            tooltip: 'Founder Approval Queue',
-            onPressed: () => Navigator.of(context).push<void>(
-              MaterialPageRoute<void>(
-                builder: (_) => const ZoneApprovalQueueScreen(),
-              ),
-            ),
-            icon: const Icon(Icons.verified_user_outlined),
-          ),
-          IconButton(
-            tooltip: 'Location Audit History',
-            onPressed: () => Navigator.of(context).push<void>(
-              MaterialPageRoute<void>(
-                builder: (_) => const LocationAuditHistoryScreen(),
-              ),
-            ),
-            icon: const Icon(Icons.history_rounded),
-          ),
-          IconButton(
-            tooltip: 'Zone Audit History',
-            onPressed: () => Navigator.of(context).push<void>(
-              MaterialPageRoute<void>(
-                builder: (_) => const ZoneAuditHistoryScreen(),
-              ),
-            ),
-            icon: const Icon(Icons.history_rounded),
-          ),
-          IconButton(
-            tooltip: 'Suspended / Deactivated Zones',
-            onPressed: () => Navigator.of(context).push<void>(
-              MaterialPageRoute<void>(
-                builder: (_) => const SuspendedZonesScreen(),
-              ),
-            ),
-            icon: const Icon(Icons.pause_circle_outline),
-          ),
           Padding(
             padding: EdgeInsets.only(right: isMobile ? 8 : 20),
             child: Center(
@@ -287,7 +229,7 @@ class _ServiceLocationScreenState
               ),
             ),
           ),
-        ],
+        ]
       ),
       body: Column(
         children: [
