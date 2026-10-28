@@ -34,6 +34,7 @@ import '../services/location_csv_lgd_validator.dart';
 import '../services/service_location_boundary_service.dart';
 import '../services/service_location_service.dart';
 import 'add_zone_screen.dart';
+import 'boundary_review_screen.dart';
 import '../widgets/add_location_dialog.dart';
 import '../widgets/service_boundary_editor.dart';
 
@@ -203,6 +204,15 @@ class _ServiceLocationScreenState
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'Boundary Review',
+            onPressed: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => const BoundaryReviewScreen(),
+              ),
+            ),
+            icon: const Icon(Icons.fact_check_outlined),
+          ),
           Padding(
             padding: EdgeInsets.only(right: isMobile ? 8 : 20),
             child: Center(
