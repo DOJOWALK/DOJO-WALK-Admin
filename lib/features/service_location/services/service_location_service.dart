@@ -10,14 +10,12 @@ import 'service_location_index_contract.dart';
 /// DOJO WALK ADMIN
 /// Service Location Service
 ///
-/// Hierarchy:
-/// Country -> State -> District -> Service City -> Service Area
-/// -> optional Locality/Village. Legacy Cities may omit districtId.
+/// Legacy hierarchy data remains readable for migration and reconciliation.
+/// The current service-launch hierarchy is State/UT -> District -> City -> Zone.
 ///
-/// City and Area activation requires a verified polygon stored
-/// in service_location_boundaries.
-///
-/// Locality activation does not require its own polygon.
+/// Only a Zone may be activated for service, through the Founder-approved
+/// Zone workflow. State/UT, District, City and Locality are reference data;
+/// they must not expose independent service activation handlers here.
 ///
 /// Unique names are enforced by the trusted server callable.
 /// ===========================================================
