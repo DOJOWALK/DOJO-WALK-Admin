@@ -252,9 +252,14 @@ class _LiveOperationsScreenState
     } catch (e) {
       debugPrint('Unable to load walker route: $e');
       if (!mounted) return;
+      final permissionDenied = isPermissionDeniedError(e);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to load walker route. Please retry.'),
+        SnackBar(
+          content: Text(
+            permissionDenied
+                ? 'Permission denied for this walker route.'
+                : 'Unable to load walker route. Please retry.',
+          ),
         ),
       );
     }
