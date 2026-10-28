@@ -46,7 +46,13 @@ void main() {
       const MaterialApp(home: CustomerManagementScreen()),
     );
 
-    await tester.tap(find.text('View example profile').first);
+    final profileButton = find.text('View example profile').first;
+    await tester.scrollUntilVisible(
+      profileButton,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(profileButton);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('No live customer data was accessed'), findsOneWidget);
