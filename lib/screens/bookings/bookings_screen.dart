@@ -266,9 +266,11 @@ class _BookingsScreenState extends State<BookingsScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            docs.isEmpty
-                                ? 'No bookings found in Firestore.'
-                                : 'No bookings match your search.',
+                            bookingEmptyStateMessage(
+                              totalRecords: docs.length,
+                              search: _search,
+                              selectedStatus: _selectedStatus,
+                            ),
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontSize: 16,
