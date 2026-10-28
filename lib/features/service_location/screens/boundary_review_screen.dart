@@ -103,6 +103,88 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: const Color(0xFFFFD2AC)),
                   ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              'Boundary map preview',
+                              style: TextStyle(fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF0DF),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text(
+                              'Not connected',
+                              style: TextStyle(
+                                color: Color(0xFF9A4D00),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        height: 180,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF7F3EE),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFE9D9CB)),
+                        ),
+                        child: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.map_outlined,
+                              size: 42,
+                              color: _orange,
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Zone polygon overlay will appear here',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(height: 6),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                'No map or polygon evidence is loaded. This placeholder is not proof of boundary verification.',
+                                style: TextStyle(
+                                  color: Colors.black54,
+                                  fontSize: 12,
+                                  height: 1.4,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFFFD2AC)),
+                  ),
                   child: const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
