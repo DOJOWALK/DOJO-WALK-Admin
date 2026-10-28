@@ -379,21 +379,6 @@ class ServiceLocationService {
     return result.docs.isNotEmpty;
   }
 
-  Future<void> _ensureNoActiveChildren({
-    required String parentCollection,
-    required String parentId,
-    required String label,
-  }) async {
-    if (await _hasActiveChild(
-      parentCollection: parentCollection,
-      parentId: parentId,
-    )) {
-      throw StateError(
-        'Deactivate active child locations before deactivating $label.',
-      );
-    }
-  }
-
   // ==========================================================
   // VERIFIED BOUNDARY LOOKUP
   // ==========================================================
