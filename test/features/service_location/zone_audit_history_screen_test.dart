@@ -76,7 +76,7 @@ void main() {
       (tester) async {
     await tester.pumpWidget(app());
 
-    expect(find.byType(IconButton), findsOneWidget);
+    expect(find.byType(IconButton), findsNothing);
     expect(find.byTooltip('Clear search'), findsNothing);
     expect(find.widgetWithText(TextButton, 'Edit'), findsNothing);
     expect(find.widgetWithText(TextButton, 'Delete'), findsNothing);
