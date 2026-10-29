@@ -225,3 +225,10 @@ This follow-up qualifies the blocker above: the Firebase repository already has 
 2. In a separate Admin change, prevent new UI flows from invoking legacy City/Area activation; retain read-only legacy compatibility where required.
 3. Verify the Zone-only callable enforces role separation, boundary verification, submitted revision/hash binding, Founder/CEO approval and audit logging; verify Rules reject direct client status changes.
 4. Run exact-head Admin CI and Firebase Functions + Firestore Rules emulator suites, then coordinate reviewed merge/deploy sequencing. Do not treat draft-branch code as production protection.
+
+
+## Follow-up — clarify reference hierarchy vs service activation (30 Oct 2026)
+
+- Updated `lib/features/service_location/screens/service_location_screen.dart` in commit `f03d0cd0c5235fdda77929aff9e3bdf45ab435cc` to display a clear informational notice: State/UT, District and City are reference hierarchy records; only a verified Zone may be considered for activation after the approved review workflow.
+- Audit of this screen found the State/District/City list cards themselves are read-only (no status toggles or activation buttons). This notice reduces confusion; it does not implement Zone activation or backend authorization.
+- Exact-head CI was queued at documentation time: [run 40949534432](https://github.com/DOJOWALK/DOJO-WALK-Admin/actions/runs/40949534432). Analyze, tests and release build are **Pending** until the run concludes. PR #51 remains Draft/open/unmerged; no deployment or production write.
