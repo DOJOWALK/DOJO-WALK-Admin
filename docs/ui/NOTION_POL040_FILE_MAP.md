@@ -78,3 +78,34 @@ The Unified UI/UX Design System and POL-038/POL-040 explicitly require exactly f
 2. Audit existing Dashboard, Live Operations, Bookings and Walker Management screens against their Notion policies, including loading/empty/error/permission-denied/success states.
 3. Run final full validation against the latest branch head and record the exact run link.
 4. Only after UI and tests are complete, start the planned Firebase/auth/Firestore integration.
+
+
+## Continued screen-level evidence review — 2026-10-29
+
+This is a source inspection of the checked-in UI and test files, **not** a claim that tests were executed in this session.
+
+### Create Zone form
+
+- Implementation: `lib/features/service_location/screens/add_zone_screen.dart`.
+- Focused widget tests: `test/features/service_location/add_zone_screen_test.dart`.
+- Observed coverage includes exactly four selectors (State/UT → District → City → Zone), downstream selection reset behavior, mock existing-Zone selection not editing a record, draft/review actions disabled without backend, boundary review preview navigation without submission, narrow mobile viewport, polygon-required/radius-insufficient messaging, and empty-form validation.
+- Explicit current gap: hierarchy options are a small hard-coded UI catalog (e.g. Uttar Pradesh/Delhi and sample districts/cities), not the authoritative location catalog. The screen correctly labels mock Zones and explains that nothing is saved. Do not treat these dropdown options as production-ready.
+- Explicit current gap: boundary drawing/upload and real polygon verification are not implemented/connected; save and submit controls remain disabled. This is appropriate for the UI-only phase and must stay so until the Notion backend and authorization gates are implemented and tested.
+
+### Founder Approval Queue
+
+- Implementation: `lib/features/service_location/screens/zone_approval_queue_screen.dart`.
+- Focused widget tests: `test/features/service_location/zone_approval_queue_screen_test.dart`.
+- Observed coverage includes Founder/CEO versus Super Admin authority wording, blocked boundary-pending and changed-hash revisions, filter behavior, disabled server decision actions, and narrow mobile viewport.
+- Explicit current gap: queue rows are local illustrative examples; no live requests, server authorization, revision-bound approval transaction, or append-only audit write is connected. Decision buttons are disabled and the screen labels itself as a prototype.
+
+### Validation status
+
+The source and test assertions above were inspected from the branch. The test runner, formatter, analyzer and release build were **not executed by this source-inspection pass**. Do not mark them PASS based on test-file presence. Exact-head GitHub status must still be checked independently after each commit.
+
+### Next implementation priority
+
+1. Keep mock catalog and approval decisions visibly non-production; do not wire Firebase in this phase.
+2. Continue screen-by-screen comparison with POL-040 and the linked POL-038/POL-041/POL-042 contracts, especially Loading, Empty, Error, Permission Denied and Success states.
+3. Only change code when a specific requirement gap is confirmed and a focused regression test can accompany the change.
+4. Keep PR #51 Draft; do not merge or deploy.
