@@ -111,6 +111,7 @@ void main() {
 
       expect(find.text('Suspended / Deactivated Zones'), findsOneWidget);
       expect(find.textContaining('PROTOTYPE ONLY'), findsOneWidget);
+      await scrollTo(tester, find.text('Example Zone North'));
       expect(find.text('Example Zone North'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
