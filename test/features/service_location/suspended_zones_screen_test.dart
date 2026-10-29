@@ -111,9 +111,19 @@ void main() {
 
       expect(find.text('Suspended / Deactivated Zones'), findsOneWidget);
       expect(find.textContaining('PROTOTYPE ONLY'), findsOneWidget);
+      expect(
+        tester.takeException(),
+        isNull,
+        reason: 'The initial mobile viewport must not overflow.',
+      );
+
       await scrollTo(tester, find.text('Example Zone North'));
       expect(find.text('Example Zone North'), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      expect(
+        tester.takeException(),
+        isNull,
+        reason: 'The suspended Zone card must not overflow on mobile.',
+      );
     });
   });
 }
