@@ -55,4 +55,31 @@ void main() {
     expect(find.text('3 examples'), findsOneWidget);
     expect(find.text('No matching example events'), findsNothing);
   });
+
+  testWidgets('audit history remains usable on a narrow mobile viewport',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Zone Audit History'), findsOneWidget);
+    expect(find.textContaining('not real audit records'), findsOneWidget);
+    expect(find.text('3 examples'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('audit history provides no record mutation controls',
+      (tester) async {
+    await tester.pumpWidget(app());
+
+    expect(find.byType(IconButton), findsOneWidget);
+    expect(find.byTooltip('Clear search'), findsNothing);
+    expect(find.widgetWithText(TextButton, 'Edit'), findsNothing);
+    expect(find.widgetWithText(TextButton, 'Delete'), findsNothing);
+    expect(find.widgetWithText(FilledButton, 'Delete'), findsNothing);
+  });
 }
