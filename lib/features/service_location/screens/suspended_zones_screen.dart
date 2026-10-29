@@ -310,11 +310,14 @@ class _SuspendedZonesScreenState extends State<SuspendedZonesScreen> {
                 zone.runningWalks > 0),
           ]),
           const SizedBox(height: 12),
+          Text(
+            '${zone.events.length} example events · not live audit data',
+            style: const TextStyle(fontSize: 12, color: Color(0xFF756960)),
+          ),
           ExpansionTile(
             tilePadding: EdgeInsets.zero,
             childrenPadding: const EdgeInsets.only(bottom: 8),
             title: const Text('Audit history', style: TextStyle(fontWeight: FontWeight.w700)),
-            subtitle: Text('${zone.events.length} example events · not live audit data'),
             children: [
               for (final event in zone.events)
                 ListTile(
@@ -333,18 +336,20 @@ class _SuspendedZonesScreenState extends State<SuspendedZonesScreen> {
             style: TextStyle(fontSize: 12, height: 1.4, color: Color(0xFF6D625A)),
           ),
           const SizedBox(height: 10),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            OutlinedButton.icon(
-              onPressed: null,
-              icon: const Icon(Icons.description_outlined),
-              label: const Text('View case'),
-            ),
-            OutlinedButton.icon(
-              onPressed: null,
-              icon: const Icon(Icons.lock_outline),
-              label: const Text('Request reactivation'),
-            ),
-          ]),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton(
+                onPressed: null,
+                child: const Text('View case'),
+              ),
+              OutlinedButton(
+                onPressed: null,
+                child: const Text('Request reactivation'),
+              ),
+            ],
+          ),
         ]),
       ),
     );
