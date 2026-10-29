@@ -353,6 +353,29 @@ class _ServiceLocationScreenState
             ),
           ),
           _buildTabs(),
+          Container(
+            width: double.infinity,
+            margin: EdgeInsets.fromLTRB(isMobile ? 12 : 20, 4, isMobile ? 12 : 20, 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: _locationOrange.withValues(alpha: 0.07),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _locationOrange.withValues(alpha: 0.22)),
+            ),
+            child: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info_outline_rounded, size: 18, color: _locationOrange),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Reference hierarchy only: State / UT, District and City do not activate service. Only a verified Zone can be considered for service activation after the approved review workflow.',
+                    style: TextStyle(fontSize: 12, height: 1.35, color: Color(0xFF4A3525)),
+                  ),
+                ),
+              ],
+            ),
+          ),
           const Divider(height: 1, color: Color(0xFFECE5DE)),
           Expanded(
             child: Container(
