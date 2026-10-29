@@ -32,14 +32,16 @@ void main() {
     await tester.tap(find.widgetWithText(ChoiceChip, 'Review required'));
     await tester.pumpAndSettle();
 
-    expect(find.text('No example events match this filter.'), findsOneWidget);
+    expect(find.text('Boundary revision updated'), findsOneWidget);
     expect(find.text('Emergency suspension'), findsNothing);
+    expect(find.text('Zone readiness submitted'), findsNothing);
 
     await tester.tap(find.widgetWithText(ChoiceChip, 'All events'));
     await tester.pumpAndSettle();
 
     expect(find.text('No example events match this filter.'), findsNothing);
     expect(find.text('Zone readiness submitted'), findsOneWidget);
+    expect(find.text('Boundary revision updated'), findsOneWidget);
     expect(find.text('Emergency suspension'), findsOneWidget);
   });
 
