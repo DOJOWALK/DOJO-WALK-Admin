@@ -99,10 +99,13 @@ class _SuspendedZonesScreenState extends State<SuspendedZonesScreen> {
     return Scaffold(
       backgroundColor: _paper,
       appBar: AppBar(
-        title: const Text(
-          'Suspended / Deactivated Zones',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Suspended / Deactivated Zones',
+            maxLines: 1,
+          ),
         ),
         backgroundColor: Colors.white,
         foregroundColor: _ink,
@@ -423,8 +426,17 @@ class _SuspendedZonesScreenState extends State<SuspendedZonesScreen> {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(icon, size: 16, color: alert ? const Color(0xFF8B3030) : const Color(0xFF756960)),
           const SizedBox(width: 6),
-          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-              color: alert ? const Color(0xFF8B3030) : _ink)),
+          Flexible(
+            child: Text(
+              label,
+              softWrap: true,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: alert ? const Color(0xFF8B3030) : _ink,
+              ),
+            ),
+          ),
         ]),
       );
 }
