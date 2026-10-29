@@ -375,7 +375,7 @@ class _SuspendedZonesScreenState extends State<SuspendedZonesScreen> {
           );
           const valueStyle = TextStyle(fontSize: 13, color: _ink);
 
-          if (constraints.maxWidth < 360) {
+          if (constraints.maxWidth < 420) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
