@@ -135,3 +135,17 @@ DOJO-WALK-Admin/
 For every planned migration, record: Notion policy; current path; target path; imports/routes affected; test coverage; validation run and exact commit SHA; status (`Planned`, `In progress`, `Verified`, or `Blocked`). Update `docs/ui/NOTION_POL040_FILE_MAP.md` and this contract together when a Service Location path changes.
 
 **Current status:** This section documents current ownership based on the Notion-to-file maps; it does not certify that every listed domain is complete. PR #51 remains Draft; no merge, deployment, or new Firebase integration is authorized during the UI-first phase.
+
+
+## 9. Owner-confirmed target structure — precedence update (2026-10-29)
+
+The owner has confirmed that the exact canonical target tree is the one documented in `docs/PROJECT_FILE_STRUCTURE.md`. That tree takes precedence over earlier wording in this contract that described the hybrid current layout as the intended final arrangement.
+
+- Current paths under `lib/screens/` are **existing state**, not permission to ignore the target. Audit each path and plan a safe migration to the target `lib/features/` ownership where appropriate.
+- Do not move files in bulk. For each migration, trace imports, routes, dependencies and tests; move one responsibility at a time and verify the resulting commit.
+- Do not create duplicate Dashboard, Bookings, Live Operations, Auth or Service Location implementations during migration.
+- `lib/features/coupons/` is present in the owner-provided tree drawing, but coupon-code behavior remains explicitly excluded by business decision. Do not implement coupon screens/routes/services.
+- Only create meaningful folders/files as needed; empty placeholders do not satisfy implementation.
+- Keep Notion as source of truth and update the Notion-to-file map before code-path migrations.
+- The approved UI/structure phase still forbids merge, deployment and Firebase integration. PR #51 must remain Draft.
+- Target-tree documentation is updated; application migration and exact-head test/CI verification remain Pending until evidenced.
