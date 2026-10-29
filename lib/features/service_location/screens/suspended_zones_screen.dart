@@ -99,7 +99,11 @@ class _SuspendedZonesScreenState extends State<SuspendedZonesScreen> {
     return Scaffold(
       backgroundColor: _paper,
       appBar: AppBar(
-        title: const Text('Suspended / Deactivated Zones'),
+        title: const Text(
+          'Suspended / Deactivated Zones',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         backgroundColor: Colors.white,
         foregroundColor: _ink,
         elevation: 0,
