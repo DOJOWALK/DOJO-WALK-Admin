@@ -119,8 +119,14 @@ void main() {
 
       await scrollTo(tester, find.text('Example Zone North'));
       expect(find.text('Example Zone North'), findsOneWidget);
+      final cardException = tester.takeException();
+      if (cardException is FlutterError) {
+        for (final diagnostic in cardException.diagnostics) {
+          debugPrint('MOBILE_OVERFLOW_DIAGNOSTIC: ${diagnostic.toStringDeep()}');
+        }
+      }
       expect(
-        tester.takeException(),
+        cardException,
         isNull,
         reason: 'The suspended Zone card must not overflow on mobile.',
       );
