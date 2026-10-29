@@ -385,11 +385,33 @@ class _SuspendedZonesScreenState extends State<SuspendedZonesScreen> {
   }
 
   Widget _detail(String label, String value) => Padding(
-        padding: const EdgeInsets.only(bottom: 5),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          SizedBox(width: 132, child: Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF756960)))),
-          Expanded(child: Text(value, style: const TextStyle(fontSize: 13, color: _ink))),
-        ]),
+        padding: const EdgeInsets.only(bottom: 8),
+        child: LayoutBuilder(builder: (context, constraints) {
+          const labelStyle = TextStyle(
+            fontSize: 12,
+            color: Color(0xFF756960),
+          );
+          const valueStyle = TextStyle(fontSize: 13, color: _ink);
+
+          if (constraints.maxWidth < 360) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: labelStyle),
+                const SizedBox(height: 2),
+                Text(value, style: valueStyle),
+              ],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(width: 132, child: Text(label, style: labelStyle)),
+              Expanded(child: Text(value, style: valueStyle)),
+            ],
+          );
+        }),
       );
 
   Widget _impactPill(IconData icon, String label, bool alert) => Container(
