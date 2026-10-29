@@ -265,73 +265,36 @@ class _SuspendedZonesScreenState extends State<SuspendedZonesScreen> {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          LayoutBuilder(builder: (context, constraints) {
-            final statusBadge = Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: isSuspended ? const Color(0xFFFFF0DF) : const Color(0xFFFFE8E3),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Text(
-                zone.status,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: statusColor,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                zone.zoneName,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: _ink,
                 ),
               ),
-            );
-            final zoneIdentity = Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.location_on_outlined, color: _orange),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        zone.zoneName,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: _ink,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        '${zone.zoneId} · ${zone.city}, ${zone.state}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF756960),
-                        ),
-                      ),
-                    ],
-                  ),
+              const SizedBox(height: 3),
+              Text(
+                '${zone.zoneId} · ${zone.city}, ${zone.state}',
+                style: const TextStyle(fontSize: 12, color: Color(0xFF756960)),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isSuspended ? const Color(0xFFFFF0DF) : const Color(0xFFFFE8E3),
+                  borderRadius: BorderRadius.circular(30),
                 ),
-              ],
-            );
-
-            if (constraints.maxWidth < 420) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  zoneIdentity,
-                  const SizedBox(height: 8),
-                  statusBadge,
-                ],
-              );
-            }
-
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: zoneIdentity),
-                const SizedBox(width: 8),
-                statusBadge,
-              ],
-            );
-          }),
+                child: Text(
+                  zone.status,
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: statusColor),
+                ),
+              ),
+            ],
+          ),
           const Divider(height: 24),
           _detail('Reason', zone.reason),
           _detail('Reason code', zone.reasonCode),
