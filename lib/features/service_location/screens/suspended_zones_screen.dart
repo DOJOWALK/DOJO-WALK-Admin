@@ -311,46 +311,36 @@ class _SuspendedZonesScreenState extends State<SuspendedZonesScreen> {
           ]),
           const SizedBox(height: 12),
           Text(
+            'Audit history',
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+          ),
+          const SizedBox(height: 4),
+          Text(
             '${zone.events.length} example events · not live audit data',
             style: const TextStyle(fontSize: 12, color: Color(0xFF756960)),
           ),
-          ExpansionTile(
-            tilePadding: EdgeInsets.zero,
-            childrenPadding: const EdgeInsets.only(bottom: 8),
-            title: const Text('Audit history', style: TextStyle(fontWeight: FontWeight.w700)),
-            children: [
-              for (final event in zone.events)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(Icons.history, color: _orange, size: 18),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              event.action,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${event.actor}\n${event.at}',
-                        style: const TextStyle(height: 1.5, fontSize: 12),
-                      ),
-                    ],
+          const SizedBox(height: 8),
+          for (final event in zone.events)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.action,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-            ],
-          ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '${event.actor}\n${event.at}',
+                    style: const TextStyle(height: 1.5, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(height: 8),
           const Text(
             'Actions are disabled in this prototype. Reactivation must go through a fresh Founder approval; no direct status toggle is provided.',
