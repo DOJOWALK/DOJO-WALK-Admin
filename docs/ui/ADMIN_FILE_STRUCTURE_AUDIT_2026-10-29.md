@@ -152,3 +152,29 @@ Continue with a path-by-path Notion mapping audit. Prefer documenting the canoni
 2. Update this contract and the Notion-to-file map before changing paths.
 3. Move one responsibility at a time with its imports and tests, then obtain exact resulting-head CI evidence.
 4. Keep PR #51 Draft. No merge, deployment, production import or new Firebase integration in this UI/file-structure phase.
+
+
+## 11. Continued implementation audit — 2026-10-29
+
+**Live PR metadata rechecked:** PR #51 remains open, unmerged and Draft. Current PR head at this check is `55bc74c5676b45d31e048f3bfd0ca3dca8d43597`. The canonical target tree is documented in `docs/PROJECT_FILE_STRUCTURE.md`; it remains a target, not a claim that every path has been migrated.
+
+### Direct path checks on the working branch
+
+| Path | Live result | Action / interpretation |
+|---|---|---|
+| `.github/workflows/build_web.yml` | Present | It is a manually triggered live-deployment workflow, not a PR validation workflow. It requires the main branch and explicit confirmation. Do not invoke it during this phase. |
+| `lib/main.dart`, `lib/app/app.dart`, `pubspec.yaml` | Present | Existing app bootstrapping, theme and dependencies remain in their current locations; do not duplicate these in new folders. |
+| `lib/data/reference/india_locations/india_states.dart` | Present | File comments describe a user-provided LGD CSV; provenance is not independently established. |
+| `lib/data/reference/india_locations/india_districts.dart` | Present | Preserve pending source and integrity audit. |
+| `lib/data/reference/india_locations/india_sub_districts.dart` | Tracked path is present; direct text-fetch returned no content in the connector response | **Do not interpret the empty fetch response as an empty file.** Repository search and historical integrity documentation refer to 7,151 records and a 1,830,733-byte source blob. Need a byte-level/blob integrity check before asserting current file contents. |
+| `data/reference/india_locations/README.md` | Present | Correctly documents source/generated/audit separation and the no-production-import gate. |
+| `data/reference/india_locations/source_manifest.md` | Not found | Provenance is still a blocker. Do not fabricate source URL, retrieval date, licence, checksum or generation command. |
+| `docs/LOCATION_MASTER_STATUS.md` | Present, large historical status document | Review/update only with current evidence; older counts and historical CI references must not be treated as current-head proof. |
+
+### Exact-head CI check
+
+For commit `55bc74c5676b45d31e048f3bfd0ca3dca8d43597`, the inspected combined-status response contained no statuses and the commit-specific PR workflow query returned no workflow runs. Therefore, exact-head CI is **UNVERIFIED**. Historical successful runs on older code commits are not a pass for this documentation head.
+
+### Decision for the next code step
+
+No source files were moved, deleted or rewritten during this pass. Do not do a cosmetic bulk move yet. First verify the location-data blob integrity and search imports/routes for a concrete, low-risk migration. Keep the deployment workflow untriggered, PR #51 Draft, and Firebase integration/deployment deferred.
