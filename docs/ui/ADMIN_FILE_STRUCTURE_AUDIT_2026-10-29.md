@@ -178,3 +178,33 @@ For commit `55bc74c5676b45d31e048f3bfd0ca3dca8d43597`, the inspected combined-st
 ### Decision for the next code step
 
 No source files were moved, deleted or rewritten during this pass. Do not do a cosmetic bulk move yet. First verify the location-data blob integrity and search imports/routes for a concrete, low-risk migration. Keep the deployment workflow untriggered, PR #51 Draft, and Firebase integration/deployment deferred.
+
+
+## Follow-up contract audit — legacy Service Location lifecycle conflict (30 Oct 2026)
+
+### Finding: BLOCKER for backend/lifecycle integration
+
+Inspection of the current Admin branch found that the legacy service layer and model contracts still describe and support activation for City/Area/Locality, which conflicts with the owner-approved POL-038/POL-040 rule that **Zone is the only service-activatable unit** and State/UT, District and City are hierarchy/reference records only.
+
+Evidence on branch `ui/notion-brand-foundation-2026-10-28`:
+
+- `lib/features/service_location/services/service_location_service.dart` lines 14–20 documents `Country → State → District → Service City → Service Area → optional Locality/Village`, says City and Area activation uses `service_location_boundaries`, and says Locality activation does not require its own polygon.
+- The same service has legacy `activateServiceLocation` callable usage and save/activation paths for City/Area. Search hits include `isActive`/`isServiceActive` checks and methods around the City and Area sections.
+- `lib/features/service_location/models/service_location_models.dart` still defines `ServiceCity`, `ServiceArea`, and `ServiceLocality` with service-active fields, including fallback from `isServiceActive` to legacy `isActive`.
+- The newer UI prototype uses the correct State/UT → District → City → Zone selector hierarchy, but it does not by itself neutralize the legacy service/model lifecycle contract.
+
+### Required resolution before enabling backend writes
+
+1. Keep this as a documented compatibility blocker; do not silently change Firestore schemas or callable behavior in the UI-only PR.
+2. Review existing Firestore documents, callable implementations, rules and downstream readers to establish a safe legacy-data migration/compatibility plan.
+3. Introduce a dedicated Zone lifecycle contract: draft → submitted revision → boundary verification → authorized approval → activation/suspension, with immutable revision/boundary hash binding and audit events.
+4. Ensure only Zone records can carry the service-activation state in the new contract. State/UT, District and City must remain reference hierarchy, not activatable service records. Legacy City/Area fields may need read-only compatibility during migration; they must not authorize new service delivery.
+5. Add tests proving non-Zone activation is rejected, unverified/missing polygons cannot activate, stale revision/hash approvals fail, Central Admin cannot approve own submissions, and every privileged transition is server-authorized and audited.
+6. Update POL-038, POL-039, POL-040, POL-041 and POL-042 before implementing the lifecycle backend.
+
+### Phase status
+
+- Finding: **Confirmed by source inspection**.
+- Fix: **Not applied** — intentionally outside this UI/structure-only change because backend/callable and production data compatibility must be reviewed first.
+- Firebase writes, schema migration, merge and deployment: **Not performed**.
+- PR #51 remains Draft. This blocker must be resolved in the approved backend phase before Zone activation can be considered production-ready.
