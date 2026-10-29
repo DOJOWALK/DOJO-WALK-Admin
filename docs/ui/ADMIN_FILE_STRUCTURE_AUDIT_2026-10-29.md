@@ -98,3 +98,38 @@ This section supersedes earlier head-specific counts and CI observations above w
 ### Next action
 
 Continue with a path-by-path Notion mapping audit. Prefer documenting the canonical location and gaps over cosmetic moves. Before any code move, check imports, routes, tests, workflow triggers and release gates; then make one isolated change and verify CI against its exact resulting SHA.
+
+
+## 9. Continued path-to-target mapping — 2026-10-29
+
+**Rechecked PR metadata:** #51 is open and Draft; current reported head at this check is `ecadffeaf13c129e65b4f4140642238478520282`. The recursive tree response for that SHA was complete (`truncated: false`). No source files were moved or deleted in this pass.
+
+| User's target path | Current GitHub reality at the inspected tree | Decision |
+|---|---|---|
+| `.github/workflows/build_web.yml` | Exists; three additional Admin validation workflows also exist | Keep all four until triggers and required-check overlap are reviewed. |
+| `docs/PROJECT_FILE_STRUCTURE.md` | Exists | Keep as the broad project structure document; use the more specific UI contract/map for current implementation ownership. |
+| `docs/LOCATION_MASTER_STATUS.md` | Exists | Keep; update only with evidence tied to the exact commit/run. |
+| `docs/architecture/` | Exists, including company flow/file structure guide | Keep canonical architecture decisions here. |
+| `docs/data_dictionary/`, `docs/runbooks/`, `docs/decisions/` | Not established as tracked top-level subfolders in the inspected inventory | Do not create empty folders. Add when there is approved, concrete content to place there. |
+| `data/reference/india_locations/source_manifest.md` | Not present in the inspected inventory; README exists | Do not fabricate source URL, licence, retrieval date or checksum. Add the manifest only after source evidence is available. |
+| `lib/app/` | Exists: app composition and theme | Keep; avoid a second app/theme source. |
+| `lib/core/{constants,errors,routing,theme,utils}/` | No tracked top-level `lib/core/` folder observed | Treat as a future target only. Introduce a subfolder when moving a real shared responsibility with import and test coverage. |
+| `lib/data/reference/india_locations/` | States, districts, sub-districts and location-filter Dart files exist | Keep current paths; separately verify data provenance, stable IDs, counts and parent-child integrity. |
+| `lib/data/repositories/` | No tracked folder observed | Do not add a placeholder or duplicate existing service/repository ownership. |
+| `lib/features/dashboard/`, `bookings/`, `live_operations/` | Dashboard is under `lib/screens/dashboard/`; bookings under `lib/screens/bookings/`; Live Operations under `lib/screens/live/` | Preserve established paths. No duplicate feature copies. Migrate only if Notion requires it and a separate import/route/test plan passes. |
+| `lib/features/service_location/{models,screens,services,widgets}/` | Exists, with an additional `utils/` folder | This already matches the domain-responsibility split; keep it. |
+| `lib/features/coupons/` | Excluded from the target implementation by the product decision | Must not be created; no coupon-code system. |
+| `lib/shared/{widgets,services}/` | No generic tracked shared layer observed; existing `lib/utils/`, `lib/services/` and app-level files are in use | Do not create parallel shared implementations. Consolidate only after dependency/use-site analysis. |
+| `test/{core,features,data}/` | Existing mixed test layout: `test/features/`, `test/screens/`, `test/data/`, plus root-level integrity test | Keep current convention and add tests beside the owning domain. No bulk moves just to mirror the diagram. |
+| `web/`, `pubspec.yaml`, `analysis_options.yaml`, `README.md` | Web and pubspec are present; confirm each root config individually before treating it as complete | Presence is not a build-pass claim. Exact-head CI remains required. |
+
+### Migration order — structure work
+
+1. Keep this branch as the UI/file-organization workstream; no merge or deployment.
+2. Reconcile the canonical mapping in `NOTION_FILE_STRUCTURE_CONTRACT.md` and `ADMIN_UI_NOTION_FILE_MAP.md` before each file move.
+3. The first migration candidate, if still required after import review, should be one small shared utility/theme move—not a mass migration of Dashboard, Bookings, Auth or Live Operations.
+4. Before any move, search all Dart imports, route registrations, tests and workflow references; move/update code and tests in the same isolated commit.
+5. Run formatter, `flutter analyze`, relevant tests, full `flutter test`, and `flutter build web --release` on the resulting exact SHA.
+6. Current reported head `ecadffeaf13c129e65b4f4140642238478520282` has not been established as passing by the previously observed successful workflow run, which belongs to older SHA `f8ff6a53daba7a70436c9419755a20c3bb9f4b7a`. Do not label current-head CI PASS until a run for the exact head (or a later commit containing it) completes successfully.
+
+**Result:** path-to-target mapping updated in this audit. This is not a claim that the whole target tree has been migrated; no application source paths were changed in this pass.
