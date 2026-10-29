@@ -156,3 +156,9 @@ The source and test assertions above were inspected from the branch. The test ru
 - Firebase branch `fix/disable-legacy-location-activation-2026-10-28` updated `functions/src/index.ts` (commit `00e441accb6323503b307a191600faea072ee6c0`) to remove City-polygon containment from Zone boundary review and Zone activation. Legacy Area boundary review retains its previous City-containment behavior; legacy City/Area activation remains blocked. Follow-up comment-only commit: `00c16322e52bc6e80aba115aa73813100e9b4254`.
 - Updated `functions/test/zone_service_location.integration.test.cjs` (commit `ebe7e5c76786ad7ae9009d33b1b6333161c24fc0`) to exercise Zone boundary review without a City boundary and activation without a City polygon. Tests have not yet been observed running against these new commits; do not claim test pass until a CI run for the exact current head completes.
 - Current Firebase PR #40 head at time of audit: `00c16322e52bc6e80aba115aa73813100e9b4254`, still Draft/open/unmerged. Existing CI success on earlier head `494d83f4abf3305ca1f1671b7ef52f26dcf227e7` does not verify this policy change. No deployment or production writes.
+
+
+## Follow-up QA note (30 Oct 2026)
+
+- Reviewed the updated integration-test fixture cleanup and added an explicit restore of `service_cities/{id}.verifiedBoundaryId` after the test proves Zone activation works with no City polygon (`functions/test/zone_service_location.integration.test.cjs`, commit `69057362f87d7b47a79d5c7f7f8f15713dd2ee46`). This prevents the policy test from leaking a modified City fixture into later tests.
+- Latest Firebase PR #40 head: `69057362f87d7b47a79d5c7f7f8f15713dd2ee46`. No Actions run is currently visible for this exact head. CI and emulator tests remain unverified; do not mark the policy change PASS until an exact-head workflow succeeds.
