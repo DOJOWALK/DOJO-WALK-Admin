@@ -133,3 +133,22 @@ Continue with a path-by-path Notion mapping audit. Prefer documenting the canoni
 6. Current reported head `ecadffeaf13c129e65b4f4140642238478520282` has not been established as passing by the previously observed successful workflow run, which belongs to older SHA `f8ff6a53daba7a70436c9419755a20c3bb9f4b7a`. Do not label current-head CI PASS until a run for the exact head (or a later commit containing it) completes successfully.
 
 **Result:** path-to-target mapping updated in this audit. This is not a claim that the whole target tree has been migrated; no application source paths were changed in this pass.
+
+## 10. Live GitHub recheck — 2026-10-29 (latest inspected PR head)
+
+- Pull request #51 remains open and Draft; branch `ui/notion-brand-foundation-2026-10-28`, base `main`.
+- Exact inspected head: `213482bb6cd275ba1888f183dc52f82c9e41a773`.
+- Recursive tree: 397 paths, `truncated: false`.
+- Current tracked structure includes `.github/workflows/build_web.yml` plus three additional validation workflows; `docs/PROJECT_FILE_STRUCTURE.md`; `docs/architecture/`; `data/reference/india_locations/README.md`; existing `lib/screens/{auth,bookings,dashboard,live}/`; feature-grouped Admin domains; `lib/data/reference/india_locations/{india_states,india_districts,india_sub_districts,india_location_filters}.dart`; `lib/firebase_options.dart`; `test/features/`, `test/screens/`, `test/data/`; and `web/`.
+- The simplified target tree is **not yet the literal on-disk tree**. In particular, `lib/core/`, `lib/data/repositories/`, `lib/shared/`, `docs/data_dictionary/`, `docs/runbooks/`, and `docs/decisions/` are not present as tracked directories in the inspected tree. Do not add empty placeholders just to make the tree look identical.
+- Preserve the established `lib/screens/` ownership for Dashboard, Bookings, Live Operations and Auth until a Notion-backed, import/route/test-verified migration is ready. Do not create duplicate `lib/features/dashboard/`, `lib/features/bookings/`, or `lib/features/live_operations/` copies.
+- The current tree does **not** contain `lib/features/coupons/`; keep coupon-code functionality excluded.
+- Current-head combined status returned no statuses, and the commit-specific PR workflow query returned no associated runs. Latest successful workflow visible in the branch run list is run `40777254854`, whose workflow head commit is `f8ff6a53daba7a70436c9419755a20c3bb9f4b7a`; it is older than the inspected head. Therefore, current-head CI is **UNVERIFIED**, not PASS.
+- No source paths were moved or deleted in this recheck. This is an inventory update, not a claim that the target tree has been fully migrated.
+
+### Next safe implementation gate
+
+1. Run an exact-branch usage/import search for one low-risk shared responsibility before proposing any move.
+2. Update this contract and the Notion-to-file map before changing paths.
+3. Move one responsibility at a time with its imports and tests, then obtain exact resulting-head CI evidence.
+4. Keep PR #51 Draft. No merge, deployment, production import or new Firebase integration in this UI/file-structure phase.
