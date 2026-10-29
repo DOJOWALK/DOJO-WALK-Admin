@@ -140,3 +140,11 @@ The source and test assertions above were inspected from the branch. The test ru
 - `_activateTrustedBoundaryLocation` no longer calls the legacy `activateServiceLocation` callable; it fails closed with a clear StateError. This prevents old City/Area UI actions from sending legacy activation requests from this Admin branch.
 - Scope note: this does not implement the new Zone UI/backend integration, remove every legacy status control from screens, or prove production protection. Legacy methods may still be reachable from old UI, but their service-layer mutations now fail closed.
 - Validation status at time of writing: CI for the new exact head has not yet been checked; analyzer, tests and Web release build are **Pending** until GitHub Actions provides exact-head evidence. No Firebase writes, merge or deployment. PR #51 remains Draft.
+
+
+## Follow-up — approval queue prototype audit and exact-head CI closeout (30 Oct 2026)
+
+- Rechecked Admin CI run `40949534432` for code commit `f03d0cd0c5235fdda77929aff9e3bdf45ab435cc`: workflow conclusion is `success`; dependencies, full-project analyze, complete Admin tests, Flutter Web release build, and cleanup all completed successfully. This run is for that application-code commit, not the later docs-only branch head.
+- Audited `lib/features/service_location/screens/zone_approval_queue_screen.dart` and `test/features/service_location/zone_approval_queue_screen_test.dart`. The screen is explicitly a UI-only prototype with illustrative records, and all decision buttons are disabled; tests assert no server decisions can be triggered. Do not wire live Founder decisions into this mock queue until real request loading, revision/hash validation display, authorization and callable error states are implemented.
+- Rechecked Firebase Draft PR #40 head `494d83f4abf3305ca1f1671b7ef52f26dcf227e7`, base `feat/zone-name-index-schema-2026-10-26`; it remains open, Draft and unmerged.
+- Blocking policy decision remains: `activateServiceZone` requires a verified parent City polygon and Zone-within-City containment, while the current approved Admin policy establishes Zone polygon verification but does not clearly require a City polygon as a separate prerequisite. No change made to backend behavior. Resolve the policy decision before Zone activation integration; no production deployment or data write.
