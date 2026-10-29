@@ -386,11 +386,17 @@ class _SuspendedZonesScreenState extends State<SuspendedZonesScreen> {
           color: alert ? const Color(0xFFFFE8E3) : const Color(0xFFF4F0EC),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 16, color: alert ? const Color(0xFF8B3030) : const Color(0xFF756960)),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: alert ? const Color(0xFF8B3030) : const Color(0xFF756960),
+            ),
+            const SizedBox(height: 4),
+            Text(
               label,
               softWrap: true,
               style: TextStyle(
@@ -399,8 +405,8 @@ class _SuspendedZonesScreenState extends State<SuspendedZonesScreen> {
                 color: alert ? const Color(0xFF8B3030) : _ink,
               ),
             ),
-          ),
-        ]),
+          ],
+        ),
       );
 }
 
