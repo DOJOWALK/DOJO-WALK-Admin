@@ -208,3 +208,20 @@ Evidence on branch `ui/notion-brand-foundation-2026-10-28`:
 - Fix: **Not applied** — intentionally outside this UI/structure-only change because backend/callable and production data compatibility must be reviewed first.
 - Firebase writes, schema migration, merge and deployment: **Not performed**.
 - PR #51 remains Draft. This blocker must be resolved in the approved backend phase before Zone activation can be considered production-ready.
+
+
+## Cross-repository follow-up — mitigation already exists in Firebase draft PR (30 Oct 2026)
+
+This follow-up qualifies the blocker above: the Firebase repository already has a mitigation under review, so the finding is **not an unaddressed design idea**. It is still unresolved for the current mainline/release because the mitigation is not merged and the Admin caller remains in this branch.
+
+- Firebase draft PR #40, `fix/disable-legacy-location-activation-2026-10-28`, head `494d83f4abf3305ca1f1671b7ef52f26dcf227e7`, removes the legacy City/Area activation implementation and leaves a compatibility callable that rejects those activation requests. It is stacked on Firebase PR #39 (`feat/zone-name-index-schema-2026-10-26`), which targets `main`.
+- The GitHub Actions check **“Build, geometry and callable integration tests”** completed successfully for PR #40's exact head SHA on 27 Oct 2026 (run `40604834433`). The aggregate commit status API still reports `pending`; therefore this single successful check is not a claim that every required check or the full release gate is complete.
+- PR #40 explicitly says Admin UI legacy handlers/callers are not removed in that PR. The current Admin `service_location_service.dart` still has City/Area activation call paths. This caller/backend mismatch must be resolved before a coordinated rollout.
+- Firebase PR #40 is Draft/open/unmerged. No Firebase deployment or production data change was performed in this audit.
+
+### Corrected rollout gate
+
+1. Review Firebase PR #39 and #40 together with the Zone workflow / Founder approval / name-index dependencies; preserve their Draft status until reviewed.
+2. In a separate Admin change, prevent new UI flows from invoking legacy City/Area activation; retain read-only legacy compatibility where required.
+3. Verify the Zone-only callable enforces role separation, boundary verification, submitted revision/hash binding, Founder/CEO approval and audit logging; verify Rules reject direct client status changes.
+4. Run exact-head Admin CI and Firebase Functions + Firestore Rules emulator suites, then coordinate reviewed merge/deploy sequencing. Do not treat draft-branch code as production protection.
