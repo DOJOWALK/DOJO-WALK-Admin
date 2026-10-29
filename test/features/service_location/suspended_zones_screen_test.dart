@@ -96,5 +96,23 @@ void main() {
       expect(find.text('Suspension requested'), findsOneWidget);
       expect(find.text('Zone suspended'), findsOneWidget);
     });
+
+    testWidgets('suspended zone screen remains usable on a narrow mobile viewport',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const MaterialApp(home: SuspendedZonesScreen()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Suspended / Deactivated Zones'), findsOneWidget);
+      expect(find.textContaining('PROTOTYPE ONLY'), findsOneWidget);
+      expect(find.text('Example Zone North'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 }
