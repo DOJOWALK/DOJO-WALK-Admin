@@ -129,3 +129,14 @@ The source and test assertions above were inspected from the branch. The test ru
 - Remaining gaps are integration-level, not solved by these UI tests: live audit_logs query, server-side pagination, stable ordering, loading/error/permission-denied states, and authorization. Keep the prototype label until those exist.
 - No Flutter CLI was available in this connector session. Formatter, analyzer, tests and Web release build are **not executed / Pending**; no passing result is inferred from test source.
 - Latest branch head after this change: `3240e2911b84d072df94d5e7971c1f8db12191eb`. Exact-head workflow status must be checked separately. Keep PR #51 Draft; no backend integration, merge or deployment.
+
+
+## Follow-up implementation — fail closed on legacy location status calls (30 Oct 2026)
+
+- File changed: `lib/features/service_location/services/service_location_service.dart`.
+- Commit: `2c3ff32a77076c373d6633791e5ad8a34dab7015`.
+- Updated the service contract comments to identify the legacy City/Area/Locality records as compatibility/read-only records and Zone as the only service-status unit.
+- `_setTrustedStatus` now rejects all non-Zone status mutations locally and rejects Zone activation through the generic status callable; a Zone deactivation request is passed only as `isActive: false` to the trusted endpoint, which must still validate Founder-approved deactivation server-side.
+- `_activateTrustedBoundaryLocation` no longer calls the legacy `activateServiceLocation` callable; it fails closed with a clear StateError. This prevents old City/Area UI actions from sending legacy activation requests from this Admin branch.
+- Scope note: this does not implement the new Zone UI/backend integration, remove every legacy status control from screens, or prove production protection. Legacy methods may still be reachable from old UI, but their service-layer mutations now fail closed.
+- Validation status at time of writing: CI for the new exact head has not yet been checked; analyzer, tests and Web release build are **Pending** until GitHub Actions provides exact-head evidence. No Firebase writes, merge or deployment. PR #51 remains Draft.
