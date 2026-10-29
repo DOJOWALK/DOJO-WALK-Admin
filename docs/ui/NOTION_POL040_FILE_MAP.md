@@ -119,3 +119,13 @@ The source and test assertions above were inspected from the branch. The test ru
 - This closes a test-file gap for the existing Location Audit History prototype only. It does **not** implement or validate live audit queries, loading/error/permission-denied server states, pagination, date/actor filters, or server-side access control. Those remain pending until the approved backend contract is implemented.
 - Exact-head CI for `bc33ccd36ddede6460be554b5c362ae89608b183` was queried immediately after commit and returned no associated PR workflow runs. Test execution, analysis, formatting and Web release build therefore remain **Pending / unverified**, not PASS.
 - No Firebase integration, production data write, merge or deployment was performed. PR #51 remains Draft.
+
+
+## Continued Service Location audit — Zone Audit History (29 Oct 2026)
+
+- Added two widget-test cases in commit `3240e2911b84d072df94d5e7971c1f8db12191eb`: 360px mobile viewport and read-only UI (no edit/delete/mutation controls).
+- Existing tests already cover sample-data warning, searching across event/zone/actor/status, clearing a search, and no-match recovery.
+- Review note: the clear-search IconButton is conditional and must not appear before a query is entered. The read-only test asserts no IconButton is shown in the initial state; the clear-search behavior remains covered by the existing search tests.
+- Remaining gaps are integration-level, not solved by these UI tests: live audit_logs query, server-side pagination, stable ordering, loading/error/permission-denied states, and authorization. Keep the prototype label until those exist.
+- No Flutter CLI was available in this connector session. Formatter, analyzer, tests and Web release build are **not executed / Pending**; no passing result is inferred from test source.
+- Latest branch head after this change: `3240e2911b84d072df94d5e7971c1f8db12191eb`. Exact-head workflow status must be checked separately. Keep PR #51 Draft; no backend integration, merge or deployment.
