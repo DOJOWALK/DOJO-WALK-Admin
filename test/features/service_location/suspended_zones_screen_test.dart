@@ -121,9 +121,7 @@ void main() {
       expect(find.text('Example Zone North'), findsOneWidget);
       final cardException = tester.takeException();
       if (cardException is FlutterError) {
-        for (final diagnostic in cardException.diagnostics) {
-          debugPrint('MOBILE_OVERFLOW_DIAGNOSTIC: ${diagnostic.toStringDeep()}');
-        }
+        debugPrint('MOBILE_OVERFLOW_DIAGNOSTIC: ${cardException.toStringDeep()}');
       }
       expect(
         cardException,
