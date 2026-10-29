@@ -122,6 +122,7 @@ void main() {
       final cardException = tester.takeException();
       if (cardException is FlutterError) {
         debugPrint('MOBILE_OVERFLOW_DIAGNOSTIC: ${cardException.toStringDeep()}');
+        debugDumpRenderTree();
       }
       expect(
         cardException,
