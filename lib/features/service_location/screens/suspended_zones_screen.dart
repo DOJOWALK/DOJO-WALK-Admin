@@ -320,13 +320,34 @@ class _SuspendedZonesScreenState extends State<SuspendedZonesScreen> {
             title: const Text('Audit history', style: TextStyle(fontWeight: FontWeight.w700)),
             children: [
               for (final event in zone.events)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.history, color: _orange),
-                  title: Text(event.action, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                  subtitle: Text('${event.actor}\n${event.at}',
-                      style: const TextStyle(height: 1.5, fontSize: 12)),
-                  isThreeLine: true,
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.history, color: _orange, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              event.action,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${event.actor}\n${event.at}',
+                        style: const TextStyle(height: 1.5, fontSize: 12),
+                      ),
+                    ],
+                  ),
                 ),
             ],
           ),
