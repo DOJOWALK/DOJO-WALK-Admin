@@ -60,3 +60,36 @@ The inspected indexes file contains one composite index for `audit_logs` on `tar
 - Emulator integration: not implemented.
 - Flutter tests / Rules tests / Emulator tests / CI: not run for this change; no PASS is claimed.
 - No merge, deployment, production write, Rules edit, or indexes edit.
+
+## Dashboard Emulator integration design audit — 2026-10-30
+
+A second pass inspected the Admin repository's existing emulator integration pattern and the canonical Rules for every Dashboard collection.
+
+### Reusable CI pattern found
+
+The Admin repository already has:
+- `.github/workflows/walker-admin-emulator-integration.yml`, which checks out the Firebase Rules repository, starts Auth + Firestore emulators on 9099/8080, and runs a real FlutterFire integration test on an Android emulator.
+- `integration_test/walker_admin_service_emulator_test.dart`, which uses a dedicated `demo-dojo-admin-integration` project ID, routes Android emulator traffic through `10.0.2.2`, and seeds fixtures through the Emulator-only owner endpoint.
+
+This is a proven repository pattern to adapt; it is not evidence that a Dashboard integration test exists or has run. The existing workflow currently checks out Firebase Rules at `main`; a future Dashboard workflow should pin the Firebase Rules checkout to an audited commit SHA so the tested Rules/indexes are reproducible.
+
+### Dashboard read authorization findings
+
+The inspected canonical Rules establish:
+- `bookings`, `users`, `walkers`, `payments`, and `audit_logs` reads are permitted to `isAdmin()`.
+- `isAdmin()` specifically requires an authenticated user with an `admin_users/{uid}` document where `isActive == true` and `role == 'super_admin'`.
+- A normal active `admin` or `support` role does not satisfy this helper and must be denied these Dashboard collection reads.
+- `audit_logs` client writes are narrowly restricted to approved Walker actions and the exact field whitelist. Integration fixtures should therefore be seeded only through the local Emulator owner endpoint, not by weakening Rules or inventing client-side audit writes.
+- `payments` is readable by `isAdmin()`; the Dashboard's paid-total stream filters `status == 'paid'` and sums numeric `amount` values.
+
+### Proposed integration assertions
+
+1. Seed an active `super_admin` fixture and representative booking, user, walker, paid/unpaid payment, and audit documents in the Firestore Emulator only.
+2. Verify the real `FirestoreDashboardDataSource` emits expected collection counts, paid-only amount total, recent bookings, and recent activity ordered by `createdAt`.
+3. Authenticate a non-admin role (for example active `support`) and verify the corresponding Dashboard reads fail with permission denied; do not mistake a UI fallback/error state for authorized access.
+4. Verify no fixture helper can reach a non-emulator host; keep the project ID fixed to a `demo-` identifier and assert emulator endpoints before seeding.
+5. Run the test through a separate Dashboard-scoped CI workflow or a carefully extended existing workflow. Do not broaden the Walker workflow triggers until the Dashboard test file and workflow command both exist.
+
+### Current boundary
+
+This pass was read-only. No integration test, workflow, Firebase configuration, Rules, indexes, or application source was changed. The integration test and all execution results remain pending.
