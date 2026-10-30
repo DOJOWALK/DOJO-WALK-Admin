@@ -62,3 +62,12 @@
 - Merge/deployment: NOT performed.
 
 This report records source-level findings only. It does not claim runtime tests, security approval, or production readiness.
+
+## 6. Lifecycle policy test seam added — 2026-10-30
+
+- Extracted deterministic state-transition validation into `lib/features/walkers/services/walker_admin_transition_policy.dart`.
+- Moved the shared action enum and safe service exception into `walker_admin_contracts.dart` to avoid a circular import.
+- `WalkerAdminService` delegates its existing transition validation to the pure policy; this is a structural refactor intended to preserve the existing transition rules.
+- Added `test/features/walkers/walker_admin_transition_policy_test.dart` covering approval, rejection, suspension, reactivation, correction requests and terminal-state guards.
+- These are authored tests, not executed test results. No Firestore/Auth transaction, audit write, query shape, rules emulator or role authorization is tested by this pure policy suite.
+- Exact-head CI has not yet appeared. Flutter Analyze/Test remain unverified.
