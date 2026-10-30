@@ -24,6 +24,47 @@ void main() {
       );
     });
 
+    test('normalizes reasons and enforces required and maximum length', () {
+      expect(
+        WalkerAdminTransitionPolicy.normalizeReason(
+          WalkerAdminAction.approve,
+          '  reviewed  ',
+        ),
+        'reviewed',
+      );
+      expect(
+        WalkerAdminTransitionPolicy.normalizeReason(
+          WalkerAdminAction.approve,
+          null,
+        ),
+        '',
+      );
+      for (final action in [
+        WalkerAdminAction.reject,
+        WalkerAdminAction.suspend,
+        WalkerAdminAction.requestCorrection,
+      ]) {
+        expect(
+          () => WalkerAdminTransitionPolicy.normalizeReason(action, '  '),
+          throwsA(isA<WalkerAdminServiceException>()),
+        );
+      }
+      expect(
+        WalkerAdminTransitionPolicy.normalizeReason(
+          WalkerAdminAction.reject,
+          List.filled(1000, 'r').join(),
+        ),
+        hasLength(1000),
+      );
+      expect(
+        () => WalkerAdminTransitionPolicy.normalizeReason(
+          WalkerAdminAction.reject,
+          List.filled(1001, 'r').join(),
+        ),
+        throwsA(isA<WalkerAdminServiceException>()),
+      );
+    });
+
     test('maps every action to a stable audit event name', () {
       expect(
         {
