@@ -143,3 +143,14 @@ No production rules were changed and no emulator or production deployment was ru
 
 
 - Follow-up workflow review found and corrected the CLI invocation: the job now uses `npx firebase emulators:exec` (the executable exposed by the `firebase-tools` package), not `npx firebase-tools`. Correction commit on Firebase `main`: `2f5eb81ac2409c0177ffd373e275054b34ce613d`. The corrected workflow has been fetched back and inspected; runtime execution is still unverified.
+
+
+## 11. Walker audit history ordering fix — 2026-10-30
+
+- Updated `WalkerAdminService.watchWalkerAuditLogs` to apply server-side `orderBy('createdAt', descending: true)` before the bounded limit. This removes the prior correctness defect where an arbitrary limited subset was locally sorted and could omit newer records.
+- Admin service commit: `6981fcd4bbed0102ddbbaf706e4bba9660b1ce72`.
+- Added Firestore composite index `audit_logs(targetType ASC, targetId ASC, createdAt DESC)` in `firestore.indexes.json` and registered it in `firebase.json`.
+- Firebase index/config commits: `5f6d1c8b4e3360b0d23ce11ed4fc857fc9680aff`, `928dd8cc45e3a394e94b7492b4dfaee2fca51833`.
+- Updated Rules CI path filters to include `firestore.indexes.json` for push and pull request events; workflow path-filter commits: `d9eb9a00e63adecbbdaad6ad73dd70e5c5122525`, `9a0960438141e63bbf06195e116c98403fce405b`.
+- Source files were fetched back for review. No Flutter test, emulator index build, live index deployment, or CI execution was performed. The index is defined in source but is **not deployed** to the Firebase project.
+- Before enabling this query in a deployed environment, deploy the index through the approved Firebase release process and wait for index build completion. Do not assume it is available merely because it exists in Git.
