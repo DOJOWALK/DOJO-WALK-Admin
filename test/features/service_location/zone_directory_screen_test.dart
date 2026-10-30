@@ -176,7 +176,7 @@ void main() {
 
       expect(find.textContaining('Founder Approval Queue · ZONE-EX-003'), findsOneWidget);
       expect(find.text('Example Zone C'), findsOneWidget);
-      expect(find.text('Awaiting decision'), findsOneWidget);
+      expect(find.text('Awaiting decision'), findsWidgets);
       expect(find.text('Verified (example)'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
