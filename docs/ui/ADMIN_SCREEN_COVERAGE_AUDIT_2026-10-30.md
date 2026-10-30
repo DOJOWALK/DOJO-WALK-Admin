@@ -43,7 +43,7 @@ This is a source inventory, not a statement that every screen is visually comple
 | Settings & Governance | `test/features/settings/settings_governance_screen_test.dart` | TEST FILE PRESENT |
 | Support Center | `test/features/support/support_center_screen_test.dart` | TEST FILE PRESENT |
 
-**Interpretation:** 15 of 24 screen areas have a dedicated screen test file in the audited tree. Three more have related helper tests but no dedicated screen test. Six have no dedicated screen test file found. Test-file presence does not prove the tests pass or cover all relevant states.
+**Interpretation:** 16 of 24 screen areas have a dedicated screen test file in the audited tree. Three more have related helper tests but no dedicated screen test. Five have no dedicated screen test file found. Test-file presence does not prove the tests pass or cover all relevant states.
 
 ## 3. Other relevant tests present
 
@@ -69,10 +69,9 @@ For each applicable screen, record actual test evidence for:
 Priority screen tests to add or strengthen:
 1. Admin Login — active/inactive account and role denial states.
 2. Dashboard — loading/error/empty metrics and gross-paid label behavior.
-3. Bookings — loading, filters, empty states, status aliases and details navigation.
-4. Live Operations — loading, listener failure, permission denial, retry, stale/offline markers and booking detail privacy.
-5. Walker Management Dashboard and Walker Details — filters, detail navigation and role/action states.
-6. Service Location main screen and Zone Details — directory navigation, status labels and consistent Zone ID/revision/hash display.
+3. Walker Details — detail navigation and role/action states.
+4. Service Location main screen and Zone Details — directory navigation, status labels and consistent Zone ID/revision/hash display.
+5. Strengthen Bookings, Live Operations and Walker Management Dashboard with dedicated widget-level coverage; their current helper tests are partial evidence only.
 
 ## 5. Exact-head CI status
 
