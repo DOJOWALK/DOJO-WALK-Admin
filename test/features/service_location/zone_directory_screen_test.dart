@@ -168,7 +168,7 @@ void main() {
       await tester.tap(find.text('Preview approval queue'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Founder Approval Queue'), findsOneWidget);
+      expect(find.textContaining('Founder Approval Queue · ZONE-EX-003'), findsOneWidget);
       expect(find.text('Example Zone C'), findsOneWidget);
       expect(find.text('Awaiting decision'), findsOneWidget);
       expect(find.text('Verified (example)'), findsOneWidget);
@@ -190,7 +190,7 @@ void main() {
       await tester.tap(previewButton);
       await tester.pumpAndSettle();
 
-      expect(find.text('Boundary Review'), findsOneWidget);
+      expect(find.textContaining('Boundary Review · ZONE-EX-001'), findsOneWidget);
       expect(find.text('Boundary map preview'), findsOneWidget);
     });
   });
