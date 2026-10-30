@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/walker_admin_model.dart';
 import '../utils/walker_admin_helpers.dart';
 import 'walker_admin_contracts.dart';
+import 'walker_admin_transition_policy.dart';
 
 /// Shared Firestore service for DOJO WALK Admin Walker Management.
 ///
