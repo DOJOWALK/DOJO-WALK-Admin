@@ -247,3 +247,13 @@ No production rules were changed and no emulator or production deployment was ru
 - The prior run `41002085935` had 280 tests pass and one failure: the WalkerAdminTabs semantics test left a `SemanticsHandle` active. Updated the test to dispose the handle explicitly in commit `35a015289af1d88c51bbb7691756df6ce2923c7d`.
 - This establishes CI validation for that exact Admin commit only. It does not establish Firebase Rules emulator success, Flutter service transaction coverage, production index deployment, role-scope authorization, or production readiness.
 - PR #51 remains unmerged and deployment has not been performed.
+
+
+## 20. Firebase lifecycle Rules CI verified — 2026-10-30
+
+- Verified Firebase repository commit `a1f2c4830f6c54b7a00b54142f4779c0f9ebf9cd` after upgrading GitHub Actions to supported major versions.
+- Workflow run `41002942139` (Firestore Rules Tests) completed **SUCCESS**. Emulator job `123891286539` passed dependency installation and the Firestore Rules emulator test command.
+- Workflow run `41002942103` (Test Firestore Security Rules) completed **SUCCESS**. Emulator job `123891286079` passed, and workflow-lint job `123891286384` passed the Actionlint validation step.
+- This confirms the Firebase lifecycle Rules test suite and workflow YAML lint passed in CI for the exact Firebase commit above. It does not prove the Admin Flutter service transaction is exercised, production Rules/index deployment, or city/zone role authorization.
+- The Admin service still has no dedicated transaction-level tests. The next test seam must verify the persisted walker update and audit event together, denied/inactive admin paths, missing walker, invalid transitions, required reason validation, and query constraints. Prefer an emulator-backed test harness and make CI provision the Firestore emulator; do not add guessed mock dependencies or weaken the existing full Flutter validation.
+- No production rules/data, deployed indexes, merge state, or hosting deployment were changed.
