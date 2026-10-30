@@ -134,8 +134,8 @@ void main() {
         (tester) async {
       await tester.pumpWidget(MaterialApp(
         home: WalkerManagementDashboardScreen(
-          walkersStream: const Stream<List<WalkerAdminModel>>.empty(),
-          runningWalkerIdsStream: const Stream<Set<String>>.empty(),
+          walkersStream: Stream<List<WalkerAdminModel>>.multi((_) {}),
+          runningWalkerIdsStream: Stream<Set<String>>.multi((_) {}),
         ),
       ));
       await tester.pump();
