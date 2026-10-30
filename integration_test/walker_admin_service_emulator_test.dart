@@ -1,3 +1,5 @@
+import 'dart:io' as io;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -32,8 +34,11 @@ void main() {
 
       final auth = FirebaseAuth.instanceFor(app: app);
       final firestore = FirebaseFirestore.instanceFor(app: app);
-      await auth.useAuthEmulator('127.0.0.1', 9099);
-      firestore.useFirestoreEmulator('127.0.0.1', 8080);
+      // Android Emulator reaches host-machine services through 10.0.2.2;
+      // loopback inside the emulator points back to the Android guest itself.
+      final emulatorHost = io.Platform.isAndroid ? '10.0.2.2' : '127.0.0.1';
+      await auth.useAuthEmulator(emulatorHost, 9099);
+      firestore.useFirestoreEmulator(emulatorHost, 8080);
 
       final credential = await auth.createUserWithEmailAndPassword(
         email: 'unauthorised-${DateTime.now().microsecondsSinceEpoch}@dojo.test',
