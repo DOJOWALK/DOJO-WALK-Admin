@@ -388,5 +388,46 @@ void main() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
     });
+
+    test('dashboard greeting respects all time boundaries', () {
+      expect(
+        dashboardGreetingFor(DateTime(2026, 10, 30, 11, 59)),
+        'Good morning, Admin 👋',
+      );
+      expect(
+        dashboardGreetingFor(DateTime(2026, 10, 30, 12, 0)),
+        'Good afternoon, Admin 👋',
+      );
+      expect(
+        dashboardGreetingFor(DateTime(2026, 10, 30, 16, 59)),
+        'Good afternoon, Admin 👋',
+      );
+      expect(
+        dashboardGreetingFor(DateTime(2026, 10, 30, 17, 0)),
+        'Good evening, Admin 👋',
+      );
+    });
+
+    testWidgets('uses injected clock for the dashboard date', (tester) async {
+      tester.view.physicalSize = const Size(1440, 1200);
+      tester.view.devicePixelRatio = 1;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DashboardScreen(
+              dataSource: _FakeDashboardDataSource(),
+              clock: () => DateTime(2026, 10, 30, 17, 0),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Good evening, Admin 👋'), findsOneWidget);
+      expect(find.text('Friday, 30 October 2026'), findsOneWidget);
+
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
   });
 }
