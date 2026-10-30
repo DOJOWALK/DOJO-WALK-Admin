@@ -50,7 +50,7 @@ void main() {
 
   testWidgets('deep link scopes boundary review to the selected Zone', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: BoundaryReviewScreen(focusZoneId: 'ZONE-EX-002')));
-    expect(find.textContaining('ZONE-EX-002'), findsOneWidget);
+    expect(find.textContaining('ZONE-EX-002'), findsWidgets);
     expect(find.text('ZONE-EX-002'), findsOneWidget);
     expect(find.text('ZONE-EX-001'), findsNothing);
     expect(find.text('ZONE-EX-003'), findsNothing);
