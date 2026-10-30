@@ -103,3 +103,14 @@ New widget test coverage authored:
 - Available remains an account-eligibility view excluding currently detected running IDs; it does not prove schedule, zone, GPS freshness, capacity or an actually bookable slot.
 - The result count is the current in-memory filtered list size, not a server aggregate.
 - No Firebase integration, merge or deployment was performed.
+## 8. Shared Walker Admin widget tests authored
+
+Added test/features/walkers/walker_admin_widgets_test.dart with coverage for:
+- lifecycle tab semantics/selection callback;
+- eight-tab horizontal scrolling at 320 px;
+- walker card profile/contact/location and Running status presentation;
+- long text and invalid-photo URL fallback at narrow width;
+- walker card tap callback;
+- KYC View enabled/disabled behavior based on the supplied availability flag.
+
+These are source-level test additions only. They have not been executed; exact-head Flutter validation remains outstanding.
