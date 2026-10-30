@@ -59,8 +59,13 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Set up Chrome
-        uses: browser-actions/setup-chrome@v2
+      - name: Install Linux desktop build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+
+      - name: Enable Linux desktop target
+        run: flutter config --enable-linux-desktop
 
       - name: Install Firebase emulator dependencies
         working-directory: firebase-rules
@@ -86,7 +91,7 @@ jobs:
 
       - name: Run real FlutterFire service integration test
         run: |
-          flutter test integration_test/walker_admin_service_emulator_test.dart -d chrome --dart-define=DOJO_EMULATOR_PROJECT_ID=demo-dojo-admin-integration
+          flutter test integration_test/walker_admin_service_emulator_test.dart -d linux --dart-define=DOJO_EMULATOR_PROJECT_ID=demo-dojo-admin-integration
 
       - name: Show emulator logs on failure
         if: failure()
