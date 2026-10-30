@@ -7,16 +7,23 @@ class _FakeDashboardDataSource implements DashboardDataSource {
   final bool empty;
   final bool failRecentBookings;
   final bool failRecentActivity;
+  final bool failCounts;
+  final bool failRevenue;
+  final bool permissionDenied;
   int subscriptionCount = 0;
 
   _FakeDashboardDataSource({
     this.empty = false,
     this.failRecentBookings = false,
     this.failRecentActivity = false,
+    this.failCounts = false,
+    this.failRevenue = false,
+    this.permissionDenied = false,
   });
   @override
   Stream<int> countAll(String collection) {
     subscriptionCount++;
+    if (failCounts) return _countFailure();
     return Stream<int>.value(
         switch (collection) {
           'bookings' => 12,
@@ -29,10 +36,12 @@ class _FakeDashboardDataSource implements DashboardDataSource {
 
   @override
   Stream<int> countWhere(String collection, String field, dynamic value) =>
-      Stream<int>.value(2);
+      failCounts ? _countFailure() : Stream<int>.value(2);
 
   @override
-  Stream<int> countBookingStatus(String canonicalLabel) => Stream<int>.value(
+  Stream<int> countBookingStatus(String canonicalLabel) => failCounts
+      ? _countFailure()
+      : Stream<int>.value(
         switch (canonicalLabel) {
           'Pending' => 3,
           'Completed' => 4,
@@ -42,7 +51,15 @@ class _FakeDashboardDataSource implements DashboardDataSource {
       );
 
   @override
-  Stream<double> totalPaidAmount() => Stream<double>.value(1499);
+  Stream<double> totalPaidAmount() => failRevenue
+      ? Stream<double>.error(_failure)
+      : Stream<double>.value(1499);
+
+  Object get _failure => permissionDenied
+      ? StateError('cloud_firestore permission-denied')
+      : StateError('temporary query failure');
+
+  Stream<int> _countFailure() => Stream<int>.error(_failure);
 
   @override
   Stream<List<DashboardBooking>> recentBookings() {
@@ -177,6 +194,64 @@ void main() {
       await tester.view.resetDevicePixelRatio();
     });
 
+
+    testWidgets('shows visible permission errors for metrics, live counts, statuses and alerts',
+        (tester) async {
+      await tester.view.setPhysicalSize(const Size(1440, 1600));
+      await tester.view.setDevicePixelRatio(1);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DashboardScreen(
+              dataSource: _FakeDashboardDataSource(
+                failCounts: true,
+                failRevenue: true,
+                permissionDenied: true,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Access denied'), findsWidgets);
+      expect(find.text('Total Bookings'), findsOneWidget);
+      expect(find.text('Paid Payments (All Time)'), findsOneWidget);
+      expect(find.text('Online Walkers'), findsOneWidget);
+      expect(find.text('Pending'), findsOneWidget);
+      expect(find.text('Unassigned bookings'), findsOneWidget);
+      expect(find.text('0'), findsNothing);
+
+      await tester.view.resetPhysicalSize();
+      await tester.view.resetDevicePixelRatio();
+    });
+
+    testWidgets('shows general query errors without displaying false zero counts',
+        (tester) async {
+      await tester.view.setPhysicalSize(const Size(1440, 1600));
+      await tester.view.setDevicePixelRatio(1);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DashboardScreen(
+              dataSource: _FakeDashboardDataSource(
+                failCounts: true,
+                failRevenue: true,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Unable to load'), findsWidgets);
+      expect(find.text('0'), findsNothing);
+
+      await tester.view.resetPhysicalSize();
+      await tester.view.resetDevicePixelRatio();
+    });
 
     testWidgets('refresh action resubscribes to dashboard data streams',
         (tester) async {
