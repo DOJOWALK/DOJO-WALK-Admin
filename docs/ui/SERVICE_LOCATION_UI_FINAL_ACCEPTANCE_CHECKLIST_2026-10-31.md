@@ -124,7 +124,7 @@ These CI runs validate code commit `2caff9d00d24020969a7744880101475d2afa9d2`. A
 **Status: NOT YET ACCEPTED.**  
 Reason: automated CI is now green (Analyze, 320 tests, and Web release build), but the remaining manual/device/browser/accessibility checks in Sections 1–7 and explicit Founder/product-owner acceptance are still outstanding. This is not a claim that the Service Location UI is complete or production-ready.
 
-**Next engineering action:** confirm the new branch push triggers the validation workflow, inspect its logs, fix any remaining failures, and only then request product-owner acceptance.
+**Next engineering action:** add focused ServiceBoundaryEditor interaction coverage (undo, clear, read-only behavior, and callback safety), then run the full validation workflow. Actual Google Maps taps still require browser/device verification.
 
 
 ## 12. Successful CI evidence — 2026-10-31
@@ -149,5 +149,11 @@ Reason: automated CI is now green (Analyze, 320 tests, and Web release build), b
   - Service Location Geometry Tests run `41115743983`: success.
   - DOJO WALK Admin Flutter Validation run `41115743897`: completed successfully; Analyze, all 320 tests, and Web release build passed.
 - A build warning remains: the Flutter Web build reports a missing CupertinoIcons font asset while MaterialIcons are present; the build still succeeds. No CupertinoIcons references were found by repository code search, so do not add a dependency blindly. Confirm the rendered screens and icon glyphs during browser/device acceptance.
-- PR #51 remains open and Draft. Branch is 550 commits ahead and 4 commits behind current `main`; no merge or deployment has been performed.
+- PR #51 remains open and Draft. Branch is 552 commits ahead and 4 commits behind current `main`; no merge or deployment has been performed.
 - Acceptance remains **NOT YET ACCEPTED** until manual device/browser, accessibility, navigation, and Founder/product-owner checks are complete.
+
+## 14. Map editor interaction coverage — next gate
+- [x] **Implemented / source-reviewed:** the editor keeps polygon points in widget state, emits immutable point snapshots after add/undo/clear, blocks editing when `readOnly` is true, and only invokes the optional save callback after local shape validation.
+- [ ] **Not verified:** widget tests for Undo, Clear, read-only controls, initial-point rendering, and save-callback validation. Google Maps map-tap simulation is not yet covered by a dedicated widget test.
+- [ ] **Not verified:** manual map taps, camera fit, marker/polygon rendering, and map interaction on supported web browsers and Android/iOS devices.
+- **Safety boundary:** these tests must remain UI-only; do not wire Firestore/Storage, enable Save Draft/Submit for Review, run emulator integration, merge, or deploy.
