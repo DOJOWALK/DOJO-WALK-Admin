@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../widgets/service_boundary_editor.dart';
 import 'boundary_review_screen.dart';
 
 /// UI-only Zone creation form based on DOJO WALK POL-040.
@@ -21,7 +23,8 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
   String? _district;
   String? _city;
   String? _zoneSelection;
-  String _boundaryStatus = 'Not uploaded';
+  String _boundaryStatus = 'Not drawn';
+  List<LatLng> _boundaryPreviewPoints = const [];
   bool _saving = false;
 
   // Placeholder catalog values for UI development only; not production data.
@@ -82,6 +85,63 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
     _city = null;
     _zoneSelection = null;
     _zoneName.clear();
+    _clearBoundaryPreview();
+  }
+
+  void _clearBoundaryPreview() {
+    _boundaryPreviewPoints = const [];
+    _boundaryStatus = 'Not drawn';
+  }
+
+  Future<void> _openBoundaryEditor() async {
+    if (!_creatingZone) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: const Color(0xFFFFFAF5),
+      builder: (sheetContext) => SizedBox(
+        height: MediaQuery.sizeOf(sheetContext).height * 0.88,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Zone boundary — local preview',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Tap the map to add polygon points. This preview stays in this screen only; it is not uploaded, verified, or saved.',
+                style: TextStyle(height: 1.45, color: Colors.black54),
+              ),
+              const SizedBox(height: 12),
+              ServiceBoundaryEditor(
+                initialPoints: _boundaryPreviewPoints,
+                onBoundaryChanged: (points) {
+                  if (!mounted) return;
+                  setState(() {
+                    _boundaryPreviewPoints = List<LatLng>.of(points);
+                    _boundaryStatus = points.isEmpty
+                        ? 'Not drawn'
+                        : 'Local preview only — ${points.length} points; not saved';
+                  });
+                },
+              ),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(sheetContext),
+                  child: const Text('Close preview'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   InputDecoration _decoration(String label, {String? helper}) =>
@@ -211,6 +271,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                               _city = null;
                               _zoneSelection = null;
                               _zoneName.clear();
+                              _clearBoundaryPreview();
                             }),
                           ),
                           const SizedBox(height: 16),
@@ -222,6 +283,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                               _city = value;
                               _zoneSelection = null;
                               _zoneName.clear();
+                              _clearBoundaryPreview();
                             }),
                           ),
                           const SizedBox(height: 16),
@@ -234,6 +296,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                               _zoneSelection = value;
                               if (value != 'Create new Zone…') {
                                 _zoneName.clear();
+                                _clearBoundaryPreview();
                               }
                             }),
                           ),
@@ -321,9 +384,9 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                                   ],
                                 );
                                 final editorButton = OutlinedButton.icon(
-                                  onPressed: null,
-                                  icon: const Icon(Icons.upload_file_outlined),
-                                  label: const Text('Boundary editor pending'),
+                                  onPressed: _creatingZone ? _openBoundaryEditor : null,
+                                  icon: const Icon(Icons.map_outlined),
+                                  label: const Text('Open boundary editor'),
                                 );
 
                                 if (constraints.maxWidth < 500) {
@@ -349,9 +412,11 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                           ),
                           const SizedBox(height: 12),
                           const Text(
-                            'UI placeholder only: map drawing/upload and '
-                            'polygon validation are not connected yet.',
-                            style: TextStyle(fontSize: 12, color: Colors.black54),
+                            'Map drawing is available as an in-memory preview only. '
+                            'Points are not uploaded or verified; authoritative GIS '
+                            'checks, boundary hash, draft save, and review submission '
+                            'remain unavailable.',
+                            style: TextStyle(fontSize: 12, color: Colors.black54, height: 1.45),
                           ),
                         ],
                       ),
