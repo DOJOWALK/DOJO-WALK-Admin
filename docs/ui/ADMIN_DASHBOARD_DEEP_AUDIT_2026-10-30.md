@@ -71,3 +71,17 @@
 - PR #51: keep **Draft/open**; no merge or deployment.
 
 This report records source-level findings only; it does not claim that Firestore rules, production data, query indexes or runtime behavior have been verified.
+
+
+## 6. Follow-up source changes (commit 9fcdb139451ab193c6c0d3d397101642c26b2ca7)
+
+The following narrow UI corrections were committed after the source audit:
+
+- Replaced the misleading static green status dot / “Overview” indicator with neutral “Company overview” text.
+- Changed the fixed morning greeting to a time-aware morning/afternoon/evening greeting.
+- Renamed “Available Walkers” to “Online Walkers”; it still reflects only the `isOnline` field and is not a schedule/capacity guarantee.
+- Renamed “Inactive walkers” to “Offline walkers”; it does not imply account deactivation.
+- Changed the unassigned-booking alert to use the existing booking-status alias helper for Pending.
+- Added explicit loading and error/permission-denied indicators to alert count rows so a failed query is not silently rendered as zero.
+
+These are source-level changes only. They have not been runtime-tested in this commit. The dashboard still lacks a dedicated widget test, and the alert rows still need a visible retry mechanism or an agreed refresh strategy.
