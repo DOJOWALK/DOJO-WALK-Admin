@@ -69,9 +69,11 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
   @override
   Widget build(BuildContext context) {
     final statuses = ['All', 'Pending review', 'Verified', 'Rejected', 'Needs changes'];
-    final items = _filter == 'All'
-        ? _examples
-        : _examples.where((item) => item.status == _filter).toList();
+    final items = _examples.where((item) {
+      final matchesZone = widget.focusZoneId == null || item.zoneId == widget.focusZoneId;
+      final matchesStatus = _filter == 'All' || item.status == _filter;
+      return matchesZone && matchesStatus;
+    }).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFFAF5),
