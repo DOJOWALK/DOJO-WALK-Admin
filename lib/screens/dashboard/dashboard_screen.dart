@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../utils/admin_error_classifier.dart';
-import '../bookings/booking_status_helper.dart';
+import 'dashboard_data_source.dart';
 
 String _dashboardGreeting() {
   final hour = DateTime.now().hour;
@@ -15,84 +15,19 @@ String _dashboardGreeting() {
 class DashboardScreen extends StatelessWidget {
   final VoidCallback? onOpenLiveOperations;
   final VoidCallback? onOpenServiceLocations;
+  final DashboardDataSource? dataSource;
 
   const DashboardScreen({
     super.key,
     this.onOpenLiveOperations,
     this.onOpenServiceLocations,
+    this.dataSource,
   });
 
+  DashboardDataSource get _data =>
+      dataSource ?? FirestoreDashboardDataSource(FirebaseFirestore.instance);
+
   final Color orange = const Color(0xFFFF7900);
-
-  // ============================================================
-  // FIRESTORE COUNTS
-  // ============================================================
-
-  Stream<int> _countAll(String collection) {
-    return FirebaseFirestore.instance
-        .collection(collection)
-        .snapshots()
-        .map((snapshot) => snapshot.size);
-  }
-
-  Stream<int> _countWhere(
-    String collection,
-    String field,
-    dynamic value,
-  ) {
-    return FirebaseFirestore.instance
-        .collection(collection)
-        .where(field, isEqualTo: value)
-        .snapshots()
-        .map((snapshot) => snapshot.size);
-  }
-
-  Stream<int> _countWhereAny(
-    String collection,
-    String field,
-    List<String> values,
-  ) {
-    if (values.isEmpty) return Stream<int>.value(0);
-    return FirebaseFirestore.instance
-        .collection(collection)
-        .where(field, whereIn: values)
-        .snapshots()
-        .map((snapshot) => snapshot.size);
-  }
-
-  Stream<int> _countBookingStatus(String canonicalLabel) {
-    return _countWhereAny(
-      'bookings',
-      'status',
-      bookingStatusQueryAliases(canonicalLabel),
-    );
-  }
-
-  // ============================================================
-  // REVENUE
-  // ============================================================
-
-  Stream<double> _totalRevenue() {
-    return FirebaseFirestore.instance
-        .collection('payments')
-        .where('status', isEqualTo: 'paid')
-        .snapshots()
-        .map((snapshot) {
-      double total = 0;
-
-      for (final doc in snapshot.docs) {
-        final data = doc.data();
-
-        final amount = data['amount'];
-
-        if (amount is num) {
-          total += amount.toDouble();
-        }
-      }
-
-      return total;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +72,7 @@ class DashboardScreen extends StatelessWidget {
                       child: _StatCard(
                         title: 'Total Bookings',
                         icon: Icons.calendar_month_outlined,
-                        stream: _countAll('bookings'),
+                        stream: _data.countAll('bookings'),
                       ),
                     ),
                     SizedBox(
@@ -145,7 +80,7 @@ class DashboardScreen extends StatelessWidget {
                       child: _StatCard(
                         title: 'Customers',
                         icon: Icons.people_outline,
-                        stream: _countAll('users'),
+                        stream: _data.countAll('users'),
                       ),
                     ),
                     SizedBox(
@@ -153,13 +88,13 @@ class DashboardScreen extends StatelessWidget {
                       child: _StatCard(
                         title: 'Walkers',
                         icon: Icons.directions_walk_outlined,
-                        stream: _countAll('walkers'),
+                        stream: _data.countAll('walkers'),
                       ),
                     ),
                     SizedBox(
                       width: cardWidth,
                       child: _RevenueCard(
-                        stream: _totalRevenue(),
+                        stream: _data.totalPaidAmount(),
                       ),
                     ),
                   ],
@@ -409,32 +344,28 @@ class DashboardScreen extends StatelessWidget {
           _LiveStreamRow(
             label: 'Active Walks',
             icon: Icons.directions_walk,
-            stream: _countBookingStatus('Walk In Progress'),
+            stream: _data.countBookingStatus('Walk In Progress'),
           ),
           const Divider(),
 
           _LiveStreamRow(
             label: 'Online Walkers',
             icon: Icons.person_outline,
-            stream: _countWhere(
-              'walkers',
-              'isOnline',
-              true,
-            ),
+            stream: _data.countWhere('walkers', 'isOnline', true),
           ),
           const Divider(),
 
           _LiveStreamRow(
             label: 'Waiting Assignment',
             icon: Icons.hourglass_empty,
-            stream: _countBookingStatus('Pending'),
+            stream: _data.countBookingStatus('Pending'),
           ),
           const Divider(),
 
           _LiveStreamRow(
             label: 'Completed Walks',
             icon: Icons.check_circle_outline,
-            stream: _countBookingStatus('Completed'),
+            stream: _data.countBookingStatus('Completed'),
           ),
         ],
       ),
@@ -459,13 +390,13 @@ class DashboardScreen extends StatelessWidget {
 
           _StatusStreamRow(
             label: 'Picked Up',
-            stream: _countBookingStatus('Picked Up'),
+            stream: _data.countBookingStatus('Picked Up'),
           ),
           const SizedBox(height: 12),
 
           _StatusStreamRow(
             label: 'Accepted',
-            stream: _countBookingStatus('Walker Accepted'),
+            stream: _data.countBookingStatus('Walker Accepted'),
           ),
           const SizedBox(height: 12),
 
@@ -492,16 +423,8 @@ class DashboardScreen extends StatelessWidget {
     return _DashboardCard(
       title: 'Recent Bookings',
       icon: Icons.receipt_long_outlined,
-      child: StreamBuilder<
-          QuerySnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance
-            .collection('bookings')
-            .orderBy(
-              'createdAt',
-              descending: true,
-            )
-            .limit(8)
-            .snapshots(),
+      child: StreamBuilder<List<DashboardBooking>>(
+        stream: _data.recentBookings(),
         builder: (context, snapshot) {
           if (snapshot.connectionState ==
               ConnectionState.waiting) {
@@ -520,7 +443,7 @@ class DashboardScreen extends StatelessWidget {
             );
           }
 
-          final docs = snapshot.data?.docs ?? [];
+          final docs = snapshot.data ?? [];
 
           if (docs.isEmpty) {
             return _emptyMessage(
@@ -530,13 +453,9 @@ class DashboardScreen extends StatelessWidget {
           }
 
           return Column(
-            children: docs.map((doc) {
-              final data = doc.data();
-
-              final status = displayBookingStatus(data['status'] ?? 'Pending');
-
-              final petId =
-                  data['petId']?.toString() ?? '';
+            children: docs.map((booking) {
+              final status = booking.status;
+              final petId = booking.petId;
 
               return Padding(
                 padding:
@@ -562,7 +481,7 @@ class DashboardScreen extends StatelessWidget {
                   ),
 
                   title: Text(
-                    'Booking #${doc.id}',
+                    'Booking #${booking.id}',
                     maxLines: 1,
                     overflow:
                         TextOverflow.ellipsis,
@@ -618,11 +537,7 @@ class DashboardScreen extends StatelessWidget {
             subtitle:
                 'Payments requiring attention',
             icon: Icons.payment_outlined,
-            stream: _countWhere(
-              'payments',
-              'status',
-              'failed',
-            ),
+            stream: _data.countWhere('payments', 'status', 'failed'),
           ),
           const Divider(),
 
@@ -631,11 +546,7 @@ class DashboardScreen extends StatelessWidget {
             subtitle:
                 'Walkers currently offline',
             icon: Icons.person_off_outlined,
-            stream: _countWhere(
-              'walkers',
-              'isOnline',
-              false,
-            ),
+            stream: _data.countWhere('walkers', 'isOnline', false),
           ),
         ],
       ),
@@ -650,16 +561,8 @@ class DashboardScreen extends StatelessWidget {
     return _DashboardCard(
       title: 'System Activity',
       icon: Icons.bolt_outlined,
-      child: StreamBuilder<
-          QuerySnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance
-            .collection('audit_logs')
-            .orderBy(
-              'timestamp',
-              descending: true,
-            )
-            .limit(6)
-            .snapshots(),
+      child: StreamBuilder<List<DashboardActivity>>(
+        stream: _data.recentActivity(),
         builder: (context, snapshot) {
           if (snapshot.connectionState ==
               ConnectionState.waiting) {
@@ -678,7 +581,7 @@ class DashboardScreen extends StatelessWidget {
             );
           }
 
-          final docs = snapshot.data?.docs ?? [];
+          final docs = snapshot.data ?? [];
 
           if (docs.isEmpty) {
             return _emptyMessage(
@@ -688,16 +591,9 @@ class DashboardScreen extends StatelessWidget {
           }
 
           return Column(
-            children: docs.map((doc) {
-              final data = doc.data();
-
-              final action =
-                  data['action']?.toString() ??
-                      'System activity';
-
-              final actor =
-                  data['actorRole']?.toString() ??
-                      'Admin';
+            children: docs.map((activity) {
+              final action = activity.action;
+              final actor = activity.actorRole;
 
               return Padding(
                 padding:
