@@ -316,3 +316,12 @@ No production rules were changed and no emulator or production deployment was ru
 - The revised workflow run `41006832987` is in progress at the time of this update. No integration test PASS is claimed yet.
 - Earlier Admin Web Build Check runs `41006488337` (commit `204a346e...`) and `41006409894` (commit `0706d458...`) completed successfully. Flutter Validation run `41006388234` (commit `547ab69e...`) also completed successfully; these are not exact-head results for the workflow-only correction commit.
 - No production rules/data, deployed indexes, merge, or hosting deployment changed.
+
+
+## 26. Linux integration runner scaffold follow-up — 2026-10-30
+
+- Corrected workflow run `41006832987` also failed before test execution. Linux dependencies and both Firebase emulators started successfully, but Flutter reported: **“No Linux desktop project configured.”**
+- Root cause: this Admin Flutter repo does not check in a `linux/` desktop runner scaffold. Enabling the Linux target alone does not generate the platform project.
+- Follow-up workflow commit: `fe95f55526fc4c0cf40ae8b456f0a93580d7bb5f`. Added a CI-only `flutter create --platforms=linux --project-name dojo_admin .` step before running the integration test. This generates the Linux runner in the ephemeral CI checkout; it does not commit platform scaffolding to the repository or alter production.
+- New workflow result is pending at the time of this report update. No FlutterFire integration test PASS is claimed.
+- The integration test remains a denied/no-admin scenario only. A successful Super Admin transaction still requires a safe emulator fixture approach that does not bypass or weaken production Firestore rules.
