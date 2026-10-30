@@ -119,8 +119,16 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Zone Details'), findsOneWidget);
+      expect(find.text('Example Zone A'), findsOneWidget);
       expect(find.text('ZONE-EX-001 · Revision 1'), findsOneWidget);
+      expect(find.text('Example State/UT → Example District → Example City'),
+          findsOneWidget);
       expect(find.text('Parent path'), findsOneWidget);
+      expect(find.text('Pending review'), findsOneWidget);
+      expect(find.text('Not verified'), findsOneWidget);
+      expect(find.text('Polygon evidence pending'), findsOneWidget);
+      expect(find.text('2026-10-28 09:15 IST'), findsOneWidget);
+      expect(find.text('Central Admin (example)'), findsOneWidget);
       expect(find.text('Readiness blockers'), findsOneWidget);
       expect(find.textContaining('not connected to the Zone service'), findsOneWidget);
     });
