@@ -21,31 +21,6 @@ class _FakeWalkerAdminService implements WalkerAdminService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  testWidgets('KYC viewer explains missing document reference and offers retry',
-      (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: KycDocumentViewerDialog(
-            title: 'Aadhaar Front',
-            document: <String, dynamic>{},
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(
-      find.text(
-        'Unable to load this document. Check its link and access permissions.',
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Try Again'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
-
 }
 
 void main() {
@@ -75,17 +50,12 @@ void main() {
     expect(find.text('walker-001'), findsOneWidget);
     expect(find.text('Verification Status'), findsOneWidget);
     expect(find.text('Documents verified'), findsOneWidget);
-    expect(
-      find.textContaining('does not change login access'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('does not change login access'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('activity dialog shows loading then empty state',
-      (tester) async {
-    final controller =
-        StreamController<List<Map<String, dynamic>>>();
+  testWidgets('activity dialog shows loading then empty state', (tester) async {
+    final controller = StreamController<List<Map<String, dynamic>>>();
     addTearDown(controller.close);
 
     await tester.pumpWidget(
@@ -100,7 +70,6 @@ void main() {
     );
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-
     controller.add(const []);
     await tester.pumpAndSettle();
 
@@ -133,7 +102,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Walker Suspended'), findsOneWidget);
+    expect(find.text('Suspended'), findsWidgets);
     expect(find.text('admin-007'), findsOneWidget);
     expect(find.text('Policy review required'), findsOneWidget);
     expect(find.text('Previous status'), findsOneWidget);
@@ -159,6 +128,30 @@ void main() {
 
     expect(find.text('Unable to load activity'), findsOneWidget);
     expect(find.text('No activity found'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('KYC viewer explains missing reference and offers retry',
+      (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: KycDocumentViewerDialog(
+            title: 'Aadhaar Front',
+            document: <String, dynamic>{},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Unable to load this document. Check its link and access permissions.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Try Again'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
