@@ -266,3 +266,11 @@ To stay within Draft PR #51's UI-first gate, the next change was kept inside the
 - Added a prominent Boundary Review explanation: a verified boundary does not activate a Zone or grant launch approval; the separate Founder Approval Queue owns the final business decision.
 - Added widget assertions for that governance distinction.
 - All screens remain example-data UI prototypes. No live state transition, approval, activation, Firestore integration, merge or deployment. Flutter tests/analyzer have not been executed in this session.
+
+
+## Cross-screen Zone lifecycle acceptance coverage — 2026-10-31
+
+- Added a widget test that follows Example Zone C from Zone Directory → Zone Details → Founder Approval Queue.
+- The test asserts that the same illustrative Zone ID remains boundary-verified while its operational state remains “Not activated” and its separate Founder business decision remains “Awaiting decision”.
+- The test is added but has not been executed; Flutter test/analyzer results are not claimed.
+- Audit note: the Directory also includes an illustrative “Suspended” lifecycle status. The business meaning, authority, and relationship of “Suspended” to Founder-approved deactivation must be confirmed against the canonical Notion policy before any backend model or action is implemented. No semantics are inferred in this UI-only pass.
