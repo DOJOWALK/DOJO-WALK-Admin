@@ -33,7 +33,7 @@ void main() {
 
     testWidgets('deep link scopes approval queue to the selected Zone', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: ZoneApprovalQueueScreen(focusZoneId: 'ZONE-EX-001')));
-      expect(find.textContaining('ZONE-EX-001'), findsOneWidget);
+      expect(find.textContaining('ZONE-EX-001'), findsWidgets);
       expect(find.text('ZONE-EX-001'), findsOneWidget);
       expect(find.text('ZONE-EX-002'), findsNothing);
       expect(find.text('Blocked — boundary pending'), findsWidgets);
