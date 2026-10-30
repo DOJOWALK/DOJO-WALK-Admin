@@ -322,7 +322,7 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
                                   OutlinedButton.icon(
                                     onPressed: () => Navigator.of(context).push<void>(
                                       MaterialPageRoute<void>(
-                                        builder: (_) => const BoundaryReviewScreen(),
+                                        builder: (_) => BoundaryReviewScreen(focusZoneId: row.zoneId),
                                       ),
                                     ),
                                     icon: const Icon(Icons.map_outlined),
@@ -331,7 +331,7 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
                                   OutlinedButton.icon(
                                     onPressed: () => Navigator.of(context).push<void>(
                                       MaterialPageRoute<void>(
-                                        builder: (_) => const ZoneApprovalQueueScreen(),
+                                        builder: (_) => ZoneApprovalQueueScreen(focusZoneId: row.zoneId),
                                       ),
                                     ),
                                     icon: const Icon(Icons.verified_user_outlined),
