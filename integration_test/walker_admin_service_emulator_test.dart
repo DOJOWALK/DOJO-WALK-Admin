@@ -15,24 +15,22 @@ const projectId = String.fromEnvironment(
   defaultValue: 'demo-dojo-admin-integration',
 );
 
-void main() {
+Future<void> main() async {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  // Initialize the Android default app once for the whole integration suite.
+  // The platform implementation does not support deleting the default app.
+  await Firebase.initializeApp(
+    options: FirebaseOptions(
+      apiKey: 'fake-api-key',
+      appId: '1:123456789:android:dojo-walker-default',
+      messagingSenderId: '123456789',
+      projectId: projectId,
+    ),
+  );
 
   testWidgets(
     'real WalkerAdminService rejects an unauthorised emulator user without writes',
     (tester) async {
-      // FlutterFire's Android method-channel implementation expects a
-      // default Firebase app to exist, even when the service uses a named app.
-      final defaultApp = await Firebase.initializeApp(
-        options: FirebaseOptions(
-          apiKey: 'fake-api-key',
-          appId: '1:123456789:android:dojo-walker-default',
-          messagingSenderId: '123456789',
-          projectId: projectId,
-        ),
-      );
-      addTearDown(defaultApp.delete);
-
       final app = await Firebase.initializeApp(
         name: 'dojo-walker-emulator-integration',
         options: FirebaseOptions(
@@ -79,18 +77,6 @@ void main() {
   testWidgets(
     'real WalkerAdminService approves an emulator fixture and writes its audit record',
     (tester) async {
-      // FlutterFire's Android method-channel implementation expects a
-      // default Firebase app to exist, even when the service uses a named app.
-      final defaultApp = await Firebase.initializeApp(
-        options: FirebaseOptions(
-          apiKey: 'fake-api-key',
-          appId: '1:123456789:android:dojo-walker-default',
-          messagingSenderId: '123456789',
-          projectId: projectId,
-        ),
-      );
-      addTearDown(defaultApp.delete);
-
       final app = await Firebase.initializeApp(
         name: 'dojo-walker-success-integration',
         options: FirebaseOptions(
