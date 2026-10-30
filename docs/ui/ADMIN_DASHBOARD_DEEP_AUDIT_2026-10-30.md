@@ -224,3 +224,10 @@ The fake data source continues to supply all dashboard streams without Firebase 
 - Adds responsive layout smoke coverage at 320, 390, 768 and 1280 logical pixels using a long walker name/address.
 - These are authored tests only. Flutter Test/Analyze has not been executed in this workflow, so no test-pass claim is made.
 - The test targets the reusable `WalkerDetailsSections` component; the full `WalkerDetailsScreen` still lacks an injected service seam and an end-to-end widget test for live Firestore loading/error/retry. Lifecycle actions remain intentionally disabled pending POL-004 approval.
+
+## Walker Details Screen Stream Testability (2026-10-30)
+
+- Added optional `walkerStream` injection to `WalkerDetailsScreen`; production continues to use `WalkerAdminService.watchWalker(uid)` when no stream is supplied.
+- Made the service lazy so stream-driven widget tests can run without eagerly initializing Firebase. Activity history still uses the production service when opened.
+- Added `test/features/walkers/walker_details_screen_test.dart` covering pending/loading, missing walker, stream error/retry affordance, successful detail rendering, and the lifecycle-action safety guard.
+- Lifecycle actions remain unavailable. The tests are authored but have not been executed; Flutter Analyze, Flutter Test and full CI remain required before treating this screen as validated.
