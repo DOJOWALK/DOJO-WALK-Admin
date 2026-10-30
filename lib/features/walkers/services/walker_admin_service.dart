@@ -96,11 +96,11 @@ class WalkerAdminService {
 
   /// Streams audit logs associated with a walker.
   ///
-  /// Sorts the returned documents locally by createdAt.
-  /// This avoids requiring an orderBy index for this query.
+  /// Orders on the server before applying the limit, so the stream
+  /// consistently returns the newest records first.
   ///
-  /// Note: limit applies before local sorting, so this is not
-  /// guaranteed to return the latest records across all history.
+  /// Requires the audit_logs composite index for targetType,
+  /// targetId and createdAt (descending).
   Stream<List<Map<String, dynamic>>> watchWalkerAuditLogs(
     String walkerId, {
     int limit = 50,
@@ -110,6 +110,7 @@ class WalkerAdminService {
     return _auditLogs
         .where('targetType', isEqualTo: 'walker')
         .where('targetId', isEqualTo: walkerId)
+        .orderBy('createdAt', descending: true)
         .limit(safeLimit)
         .snapshots()
         .map((snapshot) {
