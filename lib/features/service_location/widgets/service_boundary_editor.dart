@@ -346,7 +346,7 @@ class _ServiceBoundaryEditorState
               fontWeight: FontWeight.w700,
             ),
           ),
-          if (!widget.readOnly) ...[
+          if (!widget.readOnly && widget.onSaveRequested != null) ...[
             OutlinedButton.icon(
               onPressed: _points.isEmpty ? null : _undoLastPoint,
               icon: const Icon(Icons.undo),
