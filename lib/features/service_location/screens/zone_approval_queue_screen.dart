@@ -14,7 +14,14 @@ class ZoneApprovalQueueScreen extends StatefulWidget {
 class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
   static const _orange = Color(0xFFFF7900);
   static const _ink = Color(0xFF252525);
-  String _filter = 'Awaiting decision';
+  late String _filter;
+
+  @override
+  void initState() {
+    super.initState();
+    // A deep-linked Zone must be visible even when its example status is blocked.
+    _filter = widget.focusZoneId == null ? 'Awaiting decision' : 'All';
+  }
 
   final List<_ApprovalItem> _examples = const [
     _ApprovalItem(
@@ -66,9 +73,11 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final rows = _filter == 'All'
-        ? _examples
-        : _examples.where((item) => item.status == _filter).toList();
+    final rows = _examples.where((item) {
+      final matchesZone = widget.focusZoneId == null || item.zoneId == widget.focusZoneId;
+      final matchesStatus = _filter == 'All' || item.status == _filter;
+      return matchesZone && matchesStatus;
+    }).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFFAF5),
@@ -128,7 +137,9 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
             const Card(
               child: Padding(
                 padding: EdgeInsets.all(24),
-                child: Text('No example requests match this filter. Live queue is not connected.'),
+                child: Text('widget.focusZoneId == null
+                    ? 'No example requests match this filter. Live queue is not connected.'
+                    : 'No example approval request exists for ${widget.focusZoneId} in this sample. Live queue is not connected.''),
               ),
             )
           else
