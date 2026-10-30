@@ -256,7 +256,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Validation incomplete'), findsOneWidget);
-    expect(find.textContaining('A real boundary polygon must be drawn or uploaded and verified'), findsOneWidget);
+    expect(find.textContaining('Local polygon shape check: failed'), findsOneWidget);
+    expect(find.textContaining('Boundary evidence is not uploaded and GIS verification is pending.'), findsOneWidget);
+    expect(find.textContaining('example catalog data'), findsOneWidget);
+    expect(find.textContaining('Nothing has been saved.'), findsOneWidget);
     expect(find.text('Boundary status: Not drawn'), findsOneWidget);
     expect(find.text('Save Draft disabled'), findsOneWidget);
     expect(find.text('Submit for Review disabled'), findsOneWidget);
