@@ -106,8 +106,8 @@ void main() {
     );
 
     final viewButtons = find.text('View');
-    expect(viewButtons, findsOneWidget);
-    await tester.tap(viewButtons);
+    expect(viewButtons, findsNWidgets(3));
+    await tester.tap(viewButtons.first);
     expect(openedTitle, 'Aadhaar Front');
     expect(openedDocument, isA<Map>());
     expect(find.text('Aadhaar Back'), findsOneWidget);
@@ -136,7 +136,15 @@ void main() {
     );
 
     expect(find.text('Document not uploaded'), findsNWidgets(3));
-    expect(find.text('View'), findsNothing);
+    expect(find.text('View'), findsNWidgets(3));
+    final viewActions = tester.widgetList<OutlinedButton>(
+      find.widgetWithText(OutlinedButton, 'View'),
+    );
+    expect(viewActions, everyElement(isA<OutlinedButton>().having(
+      (button) => button.onPressed,
+      'onPressed',
+      isNull,
+    )));
     expect(tester.takeException(), isNull);
   });
 
