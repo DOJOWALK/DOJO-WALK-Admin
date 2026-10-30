@@ -305,3 +305,14 @@ No production rules were changed and no emulator or production deployment was ru
 - Scope limitation: this first real-client integration test validates the denied/no-admin path only. It does not yet validate a successful Super Admin Dart transaction or a Dart-side rollback after an audit write denial. The Node Firestore SDK emulator transaction tests remain separate evidence for Rules/transaction rollback behavior.
 - Next gate: inspect run `41006504289` and the full Flutter validation results; fix any driver/emulator issues, then add a successful authorized Dart transaction test using an emulator-only fixture mechanism. Never seed or mutate production admin records.
 - No production rules/data, deployed indexes, merge, or hosting deployment changed.
+
+
+## 25. FlutterFire integration runner correction — 2026-10-30
+
+- First integration workflow run: `41006504289` on Admin commit `6f7a0642daa86ed7d7950c6b4e8b9b99345bc169` failed before executing the test.
+- Exact failure from job `123902492084`: Flutter reported **“Web devices are not supported for integration tests yet.”** The Auth and Firestore emulators themselves started successfully and their ports were accepting connections.
+- Root cause: the harness used `flutter test integration_test/... -d chrome`, but Flutter's integration_test runner does not support the web target.
+- Corrective workflow commit: `a6c71ba8337f0e06c93e05e935f1de4fbe733b21`. Replaced Chrome setup with Linux desktop build dependencies, enabled the Linux desktop target, and switched the integration test device to `-d linux`.
+- The revised workflow run `41006832987` is in progress at the time of this update. No integration test PASS is claimed yet.
+- Earlier Admin Web Build Check runs `41006488337` (commit `204a346e...`) and `41006409894` (commit `0706d458...`) completed successfully. Flutter Validation run `41006388234` (commit `547ab69e...`) also completed successfully; these are not exact-head results for the workflow-only correction commit.
+- No production rules/data, deployed indexes, merge, or hosting deployment changed.
