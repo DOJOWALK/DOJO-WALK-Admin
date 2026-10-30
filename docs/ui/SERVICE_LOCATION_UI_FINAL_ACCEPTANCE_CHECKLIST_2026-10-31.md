@@ -109,6 +109,10 @@ A real GitHub Actions run was found for code commit `71055eeb3268c9195b8cc001706
   - `736a47416f942f1af2aad6a21f45905a8db07fd1` — scrolls the approval-queue control into view in the navigation test.
 - These corrections are committed, but their own CI run has not yet been observed. Do not infer that they pass from the previous failed run.
 
+
+
+**Fresh validation trigger:** GitHub Actions run `41111309355` (DOJO WALK Admin Flutter Validation, run #62) is currently **queued** for code commit `736a47416f942f1af2aad6a21f45905a8db07fd1`. It has no job result yet. The branch subsequently received documentation-only commit `43a02a588d2ff8c42e7b80118b7c41ea0c63653a`; the queued run does not validate that later documentation commit.
+
 ## 11. Acceptance decision
 **Status: NOT YET ACCEPTED.**  
 Reason: a prior full CI run exposed two test failures; corrective changes are committed, but a fresh full validation result and real-device/browser checks are still outstanding. This is not a claim that the Service Location UI is complete or production-ready.
