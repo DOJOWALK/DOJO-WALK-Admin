@@ -25,6 +25,27 @@ void main() {
       expect(find.textContaining('notify Founder promptly for review'), findsOneWidget);
     });
 
+    testWidgets('small screen and enlarged text keep Zone cards readable', (tester) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(1.8)),
+            child: ZoneDirectoryScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Zone Directory'), findsOneWidget);
+      expect(find.text('Example Zone A'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('search and status filters narrow the example directory',
         (tester) async {
       await tester.pumpWidget(
