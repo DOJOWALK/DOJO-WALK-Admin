@@ -240,6 +240,8 @@ class _ServiceBoundaryEditorState
 
   @override
   Widget build(BuildContext context) {
+    final mapHeight =
+        (MediaQuery.sizeOf(context).height * 0.42).clamp(260.0, 420.0);
     return Container(
       decoration: BoxDecoration(
         color: _background,
@@ -254,7 +256,7 @@ class _ServiceBoundaryEditorState
         children: [
           _buildToolbar(),
           SizedBox(
-            height: 420,
+            height: mapHeight,
             child: GoogleMap(
               initialCameraPosition: CameraPosition(
                 target: widget.initialCenter,
@@ -340,11 +342,16 @@ class _ServiceBoundaryEditorState
           Text(
             widget.readOnly
                 ? 'यह boundary केवल देखने के लिए है।'
-                : _points.length < 3
-                    ? 'कम-से-कम 3 अलग-अलग पॉइंट जोड़ें और एक बंद, बिना काटती रेखाओं वाला क्षेत्र बनाएं।'
-                    : 'Polygon की मूल जाँच पास है। सेव करने से पहले वास्तविक सीमा जाँचें।',
-            style: const TextStyle(fontSize: 13),
+                : 'Local geometry check: $_validationFeedback',
+            style: const TextStyle(fontSize: 13, height: 1.4),
           ),
+          if (!widget.readOnly) ...[
+            const SizedBox(height: 4),
+            const Text(
+              'यह केवल local shape check है — GIS verification या service-area approval नहीं।',
+              style: TextStyle(fontSize: 11, color: Colors.black54),
+            ),
+          ],
           if (!widget.readOnly && widget.onSaveRequested != null) ...[
             const SizedBox(height: 12),
             Align(
