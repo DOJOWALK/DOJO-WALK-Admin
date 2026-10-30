@@ -118,3 +118,21 @@ Before writing the widget test, map every stream consumed by the screen (metrics
 - Flutter test execution: **NOT RUN**.
 - Exact-head CI: **NOT VERIFIED**.
 - No application source, Firebase config, production data, merge or deployment changed in this step.
+
+
+## 8. Injectable dashboard data source and first widget tests (2026-10-30)
+
+Implemented on the Draft PR branch:
+
+- Added `lib/screens/dashboard/dashboard_data_source.dart` with a read-only `DashboardDataSource` contract, typed recent-booking/activity view models, and `FirestoreDashboardDataSource`.
+- The production implementation preserves the existing collection names, filters, aliases, ordering and limits. This is a query extraction for testability, not a Firestore schema or authorization change.
+- Updated `DashboardScreen` to accept an optional `DashboardDataSource`; when omitted, it creates the production Firestore-backed implementation. Dashboard screen source now contains no direct `.collection(...)` query calls.
+- Added `test/screens/dashboard/dashboard_screen_test.dart` with a deterministic fake data source. The initial widget tests cover rendering of the dashboard sections and header navigation callbacks.
+- The widget test source does not initialize Firebase and does not use production Firestore.
+
+### Validation still required
+
+- These files were reviewed through GitHub source retrieval only; Flutter Analyze and Flutter Test have **not yet been executed** in this environment.
+- The new widget tests currently cover populated-stream rendering and header navigation. Empty, loading, stream-error and permission-denied cases are not yet covered.
+- The PR branch must run its CI workflows against the latest head before any test-pass claim.
+- No Firebase project/configuration, Firestore rules, production data, merge or deployment was changed.
