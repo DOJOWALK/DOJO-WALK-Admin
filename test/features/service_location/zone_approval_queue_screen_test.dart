@@ -39,6 +39,25 @@ void main() {
       expect(find.text('Blocked — boundary pending'), findsWidgets);
     });
 
+    testWidgets('long focused Zone ID does not overflow narrow AppBar', (tester) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: ZoneApprovalQueueScreen(
+            focusZoneId: 'ZONE-WITH-A-VERY-LONG-IDENTIFIER-2026-AND-EXTRA-CONTEXT',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Founder Approval Queue'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('unknown Zone deep link shows an explicit empty state', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: ZoneApprovalQueueScreen(focusZoneId: 'ZONE-UNKNOWN')));
       expect(find.textContaining('No example approval request exists for ZONE-UNKNOWN'), findsOneWidget);
