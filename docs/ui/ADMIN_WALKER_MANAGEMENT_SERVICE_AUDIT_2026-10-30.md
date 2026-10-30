@@ -257,3 +257,15 @@ No production rules were changed and no emulator or production deployment was ru
 - This confirms the Firebase lifecycle Rules test suite and workflow YAML lint passed in CI for the exact Firebase commit above. It does not prove the Admin Flutter service transaction is exercised, production Rules/index deployment, or city/zone role authorization.
 - The Admin service still has no dedicated transaction-level tests. The next test seam must verify the persisted walker update and audit event together, denied/inactive admin paths, missing walker, invalid transitions, required reason validation, and query constraints. Prefer an emulator-backed test harness and make CI provision the Firestore emulator; do not add guessed mock dependencies or weaken the existing full Flutter validation.
 - No production rules/data, deployed indexes, merge state, or hosting deployment were changed.
+
+
+## 21. Walker Admin service tests and exact-head CI — 2026-10-30
+
+- Added `fake_cloud_firestore` and `firebase_auth_mocks` as development dependencies and created `test/features/walkers/walker_admin_service_test.dart`.
+- The new service suite covers eight cases: successful approval with persisted walker state and audit event; no signed-in user; inactive admin; active non-Super-Admin; missing walker; invalid lifecycle transition; missing required rejection reason; and normalized reason persistence on both walker and audit records.
+- Exact Admin commit: `1a2687dc220b4c45132fe52fb20c171952856e7d`.
+- Flutter Validation run `41004355178` completed **SUCCESS**. Its dependency installation, static analysis, complete Flutter test suite (including the new service tests), and Flutter Web release build all passed.
+- Separate Admin Web Build Check run `41004355086` completed **SUCCESS**, including full project analysis, full tests and web build.
+- The service tests use FakeFirestore. They verify service-level outcomes against the fake implementation, but they do **not** prove real Firestore Emulator transaction atomicity or Firestore Security Rules behavior. The Firebase Rules emulator suite is separately validated as recorded in section 20.
+- Next gate: add a deliberate emulator-backed integration test for the actual Admin service transaction, including successful dual-write and rollback/no-partial-write behavior. Do not describe transaction atomicity as emulator-verified until that test runs successfully.
+- No production rules/data, deployed indexes, merge state, or hosting deployment changed.
