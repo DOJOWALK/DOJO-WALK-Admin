@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -384,7 +383,7 @@ class DashboardScreen extends StatelessWidget {
         children: [
           _StatusStreamRow(
             label: 'Pending',
-            stream: _countBookingStatus('Pending'),
+            stream: _data.countBookingStatus('Pending'),
           ),
           const SizedBox(height: 12),
 
@@ -402,13 +401,13 @@ class DashboardScreen extends StatelessWidget {
 
           _StatusStreamRow(
             label: 'In Progress',
-            stream: _countBookingStatus('Walk In Progress'),
+            stream: _data.countBookingStatus('Walk In Progress'),
           ),
           const SizedBox(height: 12),
 
           _StatusStreamRow(
             label: 'Completed',
-            stream: _countBookingStatus('Completed'),
+            stream: _data.countBookingStatus('Completed'),
           ),
         ],
       ),
@@ -528,7 +527,7 @@ class DashboardScreen extends StatelessWidget {
             subtitle:
                 'Bookings waiting for a walker',
             icon: Icons.person_search_outlined,
-            stream: _countBookingStatus('Pending'),
+            stream: _data.countBookingStatus('Pending'),
           ),
           const Divider(),
 
