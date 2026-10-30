@@ -202,3 +202,12 @@ To stay within Draft PR #51's UI-first gate, the next change was kept inside the
 ### Verification
 - AddZoneScreen, ServiceLocationScreen, boundary model/service, Boundary Review and Founder Approval Queue were inspected from the UI branch.
 - This was a source inspection and documentation-only checkpoint; no code change to workflow actions, no Firebase access/write, no tests executed, no CI PASS claimed, no merge/deploy.
+
+
+## Create Zone form validation-state coverage — 2026-10-30
+
+- Added widget coverage that a syntactically valid new Zone name still cannot pass readiness while boundary evidence remains `Not uploaded`; Save Draft and Submit for Review remain disabled.
+- Added widget coverage that changing the selected District clears downstream City, Zone selection and new Zone name, preventing stale child selections from being retained across hierarchy changes.
+- Existing tests continue to cover the four selectors/no Locality, mock Zone protection, disabled persistence actions, Boundary Review preview navigation and narrow mobile layout.
+- Test source updated in commit `fb475355dcae918dd7dc1e37d8ae27064e005274` (`test/features/service_location/add_zone_screen_test.dart`). Tests have been added but were not executed in this step; no CI PASS is claimed.
+- No production code or Firebase integration changed. Save Draft, Submit for Review and boundary editor remain intentionally disabled until the canonical Zone/boundary contract and UI-first validation gate are approved.
