@@ -165,7 +165,13 @@ void main() {
       expect(find.text('Not activated'), findsOneWidget);
       expect(find.text('Verified (example)'), findsOneWidget);
 
-      await tester.tap(find.text('Preview approval queue'));
+      final approvalQueueButton = find.text('Preview approval queue');
+      await tester.scrollUntilVisible(
+        approvalQueueButton,
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(approvalQueueButton);
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Founder Approval Queue · ZONE-EX-003'), findsOneWidget);
