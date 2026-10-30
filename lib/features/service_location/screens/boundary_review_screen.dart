@@ -235,10 +235,17 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
                 ),
                 const SizedBox(height: 12),
                 if (items.isEmpty)
-                  const Card(
+                  Card(
                     child: Padding(
-                      padding: EdgeInsets.all(28),
-                      child: Center(child: Text('No example items in this filter. Live data is not connected.')),
+                      padding: const EdgeInsets.all(28),
+                      child: Center(
+                        child: Text(
+                          widget.focusZoneId == null
+                              ? 'No example items in this filter. Live data is not connected.'
+                              : 'No example boundary request exists for ${widget.focusZoneId} in this sample. Live data is not connected.',
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     ),
                   )
                 else
