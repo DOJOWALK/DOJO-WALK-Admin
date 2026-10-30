@@ -76,8 +76,10 @@ void main() {
     expect(find.text('Performance Snapshot'), findsOneWidget);
     expect(find.text('Account Information'), findsOneWidget);
     expect(find.text('Test Walker'), findsOneWidget);
-    expect(find.text('Crossings Republik, Ghaziabad, Uttar Pradesh, 201016'),
-        findsOneWidget);
+    expect(
+      find.text('A-101, Crossings Republik, Ghaziabad, Uttar Pradesh, 201016'),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
