@@ -104,3 +104,14 @@ Admin access must be server-scoped by assigned City/Zone. Customer access must b
 - No app source, Firestore Rules, Functions, indexes, production data or deployment configuration was changed by this audit.
 - Do not claim live tracking or safe-handover integration is complete.
 - PR #51 remains Draft/open; no merge or deployment.
+
+
+## 8. FlutterFire integration harness status — 2026-10-30
+
+- The Android integration test currently exercises the real `WalkerAdminService` against Auth + Firestore Emulators for the unauthorized-user/no-admin-record denial path only.
+- It does **not** yet prove the successful Super Admin path, transaction rollback in FlutterFire, or production behavior.
+- Previous Android attempt on workflow run `41008854821` was cancelled before a test result was produced; this is not a passing test.
+- The cancelled job was explicitly re-run. The latest observed job ID was `123930024557`; at the time of this update, emulator dependency installation was still in progress and the integration test had not started.
+- Updated this integration workflow's checkout, setup-java and setup-node actions from major version 4 to major version 5 in commit `444e9c1644ce183fefc397966e0d54fd8918c2c0`.
+- Re-check the new workflow attempt and inspect the exact test output before claiming PASS.
+- No production Firebase configuration or data was touched.
