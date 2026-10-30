@@ -5,8 +5,8 @@ import 'package:intl/intl.dart';
 import '../../utils/admin_error_classifier.dart';
 import 'dashboard_data_source.dart';
 
-String _dashboardGreeting() {
-  final hour = DateTime.now().hour;
+String dashboardGreetingFor(DateTime now) {
+  final hour = now.hour;
   if (hour < 12) return 'Good morning, Admin 👋';
   if (hour < 17) return 'Good afternoon, Admin 👋';
   return 'Good evening, Admin 👋';
@@ -16,12 +16,14 @@ class DashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenLiveOperations;
   final VoidCallback? onOpenServiceLocations;
   final DashboardDataSource? dataSource;
+  final DateTime Function()? clock;
 
   const DashboardScreen({
     super.key,
     this.onOpenLiveOperations,
     this.onOpenServiceLocations,
     this.dataSource,
+    this.clock,
   });
 
   @override
@@ -33,6 +35,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   DashboardDataSource get _data =>
       widget.dataSource ?? FirestoreDashboardDataSource(FirebaseFirestore.instance);
+
+  DateTime get _now => widget.clock?.call() ?? DateTime.now();
 
   final Color orange = const Color(0xFFFF7900);
 
@@ -208,7 +212,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildHeader() {
     final date = DateFormat(
       'EEEE, dd MMMM yyyy',
-    ).format(DateTime.now());
+    ).format(_now);
 
     return Container(
       width: double.infinity,
@@ -346,7 +350,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 18),
           Text(
-            _dashboardGreeting(),
+            dashboardGreetingFor(_now),
             style: const TextStyle(
               color: Color(0xFF292524),
               fontSize: 27,
