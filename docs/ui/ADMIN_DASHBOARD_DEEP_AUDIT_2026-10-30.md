@@ -165,3 +165,12 @@ The fake data source continues to supply all dashboard streams without Firebase 
 - The test's fake source counts the three collection-count subscriptions; test execution remains unverified.
 - The earlier note that no refresh control exists is superseded by this implementation.
 - Still pending: run Flutter Analyze and Flutter Test in CI, add explicit loading and metric/live/status/alert error-state tests, and verify narrow/tablet/desktop layouts.
+
+
+### Responsive layout pass (2026-10-30)
+
+- Dashboard header now switches to a compact stacked arrangement below 520 logical pixels: brand/title on the first row, company-overview label and refresh action on the second.
+- On wider layouts, brand and actions remain on one row.
+- Added a widget test that renders the dashboard at 360 px (mobile), 768 px (tablet) and 1280 px (desktop), checks the title and refresh control, and asserts no Flutter layout exception is reported.
+- Existing dashboard content breakpoints remain: metric cards use 1/2/4 columns at <600 / <1100 / >=1100 px; the two dashboard section pairs stack below 900 px.
+- These are source changes and test cases only. Flutter Analyze and Flutter Test have not yet been executed; responsive behavior is not marked PASS until CI/test execution.
