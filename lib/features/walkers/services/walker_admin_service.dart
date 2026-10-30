@@ -3,15 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/walker_admin_model.dart';
 import '../utils/walker_admin_helpers.dart';
-
-/// Supported administrative actions for a walker.
-enum WalkerAdminAction {
-  approve,
-  reject,
-  suspend,
-  reactivate,
-  requestCorrection,
-}
+import 'walker_admin_contracts.dart';
 
 /// Shared Firestore service for DOJO WALK Admin Walker Management.
 ///
@@ -322,14 +314,4 @@ class WalkerAdminService {
         return 'walker_correction_requested';
     }
   }
-}
-
-/// Safe, user-displayable service exception.
-class WalkerAdminServiceException implements Exception {
-  final String message;
-
-  const WalkerAdminServiceException(this.message);
-
-  @override
-  String toString() => message;
 }
