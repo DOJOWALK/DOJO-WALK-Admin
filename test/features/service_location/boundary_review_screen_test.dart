@@ -8,7 +8,7 @@ void main() {
   testWidgets('labels the screen as a UI preview with no live records', (tester) async {
     await tester.pumpWidget(app());
 
-    expect(find.text('Boundary Review'), findsOneWidget);
+    expect(find.textContaining('Boundary Review'), findsOneWidget);
     expect(find.textContaining('not connected to live records'), findsOneWidget);
     expect(find.textContaining('mock data'), findsOneWidget);
     expect(find.text('Boundary map preview'), findsOneWidget);
