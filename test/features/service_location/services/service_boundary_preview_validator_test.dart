@@ -3,6 +3,62 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:dojo_admin/features/service_location/services/service_boundary_preview_validator.dart';
 
 void main() {
+  group('ServiceBoundaryPreviewValidator coordinate bounds', () {
+    test('rejects latitude outside the geographic range', () {
+      expect(
+        ServiceBoundaryPreviewValidator.isCoordinateInRange(
+          latitude: 91,
+          longitude: 1,
+        ),
+        isFalse,
+      );
+    });
+
+    test('rejects longitude outside the geographic range', () {
+      expect(
+        ServiceBoundaryPreviewValidator.isCoordinateInRange(
+          latitude: 1,
+          longitude: 181,
+        ),
+        isFalse,
+      );
+    });
+
+    test('rejects non-finite coordinate values', () {
+      expect(
+        ServiceBoundaryPreviewValidator.isCoordinateInRange(
+          latitude: double.infinity,
+          longitude: 1,
+        ),
+        isFalse,
+      );
+      expect(
+        ServiceBoundaryPreviewValidator.isCoordinateInRange(
+          latitude: 1,
+          longitude: double.nan,
+        ),
+        isFalse,
+      );
+    });
+
+    test('accepts geographic boundary values', () {
+      expect(
+        ServiceBoundaryPreviewValidator.isCoordinateInRange(
+          latitude: 90,
+          longitude: 180,
+        ),
+        isTrue,
+      );
+      expect(
+        ServiceBoundaryPreviewValidator.isCoordinateInRange(
+          latitude: -90,
+          longitude: -180,
+        ),
+        isTrue,
+      );
+    });
+  });
+
   group('ServiceBoundaryPreviewValidator.feedback', () {
     test('asks for three points when preview is empty', () {
       expect(
@@ -29,17 +85,6 @@ void main() {
           LatLng(2, 2),
         ]),
         'Invalid preview: at least 3 distinct points are required.',
-      );
-    });
-
-    test('rejects out-of-range coordinates before creating GeoPoints', () {
-      expect(
-        ServiceBoundaryPreviewValidator.feedback(const [
-          LatLng(0, 0),
-          LatLng(0, 2),
-          LatLng(91, 1),
-        ]),
-        'Invalid preview: one or more coordinates are out of range.',
       );
     });
 
