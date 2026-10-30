@@ -20,6 +20,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../services/service_boundary_preview_validator.dart';
 
+typedef ServiceBoundaryMapBuilder = Widget Function({
+  required Set<Marker> markers,
+  required Set<Polygon> polygons,
+  required ValueChanged<LatLng> onTap,
+});
+
 class ServiceBoundaryEditor extends StatefulWidget {
   const ServiceBoundaryEditor({
     super.key,
@@ -30,6 +36,7 @@ class ServiceBoundaryEditor extends StatefulWidget {
     this.onValidationFeedbackChanged,
     this.onSaveRequested,
     this.readOnly = false,
+    this.mapBuilder,
   });
 
   /// Previously saved polygon vertices.
@@ -53,6 +60,10 @@ class ServiceBoundaryEditor extends StatefulWidget {
 
   /// Prevents editing when true.
   final bool readOnly;
+
+  /// Optional map surface adapter, primarily for deterministic widget tests.
+  /// Production screens should leave this unset to use Google Maps.
+  final ServiceBoundaryMapBuilder? mapBuilder;
 
   @override
   State<ServiceBoundaryEditor> createState() =>
@@ -257,27 +268,32 @@ class _ServiceBoundaryEditorState
           _buildToolbar(),
           SizedBox(
             height: mapHeight,
-            child: GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: widget.initialCenter,
-                zoom: widget.initialZoom,
-              ),
-              onMapCreated: (controller) {
-                _mapController = controller;
-              },
-              onTap: _addPoint,
-              markers: _markers,
-              polygons: _polygons,
-              mapType: MapType.normal,
-              compassEnabled: true,
-              mapToolbarEnabled: false,
-              zoomControlsEnabled: true,
-              myLocationButtonEnabled: false,
-              rotateGesturesEnabled: true,
-              scrollGesturesEnabled: true,
-              zoomGesturesEnabled: true,
-              tiltGesturesEnabled: false,
-            ),
+            child: widget.mapBuilder?.call(
+                  markers: _markers,
+                  polygons: _polygons,
+                  onTap: _addPoint,
+                ) ??
+                GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: widget.initialCenter,
+                    zoom: widget.initialZoom,
+                  ),
+                  onMapCreated: (controller) {
+                    _mapController = controller;
+                  },
+                  onTap: _addPoint,
+                  markers: _markers,
+                  polygons: _polygons,
+                  mapType: MapType.normal,
+                  compassEnabled: true,
+                  mapToolbarEnabled: false,
+                  zoomControlsEnabled: true,
+                  myLocationButtonEnabled: false,
+                  rotateGesturesEnabled: true,
+                  scrollGesturesEnabled: true,
+                  zoomGesturesEnabled: true,
+                  tiltGesturesEnabled: false,
+                ),
           ),
           _buildFooter(),
         ],
