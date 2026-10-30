@@ -164,3 +164,14 @@ To stay within Draft PR #51's UI-first gate, the next change was kept inside the
 - Test update commit: 7f634b6b479cf9f86dc2b737e742b028146674e7.
 - This is a data-presentation regression check, not a validation of real zone data or backend lifecycle behavior.
 - Flutter test/analyzer execution remains pending; no CI result or PASS is claimed.
+
+
+## Boundary Review ↔ Founder Approval Queue example-state consistency — 2026-10-30
+
+- Compared shared sample Zone IDs across Zone Directory, Boundary Review, and Founder Approval Queue.
+- Confirmed the sample workflow intent: Example Zone A is awaiting review but blocked because its boundary is not verified; Example Zone B requires boundary re-review after its hash changes; Example Zone C has example-verified boundary evidence but still awaits the separate Founder/CEO business decision, while the Directory keeps it not activated.
+- Found one label mismatch for Example Zone C: Boundary Review used `Integrity matched` while Directory and Founder Approval Queue used `Verified (example)`. Normalized Boundary Review to `Verified (example)`; the separate review-queue status `Verified` still describes the boundary review stage, not launch approval or activation.
+- Added a widget-test assertion that locks the shared label and rejects the old inconsistent wording.
+- UI source commit: 8cf1f5ee4e518201ea0a920bb66ae0232058c6c7. Test commit: 14a22a1f35a7c94f0b4032590b7aebdf9077727b.
+- Existing sample Example Zone D status/revision representation remains illustrative; these screens are mock datasets, not a shared live record store. It must be reconciled against a canonical Zone record model before backend integration.
+- Flutter tests/analyzer remain unexecuted; no CI result or PASS is claimed. No Firebase integration or server-side action was added.
