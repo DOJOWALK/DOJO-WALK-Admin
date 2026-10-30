@@ -165,7 +165,8 @@ class WalkerAdminService {
 
     final normalizedReason = reason?.trim() ?? '';
 
-    if (_requiresReason(action) && normalizedReason.isEmpty) {
+    if (WalkerAdminTransitionPolicy.requiresReason(action) &&
+        normalizedReason.isEmpty) {
       throw const WalkerAdminServiceException(
         'A reason is required for this action.',
       );
@@ -227,8 +228,6 @@ class WalkerAdminService {
         isApproved: currentlyApproved,
         isActive: currentlyActive,
         applicationSubmitted: before['applicationSubmitted'] == true,
-        reason: normalizedReason,
-        adminUid: admin.uid,
       );
 
       final timestamp = FieldValue.serverTimestamp();
@@ -244,7 +243,7 @@ class WalkerAdminService {
       final auditRecord = <String, dynamic>{
         'actorUid': admin.uid,
         'actorRole': 'super_admin',
-        'action': _actionName(action),
+        'action': WalkerAdminTransitionPolicy.auditActionName(action),
         'targetType': 'walker',
         'targetId': walkerId,
         'beforeStatus': currentStatus,
@@ -278,8 +277,6 @@ class WalkerAdminService {
     required bool isApproved,
     required bool isActive,
     required bool applicationSubmitted,
-    required String reason,
-    required String adminUid,
   }) {
     return WalkerAdminTransitionPolicy.buildChanges(
       action: action,
@@ -291,28 +288,4 @@ class WalkerAdminService {
     );
   }
 
-  bool _requiresReason(WalkerAdminAction action) {
-    return action == WalkerAdminAction.reject ||
-        action == WalkerAdminAction.suspend ||
-        action == WalkerAdminAction.requestCorrection;
-  }
-
-  String _actionName(WalkerAdminAction action) {
-    switch (action) {
-      case WalkerAdminAction.approve:
-        return 'walker_approved';
-
-      case WalkerAdminAction.reject:
-        return 'walker_rejected';
-
-      case WalkerAdminAction.suspend:
-        return 'walker_suspended';
-
-      case WalkerAdminAction.reactivate:
-        return 'walker_reactivated';
-
-      case WalkerAdminAction.requestCorrection:
-        return 'walker_correction_requested';
-    }
-  }
 }
