@@ -145,3 +145,11 @@ To stay within Draft PR #51's UI-first gate, the next change was kept inside the
 - The test file was fetched back from GitHub and the new assertions were confirmed present.
 - Exact-head CI status and workflow runs were queried for commit `5d30218376573d9686cb0e9ecce673f521eb5071`; both returned no status/run records at the time of checking. The tests have not been executed locally in this session, so no PASS is claimed.
 - This is Dashboard UI-phase test maintenance only. Emulator integration remains deferred under Draft PR #51's guardrail.
+
+## Service Zone Details UI regression coverage — 2026-10-30
+
+- Added `test/features/service_location/zone_details_screen_test.dart`.
+- The new widget tests cover Zone identity/revision, State→District→City parent path display, lifecycle/readiness metadata, the explicit example-only warning, and the absence of a live boundary hash.
+- They also assert that Edit and lifecycle controls remain disabled in the UI prototype and check a 320px-wide mobile viewport for layout exceptions.
+- Test file commit: `e1ac02ee0cb3b1e224c3392dca29cbdd4123f4b0`.
+- File creation was confirmed by GitHub response; Flutter tests and analyzer have not been executed in this session. This remains UI-only and does not connect or mutate Firebase.
