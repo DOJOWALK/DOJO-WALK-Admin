@@ -136,3 +136,14 @@ Implemented on the Draft PR branch:
 - The new widget tests currently cover populated-stream rendering and header navigation. Empty, loading, stream-error and permission-denied cases are not yet covered.
 - The PR branch must run its CI workflows against the latest head before any test-pass claim.
 - No Firebase project/configuration, Firestore rules, production data, merge or deployment was changed.
+
+
+### Widget-test coverage follow-up
+
+Expanded `test/screens/dashboard/dashboard_screen_test.dart` to cover:
+- populated dashboard sections and recent booking/activity rows;
+- empty recent-booking and audit-activity states;
+- recent-bookings stream failure (asserts an error state, not a false empty state);
+- header navigation callbacks.
+
+The fake data source continues to supply all dashboard streams without Firebase initialization. These are test cases added to source, not test results; execution remains pending CI.
