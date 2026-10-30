@@ -188,7 +188,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
         ? [
             hasBasicGeometry
                 ? 'Local polygon shape check: passed (not GIS-verified).'
-                : 'Local polygon shape check: $ _boundaryValidationFeedback',
+                : 'Local polygon shape check: failed — ' + _boundaryValidationFeedback,
             'Boundary evidence is not uploaded and GIS verification is pending.',
             'The State/UT → District → City options are still example catalog data.',
             'Save Draft and Submit for Review remain disabled. Nothing has been saved.',
@@ -202,7 +202,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
         title: Text(
           isCreatingNewZone ? 'Validation incomplete' : 'Example Zone selected',
         ),
-        content: Text(validationMessage.replaceFirst(r'$ ', '')),
+        content: Text(validationMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
