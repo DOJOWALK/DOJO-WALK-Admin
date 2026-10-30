@@ -87,11 +87,12 @@ jobs:
       - name: Run real FlutterFire service integration test on Android
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: 34
           target: google_apis
           arch: x86_64
           profile: pixel_6
           disable-animations: true
+          emulator-boot-timeout: 600
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: |
             timeout 15m flutter test integration_test/walker_admin_service_emulator_test.dart -d emulator-5554 --dart-define=DOJO_EMULATOR_PROJECT_ID=demo-dojo-admin-integration
