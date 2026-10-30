@@ -125,7 +125,7 @@ class FirestoreDashboardDataSource implements DashboardDataSource {
   Stream<List<DashboardActivity>> recentActivity() {
     return firestore
         .collection('audit_logs')
-        .orderBy('timestamp', descending: true)
+        .orderBy('createdAt', descending: true)
         .limit(6)
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {
