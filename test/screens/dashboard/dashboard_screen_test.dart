@@ -7,14 +7,17 @@ class _FakeDashboardDataSource implements DashboardDataSource {
   final bool empty;
   final bool failRecentBookings;
   final bool failRecentActivity;
+  int subscriptionCount = 0;
 
-  const _FakeDashboardDataSource({
+  _FakeDashboardDataSource({
     this.empty = false,
     this.failRecentBookings = false,
     this.failRecentActivity = false,
   });
   @override
-  Stream<int> countAll(String collection) => Stream<int>.value(
+  Stream<int> countAll(String collection) {
+    subscriptionCount++;
+    return Stream<int>.value(
         switch (collection) {
           'bookings' => 12,
           'users' => 8,
@@ -22,6 +25,7 @@ class _FakeDashboardDataSource implements DashboardDataSource {
           _ => 0,
         },
       );
+  }
 
   @override
   Stream<int> countWhere(String collection, String field, dynamic value) =>
@@ -113,7 +117,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: DashboardScreen(
-              dataSource: const _FakeDashboardDataSource(empty: true),
+              dataSource: _FakeDashboardDataSource(empty: true),
             ),
           ),
         ),
@@ -136,7 +140,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: DashboardScreen(
-              dataSource: const _FakeDashboardDataSource(failRecentBookings: true),
+              dataSource: _FakeDashboardDataSource(failRecentBookings: true),
             ),
           ),
         ),
@@ -159,7 +163,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: DashboardScreen(
-              dataSource: const _FakeDashboardDataSource(failRecentActivity: true),
+              dataSource: _FakeDashboardDataSource(failRecentActivity: true),
             ),
           ),
         ),
@@ -168,6 +172,33 @@ void main() {
 
       expect(find.text('Unable to load activity.'), findsOneWidget);
       expect(find.text('No audit activity available yet.'), findsNothing);
+
+      await tester.view.resetPhysicalSize();
+      await tester.view.resetDevicePixelRatio();
+    });
+
+
+    testWidgets('refresh action resubscribes to dashboard data streams',
+        (tester) async {
+      await tester.view.setPhysicalSize(const Size(1440, 1200));
+      await tester.view.setDevicePixelRatio(1);
+      final source = _FakeDashboardDataSource();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DashboardScreen(dataSource: source),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final initialSubscriptions = source.subscriptionCount;
+      expect(initialSubscriptions, 4);
+
+      await tester.tap(find.byKey(const ValueKey('dashboard-refresh')));
+      await tester.pumpAndSettle();
+
+      expect(source.subscriptionCount, greaterThan(initialSubscriptions));
 
       await tester.view.resetPhysicalSize();
       await tester.view.resetDevicePixelRatio();
