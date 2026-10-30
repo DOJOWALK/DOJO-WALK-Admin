@@ -151,6 +151,14 @@ void main() {
   });
 
 
+  testWidgets('shows local geometry feedback without implying verification',
+      (tester) async {
+    await tester.pumpWidget(app());
+
+    expect(find.textContaining('Local geometry check: Add at least 3 points (0/3).'), findsOneWidget);
+    expect(find.textContaining('not uploaded or verified'), findsOneWidget);
+  });
+
   testWidgets('boundary editor entry is disabled until a new Zone is selected',
       (tester) async {
     await tester.pumpWidget(app());
