@@ -248,3 +248,12 @@ To stay within Draft PR #51's UI-first gate, the next change was kept inside the
 - The editor footer now displays the same explicit local geometry feedback as the Create Zone form, including the distinction between a locally valid shape and GIS verification.
 - Added a plain-language warning that local shape validation is not GIS verification or service-area approval.
 - UI-only change. No boundary persistence, GIS verification, Firestore integration, or approval workflow was enabled. Automated Flutter tests/analyzer have not been run in this session.
+
+
+## Create Zone readiness dialog audit — 2026-10-31
+
+- Replaced the generic readiness explanation with explicit blockers based on the local preview state.
+- The dialog now distinguishes a failed local polygon-shape check from GIS verification; even a locally valid polygon is explicitly described as **not GIS-verified**.
+- It separately reports that boundary evidence has not been uploaded and the State/UT → District → City selectors still use example catalog data. Save Draft and Submit for Review remain disabled.
+- Updated the existing widget test to assert these blocker messages and the no-save guarantee.
+- This is still a UI-only validation preview. No authoritative catalog, GIS service, backend, Firestore, draft persistence or approval action is connected. Test/analyzer execution has not been confirmed.
