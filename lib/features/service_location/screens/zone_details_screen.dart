@@ -102,14 +102,14 @@ class ZoneDetailsScreen extends StatelessWidget {
                   Wrap(spacing: 8, runSpacing: 8, children: [
                     OutlinedButton.icon(
                       onPressed: () => Navigator.of(context).push<void>(
-                        MaterialPageRoute<void>(builder: (_) => const BoundaryReviewScreen()),
+                        MaterialPageRoute<void>(builder: (_) => BoundaryReviewScreen(focusZoneId: zoneId)),
                       ),
                       icon: const Icon(Icons.map_outlined),
                       label: const Text('Preview boundary review'),
                     ),
                     OutlinedButton.icon(
                       onPressed: () => Navigator.of(context).push<void>(
-                        MaterialPageRoute<void>(builder: (_) => const ZoneApprovalQueueScreen()),
+                        MaterialPageRoute<void>(builder: (_) => ZoneApprovalQueueScreen(focusZoneId: zoneId)),
                       ),
                       icon: const Icon(Icons.verified_user_outlined),
                       label: const Text('Preview approval queue'),
