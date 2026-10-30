@@ -10,6 +10,7 @@ class _FakeDashboardDataSource implements DashboardDataSource {
   final bool failCounts;
   final bool failRevenue;
   final bool permissionDenied;
+  final bool holdLoading;
   int subscriptionCount = 0;
 
   _FakeDashboardDataSource({
@@ -19,10 +20,12 @@ class _FakeDashboardDataSource implements DashboardDataSource {
     this.failCounts = false,
     this.failRevenue = false,
     this.permissionDenied = false,
+    this.holdLoading = false,
   });
   @override
   Stream<int> countAll(String collection) {
     subscriptionCount++;
+    if (holdLoading) return _pending<int>();
     if (failCounts) return _countFailure();
     return Stream<int>.value(
         switch (collection) {
@@ -36,10 +39,12 @@ class _FakeDashboardDataSource implements DashboardDataSource {
 
   @override
   Stream<int> countWhere(String collection, String field, dynamic value) =>
-      failCounts ? _countFailure() : Stream<int>.value(2);
+      holdLoading ? _pending<int>() : failCounts ? _countFailure() : Stream<int>.value(2);
 
   @override
-  Stream<int> countBookingStatus(String canonicalLabel) => failCounts
+  Stream<int> countBookingStatus(String canonicalLabel) => holdLoading
+      ? _pending<int>()
+      : failCounts
       ? _countFailure()
       : Stream<int>.value(
         switch (canonicalLabel) {
@@ -51,7 +56,9 @@ class _FakeDashboardDataSource implements DashboardDataSource {
       );
 
   @override
-  Stream<double> totalPaidAmount() => failRevenue
+  Stream<double> totalPaidAmount() => holdLoading
+      ? _pending<double>()
+      : failRevenue
       ? Stream<double>.error(_failure)
       : Stream<double>.value(1499);
 
@@ -61,8 +68,11 @@ class _FakeDashboardDataSource implements DashboardDataSource {
 
   Stream<int> _countFailure() => Stream<int>.error(_failure);
 
+  Stream<T> _pending<T>() => Stream<T>.multi((_) {});
+
   @override
   Stream<List<DashboardBooking>> recentBookings() {
+    if (holdLoading) return _pending<List<DashboardBooking>>();
     if (failRecentBookings) {
       return Stream<List<DashboardBooking>>.error(Exception('test stream failure'));
     }
@@ -77,6 +87,7 @@ class _FakeDashboardDataSource implements DashboardDataSource {
 
   @override
   Stream<List<DashboardActivity>> recentActivity() {
+    if (holdLoading) return _pending<List<DashboardActivity>>();
     if (failRecentActivity) {
       return Stream<List<DashboardActivity>>.error(Exception('activity failure'));
     }
@@ -194,6 +205,33 @@ void main() {
       await tester.view.resetDevicePixelRatio();
     });
 
+
+    testWidgets('keeps dashboard sections in loading state until streams emit',
+        (tester) async {
+      await tester.view.setPhysicalSize(const Size(1440, 1800));
+      await tester.view.setDevicePixelRatio(1);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DashboardScreen(
+              dataSource: _FakeDashboardDataSource(holdLoading: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsWidgets);
+      expect(find.text('No bookings yet.'), findsNothing);
+      expect(find.text('No audit activity available yet.'), findsNothing);
+      expect(find.text('0'), findsNothing);
+      expect(find.text('Access denied'), findsNothing);
+      expect(find.text('Unable to load'), findsNothing);
+
+      await tester.view.resetPhysicalSize();
+      await tester.view.resetDevicePixelRatio();
+    });
 
     testWidgets('shows visible permission errors for metrics, live counts, statuses and alerts',
         (tester) async {
