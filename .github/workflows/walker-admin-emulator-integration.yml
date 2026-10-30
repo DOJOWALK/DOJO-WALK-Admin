@@ -85,6 +85,19 @@ jobs:
               content = content[:insert_at] + additions + content[insert_at:]
               path.write_text(content)
           print("Generated Android plugin repositories include Google and Maven Central.")
+          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          manifest_content = manifest.read_text()
+          application_tag = "<application"
+          if application_tag not in manifest_content:
+              raise SystemExit("Generated Android application tag not found")
+          if "android:usesCleartextTraffic=" not in manifest_content:
+              manifest_content = manifest_content.replace(
+                  application_tag,
+                  '<application android:usesCleartextTraffic="true"',
+                  1,
+              )
+              manifest.write_text(manifest_content)
+          print("CI-only Android manifest permits HTTP to local Firebase emulators.")
           PY
 
       - name: Install Firebase emulator dependencies
