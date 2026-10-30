@@ -24,13 +24,13 @@ permissions:
 
 concurrency:
   group: walker-admin-emulator-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   flutterfire-emulator-integration:
     name: Flutter service against Auth + Firestore emulators
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Checkout Admin
         uses: actions/checkout@v5
@@ -92,8 +92,9 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: |
-            flutter test integration_test/walker_admin_service_emulator_test.dart -d emulator-5554 --dart-define=DOJO_EMULATOR_PROJECT_ID=demo-dojo-admin-integration
+            timeout 15m flutter test integration_test/walker_admin_service_emulator_test.dart -d emulator-5554 --dart-define=DOJO_EMULATOR_PROJECT_ID=demo-dojo-admin-integration
 
       - name: Show emulator logs on failure
         if: failure()
