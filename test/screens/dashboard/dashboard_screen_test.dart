@@ -6,10 +6,12 @@ import 'package:flutter_test/flutter_test.dart';
 class _FakeDashboardDataSource implements DashboardDataSource {
   final bool empty;
   final bool failRecentBookings;
+  final bool failRecentActivity;
 
   const _FakeDashboardDataSource({
     this.empty = false,
     this.failRecentBookings = false,
+    this.failRecentActivity = false,
   });
   @override
   Stream<int> countAll(String collection) => Stream<int>.value(
@@ -53,13 +55,17 @@ class _FakeDashboardDataSource implements DashboardDataSource {
   }
 
   @override
-  Stream<List<DashboardActivity>> recentActivity() =>
-      Stream<List<DashboardActivity>>.value(empty ? const [] : const [
+  Stream<List<DashboardActivity>> recentActivity() {
+    if (failRecentActivity) {
+      return Stream<List<DashboardActivity>>.error(Exception('activity failure'));
+    }
+    return Stream<List<DashboardActivity>>.value(empty ? const [] : const [
         DashboardActivity(
           action: 'Created booking',
           actorRole: 'Central Admin',
         ),
       ]);
+  }
 }
 
 void main() {
@@ -139,6 +145,29 @@ void main() {
 
       expect(find.text('Unable to load recent bookings.'), findsOneWidget);
       expect(find.text('No bookings yet.'), findsNothing);
+
+      await tester.view.resetPhysicalSize();
+      await tester.view.resetDevicePixelRatio();
+    });
+
+    testWidgets('shows an activity error when the audit stream fails',
+        (tester) async {
+      await tester.view.setPhysicalSize(const Size(1440, 1200));
+      await tester.view.setDevicePixelRatio(1);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DashboardScreen(
+              dataSource: const _FakeDashboardDataSource(failRecentActivity: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Unable to load activity.'), findsOneWidget);
+      expect(find.text('No audit activity available yet.'), findsNothing);
 
       await tester.view.resetPhysicalSize();
       await tester.view.resetDevicePixelRatio();
