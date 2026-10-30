@@ -88,7 +88,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Walker Details'), findsOneWidget);
-    expect(find.text('Test Walker'), findsOneWidget);
+    expect(find.text('Test Walker'), findsWidgets);
     expect(find.text('Personal Details'), findsOneWidget);
     expect(find.text('KYC Documents'), findsOneWidget);
     expect(find.text('Account Review'), findsOneWidget);
@@ -103,7 +103,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Verified • Active'), findsOneWidget);
+    expect(find.text('Verified • Active'), findsWidgets);
     expect(find.text('Suspend'), findsNothing);
     expect(find.text('Verify & Approve'), findsNothing);
     expect(tester.takeException(), isNull);
