@@ -5,7 +5,9 @@ import 'zone_approval_queue_screen.dart';
 /// UI-only boundary review queue prototype.
 /// No records are loaded, approved, rejected, or changed on the server.
 class BoundaryReviewScreen extends StatefulWidget {
-  const BoundaryReviewScreen({super.key});
+  const BoundaryReviewScreen({super.key, this.focusZoneId});
+
+  final String? focusZoneId;
 
   @override
   State<BoundaryReviewScreen> createState() => _BoundaryReviewScreenState();
@@ -74,7 +76,7 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFAF5),
       appBar: AppBar(
-        title: const Text('Boundary Review'),
+        title: Text(widget.focusZoneId == null ? 'Boundary Review' : 'Boundary Review · ${widget.focusZoneId}'),
         backgroundColor: Colors.white,
         foregroundColor: _ink,
         surfaceTintColor: Colors.white,
@@ -102,7 +104,7 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => Navigator.of(context).push<void>(
                       MaterialPageRoute<void>(
-                        builder: (_) => const ZoneApprovalQueueScreen(),
+                        builder: (_) => ZoneApprovalQueueScreen(focusZoneId: widget.focusZoneId),
                       ),
                     ),
                     icon: const Icon(Icons.verified_user_outlined),
