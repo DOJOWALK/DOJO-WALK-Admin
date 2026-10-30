@@ -294,3 +294,14 @@ No production rules were changed and no emulator or production deployment was ru
 - This is a design/feasibility result only. No integration test code or CI job has been added yet, and no Flutter-to-emulator test has run. Do not mark this gate PASS.
 - Next implementation gate: prove the Flutter Web integration-test driver and emulator-owner fixture seeding against a dedicated demo project, then add the test and non-deploying CI workflow. Keep production Firebase options and rules untouched.
 - No production data/rules, deployed indexes, merge, or hosting deployment changed.
+
+
+## 24. First real FlutterFire Emulator integration harness added — 2026-10-30
+
+- Added the Flutter `integration_test` SDK dependency in commit `547ab69e882af504f594c5e97e197c84b746ac9d`.
+- Added `integration_test/walker_admin_service_emulator_test.dart` in commits `0706d458d4e8cb75bce2dd6eb968f54a5e4b6ce6` and `204a346e913bc06a111d58310c5656735a438f91`. It initializes a separate named Firebase app with a dedicated demo project ID, connects real FlutterFire Auth and Firestore clients to local emulators, creates an ordinary Auth emulator user, and calls the actual `WalkerAdminService.runAdminAction()`. It expects the missing admin record to deny the action and verifies the caller's walker document remains absent.
+- Added `.github/workflows/walker-admin-emulator-integration.yml` in commit `6f7a0642daa86ed7d7950c6b4e8b9b99345bc169`. It checks out the Firebase Rules repository, starts only Auth + Firestore emulators under `demo-dojo-admin-integration`, and runs the Flutter integration test in Chrome. Permissions are read-only; no deploy step or production credentials are configured.
+- Workflow run `41006504289` was observed as **QUEUED** at audit time. No test result is claimed yet. The existing full Flutter validation and Admin Web Build Check runs for preceding commits were still in progress when checked.
+- Scope limitation: this first real-client integration test validates the denied/no-admin path only. It does not yet validate a successful Super Admin Dart transaction or a Dart-side rollback after an audit write denial. The Node Firestore SDK emulator transaction tests remain separate evidence for Rules/transaction rollback behavior.
+- Next gate: inspect run `41006504289` and the full Flutter validation results; fix any driver/emulator issues, then add a successful authorized Dart transaction test using an emulator-only fixture mechanism. Never seed or mutate production admin records.
+- No production rules/data, deployed indexes, merge, or hosting deployment changed.
