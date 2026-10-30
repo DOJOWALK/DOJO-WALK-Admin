@@ -240,3 +240,11 @@ To stay within Draft PR #51's UI-first gate, the next change was kept inside the
 - Extracted the local geometry feedback into `ServiceBoundaryPreviewValidator`, allowing focused unit tests without constructing the Google Maps platform view.
 - Added unit cases for empty/fewer-than-three points, repeated vertices, out-of-range coordinates, self-intersection, collinear/zero-area geometry, and a valid simple polygon. Valid feedback still explicitly says **Not GIS-verified**.
 - These tests are added but have not been executed in this session. Flutter analyze/test and CI remain unverified. No Firebase, upload, persistence, hash, approval, merge, or deployment.
+
+
+## Boundary preview usability follow-up — 2026-10-30
+
+- Made the map viewport responsive to screen height (42% of available screen height, clamped to 260–420 px) rather than always occupying 420 px. The surrounding bottom sheet remains scrollable, keeping controls reachable on shorter devices.
+- The editor footer now displays the same explicit local geometry feedback as the Create Zone form, including the distinction between a locally valid shape and GIS verification.
+- Added a plain-language warning that local shape validation is not GIS verification or service-area approval.
+- UI-only change. No boundary persistence, GIS verification, Firestore integration, or approval workflow was enabled. Automated Flutter tests/analyzer have not been run in this session.
