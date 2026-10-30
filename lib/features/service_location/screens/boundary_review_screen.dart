@@ -47,7 +47,7 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
       owner: 'Central Admin',
       status: 'Verified',
       revision: 'Revision 3',
-      boundaryStatus: 'Integrity matched',
+      boundaryStatus: 'Verified (example)',
       polygonStatus: 'Polygon check recorded (example)',
       boundaryHash: 'EXAMPLE-SHA256-VERIFIED-003',
     ),
