@@ -325,3 +325,14 @@ No production rules were changed and no emulator or production deployment was ru
 - Follow-up workflow commit: `fe95f55526fc4c0cf40ae8b456f0a93580d7bb5f`. Added a CI-only `flutter create --platforms=linux --project-name dojo_admin .` step before running the integration test. This generates the Linux runner in the ephemeral CI checkout; it does not commit platform scaffolding to the repository or alter production.
 - New workflow result is pending at the time of this report update. No FlutterFire integration test PASS is claimed.
 - The integration test remains a denied/no-admin scenario only. A successful Super Admin transaction still requires a safe emulator fixture approach that does not bypass or weaken production Firestore rules.
+
+
+## 27. Headless Linux integration test launch correction — 2026-10-30
+
+- Inspected the complete job log for failed workflow run `41007237200` (Admin commit `fe95f55526fc4c0cf40ae8b456f0a93580d7bb5f`).
+- The CI-only Linux runner scaffold generated successfully, Firebase Auth and Firestore emulators both became ready, and Flutter dependencies installed successfully.
+- The test did not execute: Flutter built the Linux app, then reported `Error waiting for a debug connection: The log reader stopped unexpectedly, or never started` and `Unable to start the app on the device`. The runner is headless; the workflow had no virtual display server.
+- Corrective workflow commit: `7df259f7bd27cb71091c13e49fcb9dd230f18538`. Added the `xvfb` package and wrapped the Linux integration test command in `xvfb-run -a` so the desktop test app has a virtual display in GitHub Actions.
+- This is a targeted environment correction based on the observed launch failure. The next workflow run must confirm whether the app starts and the FlutterFire test reaches its assertions. No integration PASS is claimed yet.
+- The integration test still covers only the ordinary authenticated user / missing-admin denial path. Successful Super Admin Dart transaction and Dart-side rollback remain untested; no privileged fixture bypass was added.
+- No production Firebase rules/data, deployed indexes, merge, or hosting deployment changed.
