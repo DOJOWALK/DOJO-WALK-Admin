@@ -155,3 +155,13 @@ The fake data source continues to supply all dashboard streams without Firebase 
 - Dashboard recent-booking and audit-activity streams now have source-level widget tests for populated, empty and error states.
 - Remaining work: loading-state assertions, metric/live/status/alert stream failure assertions, and a genuine user-triggered retry/refresh mechanism. The screen currently has no retry/refresh control; do not imply one exists.
 - No Flutter test or analyzer execution has been confirmed yet.
+
+
+### Dashboard refresh control implementation (2026-10-30)
+
+- Converted `DashboardScreen` to a StatefulWidget and added a header refresh icon with tooltip `Refresh dashboard data`.
+- Refresh increments a version key and rebuilds the dashboard subtree, forcing its StreamBuilders to resubscribe to newly requested data streams. This is a client-side stream refresh; it does not write to Firestore or guarantee recovery from persistent permission/rules errors.
+- Added a widget test that checks the refresh action causes the injected data source to be queried again.
+- The test's fake source counts the three collection-count subscriptions; test execution remains unverified.
+- The earlier note that no refresh control exists is superseded by this implementation.
+- Still pending: run Flutter Analyze and Flutter Test in CI, add explicit loading and metric/live/status/alert error-state tests, and verify narrow/tablet/desktop layouts.
