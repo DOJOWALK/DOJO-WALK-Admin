@@ -82,7 +82,7 @@ Run from the Admin repository root on the target branch:
 6. Build the intended Admin target (at minimum `flutter build web`) and retain logs/artifacts.
 7. Record each command's exit code, duration, and any failure details. Do not mark a test PASS unless its actual result is available.
 
-**Current execution status:** this checklist was prepared from GitHub source review. Flutter tests, analyzer, and build have **not** been executed or verified in this session. GitHub Actions status is not inferred from an empty status/workflow response.
+**Current execution status (updated 2026-10-31):** GitHub Actions has now executed Analyze, the complete Flutter test suite, and Flutter Web release build successfully for code commit `2caff9d00d24020969a7744880101475d2afa9d2` (Flutter stable 3.47.9). This is CI evidence, not a claim that local device/browser, accessibility, or product-owner checks have been completed.
 
 ## 9. Backend / Firebase gate — explicitly blocked
 Until Sections 1–8 are validated and accepted:
@@ -111,10 +111,23 @@ A real GitHub Actions run was found for code commit `71055eeb3268c9195b8cc001706
 
 
 
-**Fresh validation trigger:** GitHub Actions run `41111309355` (DOJO WALK Admin Flutter Validation, run #62) is currently **queued** for code commit `736a47416f942f1af2aad6a21f45905a8db07fd1`. It has no job result yet. The branch subsequently received documentation-only commit `43a02a588d2ff8c42e7b80118b7c41ea0c63653a`; the queued run does not validate that later documentation commit.
+**Fresh validation result:** Run #62 (`41111309355`) did not produce a usable completed result before the next source correction. After the approval-queue assertion was corrected in commit `2caff9d00d24020969a7744880101475d2afa9d2`, the following workflows completed successfully:
+- **DOJO WALK Admin Flutter Validation**, run #63 / `41112382633`: `flutter analyze` — **No issues found** (21.0s); `flutter test --no-pub` — **320 tests passed**; `flutter build web --release --no-pub` — **Built build/web**. Job conclusion: success.
+- **Admin Web Build Check (No Deploy)**, run #1307 / `41112382557`: conclusion **success**.
+- The test assertion now accepts repeated `Awaiting decision` labels; source file was fetched back from GitHub and the updated assertion verified.
+
+These CI runs validate code commit `2caff9d00d24020969a7744880101475d2afa9d2`. A subsequent documentation-only update does not change that tested code.
 
 ## 11. Acceptance decision
 **Status: NOT YET ACCEPTED.**  
-Reason: a prior full CI run exposed two test failures; corrective changes are committed, but a fresh full validation result and real-device/browser checks are still outstanding. This is not a claim that the Service Location UI is complete or production-ready.
+Reason: automated CI is now green (Analyze, 320 tests, and Web release build), but the remaining manual/device/browser/accessibility checks in Sections 1–7 and explicit Founder/product-owner acceptance are still outstanding. This is not a claim that the Service Location UI is complete or production-ready.
 
 **Next engineering action:** confirm the new branch push triggers the validation workflow, inspect its logs, fix any remaining failures, and only then request product-owner acceptance.
+
+
+## 12. Successful CI evidence — 2026-10-31
+- Tested code commit: `2caff9d00d24020969a7744880101475d2afa9d2`.
+- Flutter Validation run #63: `41112382633` — Analyze success, **320 tests passed**, Web release build success.
+- Admin Web Build Check run #1307: `41112382557` — success (no deploy).
+- Flutter CI version: stable **3.47.9**.
+- No Firebase integration, merge, or deployment was performed.
