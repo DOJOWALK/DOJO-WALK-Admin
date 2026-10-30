@@ -231,3 +231,11 @@ The fake data source continues to supply all dashboard streams without Firebase 
 - Made the service lazy so stream-driven widget tests can run without eagerly initializing Firebase. Activity history still uses the production service when opened.
 - Added `test/features/walkers/walker_details_screen_test.dart` covering pending/loading, missing walker, stream error/retry affordance, successful detail rendering, and the lifecycle-action safety guard.
 - Lifecycle actions remain unavailable. The tests are authored but have not been executed; Flutter Analyze, Flutter Test and full CI remain required before treating this screen as validated.
+
+## Walker Details Dialogs — Widget Coverage (2026-10-30)
+
+- Added `test/features/walkers/walker_details_dialogs_test.dart`.
+- Security dialog: verifies read-only account facts and the notice that it does not change login access or permissions.
+- Activity history dialog: covers loading, empty, populated audit record (action/actor/reason/status transition), and stream failure without misreporting it as empty.
+- KYC viewer: covers missing document reference, user-facing error and retry affordance. Remote Firebase Storage/PDF/image rendering is not exercised by this test.
+- Tests are authored only; Flutter Test/Analyze and exact-head CI have not been run for these changes. No production Firebase access or lifecycle action was invoked.
