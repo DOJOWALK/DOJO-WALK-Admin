@@ -185,3 +185,13 @@ No production rules were changed and no emulator or production deployment was ru
 - The workflow therefore correctly exposed pre-existing test-suite/API drift. The import correction is committed but has not yet been re-run; it must not be described as a passing fix.
 - Next action: migrate the affected tests to the current `tester.view.physicalSize` / `tester.view.devicePixelRatio` setter API and synchronous reset calls, then rerun the full validation workflow. Recheck remaining analyzer diagnostics after this migration; do not suppress the test suite or narrow CI merely to obtain a green result.
 - No merge, Firebase deployment, production data change or production rules change occurred.
+
+
+## 15. Flutter test viewport API migration — 2026-10-30
+
+- Replaced obsolete `TestFlutterView.setPhysicalSize()` and `setDevicePixelRatio()` calls in the Walker Details and Dashboard widget tests with the current `physicalSize` and `devicePixelRatio` setters.
+- Removed `await` from synchronous `resetPhysicalSize()` and `resetDevicePixelRatio()` calls in Dashboard tests; retained teardown registration for Walker Details tests.
+- Commits: `2697a77b358eda03d41116812c52190464de1f18` (Walker Details screen tests), `e43dccc6617032a9c4a1acee470c830ef161d204` (Walker Details sections tests), `8e711cb5459c02a330b2c983a1bcf9f15d36d01c` (Dashboard tests).
+- A new Admin Web Build Check run `41000965841` was observed for this update and was still in progress at the time of this note. The separate Flutter Validation run `41000965808` was cancelled as the subsequent push-triggered workflow took over; no test/analyze/build result is claimed yet.
+- The previous analyzer log showed the missing contracts import and old viewport API calls as the reported errors; the contracts import was added in commit `ca8bb1a302b3b94fbf2719c8cf40a2becfe8bb83`. The new workflow run must confirm whether any further analyzer/test issues remain.
+- No merge, deploy, production rules or data changes occurred.
