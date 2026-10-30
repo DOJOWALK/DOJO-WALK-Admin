@@ -110,7 +110,6 @@ void main() {
 
     testWidgets('clear-search icon has an accessible label and 48px target', (tester) async {
       final semantics = tester.ensureSemantics();
-      addTearDown(semantics.dispose);
       await tester.pumpWidget(
         const MaterialApp(home: ZoneDirectoryScreen()),
       );
@@ -124,6 +123,7 @@ void main() {
       final size = tester.getSize(clearButton);
       expect(size.width, greaterThanOrEqualTo(48));
       expect(size.height, greaterThanOrEqualTo(48));
+      semantics.dispose();
     });
 
     testWidgets('Zone Directory remains readable on a narrow mobile viewport',
