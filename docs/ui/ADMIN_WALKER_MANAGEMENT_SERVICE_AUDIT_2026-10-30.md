@@ -81,3 +81,27 @@ This report records source-level findings only. It does not claim runtime tests,
 - This still does **not** test Firestore transaction atomicity, Firebase Auth state, admin role authorization, rules enforcement or audit persistence. Those require emulator-backed service tests and are not claimed complete.
 - Exact PR head checked: `465d48df0bab5da602205fb1ba8e5ec4d09af25d`.
 - PR #51 remains open and draft; latest queried workflow run list was empty. GitHub reported mergeable=false at the time of the check; conflict/status details need a fresh PR review before merge.
+
+
+## 8. Firebase rules and emulator setup cross-check — 2026-10-30
+
+- Re-read the exact current `DOJOWALK/DOJO-WALK-Firebase` `main` rules snapshot, rather than relying on the earlier partial note.
+- The walker admin update allow-list includes `walkerId`, `status`, `isActive`, `isApproved`, `verificationStatus`, `updatedAt`, `decisionReason`, `decisionBy` and `decisionAt`. The Admin service writes only the applicable lifecycle fields from this list, so the field-name contract is aligned at source level.
+- The rules independently require an active `super_admin` admin record and validate the resulting walker status/verification/approval/active combination. They also constrain `decisionBy` to the authenticated UID and validate the optional reason/timestamp.
+- The audit log create allow-list includes all fields currently emitted by the service, and its action allow-list contains all five lifecycle event names emitted by `WalkerAdminTransitionPolicy`. This confirms source-level schema compatibility, not runtime success.
+- The Firebase repository has an existing Rules Unit Testing harness: `firebase.json` configures Auth and Firestore emulators; `package.json` includes `@firebase/rules-unit-testing` and `firebase-tools`; tests live under `test/*.test.mjs`. The Admin repository itself has no `firestore.rules` or `firebase.json` emulator configuration, and its `pubspec.yaml` currently has no Firebase mock/emulator test dependency.
+- The inspected Firebase Rules test file contains no walker lifecycle-specific cases. Therefore the next meaningful validation should add rule tests in the Firebase repository for the five lifecycle transitions, invalid state combinations, inactive/non-super-admin denial, actor UID mismatch, and audit event allow-list. Flutter service transaction tests remain a separate follow-up; the Node rules suite alone cannot prove the Flutter transaction's persisted audit payload.
+
+### Updated validation matrix
+
+| Check | Result |
+|---|---|
+| Walker update field allow-list vs service writes | SOURCE-LEVEL ALIGNED |
+| Walker state validation vs transition policy outputs | SOURCE-LEVEL CONTRACT CHECKED; emulator not run |
+| Audit event names vs Firestore audit allow-list | SOURCE-LEVEL ALIGNED |
+| Firestore rules emulator harness in Firebase repo | EXISTS; not executed in this audit |
+| Walker lifecycle rules tests | NOT FOUND in inspected test file |
+| Flutter service transaction tests | NOT IMPLEMENTED / NOT RUN |
+| Exact PR-head CI | NOT VERIFIED |
+
+This cross-check does not change production rules, enable UI actions, or approve the current security model. Keep the PR Draft and keep lifecycle actions gated until emulator and service-level tests are added and run.
