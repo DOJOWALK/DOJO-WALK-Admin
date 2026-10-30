@@ -1,22 +1,9 @@
 name: DOJO WALK Admin Firebase Emulator Integration
 
+# Keep emulator integration manual-only until the Admin UI and its acceptance
+# checklist are complete. This prevents an automatic local-emulator run during
+# the UI-first phase; it does not affect live Firebase or deployment.
 on:
-  pull_request:
-    paths:
-      - "lib/features/walkers/**"
-      - "integration_test/**"
-      - "pubspec.yaml"
-      - "pubspec.lock"
-      - ".github/workflows/walker-admin-emulator-integration.yml"
-  push:
-    branches:
-      - "ui/**"
-    paths:
-      - "lib/features/walkers/**"
-      - "integration_test/**"
-      - "pubspec.yaml"
-      - "pubspec.lock"
-      - ".github/workflows/walker-admin-emulator-integration.yml"
   workflow_dispatch:
 
 permissions:
