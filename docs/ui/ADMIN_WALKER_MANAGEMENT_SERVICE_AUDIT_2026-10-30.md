@@ -71,3 +71,13 @@ This report records source-level findings only. It does not claim runtime tests,
 - Added `test/features/walkers/walker_admin_transition_policy_test.dart` covering approval, rejection, suspension, reactivation, correction requests and terminal-state guards.
 - These are authored tests, not executed test results. No Firestore/Auth transaction, audit write, query shape, rules emulator or role authorization is tested by this pure policy suite.
 - Exact-head CI has not yet appeared. Flutter Analyze/Test remain unverified.
+
+## 7. Additional pure-policy coverage — 2026-10-30
+
+- Centralized the "reason required" rule for Reject, Suspend and Request Correction in `WalkerAdminTransitionPolicy.requiresReason`.
+- Centralized stable audit event names for all five lifecycle actions in `WalkerAdminTransitionPolicy.auditActionName`.
+- Updated `WalkerAdminService` to consume these shared policy methods and removed unused transition method parameters.
+- Added tests for exact reason-required action set and audit event mapping.
+- This still does **not** test Firestore transaction atomicity, Firebase Auth state, admin role authorization, rules enforcement or audit persistence. Those require emulator-backed service tests and are not claimed complete.
+- Exact PR head checked: `465d48df0bab5da602205fb1ba8e5ec4d09af25d`.
+- PR #51 remains open and draft; latest queried workflow run list was empty. GitHub reported mergeable=false at the time of the check; conflict/status details need a fresh PR review before merge.
