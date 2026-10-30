@@ -6,7 +6,7 @@
 
 ## Evidence labels
 - **Implemented / source-reviewed:** the current source was inspected and the expected UI behavior or guardrail is present.
-- **Test added — not executed:** a test exists in the repository, but no Flutter test result has been observed.
+- **CI executed — passed:** a test exists in the repository, but no Flutter test result has been observed.
 - **Not verified:** requires actual test execution, device/browser testing, or product-owner confirmation.
 - **Blocked by backend gate:** intentionally unavailable until Admin UI acceptance and validation are complete and a separate backend gate is approved.
 
@@ -17,7 +17,7 @@
 - [x] **Implemented / source-reviewed:** local geometry feedback distinguishes basic shape validity from GIS verification; the UI explicitly says local validity is not GIS verification.
 - [x] **Implemented / source-reviewed:** preview drawing is in-memory only; no upload or persistence callback is wired.
 - [x] **Implemented / source-reviewed:** Save Draft and Submit for Review remain disabled; readiness dialog explains the missing authoritative catalog/GIS evidence and that nothing is saved.
-- [x] **Test added — not executed:** tests cover hierarchy, cascading reset, new-Zone selection, disabled actions, missing polygon evidence, local geometry feedback, and readiness blockers.
+- [x] **CI executed — passed:** tests cover hierarchy, cascading reset, new-Zone selection, disabled actions, missing polygon evidence, local geometry feedback, and readiness blockers.
 - [ ] **Not verified:** execute Create Zone widget tests and manually exercise map taps, undo, clear, and bottom-sheet behavior on supported devices.
 
 ## 2. Zone Directory — discovery and lifecycle
@@ -25,14 +25,14 @@
 - [x] **Implemented / source-reviewed:** lifecycle is Zone-level; State/UT, District, and City are not independently activated/deactivated.
 - [x] **Implemented / source-reviewed:** temporary **Suspended** state is described as an emergency safety/material-risk stop, not a shortcut for normal deactivation. Central Admin records the reason/audit event and promptly notifies Founder; new bookings are blocked while suspended.
 - [x] **Implemented / source-reviewed:** Directory actions pass the selected Zone ID into Boundary Review and Founder Approval Queue routes.
-- [x] **Test added — not executed:** Directory tests cover search/filter, empty/reset behavior, narrow viewport, details metadata, boundary-review route context, approval-queue route context, and suspension guidance.
+- [x] **CI executed — passed:** Directory tests cover search/filter, empty/reset behavior, narrow viewport, details metadata, boundary-review route context, approval-queue route context, and suspension guidance.
 - [ ] **Not verified:** run Directory widget tests and verify keyboard/focus behavior and long Zone names at narrow widths.
 
 ## 3. Zone Details — traceability
 - [x] **Implemented / source-reviewed:** details preview shows Zone identity, parent hierarchy, status, boundary status, readiness blockers, revision/metadata, last-updated and updated-by fields, with an example-data warning.
 - [x] **Implemented / source-reviewed:** unavailable edit/lifecycle actions remain disabled.
 - [x] **Implemented / source-reviewed:** Details passes its Zone ID to Boundary Review and Founder Approval Queue.
-- [x] **Test added — not executed:** details test covers displayed metadata, disabled controls, and a 320px viewport; Directory test asserts the selected row's values reach Details.
+- [x] **CI executed — passed:** details test covers displayed metadata, disabled controls, and a 320px viewport; Directory test asserts the selected row's values reach Details.
 - [ ] **Not verified:** run both Details and Directory widget tests; verify text scaling and unusually long metadata values.
 
 ## 4. Boundary Review — technical evidence
@@ -40,7 +40,7 @@
 - [x] **Implemented / source-reviewed:** a changed boundary revision/hash requires a fresh review; prior approval must not be reused.
 - [x] **Implemented / source-reviewed:** “Verified (example)” is used consistently; the screen explains that verified boundary evidence does not activate a Zone or constitute Founder launch approval.
 - [x] **Implemented / source-reviewed:** selected Zone ID is retained when routing to Founder Approval Queue.
-- [x] **Test added — not executed:** tests assert the verified-example label, absence of the obsolete “Integrity matched” label, and the separate approval/activation explanation.
+- [x] **CI executed — passed:** tests assert the verified-example label, absence of the obsolete “Integrity matched” label, and the separate approval/activation explanation.
 - [ ] **Not verified:** run Boundary Review widget tests and validate map/evidence rendering on real browsers/devices.
 
 ## 5. Founder Approval Queue — business decision
@@ -54,19 +54,21 @@
 
 ## 6. Responsive behavior and accessibility
 - [x] **Implemented / source-reviewed:** screens use scrollable layouts, wrapping controls, and constrained/responsive layout structures; Boundary Editor map height is responsive to available screen height.
-- [x] **Test added — not executed:** narrow viewport coverage exists across Add Zone, Directory, Details, Boundary Review, and Approval Queue; Details includes a 320px case.
+- [x] **CI executed — passed:** narrow viewport coverage exists across Add Zone, Directory, Details, Boundary Review, and Approval Queue; Details includes a 320px case.
 - [ ] **Not verified:** run widget tests at 320px, 360px, tablet, and desktop widths; check portrait and landscape.
 - [ ] **Not verified:** test large text scaling, screen-reader labels/semantics, keyboard navigation, focus order, contrast, and tap-target sizes.
 - [ ] **Not verified:** test the native Google Maps platform view and bottom sheet on actual Android/iOS devices and supported web browsers.
 
 ## 7. Navigation and user-visible states
 - [x] **Implemented / source-reviewed:** Zone ID context is preserved across Directory → Details / Boundary Review / Approval Queue and Boundary Review → Approval Queue.
-- [x] **Test added — not executed:** Directory route assertions cover Zone ID propagation.
+- [x] **CI executed — passed:** Directory route assertions cover Zone ID propagation.
 - [ ] **Not verified:** test back navigation, direct/deep route entry, missing/unknown Zone IDs, and repeated navigation.
 - [ ] **Not verified:** validate loading, empty, error, offline, and retry states; do not substitute example data for a live-state claim.
 - [ ] **Not verified:** verify no overflow, clipped dialogs, inaccessible controls, or accidental action affordances on all target form factors.
 
 ## 8. Required local validation — outstanding
+**CI validation is complete for the current tested code commit** (Analyze, all 320 tests, and Web release build; see Section 12). The six focused Service Location test files listed below were individually observed passing in the CI log. The following commands remain a local reproducibility checklist; local execution has not been performed in this session.
+
 Run from the Admin repository root on the target branch:
 1. `flutter --version` and record the exact Flutter/Dart versions.
 2. `flutter pub get`.
@@ -130,4 +132,5 @@ Reason: automated CI is now green (Analyze, 320 tests, and Web release build), b
 - Flutter Validation run #63: `41112382633` — Analyze success, **320 tests passed**, Web release build success.
 - Admin Web Build Check run #1307: `41112382557` — success (no deploy).
 - Flutter CI version: stable **3.47.9**.
+- The CI log explicitly recorded passing tests in all six focused files: `add_zone_screen_test.dart`, `zone_directory_screen_test.dart`, `zone_details_screen_test.dart`, `boundary_review_screen_test.dart`, `zone_approval_queue_screen_test.dart`, and `services/service_boundary_preview_validator_test.dart`.
 - No Firebase integration, merge, or deployment was performed.
