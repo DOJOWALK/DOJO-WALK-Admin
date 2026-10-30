@@ -269,3 +269,17 @@ No production rules were changed and no emulator or production deployment was ru
 - The service tests use FakeFirestore. They verify service-level outcomes against the fake implementation, but they do **not** prove real Firestore Emulator transaction atomicity or Firestore Security Rules behavior. The Firebase Rules emulator suite is separately validated as recorded in section 20.
 - Next gate: add a deliberate emulator-backed integration test for the actual Admin service transaction, including successful dual-write and rollback/no-partial-write behavior. Do not describe transaction atomicity as emulator-verified until that test runs successfully.
 - No production rules/data, deployed indexes, merge state, or hosting deployment changed.
+
+
+## 22. Firestore Emulator transaction contract tests — 2026-10-30
+
+- Added two Firestore Emulator transaction contract tests in `DOJOWALK/DOJO-WALK-Firebase/test/walker_lifecycle.rules.test.mjs` on Firebase `main`.
+- Exact Firebase commit: `42923ecabedb60c158cdec91a5397f9925b3e07a`.
+- Test 1 runs a signed-in Super Admin transaction that updates a walker lifecycle state and creates the matching audit event, then verifies both persisted documents.
+- Test 2 attempts the walker update and an audit write with a disallowed event name in the same transaction; it expects a Rules denial and verifies the walker remains unchanged and the audit document is absent.
+- Exact-head workflow results:
+  - Firestore Rules Tests run `41005367911`: **COMPLETED / SUCCESS**; emulator job `Firestore Security Rules Emulator Tests` completed successfully.
+  - Test Firestore Security Rules run `41005367828`: **COMPLETED / SUCCESS**; emulator job `Firestore Rules Emulator Tests` and workflow YAML validation / Actionlint job both completed successfully.
+- These results verify the Node Firestore SDK transaction contract against the Firestore Emulator and the repository's Rules. They do **not** execute the Flutter `WalkerAdminService.runAdminAction()` implementation, so they are not proof of the Dart service's real-client integration.
+- The separate FakeFirestore-backed Admin service tests and exact-head Flutter CI remain as recorded in section 21. A true Flutter service-to-emulator integration harness remains a separate validation gate.
+- No production rules/data changed; no index deployment, merge, or hosting deployment occurred.
