@@ -172,13 +172,21 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
                     prefixIcon: const Icon(Icons.search, color: _orange),
                     suffixIcon: _search.text.isEmpty
                         ? null
-                        : IconButton(
-                            tooltip: 'Clear search',
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _search.clear();
-                              setState(() {});
-                            },
+                        : Semantics(
+                            label: 'Clear search',
+                            button: true,
+                            child: IconButton(
+                              tooltip: 'Clear search',
+                              constraints: const BoxConstraints(
+                                minWidth: 48,
+                                minHeight: 48,
+                              ),
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _search.clear();
+                                setState(() {});
+                              },
+                            ),
                           ),
                     filled: true,
                     fillColor: Colors.white,
