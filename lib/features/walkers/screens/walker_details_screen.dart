@@ -21,11 +21,13 @@ const Color walkerBlue = Color(0xFF1D4ED8);
 class WalkerDetailsScreen extends StatefulWidget {
   final String uid;
   final Map<String, dynamic> walkerData;
+  final Stream<WalkerAdminModel?>? walkerStream;
 
   const WalkerDetailsScreen({
     super.key,
     required this.uid,
     required this.walkerData,
+    this.walkerStream,
   });
 
   @override
@@ -34,7 +36,7 @@ class WalkerDetailsScreen extends StatefulWidget {
 }
 
 class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
-  final WalkerAdminService _service = WalkerAdminService();
+  late final WalkerAdminService _service = WalkerAdminService();
 
   bool _actionLoading = false;
 
@@ -487,7 +489,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
       backgroundColor: walkerBackground,
       body: SafeArea(
         child: StreamBuilder<WalkerAdminModel?>(
-          stream: _service.watchWalker(widget.uid),
+          stream: widget.walkerStream ?? _service.watchWalker(widget.uid),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return _errorView(
