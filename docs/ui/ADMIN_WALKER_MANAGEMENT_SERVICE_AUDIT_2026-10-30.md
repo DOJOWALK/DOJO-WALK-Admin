@@ -236,3 +236,14 @@ No production rules were changed and no emulator or production deployment was ru
   - `3b91143c902a3480a43db03f44b2a67c258b2801`: assert Suspend is present but disabled, matching POL-004 UI behavior.
 - These fixes are not yet validated by a completed follow-up CI run. No tests/build are claimed PASS beyond the observed analyzer result for the previous run.
 - No merge, deployment, production rules or data changes occurred.
+
+
+
+## 19. Latest full Admin validation result — 2026-10-30
+
+- Inspected Flutter Validation run `41002331483` for commit `35a015289af1d88c51bbb7691756df6ce2923c7d`.
+- All workflow steps completed successfully: dependency install, `flutter analyze`, complete `flutter test` suite, and Flutter Web release build.
+- The same commit passed the separate Admin Web Build Check run `41002331493`, including dependency install, project analysis, full test suite and web build.
+- The prior run `41002085935` had 280 tests pass and one failure: the WalkerAdminTabs semantics test left a `SemanticsHandle` active. Updated the test to dispose the handle explicitly in commit `35a015289af1d88c51bbb7691756df6ce2923c7d`.
+- This establishes CI validation for that exact Admin commit only. It does not establish Firebase Rules emulator success, Flutter service transaction coverage, production index deployment, role-scope authorization, or production readiness.
+- PR #51 remains unmerged and deployment has not been performed.
