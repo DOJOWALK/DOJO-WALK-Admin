@@ -204,3 +204,18 @@ No production rules were changed and no emulator or production deployment was ru
 - Commits: `bac45dd4773c4c9475bdc3b71f8bdd9505ff2b04` (Walker Details screen), `1daa2c29e0784197516fdf0f48ca6a69b87f31fe` (Walker Details sections), `ce7f5ff0b35bdfb09c6f9d6b5d3d3499e23654f0` (Dashboard).
 - CI run `41000969583` failed at static analysis; test and web build steps were skipped. The follow-up runs for commit `ce7f5ff0b35bdfb09c6f9d6b5d3d3499e23654f0` were queued when checked (`41001138011` Admin Web Build Check; `41001138095` Flutter Validation). No passing result is claimed.
 - No merge, deployment, production rules or data changes occurred.
+
+
+## 17. Widget test failure triage and responsive fixes — 2026-10-30
+
+- Run `41001138011` reached static analysis successfully; the full test suite then failed. Web build was skipped because tests failed.
+- Failures identified from runner logs included: walker details metric-card vertical overflow (3.8 px), document-button assertions that assumed only one visible View label / no disabled View labels, repeated walker identity/status labels in the details screen, lifecycle audit action label showing the raw event prefix, WalkerAdminTabs semantics test without semantics enabled, and dashboard header/card-title horizontal overflows on narrow viewports.
+- Fixes committed:
+  - `74ccdce3c5f75368bb03d54d4134791dc6e3ebb4`: increase narrow walker metric tile height via responsive grid aspect ratio.
+  - `2864d663d08439ad57d454d930c92b1f84575e6f`: assert all KYC View controls exist and are disabled/enabled according to document availability; tap the available control.
+  - `a28fac209cf58d4d835f8aeedcec0bd9bcb262f9`: render lifecycle audit labels without the redundant `walker_` prefix.
+  - `9b1e8878352a97652271a7b3e1d8cca79025e18d`: allow repeated identity/status text where the page intentionally shows it in multiple sections.
+  - `bc60cf7e41b1fdd8a689b04295ac90432153f43d`: make compact dashboard header actions vertical and allow dashboard card titles to wrap.
+  - `9b2d1241d493b34ee84b51f7d663308001ca3f74`: enable semantics in the WalkerAdminTabs accessibility test.
+- Run `41001138011` had Analyzer = success, Tests = failure, Web build = skipped. Follow-up workflow for the latest test changes was queued/pending at last inspection; no passing test or build result is claimed yet.
+- No merge, deployment, production rules or data changes occurred.
