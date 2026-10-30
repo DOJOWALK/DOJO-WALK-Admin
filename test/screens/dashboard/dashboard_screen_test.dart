@@ -193,7 +193,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       final initialSubscriptions = source.subscriptionCount;
-      expect(initialSubscriptions, 4);
+      expect(initialSubscriptions, 3);
 
       await tester.tap(find.byKey(const ValueKey('dashboard-refresh')));
       await tester.pumpAndSettle();
