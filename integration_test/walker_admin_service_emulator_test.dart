@@ -21,6 +21,18 @@ void main() {
   testWidgets(
     'real WalkerAdminService rejects an unauthorised emulator user without writes',
     (tester) async {
+      // FlutterFire's Android method-channel implementation expects a
+      // default Firebase app to exist, even when the service uses a named app.
+      final defaultApp = await Firebase.initializeApp(
+        options: FirebaseOptions(
+          apiKey: 'fake-api-key',
+          appId: '1:123456789:android:dojo-walker-default',
+          messagingSenderId: '123456789',
+          projectId: projectId,
+        ),
+      );
+      addTearDown(defaultApp.delete);
+
       final app = await Firebase.initializeApp(
         name: 'dojo-walker-emulator-integration',
         options: FirebaseOptions(
@@ -67,6 +79,18 @@ void main() {
   testWidgets(
     'real WalkerAdminService approves an emulator fixture and writes its audit record',
     (tester) async {
+      // FlutterFire's Android method-channel implementation expects a
+      // default Firebase app to exist, even when the service uses a named app.
+      final defaultApp = await Firebase.initializeApp(
+        options: FirebaseOptions(
+          apiKey: 'fake-api-key',
+          appId: '1:123456789:android:dojo-walker-default',
+          messagingSenderId: '123456789',
+          projectId: projectId,
+        ),
+      );
+      addTearDown(defaultApp.delete);
+
       final app = await Firebase.initializeApp(
         name: 'dojo-walker-success-integration',
         options: FirebaseOptions(
