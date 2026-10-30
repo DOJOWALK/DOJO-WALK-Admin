@@ -124,3 +124,14 @@ No production Firebase project is configured in the test. The test aborts if the
 - Merge and deployment: not performed.
 
 The first CI run must be inspected for compile/runtime issues before this integration is treated as verified. In particular, confirm Android runner generation remains compatible with the current Flutter toolchain and that Emulator REST fixture seeding works against the pinned Firebase CLI/Emulator version.
+
+## Scope correction after controlling Draft PR guardrail — 2026-10-30
+
+A review of Draft PR #51 found an explicit owner-approved guardrail: do not start new Firebase integration until the Admin UI and its validation are complete. The Dashboard Emulator test and workflow were briefly added as implementation drafts, but they crossed that sequencing boundary. Both files have therefore been removed from this branch before any run or deployment:
+
+- Removed `integration_test/dashboard_data_source_emulator_test.dart`.
+- Removed `.github/workflows/dashboard-emulator-integration.yml`.
+- No workflow was dispatched; no Emulator test ran; no production Firebase was contacted by these changes.
+- The earlier design notes below are retained as future planning only, not as active implementation or an instruction to proceed now.
+
+The next permitted work is Admin UI completion and exact-head UI validation under Draft PR #51. Revisit Dashboard Emulator integration only after that gate is satisfied and the sequencing decision is still current.
