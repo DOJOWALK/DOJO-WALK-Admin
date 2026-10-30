@@ -63,7 +63,7 @@ void main() {
     testWidgets('search matches email and location fields', (tester) async {
       await tester.pumpWidget(_screen(
         walkers: [
-          _walker(uid: 'w-1', name: 'Aman Walker', email: 'aman@example.com'),
+          _walker(uid: 'w-1', name: 'Aman Walker', email: 'aman@example.com', area: 'Indirapuram'),
           _walker(uid: 'w-2', name: 'Riya Walker', area: 'Crossings Republik'),
         ],
       ));
