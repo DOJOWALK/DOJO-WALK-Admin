@@ -321,7 +321,7 @@ void main() {
     testWidgets('dashboard renders without layout overflow on mobile tablet and desktop',
         (tester) async {
       final source = _FakeDashboardDataSource();
-      for (final width in [360.0, 768.0, 1280.0]) {
+      for (final width in [320.0, 360.0, 768.0, 1280.0]) {
         await tester.view.setPhysicalSize(Size(width, 1600));
         await tester.view.setDevicePixelRatio(1);
 
