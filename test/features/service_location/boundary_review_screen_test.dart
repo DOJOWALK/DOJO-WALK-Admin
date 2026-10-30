@@ -30,6 +30,8 @@ void main() {
     expect(find.text('Not verified'), findsWidgets);
     expect(find.text('Hash changed'), findsWidgets);
     expect(find.text('EXAMPLE-SHA256-VERIFIED-003'), findsOneWidget);
+    expect(find.text('Verified (example)'), findsOneWidget);
+    expect(find.text('Integrity matched'), findsNothing);
     expect(find.text('Polygon verification'), findsWidgets);
   });
 
