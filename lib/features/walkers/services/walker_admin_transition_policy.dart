@@ -14,6 +14,28 @@ class WalkerAdminTransitionPolicy {
         action == WalkerAdminAction.requestCorrection;
   }
 
+  /// Normalizes and validates a decision reason against the Firestore contract.
+  ///
+  /// Firestore rules cap decisionReason at 1,000 characters. Validate here as
+  /// well so the Admin UI receives a clear error before attempting a transaction.
+  static String normalizeReason(WalkerAdminAction action, String? reason) {
+    final normalized = reason?.trim() ?? '';
+
+    if (requiresReason(action) && normalized.isEmpty) {
+      throw const WalkerAdminServiceException(
+        'A reason is required for this action.',
+      );
+    }
+
+    if (normalized.length > 1000) {
+      throw const WalkerAdminServiceException(
+        'The reason must be 1,000 characters or fewer.',
+      );
+    }
+
+    return normalized;
+  }
+
   static String auditActionName(WalkerAdminAction action) {
     switch (action) {
       case WalkerAdminAction.approve:
