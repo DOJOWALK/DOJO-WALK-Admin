@@ -164,14 +164,8 @@ class WalkerAdminService {
       );
     }
 
-    final normalizedReason = reason?.trim() ?? '';
-
-    if (WalkerAdminTransitionPolicy.requiresReason(action) &&
-        normalizedReason.isEmpty) {
-      throw const WalkerAdminServiceException(
-        'A reason is required for this action.',
-      );
-    }
+    final normalizedReason =
+        WalkerAdminTransitionPolicy.normalizeReason(action, reason);
 
     final walkerRef = _walkers.doc(walkerId);
     final adminRef = _adminUsers.doc(admin.uid);
