@@ -389,6 +389,77 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
+    testWidgets('recent bookings failure does not hide healthy activity', (tester) async {
+      tester.view.physicalSize = const Size(1440, 1200);
+      tester.view.devicePixelRatio = 1;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DashboardScreen(
+              dataSource: _FakeDashboardDataSource(failRecentBookings: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('System Activity'), findsOneWidget);
+      expect(find.text('Created booking'), findsOneWidget);
+      expect(find.text('Recent Bookings'), findsOneWidget);
+      expect(find.text('Created booking'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    testWidgets('activity failure does not hide healthy recent bookings', (tester) async {
+      tester.view.physicalSize = const Size(1440, 1200);
+      tester.view.devicePixelRatio = 1;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DashboardScreen(
+              dataSource: _FakeDashboardDataSource(failRecentActivity: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Recent Bookings'), findsOneWidget);
+      expect(find.text('Booking #booking-001'), findsOneWidget);
+      expect(find.text('System Activity'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    testWidgets('revenue failure does not hide healthy dashboard counts', (tester) async {
+      tester.view.physicalSize = const Size(1440, 1200);
+      tester.view.devicePixelRatio = 1;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: DashboardScreen(
+              dataSource: _FakeDashboardDataSource(failRevenue: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Total Bookings'), findsOneWidget);
+      expect(find.text('Customers'), findsOneWidget);
+      expect(find.text('Walkers'), findsOneWidget);
+      expect(find.text('Paid Payments (All Time)'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     test('dashboard greeting respects all time boundaries', () {
       expect(
         dashboardGreetingFor(DateTime(2026, 10, 30, 11, 59)),
