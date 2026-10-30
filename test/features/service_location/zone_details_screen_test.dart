@@ -35,6 +35,38 @@ void main() {
       expect(find.textContaining('Live hash not loaded'), findsOneWidget);
     });
 
+    testWidgets('long Zone metadata remains scrollable on a narrow enlarged-text screen',
+        (tester) async {
+      tester.view.physicalSize = const Size(320, 720);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+            child: const ZoneDetailsScreen(
+              zoneId: 'ZONE-WITH-A-VERY-LONG-IDENTIFIER-2026-001',
+              zoneName: 'Crossings Republik North East Residential Service Zone',
+              parentPath: 'Uttar Pradesh → Ghaziabad → Ghaziabad → Crossings Republik North East',
+              status: 'Awaiting Founder Approval — operational activation remains blocked',
+              revision: 'Revision 2026-10',
+              boundaryStatus: 'Verified with polygon hash and manual map review pending',
+              readinessBlocker: 'Live capacity, GPS entrance and supervisor assignment evidence are not connected',
+              updatedAt: '2026-10-31 10:00 IST',
+              updatedBy: 'Central Admin with a deliberately long display label',
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Zone Details'), findsOneWidget);
+      expect(find.textContaining('Crossings Republik North East Residential Service Zone'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('keeps edit and lifecycle actions disabled', (tester) async {
       await tester.pumpWidget(buildScreen());
 
