@@ -109,6 +109,8 @@ void main() {
     });
 
     testWidgets('clear-search icon has an accessible label and 48px target', (tester) async {
+      final semantics = tester.ensureSemantics();
+      addTearDown(semantics.dispose);
       await tester.pumpWidget(
         const MaterialApp(home: ZoneDirectoryScreen()),
       );
