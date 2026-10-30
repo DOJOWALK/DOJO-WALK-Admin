@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 /// UI-only Founder approval queue prototype.
 /// Example rows are illustrative; no live requests can be approved here.
 class ZoneApprovalQueueScreen extends StatefulWidget {
-  const ZoneApprovalQueueScreen({super.key});
+  const ZoneApprovalQueueScreen({super.key, this.focusZoneId});
+
+  final String? focusZoneId;
 
   @override
   State<ZoneApprovalQueueScreen> createState() => _ZoneApprovalQueueScreenState();
@@ -71,7 +73,7 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFAF5),
       appBar: AppBar(
-        title: const Text('Founder Approval Queue'),
+        title: Text(widget.focusZoneId == null ? 'Founder Approval Queue' : 'Founder Approval Queue · ${widget.focusZoneId}'),
         backgroundColor: Colors.white,
         foregroundColor: _ink,
       ),
