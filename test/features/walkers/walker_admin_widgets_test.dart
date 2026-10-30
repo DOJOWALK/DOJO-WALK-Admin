@@ -7,6 +7,8 @@ void main() {
     testWidgets('renders selected state and reports tab selection',
         (tester) async {
       var selected = -1;
+      final semantics = tester.ensureSemantics();
+      addTearDown(semantics.dispose);
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
           body: WalkerAdminTabs(
