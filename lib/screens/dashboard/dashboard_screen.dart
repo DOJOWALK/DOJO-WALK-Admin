@@ -963,7 +963,6 @@ class _RevenueCard extends StatelessWidget {
                   builder:
                       (context, snapshot) {
                     if (snapshot.hasError) {
-                      final denied = isPermissionDeniedError(snapshot.error);
                       return _DashboardStreamError(error: snapshot.error, compact: true);
                     }
                     if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) return const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2));
