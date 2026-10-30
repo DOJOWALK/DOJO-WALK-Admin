@@ -347,3 +347,13 @@ No production rules were changed and no emulator or production deployment was ru
 - The workflow has read-only repository permissions and no deploy step. The generated Android scaffold exists only in the ephemeral CI checkout. Production Firebase configuration, rules, and data remain untouched.
 - The next Android workflow result must be inspected before claiming the FlutterFire integration gate passed. The test still covers only the ordinary authenticated user / missing-admin denial path; a successful Super Admin Dart transaction and Dart-side rollback remain untested. No privileged fixture bypass was added.
 - No merge, production deployment, index deployment, or production data/rules change occurred.
+
+
+## 29. Android Emulator host routing correction — 2026-10-30
+
+- Reviewed the Android migration from section 28 before treating it as ready for validation.
+- Identified a platform networking issue in the integration test: `127.0.0.1` from inside an Android Emulator refers to the Android guest, not the GitHub Actions host where Firebase Auth and Firestore emulators are listening.
+- Corrective test commit: `5db2280fa71772cd2b8c8e2a525d2cd33e2412f8`. The test now selects `10.0.2.2` on Android (Android Emulator host bridge) and retains `127.0.0.1` for non-Android local targets. Both Auth and Firestore emulator clients use the selected host.
+- This is a source-level correction based on Android Emulator networking behavior; it is not a test result. No new Android integration workflow result has been verified in this audit entry.
+- The integration test remains limited to the ordinary authenticated user / missing-admin denial path. Successful Super Admin Dart transaction and Dart-side rollback remain untested.
+- No production Firebase configuration, rules, or data changed. No merge, deploy, or index deployment occurred.
