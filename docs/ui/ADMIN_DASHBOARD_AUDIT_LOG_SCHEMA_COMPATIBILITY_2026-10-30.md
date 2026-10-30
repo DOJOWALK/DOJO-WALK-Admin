@@ -232,3 +232,11 @@ To stay within Draft PR #51's UI-first gate, the next change was kept inside the
 - The editor's **Use This Boundary** save action is hidden when no `onSaveRequested` callback is supplied. Create Zone deliberately supplies no save callback, so this preview cannot be submitted from the map.
 - Added a widget test for the initial local geometry feedback and non-verification wording. Map interaction/point mutations are not exercised in Flutter widget tests here because the editor embeds the native Google Maps platform view.
 - Flutter tests/analyzer were not executed; tests are added, not executed. No CI status is assumed. No Firebase integration, boundary persistence, hash, approval, merge, or deployment.
+
+
+## Boundary editor preview controls and validator test coverage — 2026-10-30
+
+- Follow-up UI review caught a control-visibility regression: Undo/Clear had been hidden in local preview mode together with the save action. Corrected the editor so editable previews retain Undo/Clear, while **Use This Boundary** remains hidden unless an explicit save callback is supplied.
+- Extracted the local geometry feedback into `ServiceBoundaryPreviewValidator`, allowing focused unit tests without constructing the Google Maps platform view.
+- Added unit cases for empty/fewer-than-three points, repeated vertices, out-of-range coordinates, self-intersection, collinear/zero-area geometry, and a valid simple polygon. Valid feedback still explicitly says **Not GIS-verified**.
+- These tests are added but have not been executed in this session. Flutter analyze/test and CI remain unverified. No Firebase, upload, persistence, hash, approval, merge, or deployment.
