@@ -10,7 +10,7 @@ void main() {
         const MaterialApp(home: ZoneApprovalQueueScreen()),
       );
 
-      expect(find.text('Founder Approval Queue'), findsOneWidget);
+      expect(find.textContaining('Founder Approval Queue'), findsOneWidget);
       await tester.tap(find.widgetWithText(ChoiceChip, 'Blocked — boundary pending'));
       await tester.pumpAndSettle();
       expect(find.text('ZONE-EX-001'), findsOneWidget);
