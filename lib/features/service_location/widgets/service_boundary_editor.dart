@@ -18,7 +18,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../services/service_location_geometry.dart';
+import '../services/service_boundary_preview_validator.dart';
 
 class ServiceBoundaryEditor extends StatefulWidget {
   const ServiceBoundaryEditor({
@@ -163,55 +163,11 @@ class _ServiceBoundaryEditorState
         .toList(growable: false);
   }
 
-  String get _validationFeedback {
-    if (_points.length < 3) {
-      return 'Add at least 3 points (${_points.length}/3).';
-    }
-    final distinctPoints = _points
-        .map((point) => '${point.latitude.toStringAsFixed(7)},'
-            '${point.longitude.toStringAsFixed(7)}')
-        .toSet();
-    if (distinctPoints.length < 3) {
-      return 'Invalid preview: at least 3 distinct points are required.';
-    }
-    if (!_points.every((point) => point.latitude.isFinite &&
-        point.longitude.isFinite && point.latitude >= -90 &&
-        point.latitude <= 90 && point.longitude >= -180 &&
-        point.longitude <= 180)) {
-      return 'Invalid preview: one or more coordinates are out of range.';
-    }
-    if (!ServiceLocationGeometry.isValidPolygon(_toGeoPoints())) {
-      return 'Invalid preview: polygon crosses itself or encloses no area.';
-    }
-    return 'Basic polygon geometry looks valid locally. Not GIS-verified.';
-  }
+  String get _validationFeedback =>
+      ServiceBoundaryPreviewValidator.feedback(_points);
 
-  bool get _hasValidBasicShape {
-    if (_points.length < 3) return false;
-
-    final distinctPoints = _points
-        .map(
-          (point) =>
-              '${point.latitude.toStringAsFixed(7)},'
-              '${point.longitude.toStringAsFixed(7)}',
-        )
-        .toSet();
-
-    if (distinctPoints.length < 3 ||
-        !_points.every(
-          (point) =>
-              point.latitude.isFinite &&
-              point.longitude.isFinite &&
-              point.latitude >= -90 &&
-              point.latitude <= 90 &&
-              point.longitude >= -180 &&
-              point.longitude <= 180,
-        )) {
-      return false;
-    }
-
-    return ServiceLocationGeometry.isValidPolygon(_toGeoPoints());
-  }
+  bool get _hasValidBasicShape =>
+      ServiceBoundaryPreviewValidator.isValid(_points);
 
   void _requestSave() {
     if (widget.readOnly) return;
