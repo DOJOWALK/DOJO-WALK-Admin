@@ -8,7 +8,6 @@ void main() {
         (tester) async {
       var selected = -1;
       final semantics = tester.ensureSemantics();
-      addTearDown(semantics.dispose);
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
           body: WalkerAdminTabs(
@@ -29,6 +28,7 @@ void main() {
       await tester.ensureVisible(find.text('All Walkers'));
       await tester.tap(find.text('All Walkers'));
       expect(selected, 2);
+      semantics.dispose();
     });
 
     testWidgets('supports narrow width without horizontal overflow',
