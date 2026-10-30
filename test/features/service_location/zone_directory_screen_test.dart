@@ -133,6 +133,46 @@ void main() {
       expect(find.textContaining('not connected to the Zone service'), findsOneWidget);
     });
 
+    testWidgets('verified Zone remains unactivated until separate Founder decision',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(home: ZoneDirectoryScreen()),
+      );
+
+      final zoneC = find.text('Example Zone C');
+      await tester.scrollUntilVisible(
+        zoneC,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      final zoneCard = find.ancestor(of: zoneC, matching: find.byType(Card)).first;
+      expect(find.descendant(of: zoneCard, matching: find.text('Not activated')),
+          findsOneWidget);
+      expect(find.descendant(of: zoneCard, matching: find.text('Verified (example)')),
+          findsOneWidget);
+
+      await tester.tap(find.descendant(
+        of: zoneCard,
+        matching: find.widgetWithText(OutlinedButton, 'View details'),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Zone status'), findsOneWidget);
+      expect(find.text('Not activated'), findsOneWidget);
+      expect(find.text('Verified (example)'), findsOneWidget);
+
+      await tester.tap(find.text('Preview approval queue'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Founder Approval Queue'), findsOneWidget);
+      expect(find.text('Example Zone C'), findsOneWidget);
+      expect(find.text('Awaiting decision'), findsOneWidget);
+      expect(find.text('Verified (example)'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('directory routes to boundary review preview',
         (tester) async {
       await tester.pumpWidget(
