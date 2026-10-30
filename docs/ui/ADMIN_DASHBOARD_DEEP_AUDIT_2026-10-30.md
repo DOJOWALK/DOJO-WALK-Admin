@@ -187,3 +187,12 @@ The fake data source continues to supply all dashboard streams without Firebase 
 - Widget-test source commit: efaeb97c104905367ebe4f0e34709b7fdac904f1.
 - Validation: source edits and test cases are committed, but Flutter Analyze and Flutter Test have NOT been executed/verified in this step. No exact-head CI PASS is claimed.
 - No Firestore schema/rules, production data, merge or deployment changed. PR #51 remains Draft/open.
+
+
+### Dashboard loading-state coverage (2026-10-30)
+
+- Extended the dashboard fake data source with streams that intentionally remain pending, without emitting data or closing.
+- Added a widget test asserting the dashboard keeps progress indicators visible while metric, revenue, live/status/alert, recent-booking and activity streams are pending.
+- The test also asserts pending streams are not misrepresented as numeric zero, empty states, permission errors or generic failures.
+- Test source commit: 4ba97509405a948bd08da8903ad623223dac1b98.
+- Flutter Analyze and Flutter Test have not been run in this environment; the test is added but not marked passing. No exact-head CI result is claimed.
