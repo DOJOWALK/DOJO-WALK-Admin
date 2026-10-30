@@ -104,7 +104,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Verified • Active'), findsWidgets);
-    expect(find.text('Suspend'), findsNothing);
+    expect(find.text('Suspend'), findsOneWidget);
+    final suspendButton = tester.widget<FilledButton>(
+      find.ancestor(
+        of: find.text('Suspend'),
+        matching: find.byType(FilledButton),
+      ),
+    );
+    expect(suspendButton.onPressed, isNull);
     expect(find.text('Verify & Approve'), findsNothing);
     expect(tester.takeException(), isNull);
   });
