@@ -265,7 +265,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'DOJO WALK Command Center',
                       maxLines: compact ? 2 : 1,
