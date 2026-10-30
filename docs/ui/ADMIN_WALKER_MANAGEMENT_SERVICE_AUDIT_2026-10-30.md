@@ -336,3 +336,14 @@ No production rules were changed and no emulator or production deployment was ru
 - This is a targeted environment correction based on the observed launch failure. The next workflow run must confirm whether the app starts and the FlutterFire test reaches its assertions. No integration PASS is claimed yet.
 - The integration test still covers only the ordinary authenticated user / missing-admin denial path. Successful Super Admin Dart transaction and Dart-side rollback remain untested; no privileged fixture bypass was added.
 - No production Firebase rules/data, deployed indexes, merge, or hosting deployment changed.
+
+
+## 28. FlutterFire Linux desktop platform mismatch and Android runner migration — 2026-10-30
+
+- Inspected workflow run `41008249858` on Admin commit `7df259f7bd27cb71091c13e49fcb9dd230f18538`, job `123907978490`.
+- The CI-only Linux runner was generated, the desktop application built, and Auth + Firestore emulators started. The integration test then failed during `Firebase.initializeApp()` with `PlatformException(channel-error, Unable to establish connection ... FirebaseCoreHostApi.initializeCore)`; **0 tests passed**. The failure occurred before Auth/Firestore client calls or service assertions.
+- Diagnosis: the generated Linux desktop runner did not provide a functioning FlutterFire Firebase Core platform channel for this test. This is not evidence of a service authorization failure, and the run is not a PASS.
+- Corrective workflow commit: `0f6d83d50bd822af438b1bc2ad2ca60c99c34535`. Replaced the Linux desktop/Xvfb path with a CI-only Android runner scaffold and an Android emulator (API 35 / Google APIs / x86_64). Android is the supported native target for the Firebase Auth and Cloud Firestore Flutter plugins used by this service. The test still uses the dedicated `demo-dojo-admin-integration` project and local Auth/Firestore emulators.
+- The workflow has read-only repository permissions and no deploy step. The generated Android scaffold exists only in the ephemeral CI checkout. Production Firebase configuration, rules, and data remain untouched.
+- The next Android workflow result must be inspected before claiming the FlutterFire integration gate passed. The test still covers only the ordinary authenticated user / missing-admin denial path; a successful Super Admin Dart transaction and Dart-side rollback remain untested. No privileged fixture bypass was added.
+- No merge, production deployment, index deployment, or production data/rules change occurred.
