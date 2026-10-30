@@ -33,23 +33,23 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Checkout Admin
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Checkout Firebase Rules
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: DOJOWALK/DOJO-WALK-Firebase
           ref: main
           path: firebase-rules
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "22"
 
