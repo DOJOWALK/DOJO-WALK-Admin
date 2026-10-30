@@ -283,6 +283,20 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
                                 ],
                               ),
                               const SizedBox(height: 14),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF4E8),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: const Color(0xFFFFD2AC)),
+                                ),
+                                child: const Text(
+                                  'Boundary verification is a technical evidence check only. A “Verified” boundary does not activate the Zone or grant launch approval. After boundary checks pass, the separate Founder Approval Queue handles the final business decision.',
+                                  style: TextStyle(color: _ink, fontSize: 12, height: 1.45),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
                               const Text(
                                 'Example data only. Review and decision actions remain disabled until live records, evidence storage and permission checks are implemented.',
                                 style: TextStyle(color: Colors.black54, fontSize: 12),
