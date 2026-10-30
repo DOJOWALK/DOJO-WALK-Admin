@@ -48,6 +48,20 @@ void main() {
     expect(find.textContaining('No server actions enabled'), findsOneWidget);
   });
 
+  testWidgets('deep link scopes boundary review to the selected Zone', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: BoundaryReviewScreen(focusZoneId: 'ZONE-EX-002')));
+    expect(find.textContaining('ZONE-EX-002'), findsOneWidget);
+    expect(find.text('ZONE-EX-002'), findsOneWidget);
+    expect(find.text('ZONE-EX-001'), findsNothing);
+    expect(find.text('ZONE-EX-003'), findsNothing);
+  });
+
+  testWidgets('unknown Zone deep link shows an explicit empty state', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: BoundaryReviewScreen(focusZoneId: 'ZONE-UNKNOWN')));
+    expect(find.textContaining('No example boundary request exists for ZONE-UNKNOWN'), findsOneWidget);
+    expect(find.text('ZONE-EX-001'), findsNothing);
+  });
+
   testWidgets('review and decision actions are disabled in prototype', (tester) async {
     await tester.pumpWidget(app());
 
