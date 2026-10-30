@@ -85,3 +85,36 @@ The following narrow UI corrections were committed after the source audit:
 - Added explicit loading and error/permission-denied indicators to alert count rows so a failed query is not silently rendered as zero.
 
 These are source-level changes only. They have not been runtime-tested in this commit. The dashboard still lacks a dedicated widget test, and the alert rows still need a visible retry mechanism or an agreed refresh strategy.
+
+
+## 7. Dashboard widget-test feasibility check (2026-10-30)
+
+Inspected the current PR-branch source, `pubspec.yaml`, and the existing test directory before creating a dashboard test.
+
+### Confirmed test constraints
+
+- `DashboardScreen` is a `StatelessWidget` and its Firestore streams are constructed directly from `FirebaseFirestore.instance` inside private methods.
+- The constructor currently injects only the two navigation callbacks; it does not accept a Firestore instance or a dashboard data source.
+- The current `pubspec.yaml` includes `flutter_test`, but no `fake_cloud_firestore`, Firebase Auth mock package, or other Firestore test double.
+- The test tree has no dashboard screen test file. The existing tests do not provide an established dashboard-specific Firebase mocking harness.
+- A widget test that simply pumps `DashboardScreen` would still touch the Firebase singleton during build. It is not safe to assume that this will work in a plain Flutter test, and connecting a test to production Firebase is explicitly out of scope.
+
+### Decision
+
+Do **not** add a superficial widget test or a test that depends on live production Firebase. The correct next implementation step is a small, explicit dashboard data-source seam (or equivalent injectable stream providers), with production defaults backed by the existing Firestore queries and deterministic in-memory streams in widget tests. Keep the existing Firestore query semantics unchanged while introducing that seam.
+
+Before writing the widget test, map every stream consumed by the screen (metrics, revenue, live counts, booking status, recent bookings, alerts and system activity) and define test fixtures for:
+- successful populated data;
+- successful zero/empty data;
+- loading;
+- general query failure;
+- permission-denied failure;
+- retry/refresh behavior, once that behavior is implemented.
+
+### Validation status after feasibility check
+
+- Test harness feasibility review: **DONE** (source/dependency inspection only).
+- Dashboard widget test: **NOT CREATED**; blocked on an approved injectable data-source seam.
+- Flutter test execution: **NOT RUN**.
+- Exact-head CI: **NOT VERIFIED**.
+- No application source, Firebase config, production data, merge or deployment changed in this step.
