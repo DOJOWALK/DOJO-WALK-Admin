@@ -67,6 +67,9 @@ jobs:
       - name: Enable Linux desktop target
         run: flutter config --enable-linux-desktop
 
+      - name: Generate CI-only Linux runner scaffold
+        run: flutter create --platforms=linux --project-name dojo_admin .
+
       - name: Install Firebase emulator dependencies
         working-directory: firebase-rules
         run: npm install --no-audit --no-fund
