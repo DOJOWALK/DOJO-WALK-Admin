@@ -283,3 +283,14 @@ No production rules were changed and no emulator or production deployment was ru
 - These results verify the Node Firestore SDK transaction contract against the Firestore Emulator and the repository's Rules. They do **not** execute the Flutter `WalkerAdminService.runAdminAction()` implementation, so they are not proof of the Dart service's real-client integration.
 - The separate FakeFirestore-backed Admin service tests and exact-head Flutter CI remain as recorded in section 21. A true Flutter service-to-emulator integration harness remains a separate validation gate.
 - No production rules/data changed; no index deployment, merge, or hosting deployment occurred.
+
+
+## 23. Flutter-to-Emulator integration feasibility spike — 2026-10-30
+
+- Inspected the actual Admin Firebase initialization, Firebase options, service constructor, existing FakeFirestore tests, and Firebase Rules governing admin bootstrap.
+- Confirmed the Admin app's checked-in Firebase options are Web-only and currently identify the production project. A safe integration harness must initialize a separate named Firebase app with a dedicated `demo-` project ID and explicitly connect both Auth and Firestore to local emulators.
+- Confirmed Firestore Rules deny client creation/deletion of `admin_users` documents. A normal authenticated test client cannot bootstrap its own `super_admin` fixture. The test therefore requires a privileged fixture seeding path restricted to the emulator; all service actions and final assertions must still use the authenticated FlutterFire client.
+- Added `docs/testing/WALKER_ADMIN_FLUTTER_EMULATOR_INTEGRATION_PLAN.md` (commit `1f8d92faec34470f13e71abda86bc7cd60ab787d`) with the proposed named-app setup, emulator-only fixture boundary, success/denial/rollback scenarios, CI gates and acceptance criteria.
+- This is a design/feasibility result only. No integration test code or CI job has been added yet, and no Flutter-to-emulator test has run. Do not mark this gate PASS.
+- Next implementation gate: prove the Flutter Web integration-test driver and emulator-owner fixture seeding against a dedicated demo project, then add the test and non-deploying CI workflow. Keep production Firebase options and rules untouched.
+- No production data/rules, deployed indexes, merge, or hosting deployment changed.
