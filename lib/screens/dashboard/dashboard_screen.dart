@@ -236,58 +236,94 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                height: 48,
-                width: 48,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF9A3D), Color(0xFFFF7900)],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final compact = constraints.maxWidth < 520;
+
+              final brand = Row(
+                children: [
+                  Container(
+                    height: 48,
+                    width: 48,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFF9A3D), Color(0xFFFF7900)],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFF7900).withValues(alpha: 0.25),
+                          blurRadius: 12,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.dashboard_customize_rounded,
+                      color: Colors.white,
+                      size: 27,
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFF7900).withValues(alpha: 0.25),
-                      blurRadius: 12,
-                      offset: const Offset(0, 5),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Text(
+                      'DOJO WALK Command Center',
+                      maxLines: compact ? 2 : 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Color(0xFF292524),
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+
+              final actions = Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Company overview',
+                    style: TextStyle(
+                      color: Color(0xFF78716C),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    key: const ValueKey('dashboard-refresh'),
+                    tooltip: 'Refresh dashboard data',
+                    onPressed: _refreshDashboard,
+                    icon: const Icon(Icons.refresh_rounded),
+                    color: const Color(0xFFFF7900),
+                  ),
+                ],
+              );
+
+              if (compact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    brand,
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: actions,
                     ),
                   ],
-                ),
-                child: const Icon(
-                  Icons.dashboard_customize_rounded,
-                  color: Colors.white,
-                  size: 27,
-                ),
-              ),
-              const SizedBox(width: 14),
-              const Expanded(
-                child: Text(
-                  'DOJO WALK Command Center',
-                  style: TextStyle(
-                    color: Color(0xFF292524),
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              const Text(
-                'Company overview',
-                style: TextStyle(
-                  color: Color(0xFF78716C),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                key: const ValueKey('dashboard-refresh'),
-                tooltip: 'Refresh dashboard data',
-                onPressed: _refreshDashboard,
-                icon: const Icon(Icons.refresh_rounded),
-                color: const Color(0xFFFF7900),
-              ),
-            ],
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(child: brand),
+                  const SizedBox(width: 12),
+                  actions,
+                ],
+              );
+            },
           ),
           const SizedBox(height: 18),
           Text(
