@@ -55,8 +55,8 @@ void main() {
 
   testWidgets('renders walker profile, location, KYC and performance sections',
       (tester) async {
-    await tester.view.setPhysicalSize(const Size(390, 900));
-    await tester.view.setDevicePixelRatio(1);
+    tester.view.physicalSize = const Size(390, 900));
+    tester.view.devicePixelRatio = 1);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
@@ -85,8 +85,8 @@ void main() {
 
   testWidgets('opens only KYC documents that have a reference',
       (tester) async {
-    await tester.view.setPhysicalSize(const Size(390, 900));
-    await tester.view.setDevicePixelRatio(1);
+    tester.view.physicalSize = const Size(390, 900));
+    tester.view.devicePixelRatio = 1);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
@@ -117,8 +117,8 @@ void main() {
 
   testWidgets('shows unavailable state for missing KYC documents',
       (tester) async {
-    await tester.view.setPhysicalSize(const Size(390, 900));
-    await tester.view.setDevicePixelRatio(1);
+    tester.view.physicalSize = const Size(390, 900));
+    tester.view.devicePixelRatio = 1);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
@@ -143,8 +143,8 @@ void main() {
   testWidgets('renders without layout exceptions on narrow and wide screens',
       (tester) async {
     for (final width in [320.0, 390.0, 768.0, 1280.0]) {
-      await tester.view.setPhysicalSize(Size(width, 1000));
-      await tester.view.setDevicePixelRatio(1);
+      tester.view.physicalSize = Size(width, 1000));
+      tester.view.devicePixelRatio = 1);
 
       await tester.pumpWidget(
         host(
