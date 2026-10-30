@@ -165,3 +165,12 @@ No production rules were changed and no emulator or production deployment was ru
 - Commits on the Admin feature branch: policy 3350f2fc4972a36e96efaf2a04bf9cfab9fed84e; service 1b7901493770f9ec1ceb00109c1daf49bf76ad1f; tests ec023543bfc654e4eddd779086148f63051fad60.
 - The changed files were fetched back and the expected validation code/test markers were confirmed. Flutter tests and analysis were not run, so this is source-reviewed, runtime-unverified.
 - This does not replace the still-missing Firestore/Auth transaction tests. The transaction remains untested for persisted audit payload, authorization denial, and no-partial-write behavior. No Firebase rules, production data, merge, or deployment changed.
+
+
+## 13. Non-deploying Flutter validation CI — 2026-10-30
+
+- Added `.github/workflows/flutter-validation.yml` on the Admin feature branch. It runs on relevant pull requests, pushes to `ui/**`, and manual dispatch.
+- The job provisions stable Flutter, resolves dependencies, runs `flutter analyze --no-pub`, runs `flutter test --no-pub`, and builds Flutter Web in release mode.
+- This workflow is validation-only: it has read-only repository permissions and contains no Firebase Hosting deployment step or production secrets.
+- Commit: `3546d11e11ca8095ad61f3a5bd854b6ba7f34fcc`. The committed workflow was fetched back and its expected commands/triggers were verified.
+- The workflow run has not yet been observed; therefore analyzer, test and build results remain **PENDING / UNVERIFIED**. This does not establish that service transaction tests pass. No merge or deployment occurred.
