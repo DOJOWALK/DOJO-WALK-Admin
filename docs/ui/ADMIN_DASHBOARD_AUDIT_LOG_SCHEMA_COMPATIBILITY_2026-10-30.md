@@ -175,3 +175,30 @@ To stay within Draft PR #51's UI-first gate, the next change was kept inside the
 - UI source commit: 8cf1f5ee4e518201ea0a920bb66ae0232058c6c7. Test commit: 14a22a1f35a7c94f0b4032590b7aebdf9077727b.
 - Existing sample Example Zone D status/revision representation remains illustrative; these screens are mock datasets, not a shared live record store. It must be reconciled against a canonical Zone record model before backend integration.
 - Flutter tests/analyzer remain unexecuted; no CI result or PASS is claimed. No Firebase integration or server-side action was added.
+
+
+## Create Zone → review → approval vertical-flow audit — 2026-10-30
+
+### UI flow observed
+- ServiceLocationScreen routes Add Service Zone, Zone Directory, Boundary Review and Founder Approval Queue as separate screens.
+- AddZoneScreen exposes the four required dependent selectors State/UT → District → City → Zone. Its catalog and existing Zone options are explicitly mock/example values.
+- AddZoneScreen currently has Validate readiness enabled, while Save Draft and Submit for Review are disabled. The boundary editor/upload control is also disabled; the screen explicitly says nothing is saved or submitted.
+- Boundary Review can navigate to the Founder Approval Queue preview. Zone Directory can open Zone Details. These are navigation links between UI prototypes, not a persisted workflow or shared live record state.
+- Founder Approval Queue keeps decisions disabled and distinguishes boundary verification from the separate Founder/CEO business decision.
+
+### Important implementation contract gap
+- The existing `ServiceLocationBoundary` model and `ServiceLocationBoundaryService` still bind boundaries to `locationId` + `locationType`, and the service accepts only `city` or `area`.
+- Its `saveDraft` persists a boundary as `pending`; `requestVerification` and the trusted `reviewServiceLocationBoundary` callable manage boundary review. This is not yet a Zone-boundary contract.
+- The current AddZone UI does not call that service; its boundary editor is a placeholder. Therefore no complete persisted Zone draft → boundary submission → review → Founder approval → Zone Directory lifecycle is implemented.
+- Existing location hierarchy schema and legacy Partner `zones` are separate compatibility concerns. Do not silently map or rewrite them. No Firebase changes are permitted under the current UI-first guardrail.
+
+### Next permitted UI work / acceptance gates
+1. Keep the four-selector State/UT → District → City → Zone hierarchy; no Locality selector.
+2. Preserve the UI-only safety state: no Save Draft / Submit for Review until the Zone record and boundary evidence contract is approved and implemented.
+3. Make navigation labels/status wording explicit that the screens are preview-only and do not share persisted state.
+4. Before enabling actions, define a canonical Zone identity + revision + boundary hash + readiness snapshot contract and a Founder decision binding to that exact tuple. A boundary revision/hash change must invalidate the prior decision.
+5. Backend/service/Rules/Functions/Emulator work remains deferred until the Admin UI validation gate and owner-approved sequencing decision permit it.
+
+### Verification
+- AddZoneScreen, ServiceLocationScreen, boundary model/service, Boundary Review and Founder Approval Queue were inspected from the UI branch.
+- This was a source inspection and documentation-only checkpoint; no code change to workflow actions, no Firebase access/write, no tests executed, no CI PASS claimed, no merge/deploy.
