@@ -192,7 +192,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
             'Boundary evidence is not uploaded and GIS verification is pending.',
             'The State/UT → District → City options are still example catalog data.',
             'Save Draft and Submit for Review remain disabled. Nothing has been saved.',
-          ].join('\\n\\n')
+          ].join(' | ')
         : 'Existing Zone options are mock records for preview only. '
             'Select “Create new Zone…” to validate a new Zone draft. '
             'Nothing has been edited or saved.';
