@@ -207,3 +207,11 @@ The fake data source continues to supply all dashboard streams without Firebase 
 - Expanded the responsive widget-test viewport matrix to include 320 px in addition to 360, 768 and 1280 px (test-source commit aaf914c3f64a80fa02fd33c36b1a37b213e3e698). This adds a regression assertion; it is not evidence that the test has executed or passed.
 - Remaining product/data-contract caveats: “Online Walkers” is only the stored `isOnline` flag, “Waiting Assignment” and “Unassigned bookings” both use Pending aliases, and the all-time paid amount is gross before refunds/fees. These labels must not be interpreted as authoritative capacity, assignment SLA or net finance metrics.
 - Validation: Flutter Analyze, Flutter Test, runtime screenshot QA and exact-head CI are **NOT VERIFIED** in this pass. No Firebase integration, merge or deployment was performed. PR #51 remains Draft/open.
+
+
+### Narrow-mobile long-content regression coverage (2026-10-30)
+
+- Extended the dashboard fake data source with deliberately long booking ID, pet reference, status and audit action/actor text.
+- Added a 320 px widget-test case that asserts long booking and activity text render without a Flutter layout exception.
+- Test-source commit: `a93e271a30a971c0b796ba04146afbd7874d04fd`.
+- This is a test added to source only; Flutter Test/Analyze and exact-head CI have not been run/verified here. Do not treat it as PASS.
