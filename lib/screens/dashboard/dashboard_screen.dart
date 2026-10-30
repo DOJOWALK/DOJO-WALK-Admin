@@ -5,6 +5,13 @@ import 'package:intl/intl.dart';
 import '../../utils/admin_error_classifier.dart';
 import '../bookings/booking_status_helper.dart';
 
+String _dashboardGreeting() {
+  final hour = DateTime.now().hour;
+  if (hour < 12) return 'Good morning, Admin 👋';
+  if (hour < 17) return 'Good afternoon, Admin 👋';
+  return 'Good evening, Admin 👋';
+}
+
 class DashboardScreen extends StatelessWidget {
   final VoidCallback? onOpenLiveOperations;
   final VoidCallback? onOpenServiceLocations;
@@ -308,16 +315,10 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const Icon(
-                Icons.circle,
-                size: 9,
-                color: Color(0xFF16A34A),
-              ),
-              const SizedBox(width: 6),
               const Text(
-                'Overview',
+                'Company overview',
                 style: TextStyle(
-                  color: Color(0xFF15803D),
+                  color: Color(0xFF78716C),
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
@@ -325,9 +326,9 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 18),
-          const Text(
-            'Good morning, Admin 👋',
-            style: TextStyle(
+          Text(
+            _dashboardGreeting(),
+            style: const TextStyle(
               color: Color(0xFF292524),
               fontSize: 27,
               fontWeight: FontWeight.w900,
@@ -413,7 +414,7 @@ class DashboardScreen extends StatelessWidget {
           const Divider(),
 
           _LiveStreamRow(
-            label: 'Available Walkers',
+            label: 'Online Walkers',
             icon: Icons.person_outline,
             stream: _countWhere(
               'walkers',
@@ -608,11 +609,7 @@ class DashboardScreen extends StatelessWidget {
             subtitle:
                 'Bookings waiting for a walker',
             icon: Icons.person_search_outlined,
-            stream: _countWhere(
-              'bookings',
-              'status',
-              'Pending',
-            ),
+            stream: _countBookingStatus('Pending'),
           ),
           const Divider(),
 
@@ -630,7 +627,7 @@ class DashboardScreen extends StatelessWidget {
           const Divider(),
 
           _AlertStreamRow(
-            title: 'Inactive walkers',
+            title: 'Offline walkers',
             subtitle:
                 'Walkers currently offline',
             icon: Icons.person_off_outlined,
@@ -1227,15 +1224,31 @@ class _AlertStreamRow extends StatelessWidget {
         ),
         StreamBuilder<int>(
           stream: stream,
-          builder:
-              (context, snapshot) {
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              final denied = isPermissionDeniedError(snapshot.error);
+              return Tooltip(
+                message: denied
+                    ? 'Access denied for this alert count.'
+                    : 'Unable to load this alert count.',
+                child: Icon(
+                  Icons.error_outline,
+                  color: denied ? Colors.orange.shade800 : Colors.redAccent,
+                  size: 19,
+                ),
+              );
+            }
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                !snapshot.hasData) {
+              return const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              );
+            }
             return Text(
               '${snapshot.data ?? 0}',
-              style:
-                  const TextStyle(
-                fontWeight:
-                    FontWeight.w800,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w800),
             );
           },
         ),
