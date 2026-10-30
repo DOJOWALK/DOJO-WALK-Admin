@@ -1,0 +1,93 @@
+name: DOJO WALK Admin Firebase Emulator Integration
+
+on:
+  pull_request:
+    paths:
+      - "lib/features/walkers/**"
+      - "integration_test/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - ".github/workflows/walker-admin-emulator-integration.yml"
+  push:
+    branches:
+      - "ui/**"
+    paths:
+      - "lib/features/walkers/**"
+      - "integration_test/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - ".github/workflows/walker-admin-emulator-integration.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: walker-admin-emulator-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flutterfire-emulator-integration:
+    name: Flutter service against Auth + Firestore emulators
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout Admin
+        uses: actions/checkout@v4
+
+      - name: Checkout Firebase Rules
+        uses: actions/checkout@v4
+        with:
+          repository: DOJOWALK/DOJO-WALK-Firebase
+          ref: main
+          path: firebase-rules
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Set up Chrome
+        uses: browser-actions/setup-chrome@v2
+
+      - name: Install Firebase emulator dependencies
+        working-directory: firebase-rules
+        run: npm install --no-audit --no-fund
+
+      - name: Start Auth and Firestore emulators
+        working-directory: firebase-rules
+        run: |
+          npx firebase emulators:start --only auth,firestore --project demo-dojo-admin-integration > "$RUNNER_TEMP/firebase-emulators.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/firebase-emulators.pid"
+          for attempt in $(seq 1 60); do
+            if (echo > /dev/tcp/127.0.0.1/9099) >/dev/null 2>&1 && (echo > /dev/tcp/127.0.0.1/8080) >/dev/null 2>&1; then
+              echo "Auth and Firestore emulator ports are accepting connections."
+              exit 0
+            fi
+            sleep 2
+          done
+          cat "$RUNNER_TEMP/firebase-emulators.log"
+          exit 1
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Run real FlutterFire service integration test
+        run: |
+          flutter test integration_test/walker_admin_service_emulator_test.dart -d chrome --dart-define=DOJO_EMULATOR_PROJECT_ID=demo-dojo-admin-integration
+
+      - name: Show emulator logs on failure
+        if: failure()
+        run: cat "$RUNNER_TEMP/firebase-emulators.log"
