@@ -61,3 +61,31 @@ This is a code-contract finding, not proof about current production runtime data
 ## Release gate
 
 **NO-GO for live Admin integration.** No source code, Firestore rules, production data or Firebase deployment was changed by this audit. This document records evidence and prerequisites only.
+
+
+## Follow-up field-level audit (2026-10-30)
+
+The Partner repository was rechecked on its current `main` branch. The exact source paths are:
+- `lib/features/live_walk/screens/live_walk_screen.dart`
+- `lib/features/live_walk/services/location_permission_service.dart`
+- `lib/screens/home/navigation_screen.dart`
+
+### Partner GPS collection details
+- Geolocator stream uses high accuracy and a 3-meter distance filter.
+- Accepted samples are kept in the in-memory `_route` list; the handler rejects invalid coordinates, accuracy above 35m, and a single movement jump above 100m.
+- No per-sample Firestore write appears in the inspected live-walk implementation.
+- On completion, the app writes `walks/{generatedWalkDocumentId}` with `walkerId`, optional `bookingId`, `startedAt`, `endedAt`, `status: completed`, `startLocation`, `endLocation`, and a compacted `route: List<GeoPoint>` (maximum 500 points).
+- The generated walk document ID is distinct from `bookingId`; future contracts must preserve both IDs.
+
+### Additional Admin gaps
+- The Admin route query filters only by `walkerId`; it does not bind route points to a particular `walkId` or `bookingId`.
+- The marker parser reads coordinates but no capture/receive timestamp, so it cannot identify stale coordinates.
+- `isOnline` is a presence signal and must not be treated as proof that a walk is active.
+
+### Proposed target contract — proposal only, not implemented
+A canonical live point should bind `walkerId`, `bookingId`, and `walkId`; include validated `latitude`, `longitude`, `accuracyMeters`, device `capturedAt`, server `receivedAt`, and a collision-safe point ID. A current-marker summary, if retained for fast map rendering, must carry the same linkage and freshness metadata. Admin route reads should be scoped to the authorized city/zone and a specific active `walkId`; online presence must remain separate from walk lifecycle.
+
+Before implementation, rules or trusted backend must verify that the authenticated Partner owns the assigned active walk and booking; reject writes for other walkers or terminal walks; enforce coordinate/accuracy/timestamp/rate limits; make historical points immutable; and scope Admin reads by assigned city/zone. Offline retry, background behavior, GPS permission loss, stale thresholds, retention, privacy disclosure and access audit require explicit policy decisions.
+
+### Evidence boundary
+This remains a static source audit. It does not establish whether a separate backend worker writes either Admin source at runtime. No production Firestore data, rules, indexes, application source, or deployment configuration was changed. No exact-head CI claim is made for this documentation update.
