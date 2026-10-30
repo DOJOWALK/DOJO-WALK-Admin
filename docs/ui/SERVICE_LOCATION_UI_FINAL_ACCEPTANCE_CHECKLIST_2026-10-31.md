@@ -147,7 +147,7 @@ Reason: automated CI is now green (Analyze, 320 tests, and Web release build), b
   - Admin Main Full Validation run `41115743913`: success; Analyze, 320 tests, and Web release build passed.
   - Admin Web Build Check run `41115743941`: success; no deployment.
   - Service Location Geometry Tests run `41115743983`: success.
-  - DOJO WALK Admin Flutter Validation run `41115743897`: Analyze and all 320 tests completed successfully; the Web build step was still running at the last check. The other two complete workflows already provide successful Web-build evidence for this commit.
+  - DOJO WALK Admin Flutter Validation run `41115743897`: completed successfully; Analyze, all 320 tests, and Web release build passed.
 - A build warning remains: the Flutter Web build reports a missing CupertinoIcons font asset while MaterialIcons are present; the build still succeeds. No CupertinoIcons references were found by repository code search, so do not add a dependency blindly. Confirm the rendered screens and icon glyphs during browser/device acceptance.
 - PR #51 remains open and Draft. Branch is 550 commits ahead and 4 commits behind current `main`; no merge or deployment has been performed.
 - Acceptance remains **NOT YET ACCEPTED** until manual device/browser, accessibility, navigation, and Founder/product-owner checks are complete.
