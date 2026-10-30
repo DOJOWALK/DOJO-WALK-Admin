@@ -257,3 +257,12 @@ To stay within Draft PR #51's UI-first gate, the next change was kept inside the
 - It separately reports that boundary evidence has not been uploaded and the State/UT → District → City selectors still use example catalog data. Save Draft and Submit for Review remain disabled.
 - Updated the existing widget test to assert these blocker messages and the no-save guarantee.
 - This is still a UI-only validation preview. No authoritative catalog, GIS service, backend, Firestore, draft persistence or approval action is connected. Test/analyzer execution has not been confirmed.
+
+
+## Service Location lifecycle terminology audit — 2026-10-31
+
+- Reviewed the Zone Directory, Zone Details, Boundary Review and Founder Approval Queue prototypes together.
+- Confirmed the example Zone C lifecycle is intentionally staged: Boundary Review = boundary evidence marked “Verified (example)”; Founder Approval Queue = “Awaiting decision”; Zone Directory = “Not activated”. These are separate technical-verification, business-approval and operational-lifecycle states, not conflicting statuses.
+- Added a prominent Boundary Review explanation: a verified boundary does not activate a Zone or grant launch approval; the separate Founder Approval Queue owns the final business decision.
+- Added widget assertions for that governance distinction.
+- All screens remain example-data UI prototypes. No live state transition, approval, activation, Firestore integration, merge or deployment. Flutter tests/analyzer have not been executed in this session.
