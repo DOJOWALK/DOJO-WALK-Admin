@@ -262,18 +262,44 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.location_on_outlined, color: _orange),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      row.name,
-                                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
-                                    ),
-                                  ),
-                                  _StatusLabel(row.status),
-                                ],
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final title = Row(
+                                    children: [
+                                      const Icon(Icons.location_on_outlined, color: _orange),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          row.name,
+                                          style: const TextStyle(
+                                            fontSize: 17,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                  final status = _StatusLabel(row.status);
+
+                                  if (constraints.maxWidth < 460) {
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        title,
+                                        const SizedBox(height: 8),
+                                        status,
+                                      ],
+                                    );
+                                  }
+
+                                  return Row(
+                                    children: [
+                                      Expanded(child: title),
+                                      const SizedBox(width: 8),
+                                      status,
+                                    ],
+                                  );
+                                },
                               ),
                               const SizedBox(height: 12),
                               Wrap(
