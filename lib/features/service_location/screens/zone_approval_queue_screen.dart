@@ -134,12 +134,14 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
           ),
           const SizedBox(height: 12),
           if (rows.isEmpty)
-            const Card(
+            Card(
               child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text('widget.focusZoneId == null
-                    ? 'No example requests match this filter. Live queue is not connected.'
-                    : 'No example approval request exists for ${widget.focusZoneId} in this sample. Live queue is not connected.''),
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  widget.focusZoneId == null
+                      ? 'No example requests match this filter. Live queue is not connected.'
+                      : 'No example approval request exists for ${widget.focusZoneId} in this sample. Live queue is not connected.',
+                ),
               ),
             )
           else
