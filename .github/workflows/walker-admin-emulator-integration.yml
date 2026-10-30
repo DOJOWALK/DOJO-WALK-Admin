@@ -60,7 +60,32 @@ jobs:
           cache: true
 
       - name: Generate CI-only Android runner scaffold
-        run: flutter create --platforms=android --project-name dojo_admin .
+        run: |
+          flutter create --platforms=android --project-name dojo_admin .
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("android/settings.gradle.kts")
+          content = path.read_text()
+          marker = "pluginManagement {"
+          start = content.find(marker)
+          if start < 0:
+              raise SystemExit("pluginManagement block not found in generated Android scaffold")
+          repo_marker = "repositories {"
+          repo_start = content.find(repo_marker, start)
+          if repo_start < 0:
+              raise SystemExit("pluginManagement repositories block not found")
+          insert_at = repo_start + len(repo_marker)
+          prefix = content[insert_at:insert_at + 300]
+          additions = ""
+          if "google()" not in prefix:
+              additions += "\n        google()"
+          if "mavenCentral()" not in prefix:
+              additions += "\n        mavenCentral()"
+          if additions:
+              content = content[:insert_at] + additions + content[insert_at:]
+              path.write_text(content)
+          print("Generated Android plugin repositories include Google and Maven Central.")
+          PY
 
       - name: Install Firebase emulator dependencies
         working-directory: firebase-rules
