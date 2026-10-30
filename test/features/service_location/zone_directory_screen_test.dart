@@ -21,6 +21,8 @@ void main() {
       expect(find.text('Last updated'), findsWidgets);
       expect(find.text('Updated by'), findsWidgets);
       expect(find.text('Lifecycle actions disabled'), findsWidgets);
+      expect(find.textContaining('temporary emergency stop'), findsOneWidget);
+      expect(find.textContaining('notify Founder promptly for review'), findsOneWidget);
     });
 
     testWidgets('search and status filters narrow the example directory',
