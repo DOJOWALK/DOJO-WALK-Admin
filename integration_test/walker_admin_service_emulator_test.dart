@@ -120,10 +120,12 @@ void main() {
         );
       }
 
+      print('[walker-admin-it] seeding emulator admin fixture');
       await seedDocument('admin_users', {
         'role': {'stringValue': 'super_admin'},
         'isActive': {'booleanValue': true},
       });
+      print('[walker-admin-it] seeding emulator walker fixture');
       await seedDocument('walkers', {
         'userId': {'stringValue': uid},
         'fullName': {'stringValue': 'Emulator Test Walker'},
@@ -137,11 +139,13 @@ void main() {
         'updatedAt': {'timestampValue': DateTime.now().toUtc().toIso8601String()},
       });
 
+      print('[walker-admin-it] fixtures seeded; invoking real service transaction');
       final service = WalkerAdminService(firestore: firestore, auth: auth);
       await service.runAdminAction(
         walkerId: uid,
         action: WalkerAdminAction.approve,
-      );
+      ).timeout(const Duration(seconds: 60));
+      print('[walker-admin-it] service transaction returned; reading walker');
 
       final walker = await firestore.collection('walkers').doc(uid).get();
       expect(walker.data()?['status'], 'approved');
@@ -150,11 +154,14 @@ void main() {
       expect(walker.data()?['isActive'], isTrue);
       expect(walker.data()?['decisionBy'], uid);
 
+      print('[walker-admin-it] walker state verified; querying audit log');
       final audit = await firestore
           .collection('audit_logs')
           .where('targetType', isEqualTo: 'walker')
           .where('targetId', isEqualTo: uid)
-          .get();
+          .get()
+          .timeout(const Duration(seconds: 30));
+      print('[walker-admin-it] audit query returned ${audit.docs.length} records');
       expect(audit.docs, hasLength(1));
       expect(audit.docs.single.data()['actorUid'], uid);
       expect(audit.docs.single.data()['actorRole'], 'super_admin');
