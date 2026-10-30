@@ -204,6 +204,33 @@ void main() {
       await tester.view.resetDevicePixelRatio();
     });
 
+
+    testWidgets('dashboard renders without layout overflow on mobile tablet and desktop',
+        (tester) async {
+      final source = _FakeDashboardDataSource();
+      for (final width in [360.0, 768.0, 1280.0]) {
+        await tester.view.setPhysicalSize(Size(width, 1600));
+        await tester.view.setDevicePixelRatio(1);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: DashboardScreen(dataSource: source),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('DOJO WALK Command Center'), findsOneWidget);
+        expect(find.byKey(const ValueKey('dashboard-refresh')), findsOneWidget);
+        expect(tester.takeException(), isNull,
+            reason: 'Dashboard should not overflow at width $width');
+
+        await tester.view.resetPhysicalSize();
+        await tester.view.resetDevicePixelRatio();
+      }
+    });
+
     testWidgets('header actions call the supplied navigation callbacks',
         (tester) async {
       var liveOperationsOpened = false;
