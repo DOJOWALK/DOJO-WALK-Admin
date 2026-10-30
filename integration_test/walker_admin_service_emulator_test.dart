@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -62,4 +63,107 @@ void main() {
       expect(credential.user!.uid, uid);
     },
   );
+
+  testWidgets(
+    'real WalkerAdminService approves an emulator fixture and writes its audit record',
+    (tester) async {
+      final app = await Firebase.initializeApp(
+        name: 'dojo-walker-success-integration',
+        options: FirebaseOptions(
+          apiKey: 'fake-api-key',
+          appId: '1:123456789:web:dojo-walker-success',
+          messagingSenderId: '123456789',
+          projectId: projectId,
+          authDomain: '$projectId.firebaseapp.com',
+        ),
+      );
+      addTearDown(app.delete);
+
+      final auth = FirebaseAuth.instanceFor(app: app);
+      final firestore = FirebaseFirestore.instanceFor(app: app);
+      final emulatorHost = io.Platform.isAndroid ? '10.0.2.2' : '127.0.0.1';
+      await auth.useAuthEmulator(emulatorHost, 9099);
+      firestore.useFirestoreEmulator(emulatorHost, 8080);
+
+      final credential = await auth.createUserWithEmailAndPassword(
+        email: 'super-admin-fixture-${DateTime.now().microsecondsSinceEpoch}@dojo.test',
+        password: 'Dojo-Emulator-Test-2026!',
+      );
+      final uid = credential.user!.uid;
+
+      // The emulator's documented owner token bypasses rules only on the
+      // local Firestore Emulator. Never use this fixture helper with a
+      // production project or production endpoint.
+      final fixtureClient = io.HttpClient();
+      addTearDown(fixtureClient.close);
+      final baseUri = Uri.parse(
+        'http://$emulatorHost:8080/v1/projects/$projectId/databases/(default)/documents',
+      );
+
+      Future<void> seedDocument(
+        String collection,
+        Map<String, Object> fields,
+      ) async {
+        final uri = baseUri.replace(path: '${baseUri.path}/$collection/$uid');
+        final request = await fixtureClient.patchUrl(uri);
+        request.headers.set(io.HttpHeaders.authorizationHeader, 'Bearer owner');
+        request.headers.contentType = io.ContentType.json;
+        request.write(jsonEncode({
+          'fields': fields,
+        }));
+        final response = await request.close();
+        final body = await response.transform(utf8.decoder).join();
+        expect(
+          response.statusCode,
+          anyOf(io.HttpStatus.ok, io.HttpStatus.created),
+          reason: 'Emulator fixture seed failed: $body',
+        );
+      }
+
+      await seedDocument('admin_users', {
+        'role': {'stringValue': 'super_admin'},
+        'isActive': {'booleanValue': true},
+      });
+      await seedDocument('walkers', {
+        'userId': {'stringValue': uid},
+        'fullName': {'stringValue': 'Emulator Test Walker'},
+        'phone': {'stringValue': '+910000000000'},
+        'status': {'stringValue': 'under_review'},
+        'isActive': {'booleanValue': false},
+        'isApproved': {'booleanValue': false},
+        'verificationStatus': {'stringValue': 'pending'},
+        'applicationSubmitted': {'booleanValue': true},
+        'createdAt': {'timestampValue': DateTime.now().toUtc().toIso8601String()},
+        'updatedAt': {'timestampValue': DateTime.now().toUtc().toIso8601String()},
+      });
+
+      final service = WalkerAdminService(firestore: firestore, auth: auth);
+      await service.runAdminAction(
+        walkerId: uid,
+        action: WalkerAdminAction.approve,
+      );
+
+      final walker = await firestore.collection('walkers').doc(uid).get();
+      expect(walker.data()?['status'], 'approved');
+      expect(walker.data()?['verificationStatus'], 'verified');
+      expect(walker.data()?['isApproved'], isTrue);
+      expect(walker.data()?['isActive'], isTrue);
+      expect(walker.data()?['decisionBy'], uid);
+
+      final audit = await firestore
+          .collection('audit_logs')
+          .where('targetType', isEqualTo: 'walker')
+          .where('targetId', isEqualTo: uid)
+          .get();
+      expect(audit.docs, hasLength(1));
+      expect(audit.docs.single.data()['actorUid'], uid);
+      expect(audit.docs.single.data()['actorRole'], 'super_admin');
+      expect(audit.docs.single.data()['action'], 'walker_approved');
+      expect(audit.docs.single.data()['afterStatus'], 'approved');
+      expect(audit.docs.single.data()['afterVerificationStatus'], 'verified');
+      expect(audit.docs.single.data()['afterIsApproved'], isTrue);
+      expect(audit.docs.single.data()['afterIsActive'], isTrue);
+    },
+  );
+
 }
