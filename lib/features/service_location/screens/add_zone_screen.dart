@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../services/service_boundary_preview_validator.dart';
 import '../widgets/service_boundary_editor.dart';
 import 'boundary_review_screen.dart';
 
@@ -181,22 +182,27 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
     // Existing mock Zones are reference-only and must never be treated as a
     // new Zone submission.
     final isCreatingNewZone = _creatingZone;
+    final hasBasicGeometry =
+        ServiceBoundaryPreviewValidator.isValid(_boundaryPreviewPoints);
+    final validationMessage = isCreatingNewZone
+        ? [
+            hasBasicGeometry
+                ? 'Local polygon shape check: passed (not GIS-verified).'
+                : 'Local polygon shape check: $ _boundaryValidationFeedback',
+            'Boundary evidence is not uploaded and GIS verification is pending.',
+            'The State/UT → District → City options are still example catalog data.',
+            'Save Draft and Submit for Review remain disabled. Nothing has been saved.',
+          ].join('\\n\\n')
+        : 'Existing Zone options are mock records for preview only. '
+            'Select “Create new Zone…” to validate a new Zone draft. '
+            'Nothing has been edited or saved.';
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(
           isCreatingNewZone ? 'Validation incomplete' : 'Example Zone selected',
         ),
-        content: Text(
-          isCreatingNewZone
-              ? 'The form fields look valid, but this Zone cannot be submitted yet. '
-                  'A real boundary polygon must be drawn or uploaded and verified, '
-                  'and the State/UT → District → City options must come from the '
-                  'authoritative location catalog. Nothing has been saved.'
-              : 'Existing Zone options are mock records for preview only. '
-                  'Select “Create new Zone…” to validate a new Zone draft. '
-                  'Nothing has been edited or saved.',
-        ),
+        content: Text(validationMessage.replaceFirst(r'$ ', '')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
