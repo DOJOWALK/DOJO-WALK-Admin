@@ -123,3 +123,20 @@ This cross-check does not change production rules, enable UI actions, or approve
 3. Add Flutter service transaction tests with injected Auth/Firestore emulator instances. These should assert the persisted walker state and audit record after success, and no partial writes after every denied/invalid path.
 
 No production rules were changed and no emulator or production deployment was run.
+
+
+## 10. Firebase Rules CI workflow added — 2026-10-30
+
+- Added `.github/workflows/firestore-rules-tests.yml` to `DOJOWALK/DOJO-WALK-Firebase` on `main`.
+- Workflow triggers on pushes to `main` and pull requests when Firestore rules, Firebase config, package manifest/lockfile, tests, or this workflow change; it also supports manual `workflow_dispatch`.
+- CI provisions Node.js 22 and Temurin Java 21, installs npm dependencies, and runs `npm test` inside `firebase-tools emulators:exec --only firestore` using the dedicated demo project ID.
+- Workflow file commit: `fa4ce0f182daac071ca0c8604e15f37f7376fa5d`; fetched the committed file back and verified its contents.
+- The available commit-run lookup only reports pull-request-triggered runs; it returned no PR-triggered run for this commit. It cannot establish whether the push-triggered run completed. Therefore workflow execution and test result remain **UNVERIFIED**, not PASS.
+- No lockfile exists in the repository snapshot; workflow currently uses `npm install`. Consider committing a lockfile in a separate controlled change for reproducible dependency resolution.
+- No production rules or data changed. No deployment, merge, or Admin PR state change occurred.
+
+### Revised next validation gates
+
+1. Inspect the actual GitHub Actions run for commit `fa4ce0f182daac071ca0c8604e15f37f7376fa5d` in the repository Actions UI; capture job logs and resolve failures before marking Rules tests PASS.
+2. Add/commit a package lockfile after confirming the project's intended dependency versions, then change CI to `npm ci`.
+3. Add Flutter service transaction tests with injected Auth/Firestore emulator instances. Assert persisted walker state and audit record after success, and no partial writes after denied/invalid paths.
