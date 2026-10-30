@@ -219,3 +219,20 @@ No production rules were changed and no emulator or production deployment was ru
   - `9b2d1241d493b34ee84b51f7d663308001ca3f74`: enable semantics in the WalkerAdminTabs accessibility test.
 - Run `41001138011` had Analyzer = success, Tests = failure, Web build = skipped. Follow-up workflow for the latest test changes was queued/pending at last inspection; no passing test or build result is claimed yet.
 - No merge, deployment, production rules or data changes occurred.
+
+
+## 18. Second widget-test run triage — 2026-10-30
+
+- Run `41001622974`: dependency install PASS; static analysis PASS; test suite FAIL; web build skipped.
+- Test log showed four remaining issues:
+  1. KYC View button was below the viewport; the test tapped without scrolling it into view.
+  2. Walker info-grid tiles had vertical overflow at narrow widths due to insufficient grid height.
+  3. WalkerAdminTabs semantics assertion used a semantics-node finder that did not match the explicit Semantics widget in this test environment.
+  4. The lifecycle screen correctly displayed a disabled Suspend action for an approved walker, while the test incorrectly expected the action to be absent.
+- Corrections committed:
+  - `b8ba4124d779fd486806088bbf864a637e0b60b7`: scroll KYC View control into view before tapping.
+  - `caad877c6d1a7790b7dd47b5db3ee5f93922cf5d`: increase responsive info-grid tile height by adjusting aspect ratios.
+  - `d7f2240a32f6fa6c3407cd331c1ed3290ecce2e8`: assert the explicit tab Semantics widget label.
+  - `3b91143c902a3480a43db03f44b2a67c258b2801`: assert Suspend is present but disabled, matching POL-004 UI behavior.
+- These fixes are not yet validated by a completed follow-up CI run. No tests/build are claimed PASS beyond the observed analyzer result for the previous run.
+- No merge, deployment, production rules or data changes occurred.
