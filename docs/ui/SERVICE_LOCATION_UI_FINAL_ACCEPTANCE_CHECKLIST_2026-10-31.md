@@ -84,14 +84,14 @@ Run from the Admin repository root on the target branch:
 6. Build the intended Admin target (at minimum `flutter build web`) and retain logs/artifacts.
 7. Record each command's exit code, duration, and any failure details. Do not mark a test PASS unless its actual result is available.
 
-**Current execution status (updated 2026-10-31):** GitHub Actions has now executed Analyze, the complete Flutter test suite, and Flutter Web release build successfully for code commit `2caff9d00d24020969a7744880101475d2afa9d2` (Flutter stable 3.47.9). This is CI evidence, not a claim that local device/browser, accessibility, or product-owner checks have been completed.
+**Current execution status (updated 2026-10-31):** GitHub Actions has executed Analyze, the complete Flutter test suite (320 passed), and Flutter Web release build successfully again for branch commit `875fbfdff17627ab3959b5447f25e34426fe7c13` (Flutter stable 3.47.9). This is CI evidence, not a claim that local device/browser, accessibility, or product-owner checks have been completed.
 
 ## 9. Backend / Firebase gate — explicitly blocked
 Until Sections 1–8 are validated and accepted:
 - Do not connect these prototype screens to Firestore or Firebase Storage.
 - Do not enable Save Draft, Submit for Review, Founder approval, activation/deactivation, or suspension actions.
 - Do not introduce boundary upload, canonical GIS verification, geometry hash persistence, audit writes, or lifecycle mutations.
-- Do not add or dispatch Emulator integration workflows for this UI scope.
+- Do not add or manually dispatch Emulator integration workflows for this UI scope. The existing Walker Admin emulator workflow was subsequently changed to manual-only; do not use it for Service Location UI acceptance.
 - Do not change canonical Firebase Rules, indexes, or production configuration.
 - Do not merge or deploy this work.
 
@@ -133,4 +133,21 @@ Reason: automated CI is now green (Analyze, 320 tests, and Web release build), b
 - Admin Web Build Check run #1307: `41112382557` — success (no deploy).
 - Flutter CI version: stable **3.47.9**.
 - The CI log explicitly recorded passing tests in all six focused files: `add_zone_screen_test.dart`, `zone_directory_screen_test.dart`, `zone_details_screen_test.dart`, `boundary_review_screen_test.dart`, `zone_approval_queue_screen_test.dart`, and `services/service_boundary_preview_validator_test.dart`.
-- No Firebase integration, merge, or deployment was performed.
+- No live Firebase integration, merge, or deployment was performed. A separate pre-existing Walker Admin workflow did run against local Auth/Firestore emulators; see Section 13.
+
+
+## 13. Emulator workflow containment and latest CI — 2026-10-31
+- The pre-existing **DOJO WALK Admin Firebase Emulator Integration** workflow was automatically triggered by the earlier branch push before its trigger guard was updated.
+- Run `41113828139` completed successfully on the CI runner using local Auth and Firestore emulators plus an Android API 34 emulator. Its two integration tests passed:
+  - unauthorized emulator user is rejected without writes;
+  - authorized fixture approval writes the expected audit record.
+- This was an isolated CI/local-emulator run using the demo project ID `demo-dojo-admin-integration`; it did not connect to the live Firebase project, modify production Firestore, or deploy anything.
+- To preserve the UI-first gate, the workflow trigger was changed in commit `875fbfdff17627ab3959b5447f25e34426fe7c13` to `workflow_dispatch` only. Automatic `push` and `pull_request` triggers were removed. No further emulator run was initiated.
+- Validation for branch commit `875fbfdff17627ab3959b5447f25e34426fe7c13`:
+  - Admin Main Full Validation run `41115743913`: success; Analyze, 320 tests, and Web release build passed.
+  - Admin Web Build Check run `41115743941`: success; no deployment.
+  - Service Location Geometry Tests run `41115743983`: success.
+  - DOJO WALK Admin Flutter Validation run `41115743897`: Analyze and all 320 tests completed successfully; the Web build step was still running at the last check. The other two complete workflows already provide successful Web-build evidence for this commit.
+- A build warning remains: the Flutter Web build reports a missing CupertinoIcons font asset while MaterialIcons are present; the build still succeeds. No CupertinoIcons references were found by repository code search, so do not add a dependency blindly. Confirm the rendered screens and icon glyphs during browser/device acceptance.
+- PR #51 remains open and Draft. Branch is 550 commits ahead and 4 commits behind current `main`; no merge or deployment has been performed.
+- Acceptance remains **NOT YET ACCEPTED** until manual device/browser, accessibility, navigation, and Founder/product-owner checks are complete.
