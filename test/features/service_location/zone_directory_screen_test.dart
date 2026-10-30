@@ -135,6 +135,27 @@ void main() {
       expect(find.textContaining('not connected to the Zone service'), findsOneWidget);
     });
 
+    testWidgets('back navigation from Zone Details returns to Directory', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: ZoneDirectoryScreen()));
+
+      final detailsButton = find.text('View details').first;
+      await tester.scrollUntilVisible(
+        detailsButton,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(detailsButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Zone Details'), findsOneWidget);
+      await tester.tap(find.byTooltip('Back'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Zone Directory'), findsOneWidget);
+      expect(find.text('Example Zone A'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('verified Zone remains unactivated until separate Founder decision',
         (tester) async {
       await tester.pumpWidget(
