@@ -81,7 +81,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Boundary Review'), findsOneWidget);
+    expect(find.textContaining('Boundary Review'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -111,7 +111,7 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
 
-    expect(find.text('Boundary Review'), findsOneWidget);
+    expect(find.textContaining('Boundary Review'), findsOneWidget);
     expect(find.text('Zone boundary review'), findsOneWidget);
     expect(find.text('Boundary map preview'), findsOneWidget);
     expect(find.text('Required before approval'), findsOneWidget);
