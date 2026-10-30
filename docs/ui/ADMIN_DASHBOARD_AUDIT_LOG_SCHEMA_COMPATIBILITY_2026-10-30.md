@@ -153,3 +153,14 @@ To stay within Draft PR #51's UI-first gate, the next change was kept inside the
 - They also assert that Edit and lifecycle controls remain disabled in the UI prototype and check a 320px-wide mobile viewport for layout exceptions.
 - Test file commit: `e1ac02ee0cb3b1e224c3392dca29cbdd4123f4b0`.
 - File creation was confirmed by GitHub response; Flutter tests and analyzer have not been executed in this session. This remains UI-only and does not connect or mutate Firebase.
+
+
+## Zone Directory to Zone Details consistency check — 2026-10-30
+
+- Re-fetched both UI screens and their widget tests from the active UI branch.
+- Confirmed the directory passes the same row values into Zone Details for zone ID, name, State/UT → District → City parent path, lifecycle status, revision, boundary status, readiness blocker, last-updated time, and updated-by metadata.
+- Confirmed both screens label the data as examples/prototype content and keep activation/deactivation/edit actions disabled; no Firestore-backed live hash is implied.
+- Strengthened the directory navigation widget test to assert the exact first-row values are preserved on the details screen, including Not verified, Polygon evidence pending, and the example audit metadata.
+- Test update commit: 7f634b6b479cf9f86dc2b737e742b028146674e7.
+- This is a data-presentation regression check, not a validation of real zone data or backend lifecycle behavior.
+- Flutter test/analyzer execution remains pending; no CI result or PASS is claimed.
