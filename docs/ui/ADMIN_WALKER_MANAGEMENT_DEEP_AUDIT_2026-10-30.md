@@ -68,3 +68,38 @@
 - Firebase integration, merge, deployment: NOT performed.
 
 This report records source findings and recommended tests; it does not claim runtime behavior or tests have passed.
+
+## 6. UI/testability implementation update (2026-10-30)
+
+Implemented on this branch after the source audit:
+
+- Added optional read-only walkersStream and runningWalkerIdsStream inputs to WalkerManagementDashboardScreen. Production defaults still use WalkerAdminService; tests can provide deterministic streams without Firebase initialization.
+- Cached the production walker and running-booking streams in initState, rather than creating the booking stream from every parent rebuild.
+- Extracted production booking snapshot → running walker ID conversion into a typed adapter. The recognized booking status set remains unchanged; no unverified status aliases were added.
+- Added a Retry control to the error panel. Retry recreates the production Firestore streams and remounts the StreamBuilders; it performs no Firestore write or lifecycle action.
+- Updated the search hint to reflect actual searchable fields: name, phone, email, ID, location and status.
+- Added test/features/walkers/walker_management_dashboard_screen_test.dart.
+
+New widget test coverage authored:
+- populated list and filtered result count;
+- email and location search;
+- running tab membership;
+- Available filter excluding running and account-ineligible walkers;
+- Verification vs Training Required separation;
+- no search matches;
+- pending loading streams;
+- generic stream error and Retry affordance;
+- viewport widths 320, 360, 390, 768 and 1280 px with long text.
+
+## 7. Remaining caveats after implementation
+
+- Widget tests are authored but have NOT been executed. No Flutter Analyze or Flutter Test result is available for the exact head.
+- Retry affordance is source-implemented; runtime retry behavior is not yet verified.
+- Permission-denied rendering is handled by the shared classifier, but a dedicated permission-denied widget test remains to be added.
+- Walker card navigation still lacks a route-level widget test.
+- Lifecycle filters beyond Available, Running, Verification and Training Required still need direct widget coverage (Rejected, Suspended, Inactive / Offboarded, All Walkers).
+- Search normalization for phone punctuation/alternate formats is not implemented; current matching remains lower-cased substring matching.
+- The service still streams the full walkers and bookings collections. Query scope, city/zone authorization and read-cost optimization require a separate approved backend/data contract review. UI filters are not authorization.
+- Available remains an account-eligibility view excluding currently detected running IDs; it does not prove schedule, zone, GPS freshness, capacity or an actually bookable slot.
+- The result count is the current in-memory filtered list size, not a server aggregate.
+- No Firebase integration, merge or deployment was performed.
