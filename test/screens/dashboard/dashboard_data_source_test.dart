@@ -72,13 +72,30 @@ void main() {
 
     test('recentActivity maps missing fields to safe display defaults', () async {
       await firestore.collection('audit_logs').doc('a1').set({
-        'timestamp': DateTime(2026, 10, 30),
+        'createdAt': DateTime(2026, 10, 30),
       });
 
       final result = await source.recentActivity().first;
       expect(result, hasLength(1));
       expect(result.single.action, 'System activity');
       expect(result.single.actorRole, 'Admin');
+    });
+
+    test('recentActivity orders records by createdAt newest first', () async {
+      final logs = firestore.collection('audit_logs');
+      await logs.doc('older').set({
+        'createdAt': DateTime(2026, 10, 29),
+        'action': 'walker_approved',
+      });
+      await logs.doc('newer').set({
+        'createdAt': DateTime(2026, 10, 30),
+        'action': 'walker_reactivated',
+      });
+
+      final result = await source.recentActivity().first;
+      expect(result, hasLength(2));
+      expect(result.first.action, 'walker_reactivated');
+      expect(result.last.action, 'walker_approved');
     });
   });
 }
