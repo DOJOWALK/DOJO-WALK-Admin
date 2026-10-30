@@ -11,6 +11,7 @@ class _FakeDashboardDataSource implements DashboardDataSource {
   final bool failRevenue;
   final bool permissionDenied;
   final bool holdLoading;
+  final bool longText;
   int subscriptionCount = 0;
 
   _FakeDashboardDataSource({
@@ -21,6 +22,7 @@ class _FakeDashboardDataSource implements DashboardDataSource {
     this.failRevenue = false,
     this.permissionDenied = false,
     this.holdLoading = false,
+    this.longText = false,
   });
   @override
   Stream<int> countAll(String collection) {
@@ -76,11 +78,11 @@ class _FakeDashboardDataSource implements DashboardDataSource {
     if (failRecentBookings) {
       return Stream<List<DashboardBooking>>.error(Exception('test stream failure'));
     }
-    return Stream<List<DashboardBooking>>.value(empty ? const [] : const [
+    return Stream<List<DashboardBooking>>.value(empty ? const [] : [
         DashboardBooking(
-          id: 'booking-001',
-          petId: 'pet-001',
-          status: 'Completed',
+          id: longText ? 'booking-with-a-very-long-reference-identifier-2026' : 'booking-001',
+          petId: longText ? 'pet-reference-with-a-very-long-display-value' : 'pet-001',
+          status: longText ? 'Walker Accepted - Awaiting Customer Confirmation' : 'Completed',
         ),
       ]);
   }
@@ -91,10 +93,10 @@ class _FakeDashboardDataSource implements DashboardDataSource {
     if (failRecentActivity) {
       return Stream<List<DashboardActivity>>.error(Exception('activity failure'));
     }
-    return Stream<List<DashboardActivity>>.value(empty ? const [] : const [
+    return Stream<List<DashboardActivity>>.value(empty ? const [] : [
         DashboardActivity(
-          action: 'Created booking',
-          actorRole: 'Central Admin',
+          action: longText ? 'A very long audit action description to verify responsive wrapping on small devices' : 'Created booking',
+          actorRole: longText ? 'Central Administrator with extended operational role' : 'Central Admin',
         ),
       ]);
   }
@@ -342,6 +344,18 @@ void main() {
         await tester.view.resetPhysicalSize();
         await tester.view.resetDevicePixelRatio();
       }
+    });
+
+    testWidgets('long booking and activity text does not overflow on narrow mobile', (tester) async {
+      await tester.view.setPhysicalSize(const Size(320, 1600));
+      await tester.view.setDevicePixelRatio(1);
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: DashboardScreen(dataSource: _FakeDashboardDataSource(longText: true)))));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('booking-with-a-very-long-reference'), findsOneWidget);
+      expect(find.textContaining('A very long audit action description'), findsOneWidget);
+      expect(tester.takeException(), isNull, reason: 'Long dashboard content should not overflow at 320 px');
+      await tester.view.resetPhysicalSize();
+      await tester.view.resetDevicePixelRatio();
     });
 
     testWidgets('header actions call the supplied navigation callbacks',
