@@ -196,3 +196,14 @@ The fake data source continues to supply all dashboard streams without Firebase 
 - The test also asserts pending streams are not misrepresented as numeric zero, empty states, permission errors or generic failures.
 - Test source commit: 4ba97509405a948bd08da8903ad623223dac1b98.
 - Flutter Analyze and Flutter Test have not been run in this environment; the test is added but not marked passing. No exact-head CI result is claimed.
+
+
+### Final dashboard source/UI consistency pass (2026-10-30)
+
+- Reviewed the current dashboard source, data-source seam, widget-test inventory and audit notes on the Draft PR branch.
+- Confirmed the metric and revenue cards share the same surface treatment; operational sections use the shared dashboard card; status, alert and activity rows retain bounded/ellipsized booking status text and expanded text columns.
+- Confirmed the header switches to a stacked layout below 520 px, metrics collapse to one column below 600 px, and the two paired operational sections stack below 900 px.
+- Removed an unused local variable from the revenue stream error branch; no behavior or query semantics changed (source commit eb841b492d42183f3f22249f0a83cc6d0d4020ea).
+- Expanded the responsive widget-test viewport matrix to include 320 px in addition to 360, 768 and 1280 px (test-source commit aaf914c3f64a80fa02fd33c36b1a37b213e3e698). This adds a regression assertion; it is not evidence that the test has executed or passed.
+- Remaining product/data-contract caveats: “Online Walkers” is only the stored `isOnline` flag, “Waiting Assignment” and “Unassigned bookings” both use Pending aliases, and the all-time paid amount is gross before refunds/fees. These labels must not be interpreted as authoritative capacity, assignment SLA or net finance metrics.
+- Validation: Flutter Analyze, Flutter Test, runtime screenshot QA and exact-head CI are **NOT VERIFIED** in this pass. No Firebase integration, merge or deployment was performed. PR #51 remains Draft/open.
