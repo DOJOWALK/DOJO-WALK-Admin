@@ -108,6 +108,22 @@ void main() {
       );
     });
 
+    testWidgets('clear-search icon has an accessible label and 48px target', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(home: ZoneDirectoryScreen()),
+      );
+
+      await tester.enterText(find.byType(TextField).first, 'ZONE-EX-001');
+      await tester.pumpAndSettle();
+
+      final clearButton = find.byTooltip('Clear search');
+      expect(clearButton, findsOneWidget);
+      expect(find.bySemanticsLabel('Clear search'), findsOneWidget);
+      final size = tester.getSize(clearButton);
+      expect(size.width, greaterThanOrEqualTo(48));
+      expect(size.height, greaterThanOrEqualTo(48));
+    });
+
     testWidgets('Zone Directory remains readable on a narrow mobile viewport',
         (tester) async {
       tester.view.physicalSize = const Size(360, 800);
