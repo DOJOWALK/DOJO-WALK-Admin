@@ -147,3 +147,11 @@ Expanded `test/screens/dashboard/dashboard_screen_test.dart` to cover:
 - header navigation callbacks.
 
 The fake data source continues to supply all dashboard streams without Firebase initialization. These are test cases added to source, not test results; execution remains pending CI.
+
+
+### Additional dashboard error-state coverage (2026-10-30)
+
+- Added a widget test for audit activity stream failure. It verifies that the UI shows `Unable to load activity.` and does not misrepresent a failed stream as the empty state.
+- Dashboard recent-booking and audit-activity streams now have source-level widget tests for populated, empty and error states.
+- Remaining work: loading-state assertions, metric/live/status/alert stream failure assertions, and a genuine user-triggered retry/refresh mechanism. The screen currently has no retry/refresh control; do not imply one exists.
+- No Flutter test or analyzer execution has been confirmed yet.
