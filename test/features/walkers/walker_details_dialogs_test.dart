@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:dojo_admin/features/walkers/services/walker_admin_service.dart';
+import 'package:dojo_admin/features/walkers/widgets/kyc_document_viewer_dialog.dart';
 import 'package:dojo_admin/features/walkers/widgets/walker_activity_history_dialog.dart';
 import 'package:dojo_admin/features/walkers/widgets/walker_security_dialog.dart';
 
@@ -20,6 +21,31 @@ class _FakeWalkerAdminService implements WalkerAdminService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  testWidgets('KYC viewer explains missing document reference and offers retry',
+      (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: KycDocumentViewerDialog(
+            title: 'Aadhaar Front',
+            document: <String, dynamic>{},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Unable to load this document. Check its link and access permissions.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Try Again'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
 
 void main() {
