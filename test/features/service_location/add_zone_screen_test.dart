@@ -146,8 +146,43 @@ void main() {
     expect(find.text('Add Service Zone'), findsOneWidget);
     expect(find.text('State / UT'), findsOneWidget);
     expect(find.text('Zone'), findsOneWidget);
-    expect(find.text('Boundary editor pending'), findsOneWidget);
+    expect(find.text('Open boundary editor'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+
+  testWidgets('boundary editor entry is disabled until a new Zone is selected',
+      (tester) async {
+    await tester.pumpWidget(app());
+
+    final editorButton = tester.widget<OutlinedButton>(
+      find.widgetWithText(OutlinedButton, 'Open boundary editor'),
+    );
+    expect(editorButton.onPressed, isNull);
+
+    final dropdowns = find.byType(DropdownButtonFormField<String>);
+    await tester.tap(dropdowns.at(0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Uttar Pradesh').last);
+    await tester.pumpAndSettle();
+    await tester.tap(dropdowns.at(1));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Gautam Buddha Nagar').last);
+    await tester.pumpAndSettle();
+    await tester.tap(dropdowns.at(2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Noida').last);
+    await tester.pumpAndSettle();
+    await tester.tap(dropdowns.at(3));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create new Zone…').last);
+    await tester.pumpAndSettle();
+
+    final enabledEditorButton = tester.widget<OutlinedButton>(
+      find.widgetWithText(OutlinedButton, 'Open boundary editor'),
+    );
+    expect(enabledEditorButton.onPressed, isNotNull);
+    expect(find.text('Boundary status: Not drawn'), findsOneWidget);
   });
 
   testWidgets('clearly states polygon is mandatory and radius alone is insufficient', (tester) async {
