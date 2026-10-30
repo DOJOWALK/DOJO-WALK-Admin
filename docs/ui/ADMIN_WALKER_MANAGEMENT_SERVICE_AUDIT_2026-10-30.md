@@ -174,3 +174,14 @@ No production rules were changed and no emulator or production deployment was ru
 - This workflow is validation-only: it has read-only repository permissions and contains no Firebase Hosting deployment step or production secrets.
 - Commit: `3546d11e11ca8095ad61f3a5bd854b6ba7f34fcc`. The committed workflow was fetched back and its expected commands/triggers were verified.
 - The workflow run has not yet been observed; therefore analyzer, test and build results remain **PENDING / UNVERIFIED**. This does not establish that service transaction tests pass. No merge or deployment occurred.
+
+
+## 14. Flutter validation CI failure triage — 2026-10-30
+
+- Inspected GitHub Actions run `41000460752` for workflow commit `3546d11e11ca8095ad61f3a5bd854b6ba7f34fcc`.
+- Result: **FAILED** during Static analysis; Flutter tests and Web build were skipped. Dependency installation succeeded.
+- The analyzer reported 62 issues. The first source-level issue was that `walker_details_screen.dart` referenced `WalkerAdminAction` and `WalkerAdminServiceException` without importing the shared contracts file. Added the missing import in commit `ca8bb1a302b3b94fbf2719c8cf40a2becfe8bb83`.
+- Remaining analyzer errors are predominantly outdated widget-test viewport APIs: `TestFlutterView.setPhysicalSize` / `setDevicePixelRatio` are not available in the pinned stable Flutter SDK, and dashboard tests also await reset methods that return void. Affected files include `walker_details_screen_test.dart`, `walker_details_sections_test.dart` and `dashboard_screen_test.dart`.
+- The workflow therefore correctly exposed pre-existing test-suite/API drift. The import correction is committed but has not yet been re-run; it must not be described as a passing fix.
+- Next action: migrate the affected tests to the current `tester.view.physicalSize` / `tester.view.devicePixelRatio` setter API and synchronous reset calls, then rerun the full validation workflow. Recheck remaining analyzer diagnostics after this migration; do not suppress the test suite or narrow CI merely to obtain a green result.
+- No merge, Firebase deployment, production data change or production rules change occurred.
