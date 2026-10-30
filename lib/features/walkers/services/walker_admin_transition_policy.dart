@@ -1,5 +1,5 @@
 import '../utils/walker_admin_helpers.dart';
-import 'walker_admin_service.dart';
+import 'walker_admin_contracts.dart';
 
 /// Pure, deterministic lifecycle transition validation.
 ///
