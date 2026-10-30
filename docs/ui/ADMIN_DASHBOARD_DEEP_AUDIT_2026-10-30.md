@@ -239,3 +239,14 @@ The fake data source continues to supply all dashboard streams without Firebase 
 - Activity history dialog: covers loading, empty, populated audit record (action/actor/reason/status transition), and stream failure without misreporting it as empty.
 - KYC viewer: covers missing document reference, user-facing error and retry affordance. Remote Firebase Storage/PDF/image rendering is not exercised by this test.
 - Tests are authored only; Flutter Test/Analyze and exact-head CI have not been run for these changes. No production Firebase access or lifecycle action was invoked.
+
+### Walker Details final source/test consistency review (2026-10-30)
+
+- Re-reviewed the three dialog widgets and the Walker Details section/screen tests.
+- Corrected the dialog test file structure so the KYC viewer test is inside `main()`, not accidentally nested in the fake service class (commit `842d5fc1207e98728cb2107204851969c887cef8`).
+- Corrected the address assertion to include the house/flat value rendered by the component (`A-101`) (commit `2720e351f94d3c4c5aebe15ace3b42c50619f924`).
+- Confirmed missing KYC document entries are expected to show `Document not uploaded`; entries with a malformed/non-empty map can instead show `Document reference unavailable`. The section test fixture uses an empty documents map.
+- KYC viewer test covers missing-reference handling only; it does not validate Firebase Storage URL resolution, network image decoding, PDF rendering, authorization, or retry success.
+- Dialog tests cover read-only security content and activity loading/empty/populated/error states. These are authored tests only.
+- Flutter Analyze, Flutter Test, screenshot QA, and exact-head CI remain unverified. Do not mark Walker Details as PASS until these checks are executed.
+- Lifecycle decisions remain disabled pending the approved POL-004 authority and audit contract. No merge or deployment.
