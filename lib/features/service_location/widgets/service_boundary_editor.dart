@@ -27,6 +27,7 @@ class ServiceBoundaryEditor extends StatefulWidget {
     this.initialCenter = const LatLng(28.4744, 77.5040),
     this.initialZoom = 12,
     this.onBoundaryChanged,
+    this.onValidationFeedbackChanged,
     this.onSaveRequested,
     this.readOnly = false,
   });
@@ -41,6 +42,9 @@ class ServiceBoundaryEditor extends StatefulWidget {
 
   /// Called whenever the user adds, removes or clears points.
   final ValueChanged<List<LatLng>>? onBoundaryChanged;
+
+  /// Reports local shape feedback; this is not authoritative GIS verification.
+  final ValueChanged<String>? onValidationFeedbackChanged;
 
   /// Called when the user requests saving the boundary.
   ///
@@ -145,6 +149,7 @@ class _ServiceBoundaryEditorState
     widget.onBoundaryChanged?.call(
       List<LatLng>.unmodifiable(_points),
     );
+    widget.onValidationFeedbackChanged?.call(_validationFeedback);
   }
 
   List<GeoPoint> _toGeoPoints() {
@@ -156,6 +161,29 @@ class _ServiceBoundaryEditorState
           ),
         )
         .toList(growable: false);
+  }
+
+  String get _validationFeedback {
+    if (_points.length < 3) {
+      return 'Add at least 3 points (${_points.length}/3).';
+    }
+    final distinctPoints = _points
+        .map((point) => '${point.latitude.toStringAsFixed(7)},'
+            '${point.longitude.toStringAsFixed(7)}')
+        .toSet();
+    if (distinctPoints.length < 3) {
+      return 'Invalid preview: at least 3 distinct points are required.';
+    }
+    if (!_points.every((point) => point.latitude.isFinite &&
+        point.longitude.isFinite && point.latitude >= -90 &&
+        point.latitude <= 90 && point.longitude >= -180 &&
+        point.longitude <= 180)) {
+      return 'Invalid preview: one or more coordinates are out of range.';
+    }
+    if (!ServiceLocationGeometry.isValidPolygon(_toGeoPoints())) {
+      return 'Invalid preview: polygon crosses itself or encloses no area.';
+    }
+    return 'Basic polygon geometry looks valid locally. Not GIS-verified.';
   }
 
   bool get _hasValidBasicShape {
