@@ -12,7 +12,7 @@ String _dashboardGreeting() {
   return 'Good evening, Admin 👋';
 }
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenLiveOperations;
   final VoidCallback? onOpenServiceLocations;
   final DashboardDataSource? dataSource;
@@ -24,13 +24,34 @@ class DashboardScreen extends StatelessWidget {
     this.dataSource,
   });
 
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  int _refreshVersion = 0;
+
   DashboardDataSource get _data =>
-      dataSource ?? FirestoreDashboardDataSource(FirebaseFirestore.instance);
+      widget.dataSource ?? FirestoreDashboardDataSource(FirebaseFirestore.instance);
 
   final Color orange = const Color(0xFFFF7900);
 
+  void _refreshDashboard() {
+    setState(() {
+      _refreshVersion++;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // The key forces all dashboard StreamBuilders to resubscribe to fresh streams.
+    return KeyedSubtree(
+      key: ValueKey(_refreshVersion),
+      child: _buildDashboardContent(context),
+    );
+  }
+
+  Widget _buildDashboardContent(BuildContext context) {
     return Container(
       color: const Color(0xFFFFFAF5),
       child: SingleChildScrollView(
@@ -258,6 +279,14 @@ class DashboardScreen extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
+              const SizedBox(width: 4),
+              IconButton(
+                key: const ValueKey('dashboard-refresh'),
+                tooltip: 'Refresh dashboard data',
+                onPressed: _refreshDashboard,
+                icon: const Icon(Icons.refresh_rounded),
+                color: const Color(0xFFFF7900),
+              ),
             ],
           ),
           const SizedBox(height: 18),
@@ -293,7 +322,7 @@ class DashboardScreen extends StatelessWidget {
             runSpacing: 10,
             children: [
               FilledButton.icon(
-                onPressed: onOpenLiveOperations,
+                onPressed: widget.onOpenLiveOperations,
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFFFF7900),
                   foregroundColor: Colors.white,
@@ -314,7 +343,7 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ),
               OutlinedButton.icon(
-                onPressed: onOpenServiceLocations,
+                onPressed: widget.onOpenServiceLocations,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: const Color(0xFFFF7900),
                   side: const BorderSide(color: Color(0xFFFF7900)),
