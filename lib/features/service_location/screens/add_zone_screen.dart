@@ -24,6 +24,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
   String? _city;
   String? _zoneSelection;
   String _boundaryStatus = 'Not drawn';
+  String _boundaryValidationFeedback = 'Add at least 3 points (0/3).';
   List<LatLng> _boundaryPreviewPoints = const [];
   bool _saving = false;
 
@@ -91,6 +92,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
   void _clearBoundaryPreview() {
     _boundaryPreviewPoints = const [];
     _boundaryStatus = 'Not drawn';
+    _boundaryValidationFeedback = 'Add at least 3 points (0/3).';
   }
 
   Future<void> _openBoundaryEditor() async {
@@ -119,6 +121,10 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
               const SizedBox(height: 12),
               ServiceBoundaryEditor(
                 initialPoints: _boundaryPreviewPoints,
+                onValidationFeedbackChanged: (feedback) {
+                  if (!mounted) return;
+                  setState(() => _boundaryValidationFeedback = feedback);
+                },
                 onBoundaryChanged: (points) {
                   if (!mounted) return;
                   setState(() {
@@ -409,6 +415,11 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                                 );
                               },
                             ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Local geometry check: $_boundaryValidationFeedback',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87, height: 1.4),
                           ),
                           const SizedBox(height: 12),
                           const Text(
