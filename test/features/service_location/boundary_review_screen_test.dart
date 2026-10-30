@@ -48,6 +48,16 @@ void main() {
     expect(find.textContaining('No server actions enabled'), findsOneWidget);
   });
 
+  testWidgets('boundary review carries the selected Zone into approval queue', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: BoundaryReviewScreen(focusZoneId: 'ZONE-EX-002')));
+    await tester.tap(find.text('Preview Founder Approval Queue'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Founder Approval Queue · ZONE-EX-002'), findsOneWidget);
+    expect(find.text('ZONE-EX-002'), findsOneWidget);
+    expect(find.text('ZONE-EX-001'), findsNothing);
+    expect(find.text('ZONE-EX-003'), findsNothing);
+  });
+
   testWidgets('deep link scopes boundary review to the selected Zone', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: BoundaryReviewScreen(focusZoneId: 'ZONE-EX-002')));
     expect(find.textContaining('ZONE-EX-002'), findsWidgets);
