@@ -117,6 +117,44 @@ void main() {
       expect(find.text('Inactive Walker'), findsNothing);
     });
 
+    testWidgets('verification and training tabs remain distinct', (tester) async {
+      await tester.pumpWidget(_screen(
+        walkers: [
+          _walker(
+            uid: 'w-review',
+            name: 'Review Walker',
+            status: 'under_review',
+            verificationStatus: 'pending',
+            isApproved: false,
+            isActive: false,
+            applicationSubmitted: true,
+          ),
+          _walker(
+            uid: 'w-training',
+            name: 'Training Walker',
+            status: 'training_required',
+            verificationStatus: 'pending',
+            isApproved: false,
+            isActive: false,
+            applicationSubmitted: true,
+          ),
+        ],
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Verification'));
+      await tester.tap(find.text('Verification'));
+      await tester.pumpAndSettle();
+      expect(find.text('Review Walker'), findsOneWidget);
+      expect(find.text('Training Walker'), findsNothing);
+
+      await tester.ensureVisible(find.text('Training Required'));
+      await tester.tap(find.text('Training Required'));
+      await tester.pumpAndSettle();
+      expect(find.text('Training Walker'), findsOneWidget);
+      expect(find.text('Review Walker'), findsNothing);
+    });
+
     testWidgets('shows no-results state when search has no match',
         (tester) async {
       await tester.pumpWidget(_screen(
