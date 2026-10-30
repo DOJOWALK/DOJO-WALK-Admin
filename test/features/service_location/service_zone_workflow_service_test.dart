@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:dojo_walk_admin/features/service_location/services/service_zone_workflow_service.dart';
+import 'package:dojo_admin/features/service_location/services/service_zone_workflow_service.dart';
 
 void main() {
   group('ServiceZoneRecord', () {
