@@ -157,3 +157,15 @@ Reason: automated CI is now green (Analyze, 320 tests, and Web release build), b
 - [ ] **Not verified:** widget tests for Undo, Clear, read-only controls, initial-point rendering, and save-callback validation. Google Maps map-tap simulation is not yet covered by a dedicated widget test.
 - [ ] **Not verified:** manual map taps, camera fit, marker/polygon rendering, and map interaction on supported web browsers and Android/iOS devices.
 - **Safety boundary:** these tests must remain UI-only; do not wire Firestore/Storage, enable Save Draft/Submit for Review, run emulator integration, merge, or deploy.
+
+
+## 15. Boundary Editor widget tests — source added, execution pending
+- Added `test/features/service_location/service_boundary_editor_test.dart` with deterministic map-surface adapter coverage for:
+  - adding points and immutable callback snapshots;
+  - Undo and Clear behavior;
+  - read-only controls and ignored map taps;
+  - rendering initial markers and polygon;
+  - valid geometry save callback and invalid geometry save guard.
+- Added an optional `mapBuilder` seam to `ServiceBoundaryEditor`; production defaults remain the real `GoogleMap` widget. This seam does not persist data or alter Firebase behavior.
+- **Execution status: NOT YET VERIFIED.** The new test file is committed, but no CI result for this test commit has been observed. Do not count these tests as passed until the workflow log confirms them.
+- Actual Google Maps platform view, camera fit, real map taps, and device/browser behavior remain manual acceptance items.
