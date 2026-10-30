@@ -77,8 +77,8 @@ void main() {
 
   testWidgets('renders full details when walker stream emits a record',
       (tester) async {
-    await tester.view.setPhysicalSize(const Size(390, 900));
-    await tester.view.setDevicePixelRatio(1);
+    tester.view.physicalSize = const Size(390, 900));
+    tester.view.devicePixelRatio = 1);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
