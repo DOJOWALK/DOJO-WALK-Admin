@@ -346,7 +346,7 @@ class _ServiceBoundaryEditorState
               fontWeight: FontWeight.w700,
             ),
           ),
-          if (!widget.readOnly && widget.onSaveRequested != null) ...[
+          if (!widget.readOnly) ...[
             OutlinedButton.icon(
               onPressed: _points.isEmpty ? null : _undoLastPoint,
               icon: const Icon(Icons.undo),
@@ -389,7 +389,7 @@ class _ServiceBoundaryEditorState
                     : 'Polygon की मूल जाँच पास है। सेव करने से पहले वास्तविक सीमा जाँचें।',
             style: const TextStyle(fontSize: 13),
           ),
-          if (!widget.readOnly) ...[
+          if (!widget.readOnly && widget.onSaveRequested != null) ...[
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerRight,
