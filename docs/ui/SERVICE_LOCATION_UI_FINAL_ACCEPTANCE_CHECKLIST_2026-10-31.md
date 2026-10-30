@@ -152,14 +152,14 @@ Reason: automated CI is now green (Analyze, 320 tests, and Web release build), b
 - PR #51 remains open and Draft. Branch is 552 commits ahead and 4 commits behind current `main`; no merge or deployment has been performed.
 - Acceptance remains **NOT YET ACCEPTED** until manual device/browser, accessibility, navigation, and Founder/product-owner checks are complete.
 
-## 14. Map editor interaction coverage — next gate
+## 14. Map editor interaction coverage — CI gate passed; manual gate remains
 - [x] **Implemented / source-reviewed:** the editor keeps polygon points in widget state, emits immutable point snapshots after add/undo/clear, blocks editing when `readOnly` is true, and only invokes the optional save callback after local shape validation.
-- [ ] **Not verified:** widget tests for Undo, Clear, read-only controls, initial-point rendering, and save-callback validation. Google Maps map-tap simulation is not yet covered by a dedicated widget test.
+- [x] **CI executed — passed:** deterministic widget tests cover add-point snapshots, Undo, Clear, read-only controls, initial-point rendering, and save-callback validation through the injected map-surface adapter.
 - [ ] **Not verified:** manual map taps, camera fit, marker/polygon rendering, and map interaction on supported web browsers and Android/iOS devices.
 - **Safety boundary:** these tests must remain UI-only; do not wire Firestore/Storage, enable Save Draft/Submit for Review, run emulator integration, merge, or deploy.
 
 
-## 15. Boundary Editor widget tests — source added, execution pending
+## 15. Boundary Editor widget tests — CI executed and passed
 - Added `test/features/service_location/service_boundary_editor_test.dart` with deterministic map-surface adapter coverage for:
   - adding points and immutable callback snapshots;
   - Undo and Clear behavior;
@@ -167,5 +167,5 @@ Reason: automated CI is now green (Analyze, 320 tests, and Web release build), b
   - rendering initial markers and polygon;
   - valid geometry save callback and invalid geometry save guard.
 - Added an optional `mapBuilder` seam to `ServiceBoundaryEditor`; production defaults remain the real `GoogleMap` widget. This seam does not persist data or alter Firebase behavior.
-- **Execution status: NOT YET VERIFIED.** The new test file is committed, but no CI result for this test commit has been observed. Do not count these tests as passed until the workflow log confirms them.
-- Actual Google Maps platform view, camera fit, real map taps, and device/browser behavior remain manual acceptance items.
+- **CI executed — passed:** Flutter Validation run #71 (`41116974624`) on test commit `58ca530320695b3e810838023c42a361fe40f9ee` completed successfully. Static analysis passed, all **327 tests passed** (including the seven new Boundary Editor widget tests), and the Flutter Web release build completed (`✓ Built build/web`).
+- Actual Google Maps platform view, camera fit, real map taps, and device/browser behavior remain manual acceptance items. The CI build still emits the existing CupertinoIcons font-asset warning; the build succeeds, but rendered icon verification remains open.
