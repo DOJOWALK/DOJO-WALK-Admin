@@ -105,3 +105,21 @@ This report records source-level findings only. It does not claim runtime tests,
 | Exact PR-head CI | NOT VERIFIED |
 
 This cross-check does not change production rules, enable UI actions, or approve the current security model. Keep the PR Draft and keep lifecycle actions gated until emulator and service-level tests are added and run.
+
+
+## 9. Walker lifecycle Firestore Rules test suite added — 2026-10-30
+
+- Added `test/walker_lifecycle.rules.test.mjs` to `DOJOWALK/DOJO-WALK-Firebase` on `main`.
+- The suite covers the five allowed lifecycle state outcomes (approve, reject, request correction, suspend, reactivate), inactive/non-super-admin denial, actor UID mismatch, invalid state combinations, unknown walker fields, reason length validation, the five audit event names, audit actor mismatch, and audit immutability.
+- Firebase test commits: initial suite `cbc9587c966f1b2fe534e4a7cfeeff6971921ea4`; assertion correction `dcb4e1ce68054b661c4a9ac03747e0af1a980e09`.
+- The test file uses the existing `firebase.json` emulator configuration and `npm test` script (`node --test test/*.test.mjs`).
+- Exact commit workflow runs and combined statuses were queried for `dcb4e1ce68054b661c4a9ac03747e0af1a980e09`; both returned empty. The test suite has **not been executed** in this environment. Do not mark it PASS.
+- This is Rules-level coverage only. It does not execute `WalkerAdminService.runAdminAction`, prove transaction atomicity, or verify Flutter client behavior. Those remain separate service/emulator tests.
+
+### Next validation gates
+
+1. Run `npm install` and `npm test` in `DOJOWALK/DOJO-WALK-Firebase` with the Firestore emulator available; fix any test or rules failures before treating this suite as validated.
+2. Add a Firebase CI job that runs the rules suite on changes to `firestore.rules`, `firebase.json`, package manifests and `test/**` (only after inspecting the existing workflow structure to avoid duplicate pipelines).
+3. Add Flutter service transaction tests with injected Auth/Firestore emulator instances. These should assert the persisted walker state and audit record after success, and no partial writes after every denied/invalid path.
+
+No production rules were changed and no emulator or production deployment was run.
