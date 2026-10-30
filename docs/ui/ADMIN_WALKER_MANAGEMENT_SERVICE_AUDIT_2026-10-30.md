@@ -154,3 +154,14 @@ No production rules were changed and no emulator or production deployment was ru
 - Updated Rules CI path filters to include `firestore.indexes.json` for push and pull request events; workflow path-filter commits: `d9eb9a00e63adecbbdaad6ad73dd70e5c5122525`, `9a0960438141e63bbf06195e116c98403fce405b`.
 - Source files were fetched back for review. No Flutter test, emulator index build, live index deployment, or CI execution was performed. The index is defined in source but is **not deployed** to the Firebase project.
 - Before enabling this query in a deployed environment, deploy the index through the approved Firebase release process and wait for index build completion. Do not assume it is available merely because it exists in Git.
+
+
+## 12. Walker decision reason contract alignment — 2026-10-30
+
+- Cross-checked the Admin decision-reason input against the current Firebase repository rules: decisionReason is optional on the walker record and, when supplied, must be a string no longer than 1,000 characters. Reject, Suspend and Request Correction require a non-empty reason in the Admin service.
+- Added WalkerAdminTransitionPolicy.normalizeReason() to trim input, enforce the required-reason rule, and reject values longer than 1,000 characters before a Firestore transaction starts.
+- Updated WalkerAdminService.runAdminAction() to use this shared validation.
+- Added pure-policy tests for whitespace trimming, optional reasons on Approve, required reasons on the three guarded actions, and the 1,000 / 1,001 character boundary.
+- Commits on the Admin feature branch: policy 3350f2fc4972a36e96efaf2a04bf9cfab9fed84e; service 1b7901493770f9ec1ceb00109c1daf49bf76ad1f; tests ec023543bfc654e4eddd779086148f63051fad60.
+- The changed files were fetched back and the expected validation code/test markers were confirmed. Flutter tests and analysis were not run, so this is source-reviewed, runtime-unverified.
+- This does not replace the still-missing Firestore/Auth transaction tests. The transaction remains untested for persisted audit payload, authorization denial, and no-partial-write behavior. No Firebase rules, production data, merge, or deployment changed.
