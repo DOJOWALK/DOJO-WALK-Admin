@@ -249,7 +249,7 @@ void main() {
 
     expect(find.text('Validation incomplete'), findsOneWidget);
     expect(find.textContaining('A real boundary polygon must be drawn or uploaded and verified'), findsOneWidget);
-    expect(find.text('Boundary status: Not uploaded'), findsOneWidget);
+    expect(find.text('Boundary status: Not drawn'), findsOneWidget);
     expect(find.text('Save Draft disabled'), findsOneWidget);
     expect(find.text('Submit for Review disabled'), findsOneWidget);
   });
