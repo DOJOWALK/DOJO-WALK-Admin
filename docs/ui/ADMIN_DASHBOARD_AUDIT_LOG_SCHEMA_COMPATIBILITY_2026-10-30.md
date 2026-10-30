@@ -93,3 +93,34 @@ The inspected canonical Rules establish:
 ### Current boundary
 
 This pass was read-only. No integration test, workflow, Firebase configuration, Rules, indexes, or application source was changed. The integration test and all execution results remain pending.
+
+## Dashboard Emulator integration implementation — 2026-10-30
+
+### Added files
+
+- `integration_test/dashboard_data_source_emulator_test.dart`
+  - Uses the real `FirestoreDashboardDataSource` with Firebase Auth + Firestore Emulator endpoints.
+  - Requires a `demo-*` project ID and uses Android's emulator host bridge (`10.0.2.2`) when running on Android.
+  - Seeds all fixtures through the Firestore Emulator owner endpoint; it does not use production credentials or a production project.
+  - Covers active `super_admin` reads for booking/customer/walker counts, paid-only payment total, recent bookings ordering, and recent audit activity ordering by `createdAt`.
+  - Covers an active `support` role being denied a Dashboard collection read by the canonical Rules.
+- `.github/workflows/dashboard-emulator-integration.yml`
+  - Starts Auth and Firestore Emulators from the Firebase repository.
+  - Checks out Firebase Rules/indexes at pinned commit `42923ecabedb60c158cdec91a5397f9925b3e07a`.
+  - Runs the integration test on an Android API 34 emulator.
+  - Has no deployment step and uses a dedicated `demo-dojo-dashboard-integration` project ID.
+
+### Safety and scope
+
+No production Firebase project is configured in the test. The test aborts if the project ID does not start with `demo-`. Fixture seeding targets the local emulator host/port only. No canonical Rules, indexes, production data, or app runtime configuration were changed.
+
+### Verification status
+
+- Test file fetched back from GitHub and reviewed: yes.
+- Workflow fetched back from GitHub and reviewed: yes.
+- Firebase Rules checkout pinned to a commit SHA: yes.
+- GitHub Actions run result: not returned/available at the time of this audit; do not mark CI as passed.
+- Flutter analyzer, unit tests, and Emulator integration test: not executed in this chat.
+- Merge and deployment: not performed.
+
+The first CI run must be inspected for compile/runtime issues before this integration is treated as verified. In particular, confirm Android runner generation remains compatible with the current Flutter toolchain and that Emulator REST fixture seeding works against the pinned Firebase CLI/Emulator version.
