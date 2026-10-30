@@ -82,6 +82,7 @@ class _ZoneApprovalQueueScreenState extends State<ZoneApprovalQueueScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFAF5),
       appBar: AppBar(
+        toolbarHeight: widget.focusZoneId == null ? kToolbarHeight : 80,
         title: Text(
           widget.focusZoneId == null
               ? 'Founder Approval Queue'
