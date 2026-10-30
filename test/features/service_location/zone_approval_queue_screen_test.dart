@@ -31,6 +31,20 @@ void main() {
       expect(decisionButtons.every((button) => button.onPressed == null), isTrue);
     });
 
+    testWidgets('deep link scopes approval queue to the selected Zone', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: ZoneApprovalQueueScreen(focusZoneId: 'ZONE-EX-001')));
+      expect(find.textContaining('ZONE-EX-001'), findsOneWidget);
+      expect(find.text('ZONE-EX-001'), findsOneWidget);
+      expect(find.text('ZONE-EX-002'), findsNothing);
+      expect(find.text('Blocked — boundary pending'), findsWidgets);
+    });
+
+    testWidgets('unknown Zone deep link shows an explicit empty state', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: ZoneApprovalQueueScreen(focusZoneId: 'ZONE-UNKNOWN')));
+      expect(find.textContaining('No example approval request exists for ZONE-UNKNOWN'), findsOneWidget);
+      expect(find.text('ZONE-EX-001'), findsNothing);
+    });
+
     testWidgets('filters blocked revisions and restores all examples',
         (tester) async {
       await tester.pumpWidget(
