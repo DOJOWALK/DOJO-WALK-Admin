@@ -140,3 +140,6 @@ No production rules were changed and no emulator or production deployment was ru
 1. Inspect the actual GitHub Actions run for commit `fa4ce0f182daac071ca0c8604e15f37f7376fa5d` in the repository Actions UI; capture job logs and resolve failures before marking Rules tests PASS.
 2. Add/commit a package lockfile after confirming the project's intended dependency versions, then change CI to `npm ci`.
 3. Add Flutter service transaction tests with injected Auth/Firestore emulator instances. Assert persisted walker state and audit record after success, and no partial writes after denied/invalid paths.
+
+
+- Follow-up workflow review found and corrected the CLI invocation: the job now uses `npx firebase emulators:exec` (the executable exposed by the `firebase-tools` package), not `npx firebase-tools`. Correction commit on Firebase `main`: `2f5eb81ac2409c0177ffd373e275054b34ce613d`. The corrected workflow has been fetched back and inspected; runtime execution is still unverified.
