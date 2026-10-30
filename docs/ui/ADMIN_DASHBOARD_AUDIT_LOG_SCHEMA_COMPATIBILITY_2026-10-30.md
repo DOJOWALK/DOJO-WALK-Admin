@@ -211,3 +211,15 @@ To stay within Draft PR #51's UI-first gate, the next change was kept inside the
 - Existing tests continue to cover the four selectors/no Locality, mock Zone protection, disabled persistence actions, Boundary Review preview navigation and narrow mobile layout.
 - Test source updated in commit `fb475355dcae918dd7dc1e37d8ae27064e005274` (`test/features/service_location/add_zone_screen_test.dart`). Tests have been added but were not executed in this step; no CI PASS is claimed.
 - No production code or Firebase integration changed. Save Draft, Submit for Review and boundary editor remain intentionally disabled until the canonical Zone/boundary contract and UI-first validation gate are approved.
+
+
+## Create Zone boundary editor — local preview only — 2026-10-30
+
+- Reused the existing `ServiceBoundaryEditor` in the Create Zone screen behind an explicit **Open boundary editor** action. The editor opens only after **Create new Zone…** is selected; mock existing Zones cannot be edited from this form.
+- Boundary points are held only in the current screen's in-memory state. The parent does not provide an `onSaveRequested` callback, and there is no Firestore write, upload, boundary verification, hash generation, or approval submission.
+- The status deliberately reports **Not drawn** or **Local preview only — N points; not saved**. A locally drawn polygon is not treated as verified evidence or as satisfying the readiness gate.
+- Changing State/UT, District, City, or leaving the new-Zone selection clears the local polygon preview to prevent geometry being accidentally carried into a different hierarchy.
+- Save Draft and Submit for Review remain disabled. The authoritative location catalog, GIS validation, boundary hash, persistence, and Founder/CEO approval flow remain out of scope until the Admin UI gate is complete.
+- Added widget coverage for the editor action being disabled before a new Zone is selected and enabled after selecting one; updated the narrow-viewport assertion and readiness status wording.
+- The native Google Maps platform view itself was not opened in widget tests in this pass; Flutter tests/analyzer were not executed. These tests are added, not executed, and no PASS is claimed.
+- No Firebase integration, Rules/indexes changes, merge, or deployment.
