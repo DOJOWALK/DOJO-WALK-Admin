@@ -78,12 +78,9 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFAF5),
       appBar: AppBar(
-        toolbarHeight: widget.focusZoneId == null ? kToolbarHeight : 96,
-        title: Text(
-          widget.focusZoneId == null
-              ? 'Boundary Review'
-              : 'Boundary Review · ${widget.focusZoneId}',
-          maxLines: 2,
+        title: const Text(
+          'Boundary Review',
+          maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         backgroundColor: Colors.white,
