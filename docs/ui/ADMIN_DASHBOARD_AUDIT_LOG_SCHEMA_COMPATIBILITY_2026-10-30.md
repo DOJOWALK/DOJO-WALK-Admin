@@ -135,3 +135,13 @@ A review of Draft PR #51 found an explicit owner-approved guardrail: do not star
 - The earlier design notes below are retained as future planning only, not as active implementation or an instruction to proceed now.
 
 The next permitted work is Admin UI completion and exact-head UI validation under Draft PR #51. Revisit Dashboard Emulator integration only after that gate is satisfied and the sequencing decision is still current.
+
+## UI-phase unit-test correction — 2026-10-30
+
+To stay within Draft PR #51's UI-first gate, the next change was kept inside the existing Dashboard unit-test suite (no new Firebase integration):
+
+- Updated `test/screens/dashboard/dashboard_data_source_test.dart` so its recent-activity fixture uses `createdAt`, matching the corrected production query rather than the obsolete `timestamp` field.
+- Added a focused fake-Firestore test asserting recent activity is ordered newest-first by `createdAt`.
+- The test file was fetched back from GitHub and the new assertions were confirmed present.
+- Exact-head CI status and workflow runs were queried for commit `5d30218376573d9686cb0e9ecce673f521eb5071`; both returned no status/run records at the time of checking. The tests have not been executed locally in this session, so no PASS is claimed.
+- This is Dashboard UI-phase test maintenance only. Emulator integration remains deferred under Draft PR #51's guardrail.
