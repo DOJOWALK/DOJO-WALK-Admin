@@ -223,3 +223,12 @@ To stay within Draft PR #51's UI-first gate, the next change was kept inside the
 - Added widget coverage for the editor action being disabled before a new Zone is selected and enabled after selecting one; updated the narrow-viewport assertion and readiness status wording.
 - The native Google Maps platform view itself was not opened in widget tests in this pass; Flutter tests/analyzer were not executed. These tests are added, not executed, and no PASS is claimed.
 - No Firebase integration, Rules/indexes changes, merge, or deployment.
+
+
+## Boundary editor local geometry feedback — 2026-10-30
+
+- The reusable `ServiceBoundaryEditor` now reports local feedback as points are added, undone, or cleared: minimum point count, distinct-point checks, coordinate range checks, self-intersection/zero-area rejection, or a locally valid basic polygon.
+- The Create Zone form surfaces the point count and local geometry message. Feedback explicitly says **Not GIS-verified** when the basic polygon check passes; it is not a boundary verification result.
+- The editor's **Use This Boundary** save action is hidden when no `onSaveRequested` callback is supplied. Create Zone deliberately supplies no save callback, so this preview cannot be submitted from the map.
+- Added a widget test for the initial local geometry feedback and non-verification wording. Map interaction/point mutations are not exercised in Flutter widget tests here because the editor embeds the native Google Maps platform view.
+- Flutter tests/analyzer were not executed; tests are added, not executed. No CI status is assumed. No Firebase integration, boundary persistence, hash, approval, merge, or deployment.
