@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:dojo_admin/features/walkers/services/walker_admin_service.dart';
+import 'package:dojo_admin/features/walkers/services/walker_admin_contracts.dart';
 import 'package:dojo_admin/features/walkers/services/walker_admin_transition_policy.dart';
 
 void main() {
