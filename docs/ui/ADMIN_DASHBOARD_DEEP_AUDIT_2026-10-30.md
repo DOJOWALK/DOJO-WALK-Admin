@@ -215,3 +215,12 @@ The fake data source continues to supply all dashboard streams without Firebase 
 - Added a 320 px widget-test case that asserts long booking and activity text render without a Flutter layout exception.
 - Test-source commit: `a93e271a30a971c0b796ba04146afbd7874d04fd`.
 - This is a test added to source only; Flutter Test/Analyze and exact-head CI have not been run/verified here. Do not treat it as PASS.
+
+## Walker Details Sections — Widget Test Coverage (2026-10-30)
+
+- Added `test/features/walkers/walker_details_sections_test.dart`.
+- Covers rendering of personal details, current address, work location, KYC, performance snapshot and account information.
+- Covers opening a KYC document only when a document reference exists, and verifies missing-document presentation.
+- Adds responsive layout smoke coverage at 320, 390, 768 and 1280 logical pixels using a long walker name/address.
+- These are authored tests only. Flutter Test/Analyze has not been executed in this workflow, so no test-pass claim is made.
+- The test targets the reusable `WalkerDetailsSections` component; the full `WalkerDetailsScreen` still lacks an injected service seam and an end-to-end widget test for live Firestore loading/error/retry. Lifecycle actions remain intentionally disabled pending POL-004 approval.
