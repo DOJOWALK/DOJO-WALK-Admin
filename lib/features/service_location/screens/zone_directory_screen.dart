@@ -149,6 +149,20 @@ class _ZoneDirectoryScreenState extends State<ZoneDirectoryScreen> {
                   'This preview uses sample rows; it is not connected to Firestore.',
                   style: TextStyle(color: Colors.black54, height: 1.5),
                 ),
+                const SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF4E8),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFFFD2AC)),
+                  ),
+                  child: const Text(
+                    'Suspended is a temporary emergency stop for safety or material risk, not a normal deactivation shortcut. Central Admin must record the reason and audit event and notify Founder promptly for review. New bookings remain blocked while suspended.',
+                    style: TextStyle(color: _ink, fontSize: 12, height: 1.45),
+                  ),
+                ),
                 const SizedBox(height: 18),
                 TextField(
                   controller: _search,
