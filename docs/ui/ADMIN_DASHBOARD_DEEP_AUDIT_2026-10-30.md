@@ -174,3 +174,16 @@ The fake data source continues to supply all dashboard streams without Firebase 
 - Added a widget test that renders the dashboard at 360 px (mobile), 768 px (tablet) and 1280 px (desktop), checks the title and refresh control, and asserts no Flutter layout exception is reported.
 - Existing dashboard content breakpoints remain: metric cards use 1/2/4 columns at <600 / <1100 / >=1100 px; the two dashboard section pairs stack below 900 px.
 - These are source changes and test cases only. Flutter Analyze and Flutter Test have not yet been executed; responsive behavior is not marked PASS until CI/test execution.
+
+
+### Dashboard stream error-state pass (2026-10-30)
+
+- Added a shared visible stream-error presentation for dashboard metrics, gross paid amount, Live Operations counts, Booking Status rows and Operations Alerts.
+- Permission-denied errors now show an explicit “Access denied” label and accessible guidance to check Admin role/data scope; other stream failures show “Unable to load”.
+- Failed streams no longer display a fallback numeric zero in these components. Successful zero remains distinguishable from an error.
+- Existing loading indicators and the header refresh action remain in place. Refresh re-subscribes streams; it cannot repair a persistent Firestore rules/role denial.
+- Expanded test/screens/dashboard/dashboard_screen_test.dart with permission-denied and general query-failure cases covering metric, revenue, live count, booking status and alert streams.
+- Source commits: 71232badd1f0741e4f00aca02b0c13db4dd5e4d4, 2405bfbdee2699d7956e6f4b97c61d31a7b7b4ea.
+- Widget-test source commit: efaeb97c104905367ebe4f0e34709b7fdac904f1.
+- Validation: source edits and test cases are committed, but Flutter Analyze and Flutter Test have NOT been executed/verified in this step. No exact-head CI PASS is claimed.
+- No Firestore schema/rules, production data, merge or deployment changed. PR #51 remains Draft/open.
