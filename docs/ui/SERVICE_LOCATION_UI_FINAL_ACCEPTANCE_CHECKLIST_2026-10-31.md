@@ -95,8 +95,22 @@ Until Sections 1–8 are validated and accepted:
 
 After UI validation, obtain explicit owner approval for a separately scoped backend design and security review before implementation.
 
-## 10. Acceptance decision
-**Status: NOT YET ACCEPTED.**  
-Reason: source-level guardrails and tests are present, but tests/analyzer/build and real-device/browser checks have not been executed. This is a transparent acceptance checklist, not a claim that the Service Location UI is complete or production-ready.
+## 10. CI failure investigation and corrective commits — 2026-10-31
 
-**Next engineering action:** execute the required Flutter validation in a real Flutter environment, capture evidence, fix failures, and only then request product-owner acceptance.
+A real GitHub Actions run was found for code commit `71055eeb3268c9195b8cc00170665f741dfc4ad6`:
+- Workflow: **Admin Web Build Check (No Deploy)**
+- Run: `41109254956`
+- Result: **FAILURE** — Analyze completed and the complete Flutter test command reported **315 passed, 2 failed**; the Web build did not run after the test failure.
+- Failure 1: the out-of-range-coordinate test expected the full feedback string from a `LatLng(91, 1)` fixture, but the actual `LatLng` object reached the validator as a value that passed the preview check. The range predicate was extracted as a public raw-coordinate helper so latitude, longitude and non-finite bounds can be tested independently of Google Maps coordinate-object construction.
+- Failure 2: the Zone Directory test attempted to tap “Preview approval queue” while the control was below the visible viewport on the Zone Details scroll view. The test now scrolls the control into view before tapping.
+- Corrective commits:
+  - `51472ed4703810975ea04f0a3b7b77d683205ab2` — extracted explicit raw-coordinate bounds validation.
+  - `33f12460b0412a166abfe3bd8b72253440dab14e` — added direct latitude/longitude/non-finite/boundary-value tests.
+  - `736a47416f942f1af2aad6a21f45905a8db07fd1` — scrolls the approval-queue control into view in the navigation test.
+- These corrections are committed, but their own CI run has not yet been observed. Do not infer that they pass from the previous failed run.
+
+## 11. Acceptance decision
+**Status: NOT YET ACCEPTED.**  
+Reason: a prior full CI run exposed two test failures; corrective changes are committed, but a fresh full validation result and real-device/browser checks are still outstanding. This is not a claim that the Service Location UI is complete or production-ready.
+
+**Next engineering action:** confirm the new branch push triggers the validation workflow, inspect its logs, fix any remaining failures, and only then request product-owner acceptance.
