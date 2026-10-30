@@ -288,98 +288,14 @@ class WalkerAdminService {
     required String reason,
     required String adminUid,
   }) {
-    switch (action) {
-      case WalkerAdminAction.approve:
-        if (!applicationSubmitted ||
-            _isTerminalStatus(status) ||
-            verificationStatus == 'rejected' ||
-            status == 'correction_required') {
-          throw const WalkerAdminServiceException(
-            'This application is not eligible for approval.',
-          );
-        }
-
-        return {
-          'status': 'approved',
-          'verificationStatus': 'verified',
-          'isApproved': true,
-          'isActive': true,
-        };
-
-      case WalkerAdminAction.reject:
-        if (!applicationSubmitted ||
-            verificationStatus == 'verified' ||
-            isApproved ||
-            _isTerminalStatus(status)) {
-          throw const WalkerAdminServiceException(
-            'This application is not eligible for rejection.',
-          );
-        }
-
-        return {
-          'status': 'rejected',
-          'verificationStatus': 'rejected',
-          'isApproved': false,
-          'isActive': false,
-        };
-
-      case WalkerAdminAction.suspend:
-        if (status != 'approved' ||
-            verificationStatus != 'verified' ||
-            !isApproved ||
-            !isActive) {
-          throw const WalkerAdminServiceException(
-            'Only an active, approved walker can be suspended.',
-          );
-        }
-
-        return {
-          'status': 'suspended',
-          'verificationStatus': 'verified',
-          'isApproved': true,
-          'isActive': false,
-        };
-
-      case WalkerAdminAction.reactivate:
-        if (status != 'suspended' ||
-            verificationStatus != 'verified' ||
-            !isApproved) {
-          throw const WalkerAdminServiceException(
-            'This walker is not eligible for reactivation.',
-          );
-        }
-
-        return {
-          'status': 'approved',
-          'verificationStatus': 'verified',
-          'isApproved': true,
-          'isActive': true,
-        };
-
-      case WalkerAdminAction.requestCorrection:
-        if (!applicationSubmitted ||
-            _isTerminalStatus(status) ||
-            verificationStatus == 'verified' ||
-            isApproved) {
-          throw const WalkerAdminServiceException(
-            'This application is not eligible for correction.',
-          );
-        }
-
-        return {
-          'status': 'correction_required',
-          'verificationStatus': 'correction_required',
-          'isApproved': false,
-          'isActive': false,
-        };
-    }
-  }
-
-  bool _isTerminalStatus(String status) {
-    return status == 'rejected' ||
-        status == 'suspended' ||
-        status == 'inactive' ||
-        status == 'left';
+    return WalkerAdminTransitionPolicy.buildChanges(
+      action: action,
+      status: status,
+      verificationStatus: verificationStatus,
+      isApproved: isApproved,
+      isActive: isActive,
+      applicationSubmitted: applicationSubmitted,
+    );
   }
 
   bool _requiresReason(WalkerAdminAction action) {
