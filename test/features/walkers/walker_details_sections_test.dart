@@ -107,6 +107,7 @@ void main() {
 
     final viewButtons = find.text('View');
     expect(viewButtons, findsNWidgets(3));
+    await tester.ensureVisible(viewButtons.first);
     await tester.tap(viewButtons.first);
     expect(openedTitle, 'Aadhaar Front');
     expect(openedDocument, isA<Map>());
