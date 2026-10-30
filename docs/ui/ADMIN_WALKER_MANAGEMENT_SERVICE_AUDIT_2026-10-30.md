@@ -195,3 +195,12 @@ No production rules were changed and no emulator or production deployment was ru
 - A new Admin Web Build Check run `41000965841` was observed for this update and was still in progress at the time of this note. The separate Flutter Validation run `41000965808` was cancelled as the subsequent push-triggered workflow took over; no test/analyze/build result is claimed yet.
 - The previous analyzer log showed the missing contracts import and old viewport API calls as the reported errors; the contracts import was added in commit `ca8bb1a302b3b94fbf2719c8cf40a2becfe8bb83`. The new workflow run must confirm whether any further analyzer/test issues remain.
 - No merge, deploy, production rules or data changes occurred.
+
+
+## 16. Follow-up CI syntax correction — 2026-10-30
+
+- The next analyzer run exposed a syntax error introduced by the mechanical viewport migration: the new property assignments retained the closing parenthesis from the old method calls (for example `physicalSize = const Size(...));`).
+- Corrected the assignment terminators in all three affected test files.
+- Commits: `bac45dd4773c4c9475bdc3b71f8bdd9505ff2b04` (Walker Details screen), `1daa2c29e0784197516fdf0f48ca6a69b87f31fe` (Walker Details sections), `ce7f5ff0b35bdfb09c6f9d6b5d3d3499e23654f0` (Dashboard).
+- CI run `41000969583` failed at static analysis; test and web build steps were skipped. The follow-up runs for commit `ce7f5ff0b35bdfb09c6f9d6b5d3d3499e23654f0` were queued when checked (`41001138011` Admin Web Build Check; `41001138095` Flutter Validation). No passing result is claimed.
+- No merge, deployment, production rules or data changes occurred.
