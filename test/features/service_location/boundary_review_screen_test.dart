@@ -12,6 +12,8 @@ void main() {
     expect(find.textContaining('not connected to live records'), findsOneWidget);
     expect(find.textContaining('mock data'), findsOneWidget);
     expect(find.text('Boundary map preview'), findsOneWidget);
+    expect(find.textContaining('A “Verified” boundary does not activate the Zone'), findsWidgets);
+    expect(find.textContaining('separate Founder Approval Queue'), findsWidgets);
     expect(find.text('Not connected'), findsOneWidget);
     expect(find.text('Zone polygon overlay will appear here'), findsOneWidget);
     expect(find.textContaining('not proof of boundary verification'), findsOneWidget);
