@@ -176,4 +176,84 @@ void main() {
     expect(find.text('Validation incomplete'), findsNothing);
     expect(find.textContaining('Nothing has been saved.'), findsNothing);
   });
+
+  testWidgets('valid new Zone name still cannot pass readiness without boundary evidence',
+      (tester) async {
+    await tester.pumpWidget(app());
+
+    final dropdowns = find.byType(DropdownButtonFormField<String>);
+    await tester.tap(dropdowns.at(0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Uttar Pradesh').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(dropdowns.at(1));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Gautam Buddha Nagar').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(dropdowns.at(2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Noida').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(dropdowns.at(3));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create new Zone…').last);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).first, 'Crossings West');
+    final validateButton = find.text('Validate readiness');
+    await tester.scrollUntilVisible(
+      validateButton,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(validateButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Validation incomplete'), findsOneWidget);
+    expect(find.textContaining('A real boundary polygon must be drawn or uploaded and verified'), findsOneWidget);
+    expect(find.text('Boundary status: Not uploaded'), findsOneWidget);
+    expect(find.text('Save Draft disabled'), findsOneWidget);
+    expect(find.text('Submit for Review disabled'), findsOneWidget);
+  });
+
+  testWidgets('changing District clears City, Zone and the new Zone name',
+      (tester) async {
+    await tester.pumpWidget(app());
+
+    final dropdowns = find.byType(DropdownButtonFormField<String>);
+    await tester.tap(dropdowns.at(0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Uttar Pradesh').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(dropdowns.at(1));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Gautam Buddha Nagar').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(dropdowns.at(2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Noida').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(dropdowns.at(3));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create new Zone…').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).first, 'Crossings West');
+
+    await tester.tap(dropdowns.at(1));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ghaziabad').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('New Zone name'), findsNothing);
+    expect(find.text('Noida'), findsNothing);
+    expect(find.text('Create new Zone…'), findsNothing);
+    expect(find.text('Please select City'), findsNothing);
+  });
+
 }
