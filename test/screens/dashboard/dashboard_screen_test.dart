@@ -106,8 +106,8 @@ void main() {
   group('DashboardScreen', () {
     testWidgets('renders dashboard sections from injected streams',
         (tester) async {
-      await tester.view.setPhysicalSize(const Size(1440, 1200));
-      await tester.view.setDevicePixelRatio(1);
+      tester.view.physicalSize = const Size(1440, 1200));
+      tester.view.devicePixelRatio = 1);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -134,14 +134,14 @@ void main() {
       expect(find.text('Created booking'), findsOneWidget);
       expect(find.text('Performed by Central Admin'), findsOneWidget);
 
-      await tester.view.resetPhysicalSize();
-      await tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
     });
 
     testWidgets('shows explicit empty states when streams return no records',
         (tester) async {
-      await tester.view.setPhysicalSize(const Size(1440, 1200));
-      await tester.view.setDevicePixelRatio(1);
+      tester.view.physicalSize = const Size(1440, 1200));
+      tester.view.devicePixelRatio = 1);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -157,14 +157,14 @@ void main() {
       expect(find.text('No bookings yet.'), findsOneWidget);
       expect(find.text('No audit activity available yet.'), findsOneWidget);
 
-      await tester.view.resetPhysicalSize();
-      await tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
     });
 
     testWidgets('shows an error instead of an empty booking state on failure',
         (tester) async {
-      await tester.view.setPhysicalSize(const Size(1440, 1200));
-      await tester.view.setDevicePixelRatio(1);
+      tester.view.physicalSize = const Size(1440, 1200));
+      tester.view.devicePixelRatio = 1);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -180,14 +180,14 @@ void main() {
       expect(find.text('Unable to load recent bookings.'), findsOneWidget);
       expect(find.text('No bookings yet.'), findsNothing);
 
-      await tester.view.resetPhysicalSize();
-      await tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
     });
 
     testWidgets('shows an activity error when the audit stream fails',
         (tester) async {
-      await tester.view.setPhysicalSize(const Size(1440, 1200));
-      await tester.view.setDevicePixelRatio(1);
+      tester.view.physicalSize = const Size(1440, 1200));
+      tester.view.devicePixelRatio = 1);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -203,15 +203,15 @@ void main() {
       expect(find.text('Unable to load activity.'), findsOneWidget);
       expect(find.text('No audit activity available yet.'), findsNothing);
 
-      await tester.view.resetPhysicalSize();
-      await tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
     });
 
 
     testWidgets('keeps dashboard sections in loading state until streams emit',
         (tester) async {
-      await tester.view.setPhysicalSize(const Size(1440, 1800));
-      await tester.view.setDevicePixelRatio(1);
+      tester.view.physicalSize = const Size(1440, 1800));
+      tester.view.devicePixelRatio = 1);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -231,14 +231,14 @@ void main() {
       expect(find.text('Access denied'), findsNothing);
       expect(find.text('Unable to load'), findsNothing);
 
-      await tester.view.resetPhysicalSize();
-      await tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
     });
 
     testWidgets('shows visible permission errors for metrics, live counts, statuses and alerts',
         (tester) async {
-      await tester.view.setPhysicalSize(const Size(1440, 1600));
-      await tester.view.setDevicePixelRatio(1);
+      tester.view.physicalSize = const Size(1440, 1600));
+      tester.view.devicePixelRatio = 1);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -263,14 +263,14 @@ void main() {
       expect(find.text('Unassigned bookings'), findsOneWidget);
       expect(find.text('0'), findsNothing);
 
-      await tester.view.resetPhysicalSize();
-      await tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
     });
 
     testWidgets('shows general query errors without displaying false zero counts',
         (tester) async {
-      await tester.view.setPhysicalSize(const Size(1440, 1600));
-      await tester.view.setDevicePixelRatio(1);
+      tester.view.physicalSize = const Size(1440, 1600));
+      tester.view.devicePixelRatio = 1);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -289,14 +289,14 @@ void main() {
       expect(find.text('Unable to load'), findsWidgets);
       expect(find.text('0'), findsNothing);
 
-      await tester.view.resetPhysicalSize();
-      await tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
     });
 
     testWidgets('refresh action resubscribes to dashboard data streams',
         (tester) async {
-      await tester.view.setPhysicalSize(const Size(1440, 1200));
-      await tester.view.setDevicePixelRatio(1);
+      tester.view.physicalSize = const Size(1440, 1200));
+      tester.view.devicePixelRatio = 1);
       final source = _FakeDashboardDataSource();
 
       await tester.pumpWidget(
@@ -315,8 +315,8 @@ void main() {
 
       expect(source.subscriptionCount, greaterThan(initialSubscriptions));
 
-      await tester.view.resetPhysicalSize();
-      await tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
     });
 
 
@@ -324,8 +324,8 @@ void main() {
         (tester) async {
       final source = _FakeDashboardDataSource();
       for (final width in [320.0, 360.0, 768.0, 1280.0]) {
-        await tester.view.setPhysicalSize(Size(width, 1600));
-        await tester.view.setDevicePixelRatio(1);
+        tester.view.physicalSize = Size(width, 1600));
+        tester.view.devicePixelRatio = 1);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -341,21 +341,21 @@ void main() {
         expect(tester.takeException(), isNull,
             reason: 'Dashboard should not overflow at width $width');
 
-        await tester.view.resetPhysicalSize();
-        await tester.view.resetDevicePixelRatio();
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
       }
     });
 
     testWidgets('long booking and activity text does not overflow on narrow mobile', (tester) async {
-      await tester.view.setPhysicalSize(const Size(320, 1600));
-      await tester.view.setDevicePixelRatio(1);
+      tester.view.physicalSize = const Size(320, 1600));
+      tester.view.devicePixelRatio = 1);
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: DashboardScreen(dataSource: _FakeDashboardDataSource(longText: true)))));
       await tester.pumpAndSettle();
       expect(find.textContaining('booking-with-a-very-long-reference'), findsOneWidget);
       expect(find.textContaining('A very long audit action description'), findsOneWidget);
       expect(tester.takeException(), isNull, reason: 'Long dashboard content should not overflow at 320 px');
-      await tester.view.resetPhysicalSize();
-      await tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
     });
 
     testWidgets('header actions call the supplied navigation callbacks',
@@ -363,8 +363,8 @@ void main() {
       var liveOperationsOpened = false;
       var serviceLocationsOpened = false;
 
-      await tester.view.setPhysicalSize(const Size(1440, 1000));
-      await tester.view.setDevicePixelRatio(1);
+      tester.view.physicalSize = const Size(1440, 1000));
+      tester.view.devicePixelRatio = 1);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -385,8 +385,8 @@ void main() {
       expect(liveOperationsOpened, isTrue);
       expect(serviceLocationsOpened, isTrue);
 
-      await tester.view.resetPhysicalSize();
-      await tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
     });
   });
 }
