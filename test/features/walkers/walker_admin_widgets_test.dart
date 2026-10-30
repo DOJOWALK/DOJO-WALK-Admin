@@ -19,7 +19,13 @@ void main() {
         ),
       ));
 
-      expect(find.bySemanticsLabel('Available'), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (widget) => widget is Semantics &&
+              widget.properties.label == 'Available',
+        ),
+        findsOneWidget,
+      );
       await tester.ensureVisible(find.text('All Walkers'));
       await tester.tap(find.text('All Walkers'));
       expect(selected, 2);
