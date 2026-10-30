@@ -106,8 +106,8 @@ void main() {
   group('DashboardScreen', () {
     testWidgets('renders dashboard sections from injected streams',
         (tester) async {
-      tester.view.physicalSize = const Size(1440, 1200));
-      tester.view.devicePixelRatio = 1);
+      tester.view.physicalSize = const Size(1440, 1200);
+      tester.view.devicePixelRatio = 1;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -140,8 +140,8 @@ void main() {
 
     testWidgets('shows explicit empty states when streams return no records',
         (tester) async {
-      tester.view.physicalSize = const Size(1440, 1200));
-      tester.view.devicePixelRatio = 1);
+      tester.view.physicalSize = const Size(1440, 1200);
+      tester.view.devicePixelRatio = 1;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -163,8 +163,8 @@ void main() {
 
     testWidgets('shows an error instead of an empty booking state on failure',
         (tester) async {
-      tester.view.physicalSize = const Size(1440, 1200));
-      tester.view.devicePixelRatio = 1);
+      tester.view.physicalSize = const Size(1440, 1200);
+      tester.view.devicePixelRatio = 1;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -186,8 +186,8 @@ void main() {
 
     testWidgets('shows an activity error when the audit stream fails',
         (tester) async {
-      tester.view.physicalSize = const Size(1440, 1200));
-      tester.view.devicePixelRatio = 1);
+      tester.view.physicalSize = const Size(1440, 1200);
+      tester.view.devicePixelRatio = 1;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -210,8 +210,8 @@ void main() {
 
     testWidgets('keeps dashboard sections in loading state until streams emit',
         (tester) async {
-      tester.view.physicalSize = const Size(1440, 1800));
-      tester.view.devicePixelRatio = 1);
+      tester.view.physicalSize = const Size(1440, 1800);
+      tester.view.devicePixelRatio = 1;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -237,8 +237,8 @@ void main() {
 
     testWidgets('shows visible permission errors for metrics, live counts, statuses and alerts',
         (tester) async {
-      tester.view.physicalSize = const Size(1440, 1600));
-      tester.view.devicePixelRatio = 1);
+      tester.view.physicalSize = const Size(1440, 1600);
+      tester.view.devicePixelRatio = 1;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -269,8 +269,8 @@ void main() {
 
     testWidgets('shows general query errors without displaying false zero counts',
         (tester) async {
-      tester.view.physicalSize = const Size(1440, 1600));
-      tester.view.devicePixelRatio = 1);
+      tester.view.physicalSize = const Size(1440, 1600);
+      tester.view.devicePixelRatio = 1;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -295,8 +295,8 @@ void main() {
 
     testWidgets('refresh action resubscribes to dashboard data streams',
         (tester) async {
-      tester.view.physicalSize = const Size(1440, 1200));
-      tester.view.devicePixelRatio = 1);
+      tester.view.physicalSize = const Size(1440, 1200);
+      tester.view.devicePixelRatio = 1;
       final source = _FakeDashboardDataSource();
 
       await tester.pumpWidget(
@@ -324,8 +324,8 @@ void main() {
         (tester) async {
       final source = _FakeDashboardDataSource();
       for (final width in [320.0, 360.0, 768.0, 1280.0]) {
-        tester.view.physicalSize = Size(width, 1600));
-        tester.view.devicePixelRatio = 1);
+        tester.view.physicalSize = Size(width, 1600);
+        tester.view.devicePixelRatio = 1;
 
         await tester.pumpWidget(
           MaterialApp(
@@ -347,8 +347,8 @@ void main() {
     });
 
     testWidgets('long booking and activity text does not overflow on narrow mobile', (tester) async {
-      tester.view.physicalSize = const Size(320, 1600));
-      tester.view.devicePixelRatio = 1);
+      tester.view.physicalSize = const Size(320, 1600);
+      tester.view.devicePixelRatio = 1;
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: DashboardScreen(dataSource: _FakeDashboardDataSource(longText: true)))));
       await tester.pumpAndSettle();
       expect(find.textContaining('booking-with-a-very-long-reference'), findsOneWidget);
@@ -363,8 +363,8 @@ void main() {
       var liveOperationsOpened = false;
       var serviceLocationsOpened = false;
 
-      tester.view.physicalSize = const Size(1440, 1000));
-      tester.view.devicePixelRatio = 1);
+      tester.view.physicalSize = const Size(1440, 1000);
+      tester.view.devicePixelRatio = 1;
 
       await tester.pumpWidget(
         MaterialApp(
