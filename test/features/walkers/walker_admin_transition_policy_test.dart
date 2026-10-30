@@ -3,6 +3,45 @@ import 'package:dojo_admin/features/walkers/services/walker_admin_contracts.dart
 import 'package:dojo_admin/features/walkers/services/walker_admin_transition_policy.dart';
 
 void main() {
+  group('WalkerAdminTransitionPolicy metadata', () {
+    test('requires a reason only for reject suspend and correction', () {
+      expect(
+        WalkerAdminAction.values
+            .where(WalkerAdminTransitionPolicy.requiresReason)
+            .toSet(),
+        {
+          WalkerAdminAction.reject,
+          WalkerAdminAction.suspend,
+          WalkerAdminAction.requestCorrection,
+        },
+      );
+      expect(
+        WalkerAdminAction.values
+            .where((action) =>
+                !WalkerAdminTransitionPolicy.requiresReason(action))
+            .toSet(),
+        {WalkerAdminAction.approve, WalkerAdminAction.reactivate},
+      );
+    });
+
+    test('maps every action to a stable audit event name', () {
+      expect(
+        {
+          for (final action in WalkerAdminAction.values)
+            action: WalkerAdminTransitionPolicy.auditActionName(action),
+        },
+        {
+          WalkerAdminAction.approve: 'walker_approved',
+          WalkerAdminAction.reject: 'walker_rejected',
+          WalkerAdminAction.suspend: 'walker_suspended',
+          WalkerAdminAction.reactivate: 'walker_reactivated',
+          WalkerAdminAction.requestCorrection:
+              'walker_correction_requested',
+        },
+      );
+    });
+  });
+
   group('WalkerAdminTransitionPolicy', () {
     test('approves a submitted, reviewable application', () {
       expect(
