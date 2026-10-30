@@ -282,3 +282,12 @@ To stay within Draft PR #51's UI-first gate, the next change was kept inside the
 - POL-040 — Admin Service Location UI: Screen-by-Screen Design & Developer Checklist (Notion): https://app.notion.com/p/405756abedb98179bd47f0ae8082e937
 - Both specify Zone-only service lifecycle and distinguish emergency suspension from Founder-approved deactivation/reactivation. POL-040 records this as a confirmed operating decision; overall policy/code implementation and test status remain unverified.
 - Added a Zone Directory UI explanation and widget assertions for emergency suspension authority, audit reason and Founder notification.
+
+
+## Service Location navigation identity audit — 2026-10-31
+
+- Responsive structure reviewed across Create Zone, Zone Directory, Zone Details, Boundary Review and Founder Approval Queue. Existing scrollable layouts, responsive LayoutBuilder/Wrap usage and narrow-viewport widget tests were found; no broad layout rewrite was justified by this source review.
+- Found a navigation-context defect: Directory and Details opened Boundary Review / Founder Approval Queue without carrying the selected Zone ID, so the destination could appear detached from the originating row.
+- Added optional `focusZoneId` context to Boundary Review and Founder Approval Queue. Directory row actions and Zone Details now pass their Zone ID; Boundary Review carries the same ID onward to Founder Approval Queue. App-bar titles identify the focused Zone when supplied.
+- Updated Directory widget assertions to verify Zone identity survives the route transitions, including Example Zone C through Details → Founder Approval Queue.
+- Source review only. Flutter tests/analyzer have not been run; map native-view behavior and real device responsive behavior remain unverified. All screens remain example-data prototypes; no backend, Firebase, approvals, activation, merge or deployment.
