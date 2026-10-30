@@ -41,7 +41,9 @@ Future<void> main() async {
           authDomain: '$projectId.firebaseapp.com',
         ),
       );
-      addTearDown(app.delete);
+      // Keep named Firebase apps alive until the integration process exits.
+      // Deleting an app between testWidgets cases leaves FirebaseAuth's Android
+      // platform channel holding a deleted-app handle for the next test.
 
       final auth = FirebaseAuth.instanceFor(app: app);
       final firestore = FirebaseFirestore.instanceFor(app: app);
@@ -87,7 +89,9 @@ Future<void> main() async {
           authDomain: '$projectId.firebaseapp.com',
         ),
       );
-      addTearDown(app.delete);
+      // Keep named Firebase apps alive until the integration process exits.
+      // Deleting an app between testWidgets cases leaves FirebaseAuth's Android
+      // platform channel holding a deleted-app handle for the next test.
 
       final auth = FirebaseAuth.instanceFor(app: app);
       final firestore = FirebaseFirestore.instanceFor(app: app);
