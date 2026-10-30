@@ -310,7 +310,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerRight,
-                      child: actions,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const Text(
+                            'Company overview',
+                            style: TextStyle(
+                              color: Color(0xFF78716C),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          IconButton(
+                            key: const ValueKey('dashboard-refresh'),
+                            tooltip: 'Refresh dashboard data',
+                            onPressed: _refreshDashboard,
+                            icon: const Icon(Icons.refresh_rounded),
+                            color: const Color(0xFFFF7900),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 );
@@ -1036,12 +1055,15 @@ class _DashboardCard extends StatelessWidget {
                 color: orange,
               ),
               const SizedBox(width: 10),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight:
-                      FontWeight.w700,
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
