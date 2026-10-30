@@ -738,6 +738,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
 }
 
 // ================================================================
+// SHARED STREAM ERROR STATE
+// ================================================================
+
+class _DashboardStreamError extends StatelessWidget {
+  final Object? error;
+  final bool compact;
+
+  const _DashboardStreamError({
+    required this.error,
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final denied = isPermissionDeniedError(error);
+    final label = denied ? 'Access denied' : 'Unable to load';
+    final color = denied ? Colors.orange.shade800 : Colors.redAccent;
+
+    return Semantics(
+      label: denied
+          ? 'Access denied. Check Admin role and assigned data scope.'
+          : 'Unable to load dashboard data. Refresh and try again.',
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            denied ? Icons.lock_outline : Icons.error_outline,
+            color: color,
+            size: compact ? 16 : 18,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: compact ? 10 : 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ================================================================
 // STAT CARD
 // ================================================================
 
@@ -819,12 +865,7 @@ class _StatCard extends StatelessWidget {
                       (context, snapshot) {
                     if (snapshot.hasError) {
                       final denied = isPermissionDeniedError(snapshot.error);
-                      return Tooltip(
-                        message: denied
-                            ? 'Access denied for this metric.'
-                            : 'Unable to load this metric. Check connection.',
-                        child: const Icon(Icons.error_outline, color: Colors.redAccent),
-                      );
+                      return _DashboardStreamError(error: snapshot.error, compact: true);
                     }
                     if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) return const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2));
                     return Text('${snapshot.data ?? 0}', style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800));
@@ -924,12 +965,7 @@ class _RevenueCard extends StatelessWidget {
                       (context, snapshot) {
                     if (snapshot.hasError) {
                       final denied = isPermissionDeniedError(snapshot.error);
-                      return Tooltip(
-                        message: denied
-                            ? 'Access denied for revenue data.'
-                            : 'Unable to load revenue. Check connection.',
-                        child: const Icon(Icons.error_outline, color: Colors.redAccent),
-                      );
+                      return _DashboardStreamError(error: snapshot.error, compact: true);
                     }
                     if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) return const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2));
                     final value = snapshot.data ?? 0;
@@ -1052,7 +1088,7 @@ class _LiveStreamRow extends StatelessWidget {
           stream: stream,
           builder:
               (context, snapshot) {
-            if (snapshot.hasError) return const Tooltip(message: 'Unable to load this count', child: Icon(Icons.error_outline, color: Colors.redAccent, size: 18));
+            if (snapshot.hasError) return _DashboardStreamError(error: snapshot.error, compact: true);
             if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) return const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2));
             return Text('${snapshot.data ?? 0}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16));
           },
@@ -1109,7 +1145,7 @@ class _StatusStreamRow extends StatelessWidget {
                 ),
               ),
               child: snapshot.hasError
-                  ? const Tooltip(message: 'Unable to load this count', child: Icon(Icons.error_outline, color: Colors.redAccent, size: 16))
+                  ? _DashboardStreamError(error: snapshot.error, compact: true)
                   : snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData
                       ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
                       : Text('${snapshot.data ?? 0}', style: const TextStyle(color: Color(0xFFFF7900), fontWeight: FontWeight.w700, fontSize: 12)),
@@ -1187,17 +1223,7 @@ class _AlertStreamRow extends StatelessWidget {
           stream: stream,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              final denied = isPermissionDeniedError(snapshot.error);
-              return Tooltip(
-                message: denied
-                    ? 'Access denied for this alert count.'
-                    : 'Unable to load this alert count.',
-                child: Icon(
-                  Icons.error_outline,
-                  color: denied ? Colors.orange.shade800 : Colors.redAccent,
-                  size: 19,
-                ),
-              );
+              return _DashboardStreamError(error: snapshot.error, compact: true);
             }
             if (snapshot.connectionState == ConnectionState.waiting &&
                 !snapshot.hasData) {
