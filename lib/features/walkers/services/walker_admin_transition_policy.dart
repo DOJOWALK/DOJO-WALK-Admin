@@ -8,6 +8,27 @@ import 'walker_admin_contracts.dart';
 class WalkerAdminTransitionPolicy {
   WalkerAdminTransitionPolicy._();
 
+  static bool requiresReason(WalkerAdminAction action) {
+    return action == WalkerAdminAction.reject ||
+        action == WalkerAdminAction.suspend ||
+        action == WalkerAdminAction.requestCorrection;
+  }
+
+  static String auditActionName(WalkerAdminAction action) {
+    switch (action) {
+      case WalkerAdminAction.approve:
+        return 'walker_approved';
+      case WalkerAdminAction.reject:
+        return 'walker_rejected';
+      case WalkerAdminAction.suspend:
+        return 'walker_suspended';
+      case WalkerAdminAction.reactivate:
+        return 'walker_reactivated';
+      case WalkerAdminAction.requestCorrection:
+        return 'walker_correction_requested';
+    }
+  }
+
   static Map<String, dynamic> buildChanges({
     required WalkerAdminAction action,
     required String status,
