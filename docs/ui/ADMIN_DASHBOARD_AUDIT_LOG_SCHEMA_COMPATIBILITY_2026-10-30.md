@@ -273,4 +273,12 @@ To stay within Draft PR #51's UI-first gate, the next change was kept inside the
 - Added a widget test that follows Example Zone C from Zone Directory → Zone Details → Founder Approval Queue.
 - The test asserts that the same illustrative Zone ID remains boundary-verified while its operational state remains “Not activated” and its separate Founder business decision remains “Awaiting decision”.
 - The test is added but has not been executed; Flutter test/analyzer results are not claimed.
-- Audit note: the Directory also includes an illustrative “Suspended” lifecycle status. The business meaning, authority, and relationship of “Suspended” to Founder-approved deactivation must be confirmed against the canonical Notion policy before any backend model or action is implemented. No semantics are inferred in this UI-only pass.
+- Policy reconciliation: POL-038 and POL-040 define “Suspended” as a temporary emergency stop, distinct from Founder-approved deactivation. Central Admin may suspend immediately for safety/material risk with a reason and immutable audit event, then notify Founder promptly for review. Suspension does not authorize activation/reactivation. The Directory now explains this distinction; no suspension action is enabled in the prototype.
+
+
+### Policy evidence used for suspension clarification
+
+- POL-038 — India Admin Panel: Service Zone Setup, Approval, Activation & Deactivation Flow (Notion): https://app.notion.com/p/404756abedb981729cf9ecf3a35ce915
+- POL-040 — Admin Service Location UI: Screen-by-Screen Design & Developer Checklist (Notion): https://app.notion.com/p/405756abedb98179bd47f0ae8082e937
+- Both specify Zone-only service lifecycle and distinguish emergency suspension from Founder-approved deactivation/reactivation. POL-040 records this as a confirmed operating decision; overall policy/code implementation and test status remain unverified.
+- Added a Zone Directory UI explanation and widget assertions for emergency suspension authority, audit reason and Founder notification.
