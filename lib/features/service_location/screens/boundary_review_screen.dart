@@ -158,7 +158,7 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
                       ),
                       const SizedBox(height: 12),
                       Container(
-                        height: 230,
+                        height: 260,
                         width: double.infinity,
                         decoration: BoxDecoration(
                           color: const Color(0xFFF7F3EE),
