@@ -117,40 +117,40 @@ class _AdminShellState extends State<AdminShell> {
           },
         );
 
-      case 2:
+      case 1:
         return const BookingsScreen();
 
-      case 3:
+      case 2:
         return const WalkerManagementDashboardScreen();
 
-      case 4:
+      case 3:
         return const CustomerManagementScreen();
 
-      case 5:
+      case 4:
         return const PetManagementScreen();
 
-      case 6:
+      case 5:
         return const NotificationCenterScreen();
 
-      case 7:
+      case 6:
         return const SupportCenterScreen();
 
-      case 8:
+      case 7:
         return const AdminAccessControlScreen();
 
-      case 9:
+      case 8:
         return const AdminAuditLogsScreen();
 
-      case 10:
+      case 9:
         return const ReportsAnalyticsScreen();
 
-      case 11:
+      case 10:
         return const FinanceOperationsScreen();
 
-      case 12:
+      case 11:
         return const SettingsGovernanceScreen();
 
-      case 13:
+      case 12:
         return const ServiceLocationScreen();
 
       default:
