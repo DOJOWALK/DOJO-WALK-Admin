@@ -9,6 +9,10 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'live_map_widget.dart';
 
+/// Online presence is not proof of an active walk or fresh GPS.
+String liveWalkerPresenceLabel(int count) =>
+    "${count} walkers online · active walk not verified";
+
 class LiveOperationsScreen extends StatefulWidget {
   const LiveOperationsScreen({super.key});
 
@@ -428,10 +432,10 @@ class _LiveOperationsScreenState
                       const SizedBox(width: 8),
                       Text(
                         _isLoadingWalkers
-                            ? 'Loading live walkers…'
+                            ? 'Loading walker presence…'
                             : _walkerLoadError != null
-                                ? 'Live data unavailable'
-                                : '${_walkers.length} walkers online',
+                                ? 'Walker presence unavailable'
+                                : liveWalkerPresenceLabel(_walkers.length),
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           color: _walkerLoadError != null
