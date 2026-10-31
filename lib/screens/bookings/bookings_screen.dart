@@ -22,15 +22,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
     super.dispose();
   }
 
-  final List<String> _statuses = const [
-    'All',
-    'Pending',
-    'Walker Assigned',
-    'Walker Accepted',
-    'Walk In Progress',
-    'Completed',
-    'Cancelled',
-  ];
+  final List<String> _statuses = bookingFilterStatuses;
 
   String _text(dynamic value, [String fallback = '—']) {
     if (value == null || value.toString().trim().isEmpty) {
@@ -47,6 +39,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
         return Colors.orange;
       case 'cancelled':
         return Colors.red;
+      case 'picked up':
       case 'walk in progress':
         return Colors.blue;
       case 'walker accepted':
