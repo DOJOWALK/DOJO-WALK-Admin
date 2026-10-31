@@ -250,7 +250,7 @@ void main() {
 
     expect(find.textContaining('approved • customer'), findsOneWidget);
     expect(find.textContaining('rejected • customer'), findsOneWidget);
-    expect(find.textContaining('31 Oct 2026'), findsOneWidget);
+    expect(find.textContaining('31/10/2026 13:30 IST'), findsOneWidget);
     await controller.close();
   });
 
