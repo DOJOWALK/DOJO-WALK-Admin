@@ -1,4 +1,4 @@
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 
@@ -9,11 +9,12 @@ const Color _kycMuted = Color(0xFF78716C);
 
 /// Opens a KYC document in a popup dialog.
 ///
-/// Supports HTTPS URLs, Firebase Storage URLs,
-/// Storage paths, and map-based document references.
+/// Accepts only a persisted Firebase Storage path. The server validates Admin
+/// authorization and Walker ownership before issuing a short-lived URL.
 Future<void> showKycDocumentViewerDialog({
   required BuildContext context,
   required String title,
+  required String walkerUid,
   required dynamic document,
 }) async {
   await showDialog<void>(
@@ -22,6 +23,7 @@ Future<void> showKycDocumentViewerDialog({
     useSafeArea: true,
     builder: (_) => KycDocumentViewerDialog(
       title: title,
+      walkerUid: walkerUid,
       document: document,
     ),
   );
@@ -31,10 +33,12 @@ class KycDocumentViewerDialog extends StatefulWidget {
   const KycDocumentViewerDialog({
     super.key,
     required this.title,
+    required this.walkerUid,
     required this.document,
   });
 
   final String title;
+  final String walkerUid;
   final dynamic document;
 
   @override
@@ -81,14 +85,20 @@ class _KycDocumentViewerDialogState
         throw Exception('Document link is missing.');
       }
 
-      String resolvedUrl;
-
       if (_isHttpUrl(reference)) {
-        resolvedUrl = reference;
-      } else {
-        resolvedUrl = await FirebaseStorage.instance
-            .ref(reference)
-            .getDownloadURL();
+        throw Exception('Legacy direct URLs are not accepted. A Storage path is required.');
+      }
+
+      final callable = FirebaseFunctions.instanceFor(region: 'asia-south1')
+          .httpsCallable('createAdminKycReadUrl');
+      final response = await callable.call(<String, dynamic>{
+        'walkerUid': widget.walkerUid,
+        'storagePath': reference,
+      });
+      final payload = Map<String, dynamic>.from(response.data as Map);
+      final resolvedUrl = payload['url'];
+      if (resolvedUrl is! String || !_isHttpUrl(resolvedUrl)) {
+        throw Exception('Secure document URL was not returned by the server.');
       }
 
       final isPdf = _detectPdf(
@@ -120,16 +130,16 @@ class _KycDocumentViewerDialogState
     }
 
     if (document is Map) {
-      final url = document['downloadUrl'] ?? document['url'];
-
-      if (url is String && url.trim().isNotEmpty) {
-        return url.trim();
-      }
-
       final path = document['storagePath'] ?? document['path'];
 
       if (path is String && path.trim().isNotEmpty) {
         return path.trim();
+      }
+
+      final url = document['downloadUrl'] ?? document['url'];
+
+      if (url is String && url.trim().isNotEmpty) {
+        return url.trim();
       }
     }
 
@@ -196,6 +206,10 @@ class _KycDocumentViewerDialogState
         message.contains('permission') ||
         message.contains('unauthenticated')) {
       return 'You do not have permission to view this document.';
+    }
+
+    if (message.contains('legacy direct urls')) {
+      return 'This document uses an old direct URL. A secure Storage path is required.';
     }
 
     return 'Unable to load this document. Check its link and access permissions.';
