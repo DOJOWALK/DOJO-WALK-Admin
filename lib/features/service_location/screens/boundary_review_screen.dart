@@ -77,20 +77,8 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFFAF5),
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        toolbarHeight: 64,
-        titleSpacing: 16,
-        title: const Text(
-          'Boundary Review',
-          maxLines: 1,
-          softWrap: false,
-          overflow: TextOverflow.ellipsis,
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: _ink,
-        surfaceTintColor: Colors.white,
-      ),
+      // Keep the preview heading in the scrollable content rather than the
+      // AppBar. This avoids a narrow-viewport toolbar RenderFlex overflow.
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -99,6 +87,13 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const Text(
+                  'Boundary Review',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: _ink),
+                ),
+                const SizedBox(height: 12),
                 const Text(
                   'Zone boundary review',
                   style: TextStyle(fontSize: 27, fontWeight: FontWeight.w800, color: _ink),
