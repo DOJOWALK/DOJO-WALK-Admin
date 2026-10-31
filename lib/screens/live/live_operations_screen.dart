@@ -35,6 +35,7 @@ class _LiveOperationsScreenState
 
   String? _selectedWalkerId;
   bool _isLoadingWalkers = true;
+  bool _isLoadingRoute = false;
   String? _walkerLoadError;
 
   Set<Marker> _markers = {};
@@ -87,6 +88,7 @@ class _LiveOperationsScreenState
         if (_selectedWalkerId != null &&
             !updated.containsKey(_selectedWalkerId)) {
           _selectedWalkerId = null;
+          _isLoadingRoute = false;
           _polylines = {};
         }
 
@@ -216,8 +218,11 @@ class _LiveOperationsScreenState
   Future<void> _loadWalkerRoute(
     String walkerId,
   ) async {
-    if (!mounted) return;
-    setState(() { _polylines = {}; });
+    if (!mounted || _selectedWalkerId != walkerId) return;
+    setState(() {
+      _isLoadingRoute = true;
+      _polylines = {};
+    });
     try {
       final snapshot = await _firestore
           .collection('walk_locations')
@@ -294,6 +299,14 @@ class _LiveOperationsScreenState
           ),
         ),
       );
+    } finally {
+      if (mounted &&
+          shouldApplyLiveRoute(
+            selectedWalkerId: _selectedWalkerId,
+            requestedWalkerId: walkerId,
+          )) {
+        setState(() => _isLoadingRoute = false);
+      }
     }
   }
 
@@ -528,6 +541,7 @@ class _LiveOperationsScreenState
                 child: SingleChildScrollView(
                   child: _WalkerDetailsCard(
                     data: selected,
+                    isLoadingRoute: _isLoadingRoute,
                     onViewBooking: () => _showBookingDetails(
                       selected['currentBookingId']?.toString(),
                       selected['id']?.toString() ?? _selectedWalkerId!,
@@ -538,6 +552,7 @@ class _LiveOperationsScreenState
                     onClose: () {
                       setState(() {
                         _selectedWalkerId = null;
+                        _isLoadingRoute = false;
                         _polylines = {};
                       });
                     },
@@ -557,12 +572,14 @@ class _LiveOperationsScreenState
 
 class _WalkerDetailsCard extends StatelessWidget {
   final Map<String, dynamic> data;
+  final bool isLoadingRoute;
   final VoidCallback onClose;
   final VoidCallback onViewBooking;
   final VoidCallback onViewRoute;
 
   const _WalkerDetailsCard({
     required this.data,
+    required this.isLoadingRoute,
     required this.onClose,
     required this.onViewBooking,
     required this.onViewRoute,
@@ -724,7 +741,7 @@ class _WalkerDetailsCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: onViewRoute,
+                    onPressed: isLoadingRoute ? null : onViewRoute,
                     style:
                         ElevatedButton.styleFrom(
                       backgroundColor:
@@ -734,12 +751,17 @@ class _WalkerDetailsCard extends StatelessWidget {
                       foregroundColor:
                           Colors.white,
                     ),
-                    icon: const Icon(
-                      Icons.route,
-                    ),
-                    label: const Text(
-                      'VIEW ROUTE',
-                    ),
+                    icon: isLoadingRoute
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.route),
+                    label: Text(isLoadingRoute ? 'LOADING ROUTE' : 'VIEW ROUTE'),
                   ),
                 ),
               ],
