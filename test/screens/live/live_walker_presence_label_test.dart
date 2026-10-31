@@ -16,5 +16,28 @@ void main() {
         '0 walkers online · active walk not verified',
       );
     });
+    test('applies a route only to the currently selected walker', () {
+      expect(
+        shouldApplyLiveRoute(
+          selectedWalkerId: 'walker-a',
+          requestedWalkerId: 'walker-a',
+        ),
+        isTrue,
+      );
+      expect(
+        shouldApplyLiveRoute(
+          selectedWalkerId: 'walker-b',
+          requestedWalkerId: 'walker-a',
+        ),
+        isFalse,
+      );
+      expect(
+        shouldApplyLiveRoute(
+          selectedWalkerId: null,
+          requestedWalkerId: 'walker-a',
+        ),
+        isFalse,
+      );
+    });
   });
 }
