@@ -125,6 +125,9 @@ void main() {
       expect(find.text('Customers'), findsOneWidget);
       expect(find.text('Walkers'), findsOneWidget);
       expect(find.text('Paid Payments (All Time)'), findsOneWidget);
+      expect(find.text('Gross paid amount; refunds and fees not deducted'), findsOneWidget);
+      expect(find.text('₹1499'), findsOneWidget,
+          reason: 'Dashboard must display the injected paid amount, not a fabricated KPI');
       expect(find.text('Live Operations'), findsOneWidget);
       expect(find.text('Booking Status'), findsOneWidget);
       expect(find.text('Recent Bookings'), findsOneWidget);
