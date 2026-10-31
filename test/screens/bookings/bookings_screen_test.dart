@@ -136,4 +136,61 @@ void main() {
     expect(find.textContaining('No booking status has been changed.'), findsNothing);
     await controller.close();
   });
+  testWidgets('renders the Customer App booking document field contract',
+      (tester) async {
+    final controller = StreamController<List<BookingRecord>>();
+    await tester.pumpWidget(_screen(_FakeBookingsDataSource(controller.stream)));
+    controller.add(const [
+      BookingRecord(
+        id: 'DW-CUSTOMER-001',
+        data: {
+          'customerId': 'customer-uid-001',
+          'petName': 'Bruno',
+          'petDetails': {'name': 'Bruno', 'breed': 'Labrador'},
+          'serviceName': 'One-Time Walk',
+          'bookingPlan': 'one_time',
+          'scheduledAt': '2026-11-01T04:30:00Z',
+          'preferredTime': '10:00 AM',
+          'duration': '30 minutes',
+          'status': 'pending',
+          'walkerId': null,
+          'createdAt': '2026-10-31T08:00:00Z',
+        },
+      ),
+    ]);
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Bruno'), findsOneWidget);
+    expect(find.text('One-Time Walk'), findsOneWidget);
+    expect(find.text('10:00 AM'), findsOneWidget);
+    expect(find.text('Not finalized'), findsOneWidget);
+    expect(find.text('customer-uid-001'), findsOneWidget);
+    await controller.close();
+  });
+
+  testWidgets('search can find a booking by pet name', (tester) async {
+    final controller = StreamController<List<BookingRecord>>();
+    await tester.pumpWidget(_screen(_FakeBookingsDataSource(controller.stream)));
+    controller.add(const [
+      BookingRecord(
+        id: 'DW-PET-001',
+        data: {'status': 'pending', 'petName': 'Bruno'},
+      ),
+      BookingRecord(
+        id: 'DW-PET-002',
+        data: {'status': 'pending', 'petName': 'Milo'},
+      ),
+    ]);
+    await tester.pump();
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField), 'bruno');
+    await tester.pump();
+
+    expect(find.text('Booking DW-PET-001'), findsOneWidget);
+    expect(find.text('Booking DW-PET-002'), findsNothing);
+    await controller.close();
+  });
+
 }
