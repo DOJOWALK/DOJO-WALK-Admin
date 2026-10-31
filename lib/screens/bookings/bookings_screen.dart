@@ -236,7 +236,13 @@ class _BookingsScreenState extends State<BookingsScreen> {
                     doc.id,
                     _text(data['customerName'], ''),
                     _text(data['customerId'], ''),
-                    _text(data['walkerName'], ''),
+                    _text(data['walkerName'] ?? data['walkerId'], ''),
+                    _text(data['petName'], ''),
+                    _text((data['petDetails'] is Map)
+                        ? (data['petDetails'] as Map)['name']
+                        : null, ''),
+                    _text(data['serviceName'] ?? data['bookingPlan'], ''),
+                    _text(data['preferredTime'], ''),
                     status,
                   ].join(' ').toLowerCase();
 
@@ -304,6 +310,18 @@ class _BookingsScreenState extends State<BookingsScreen> {
                       'Not assigned',
                     );
 
+                    final petDetails = data['petDetails'] is Map
+                        ? Map<String, dynamic>.from(data['petDetails'] as Map)
+                        : <String, dynamic>{};
+                    final dogName = _text(
+                      data['petName'] ?? petDetails['name'],
+                      'Not provided',
+                    );
+                    final serviceName = _text(
+                      data['serviceName'] ?? data['bookingPlan'],
+                      'Not provided',
+                    );
+                    final preferredTime = _text(data['preferredTime'], '');
                     final amount = data['amount'] ??
                         data['totalAmount'] ??
                         data['price'];
@@ -368,6 +386,22 @@ class _BookingsScreenState extends State<BookingsScreen> {
                               walkerName,
                             ),
                             _detailRow(
+                              Icons.pets_outlined,
+                              'Dog',
+                              dogName,
+                            ),
+                            _detailRow(
+                              Icons.miscellaneous_services_outlined,
+                              'Service',
+                              serviceName,
+                            ),
+                            if (preferredTime.isNotEmpty)
+                              _detailRow(
+                                Icons.schedule_outlined,
+                                'Preferred time',
+                                preferredTime,
+                              ),
+                            _detailRow(
                               Icons.access_time,
                               'Created',
                               _date(data['createdAt']),
@@ -384,7 +418,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                             _detailRow(
                               Icons.currency_rupee,
                               'Amount',
-                              amount == null ? '—' : '₹$amount',
+                              amount == null ? 'Not finalized' : '₹$amount',
                             ),
                           ],
                         ),
