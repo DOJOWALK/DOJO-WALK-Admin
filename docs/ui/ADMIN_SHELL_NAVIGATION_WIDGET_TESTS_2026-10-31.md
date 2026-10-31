@@ -23,12 +23,13 @@ The tests use a local fake `DashboardDataSource`; no production data is read or 
 - GitHub Actions run `41229820235` checked PR #51's merge ref `4e7a5401e25f013ba84a7530712c2d90c8bc07be` (including commit `eb9110d3574fde6533ccc4c0c0158f433d607d49`). Static analysis **passed**; full suite reported **353 passed, 2 failed**; Web build was skipped after the test failure.
 - Failure 1: desktop assertion expected no `Live Operations` text, but the Dashboard itself has a `Live Operations` card heading. The sidebar did not add a duplicate menu entry; the assertion was over-broad.
 - Failure 2: mobile drawer assertion expected `Service Locations` immediately, but the item is below the visible scroll area and was not built by the lazy ListView. The test should scroll to Settings before tapping it.
-- These are test expectation/visibility issues identified from CI logs; the test correction below must be re-run before claiming PASS.
+- The first two failures were test expectation/visibility issues. After correcting them, CI run `41231136027` passed static analysis and 354 tests, but the mobile navigation test then exposed a real 7.7px horizontal overflow in the Settings screen at a 390px viewport.
 - PR #51 remains Draft/open/unmerged. No Firebase repository, schema, Rules, Functions, production data or deployment changed.
 
 ## Follow-up correction
 - Narrow the desktop assertion to expect the single Dashboard card heading `Live Operations`; this catches a duplicate text entry while allowing the legitimate Dashboard heading.
 - Scroll the mobile drawer to the Settings destination with `ensureVisible` before tapping; do not assert that a below-the-fold lazy-list item is initially built.
+- The Settings card header placed its status Chip beside the title in a narrow Row. Move the status Chip to its own line beneath the icon/title row so the 390px mobile layout can fit without horizontal overflow.
 
 ## Next validation gate
-Re-run `flutter test test/screens/dashboard/admin_shell_test.dart`, then full `flutter analyze`, `flutter test` and `flutter build web --release` on the updated PR head. Fix any remaining failures before considering the navigation change validated.
+Re-run the focused AdminShell widget test and full CI after the Settings responsive-layout fix. Required gates remain `flutter analyze`, `flutter test` and `flutter build web --release` on the updated PR head. No PASS claim until all gates complete.
