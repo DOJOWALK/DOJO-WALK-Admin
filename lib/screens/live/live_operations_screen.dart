@@ -94,7 +94,7 @@ class _LiveOperationsScreenState
       });
     }, onError: (Object error, StackTrace stackTrace) {
       debugPrint('Live walker listener failed: $error');
-      if (!mounted) return;
+      if (!selectionIsCurrent()) return;
       final permissionDenied = isPermissionDeniedError(error);
       setState(() {
         _isLoadingWalkers = false;
@@ -310,7 +310,12 @@ class _LiveOperationsScreenState
     return _walkers[_selectedWalkerId!];
   }
 
-  Future<void> _showBookingDetails(String? bookingId) async {
+  Future<void> _showBookingDetails(String? bookingId, String requestedWalkerId) async {
+    bool selectionIsCurrent() => mounted &&
+        shouldApplyBookingDetails(
+          selectedWalkerId: _selectedWalkerId,
+          requestedWalkerId: requestedWalkerId,
+        );
     if (bookingId == null || bookingId.trim().isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -320,7 +325,7 @@ class _LiveOperationsScreenState
     }
     try {
       final booking = await _firestore.collection('bookings').doc(bookingId).get();
-      if (!mounted) return;
+      if (!selectionIsCurrent()) return;
       if (!booking.exists) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Booking ' + bookingId + ' was not found.')),
@@ -526,6 +531,7 @@ class _LiveOperationsScreenState
                     data: selected,
                     onViewBooking: () => _showBookingDetails(
                       selected['currentBookingId']?.toString(),
+                      selected['id']?.toString() ?? _selectedWalkerId!,
                     ),
                     onViewRoute: () => _loadWalkerRoute(
                       selected['id']?.toString() ?? _selectedWalkerId!,
