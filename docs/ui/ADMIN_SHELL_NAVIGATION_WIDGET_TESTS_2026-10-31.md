@@ -24,6 +24,7 @@ The tests use a local fake `DashboardDataSource`; no production data is read or 
 - Failure 1: desktop assertion expected no `Live Operations` text, but the Dashboard itself has a `Live Operations` card heading. The sidebar did not add a duplicate menu entry; the assertion was over-broad.
 - Failure 2: mobile drawer assertion expected `Service Locations` immediately, but the item is below the visible scroll area and was not built by the lazy ListView. The test should scroll to Settings before tapping it.
 - The first two failures were test expectation/visibility issues. After correcting them, CI run `41231136027` passed static analysis and 354 tests, but the mobile navigation test then exposed a real 7.7px horizontal overflow in the Settings screen at a 390px viewport.
+- Fixed the Settings card header by placing its status Chip below the icon/title row. The subsequent CI run `41231360615` completed successfully: Flutter analyze reported `No issues found`, the full suite passed **355 tests**, and `flutter build web --release` succeeded. Flutter version: 3.47.9.
 - PR #51 remains Draft/open/unmerged. No Firebase repository, schema, Rules, Functions, production data or deployment changed.
 
 ## Follow-up correction
@@ -32,4 +33,4 @@ The tests use a local fake `DashboardDataSource`; no production data is read or 
 - The Settings card header placed its status Chip beside the title in a narrow Row. Move the status Chip to its own line beneath the icon/title row so the 390px mobile layout can fit without horizontal overflow.
 
 ## Next validation gate
-Re-run the focused AdminShell widget test and full CI after the Settings responsive-layout fix. Required gates remain `flutter analyze`, `flutter test` and `flutter build web --release` on the updated PR head. No PASS claim until all gates complete.
+Validation gate completed on the PR branch: `flutter analyze` PASS, full `flutter test` PASS (355 tests), and `flutter build web --release` PASS in CI run `41231360615`. This validates the CI merge ref used for that run; confirm the latest branch head remains included before any merge. PR remains Draft/open/unmerged; no Firebase or deployment changes.
