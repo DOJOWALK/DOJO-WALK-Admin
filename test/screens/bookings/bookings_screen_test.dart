@@ -218,4 +218,40 @@ void main() {
     expect(find.text('Booking DW-PET-002'), findsNothing);
     await controller.close();
   });
+  testWidgets('shows approved and rejected cancellation request outcomes',
+      (tester) async {
+    final controller = StreamController<List<BookingRecord>>();
+    await tester.pumpWidget(_screen(_FakeBookingsDataSource(controller.stream)));
+    controller.add(const [
+      BookingRecord(
+        id: 'DW-CANCEL-APPROVED',
+        data: {
+          'status': 'pending',
+          'cancelRequest': {
+            'status': 'approved',
+            'requestedBy': 'customer',
+            'requestedAt': '2026-10-31T08:00:00Z',
+          },
+        },
+      ),
+      BookingRecord(
+        id: 'DW-CANCEL-REJECTED',
+        data: {
+          'status': 'pending',
+          'cancelRequest': {
+            'status': 'rejected',
+            'requestedBy': 'customer',
+          },
+        },
+      ),
+    ]);
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.textContaining('approved • customer'), findsOneWidget);
+    expect(find.textContaining('rejected • customer'), findsOneWidget);
+    expect(find.textContaining('31 Oct 2026'), findsOneWidget);
+    await controller.close();
+  });
+
 }
