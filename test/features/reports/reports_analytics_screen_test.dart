@@ -33,4 +33,30 @@ void main() {
     );
     expect(selected.selected, isTrue);
   });
+
+  testWidgets('report catalog remains usable on a narrow mobile viewport',
+      (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(320, 800);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(home: ReportsAnalyticsScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Booking lifecycle'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -1400),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Support resolution'), findsOneWidget);
+    expect(find.text('Export disabled'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
 }
