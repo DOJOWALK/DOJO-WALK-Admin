@@ -446,6 +446,7 @@ class _WalkerDetailsScreenState extends State<WalkerDetailsScreen> {
       await showKycDocumentViewerDialog(
         context: context,
         title: title,
+        walkerUid: widget.uid,
         document: document,
       );
     } catch (_) {
