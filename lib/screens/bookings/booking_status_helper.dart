@@ -94,3 +94,16 @@ List<String> bookingStatusQueryAliases(String canonicalLabel) {
       return const [];
   }
 }
+
+/// Status options exposed by the Admin booking filter.
+/// Keep this list aligned with the canonical lifecycle labels above.
+const List<String> bookingFilterStatuses = [
+  'All',
+  'Pending',
+  'Walker Assigned',
+  'Walker Accepted',
+  'Picked Up',
+  'Walk In Progress',
+  'Completed',
+  'Cancelled',
+];
