@@ -145,6 +145,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
                   initialValue: _selectedStatus,
                   decoration: InputDecoration(
                     labelText: 'Filter by status',
@@ -157,7 +158,10 @@ class _BookingsScreenState extends State<BookingsScreen> {
                   items: _statuses.map((status) {
                     return DropdownMenuItem(
                       value: status,
-                      child: Text(status),
+                      child: Text(
+                        status,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     );
                   }).toList(),
                   onChanged: (value) {
