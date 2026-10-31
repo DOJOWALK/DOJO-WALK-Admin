@@ -9,8 +9,11 @@ void main() {
         equals([
           'All',
           'Pending',
+          'Finding Walker',
           'Walker Assigned',
+          'Walker Arriving',
           'Walker Accepted',
+          'Confirmed',
           'Picked Up',
           'Walk In Progress',
           'Completed',
@@ -29,6 +32,9 @@ void main() {
 
   group('displayBookingStatus', () {
     test('normalizes underscore and hyphen lifecycle values', () {
+      expect(displayBookingStatus('finding_walker'), 'Finding Walker');
+      expect(displayBookingStatus('walker_arriving'), 'Walker Arriving');
+      expect(displayBookingStatus('confirmed'), 'Confirmed');
       expect(displayBookingStatus('walker_assigned'), 'Walker Assigned');
       expect(displayBookingStatus('walker-accepted'), 'Walker Accepted');
       expect(displayBookingStatus('in_progress'), 'Walk In Progress');
@@ -85,9 +91,12 @@ void main() {
     test('every queried alias normalizes to its canonical lifecycle label', () {
       const expected = {
         'Pending': 'Pending',
+        'Finding Walker': 'Finding Walker',
         'Walker Assigned': 'Walker Assigned',
+        'Walker Arriving': 'Walker Arriving',
         'Picked Up': 'Picked Up',
         'Walker Accepted': 'Walker Accepted',
+        'Confirmed': 'Confirmed',
         'Walk In Progress': 'Walk In Progress',
         'Completed': 'Completed',
         'Cancelled': 'Cancelled',
