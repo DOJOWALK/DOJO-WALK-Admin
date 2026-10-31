@@ -30,13 +30,18 @@ class _ShellDashboardDataSource implements DashboardDataSource {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  Future<void> setViewport(WidgetTester tester, Size size) async {
+  Future<void> setViewport(
+    WidgetTester tester,
+    Size size, {
+    Widget Function(int index)? contentBuilder,
+  }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     await tester.pumpWidget(
       MaterialApp(
         home: AdminShell(
           dashboardDataSource: _ShellDashboardDataSource(),
+          contentBuilder: contentBuilder,
         ),
       ),
     );
@@ -62,6 +67,46 @@ void main() {
       );
       expect(find.byTooltip('Logout'), findsOneWidget);
       expect(tester.takeException(), isNull);
+
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    testWidgets('all sidebar destinations can be selected without Firebase',
+        (tester) async {
+      const titles = [
+        'Dashboard',
+        'Bookings',
+        'Walker Management',
+        'Customers',
+        'Pets',
+        'Notifications',
+        'Support',
+        'Admin Users & Roles',
+        'Audit Logs',
+        'Reports & Analytics',
+        'Finance Operations',
+        'Settings',
+        'Service Locations',
+      ];
+
+      await setViewport(
+        tester,
+        const Size(1440, 1000),
+        contentBuilder: (index) => Center(
+          child: Text('Test destination $index'),
+        ),
+      );
+
+      for (var index = 0; index < titles.length; index++) {
+        final destination = find.text(titles[index]).first;
+        await tester.ensureVisible(destination);
+        await tester.tap(destination);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Test destination $index'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      }
 
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
