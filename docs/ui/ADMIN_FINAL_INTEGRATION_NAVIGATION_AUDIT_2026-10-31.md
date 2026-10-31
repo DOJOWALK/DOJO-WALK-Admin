@@ -89,3 +89,30 @@ This is a static source and documentation audit. No Flutter test, analyzer, web 
 
 ## Decision
 **PARTIAL / NOT RELEASE-READY.** AdminShell has explicit destinations for all 14 current menu entries, but the Live Operations navigation conflicts with the documented architecture, role/scope is not passed to the shell, and no dedicated shell navigation test was located. Complete the focused navigation correction and test suite, then finish the canonical file-tree reconciliation before calling the Admin UI phase complete. Keep PR #51 open/draft.
+
+
+## Follow-up verification — 2026-11-01
+
+The earlier navigation findings above describe the pre-correction source snapshot and are retained as historical audit evidence. Re-inspection of the current PR #51 branch shows the correction is now present:
+
+- `AdminShell` has 13 sidebar destinations; the standalone Live Operations menu item and switch case are absent.
+- Live Operations remains reachable through the Dashboard's `onOpenLiveOperations` action, as required by the company navigation architecture.
+- The Dashboard's Service Locations shortcut selects the current Service Locations destination (index 12).
+- A dedicated `test/screens/dashboard/admin_shell_test.dart` now exists. It covers the desktop sidebar without a duplicate Live Operations destination, mobile drawer selection/closure, and safe cancellation of the logout confirmation.
+- The test uses an injected deterministic `DashboardDataSource`; it does not initialize Firebase or read/write production data.
+
+### Exact-head validation
+
+- PR #51 current head at verification: `3887866fa13f33f81cb5c77d910b822c4b47eb48`.
+- GitHub Actions run [41232609407](https://github.com/DOJOWALK/DOJO-WALK-Admin/actions/runs/41232609407) completed successfully for that exact head.
+- Job log confirms `flutter analyze`: **No issues found**; full suite: **355 tests passed**; Flutter Web release build: **Built build/web**.
+- The PR remains Draft/open/unmerged. No Firebase integration, merge or deployment was performed.
+
+### Remaining navigation acceptance gaps
+
+- Current tests do not yet prove every menu destination opens the intended screen.
+- Dashboard → Live Operations route push/pop and browser back behavior are not directly asserted.
+- Mobile drawer selection is tested for Settings only; repeat coverage for Service Locations and long/scrolling navigation paths.
+- AuthGate role/scope propagation and server authorization remain separate backend/security acceptance gates.
+
+**Updated decision:** the previously reported duplicate Live Operations sidebar entry is **RESOLVED in current source and covered by a passing widget test**. Overall Admin navigation remains **PARTIAL**, pending broader destination and route lifecycle tests plus AuthGate/backend authorization evidence. Keep PR #51 Draft; no merge/deployment authorization is implied.
