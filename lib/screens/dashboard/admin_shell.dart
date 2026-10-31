@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 
 import 'dashboard_screen.dart';
+import 'dashboard_data_source.dart';
 import '../live/live_operations_screen.dart';
 import '../bookings/bookings_screen.dart';
 
@@ -23,7 +24,9 @@ const Color adminBackground = Color(0xFFFFFAF5);
 const Color adminText = Color(0xFF252525);
 
 class AdminShell extends StatefulWidget {
-  const AdminShell({super.key});
+  final DashboardDataSource? dashboardDataSource;
+
+  const AdminShell({super.key, this.dashboardDataSource});
 
   @override
   State<AdminShell> createState() => _AdminShellState();
@@ -105,6 +108,7 @@ class _AdminShellState extends State<AdminShell> {
     switch (_selectedIndex) {
       case 0:
         return DashboardScreen(
+          dataSource: widget.dashboardDataSource,
           onOpenLiveOperations: () {
             Navigator.of(context).push(
               MaterialPageRoute<void>(
