@@ -42,12 +42,15 @@ class _BookingsScreenState extends State<BookingsScreen> {
       case 'completed':
         return Colors.green;
       case 'pending':
+      case 'finding walker':
+      case 'walker arriving':
         return Colors.orange;
       case 'cancelled':
         return Colors.red;
       case 'picked up':
       case 'walk in progress':
         return Colors.blue;
+      case 'confirmed':
       case 'walker accepted':
       case 'walker assigned':
         return Colors.purple;
