@@ -4,6 +4,9 @@ name: DOJO WALK Admin Firebase Emulator Integration
 # This workflow never deploys and never targets a live Firebase project.
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - ui/notion-brand-foundation-2026-10-28
 
 permissions:
   contents: read
