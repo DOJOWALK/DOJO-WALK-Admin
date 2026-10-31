@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:dojo_walk_admin/screens/live/live_operations_screen.dart';
+import 'package:dojo_admin/screens/live/live_operations_screen.dart';
 
 void main() {
   group('liveWalkerPresenceLabel', () {
