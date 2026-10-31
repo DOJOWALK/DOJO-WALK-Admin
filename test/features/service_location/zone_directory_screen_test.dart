@@ -259,7 +259,7 @@ void main() {
       await tester.tap(previewButton);
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Boundary Review · ZONE-EX-001'), findsOneWidget);
+      expect(find.text('Boundary Review'), findsOneWidget);
       expect(find.text('ZONE-EX-001'), findsOneWidget);
       expect(find.text('ZONE-EX-002'), findsNothing);
       expect(find.text('ZONE-EX-003'), findsNothing);
