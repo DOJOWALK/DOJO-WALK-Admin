@@ -83,17 +83,37 @@ class _ReportsAnalyticsScreenState extends State<ReportsAnalyticsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(color: orange.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(13)),
-                  child: const Icon(Icons.analytics_outlined, color: orange),
-                ),
-                const SizedBox(width: 10),
-                Expanded(child: Text(report.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: ink))),
-                const Chip(label: Text('Not connected')),
-              ]),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: orange.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        child: const Icon(Icons.analytics_outlined, color: orange),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          report.title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: ink,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Chip(label: Text('Not connected')),
+                ],
+              ),
               const SizedBox(height: 10),
               Text(report.description, style: const TextStyle(height: 1.45)),
               const SizedBox(height: 6),
