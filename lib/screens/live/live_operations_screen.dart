@@ -10,6 +10,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'live_map_widget.dart';
 
 /// Online presence is not proof of an active walk or fresh GPS.
+bool shouldApplyLiveRoute({required String? selectedWalkerId, required String requestedWalkerId}) => selectedWalkerId == requestedWalkerId;
+
 String liveWalkerPresenceLabel(int count) =>
     "${count} walkers online · active walk not verified";
 
@@ -215,6 +217,8 @@ class _LiveOperationsScreenState
   Future<void> _loadWalkerRoute(
     String walkerId,
   ) async {
+    if (!mounted) return;
+    setState(() { _polylines = {}; });
     try {
       final snapshot = await _firestore
           .collection('walk_locations')
@@ -247,7 +251,7 @@ class _LiveOperationsScreenState
         }
       }
 
-      if (!mounted) return;
+      if (!mounted || !shouldApplyLiveRoute(selectedWalkerId: _selectedWalkerId, requestedWalkerId: walkerId)) return;
 
       setState(() {
         if (points.length >= 2) {
