@@ -2,6 +2,31 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dojo_admin/screens/bookings/booking_status_helper.dart';
 
 void main() {
+  group('bookingFilterStatuses', () {
+    test('includes every supported booking lifecycle filter', () {
+      expect(
+        bookingFilterStatuses,
+        equals([
+          'All',
+          'Pending',
+          'Walker Assigned',
+          'Walker Accepted',
+          'Picked Up',
+          'Walk In Progress',
+          'Completed',
+          'Cancelled',
+        ]),
+      );
+      for (final status in bookingFilterStatuses.skip(1)) {
+        expect(
+          displayBookingStatus(status),
+          status,
+          reason: 'Filter status "$status" must be a canonical lifecycle label',
+        );
+      }
+    });
+  });
+
   group('displayBookingStatus', () {
     test('normalizes underscore and hyphen lifecycle values', () {
       expect(displayBookingStatus('walker_assigned'), 'Walker Assigned');
