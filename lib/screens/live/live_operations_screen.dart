@@ -94,7 +94,6 @@ class _LiveOperationsScreenState
       });
     }, onError: (Object error, StackTrace stackTrace) {
       debugPrint('Live walker listener failed: $error');
-      if (!selectionIsCurrent()) return;
       final permissionDenied = isPermissionDeniedError(error);
       setState(() {
         _isLoadingWalkers = false;
