@@ -249,8 +249,12 @@ void main() {
     await tester.pump();
 
     expect(find.textContaining('approved • customer'), findsOneWidget);
-    expect(find.textContaining('rejected • customer'), findsOneWidget);
     expect(find.textContaining('31/10/2026 13:30 IST'), findsOneWidget);
+
+    await tester.drag(find.byType(ListView), const Offset(0, -900));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('rejected • customer'), findsOneWidget);
     await controller.close();
   });
 
