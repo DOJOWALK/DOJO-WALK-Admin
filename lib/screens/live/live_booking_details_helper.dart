@@ -31,3 +31,9 @@ Map<String, String> safeLiveBookingSummary(Map<String, dynamic> data) {
   }
   return summary;
 }
+/// Prevents an async booking response from being shown after the selected
+/// Walker changes while the request is in flight.
+bool shouldApplyBookingDetails({
+  required String? selectedWalkerId,
+  required String requestedWalkerId,
+}) => selectedWalkerId == requestedWalkerId;
