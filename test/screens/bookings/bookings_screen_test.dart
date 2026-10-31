@@ -170,6 +170,31 @@ void main() {
     await controller.close();
   });
 
+  testWidgets('shows customer cancellation request state and requester',
+      (tester) async {
+    final controller = StreamController<List<BookingRecord>>();
+    await tester.pumpWidget(_screen(_FakeBookingsDataSource(controller.stream)));
+    controller.add(const [
+      BookingRecord(
+        id: 'DW-CANCEL-001',
+        data: {
+          'status': 'pending',
+          'customerId': 'customer-uid-001',
+          'cancelRequest': {
+            'status': 'pending',
+            'requestedBy': 'customer',
+          },
+        },
+      ),
+    ]);
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.textContaining('Cancellation'), findsOneWidget);
+    expect(find.textContaining('pending • customer'), findsOneWidget);
+    await controller.close();
+  });
+
   testWidgets('search can find a booking by pet name', (tester) async {
     final controller = StreamController<List<BookingRecord>>();
     await tester.pumpWidget(_screen(_FakeBookingsDataSource(controller.stream)));
