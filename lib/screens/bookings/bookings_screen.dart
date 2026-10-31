@@ -2,16 +2,22 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'booking_status_helper.dart';
+import 'booking_data_source.dart';
 import '../../utils/admin_error_classifier.dart';
 
 class BookingsScreen extends StatefulWidget {
-  const BookingsScreen({super.key});
+  final BookingsDataSource? dataSource;
+
+  const BookingsScreen({super.key, this.dataSource});
 
   @override
   State<BookingsScreen> createState() => _BookingsScreenState();
 }
 
 class _BookingsScreenState extends State<BookingsScreen> {
+  late final BookingsDataSource _dataSource = widget.dataSource ??
+      FirestoreBookingsDataSource(FirebaseFirestore.instance);
+
   String _selectedStatus = 'All';
   String _search = '';
   final TextEditingController _searchController = TextEditingController();
@@ -161,10 +167,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
             ),
           ),
           Expanded(
-            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: FirebaseFirestore.instance
-                  .collection('bookings')
-                  .snapshots(),
+            child: StreamBuilder<List<BookingRecord>>(
+              stream: _dataSource.watchBookings(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   final permissionDenied =
@@ -216,10 +220,10 @@ class _BookingsScreenState extends State<BookingsScreen> {
                   );
                 }
 
-                final docs = snapshot.data?.docs ?? [];
+                final docs = snapshot.data ?? const <BookingRecord>[];
 
                 final filtered = docs.where((doc) {
-                  final data = doc.data();
+                  final data = doc.data;
                   final status = displayBookingStatus(data['status']);
 
                   if (_selectedStatus != 'All' &&
@@ -240,8 +244,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 }).toList();
 
                 filtered.sort((a, b) {
-                  final aTime = _timestampMillis(a.data()['createdAt']);
-                  final bTime = _timestampMillis(b.data()['createdAt']);
+                  final aTime = _timestampMillis(a.data['createdAt']);
+                  final bTime = _timestampMillis(b.data['createdAt']);
                   return bTime.compareTo(aTime);
                 });
 
@@ -286,7 +290,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                   itemCount: filtered.length,
                   itemBuilder: (context, index) {
                     final doc = filtered[index];
-                    final data = doc.data();
+                    final data = doc.data;
                     final status = displayBookingStatus(data['status']);
                     final color = _statusColor(status);
 
