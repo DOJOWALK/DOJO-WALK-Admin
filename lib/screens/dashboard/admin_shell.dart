@@ -25,8 +25,13 @@ const Color adminText = Color(0xFF252525);
 
 class AdminShell extends StatefulWidget {
   final DashboardDataSource? dashboardDataSource;
+  final Widget Function(int index)? contentBuilder;
 
-  const AdminShell({super.key, this.dashboardDataSource});
+  const AdminShell({
+    super.key,
+    this.dashboardDataSource,
+    this.contentBuilder,
+  });
 
   @override
   State<AdminShell> createState() => _AdminShellState();
@@ -105,6 +110,9 @@ class _AdminShellState extends State<AdminShell> {
   ];
 
   Widget _buildContent() {
+    final contentBuilder = widget.contentBuilder;
+    if (contentBuilder != null) return contentBuilder(_selectedIndex);
+
     switch (_selectedIndex) {
       case 0:
         return DashboardScreen(
