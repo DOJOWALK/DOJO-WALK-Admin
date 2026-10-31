@@ -13,6 +13,51 @@ class _FakeBookingsDataSource implements BookingsDataSource {
 
   @override
   Stream<List<BookingRecord>> watchBookings() => stream;
+  testWidgets('search filters by booking ID and customer name', (tester) async {
+    final controller = StreamController<List<BookingRecord>>();
+    await tester.pumpWidget(_screen(_FakeBookingsDataSource(controller.stream)));
+    controller.add(const [
+      BookingRecord(id: 'DW-1001', data: {'status': 'pending', 'customerName': 'Asha'}),
+      BookingRecord(id: 'DW-1002', data: {'status': 'completed', 'customerName': 'Rohan'}),
+    ]);
+    await tester.pump();
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField), 'asha');
+    await tester.pump();
+
+    expect(find.text('Booking DW-1001'), findsOneWidget);
+    expect(find.text('Booking DW-1002'), findsNothing);
+    await controller.close();
+  });
+
+  testWidgets('booking list does not overflow at a 320px viewport', (tester) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    final controller = StreamController<List<BookingRecord>>();
+    await tester.pumpWidget(_screen(_FakeBookingsDataSource(controller.stream)));
+    controller.add(const [
+      BookingRecord(
+        id: 'DW-VERY-LONG-BOOKING-REFERENCE-001',
+        data: {
+          'status': 'walk_in_progress',
+          'customerName': 'A customer with a very long display name',
+          'walkerName': 'A walker with a very long display name',
+          'createdAt': '2026-10-31T08:00:00Z',
+          'walkDateTime': '2026-10-31T09:00:00Z',
+          'amount': 149,
+        },
+      ),
+    ]);
+    await tester.pump();
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+    await controller.close();
+  });
+
 }
 
 Widget _screen(BookingsDataSource source) {
