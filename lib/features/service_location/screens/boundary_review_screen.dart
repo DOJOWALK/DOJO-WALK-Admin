@@ -78,9 +78,13 @@ class _BoundaryReviewScreenState extends State<BoundaryReviewScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFAF5),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        toolbarHeight: 64,
+        titleSpacing: 16,
         title: const Text(
           'Boundary Review',
           maxLines: 1,
+          softWrap: false,
           overflow: TextOverflow.ellipsis,
         ),
         backgroundColor: Colors.white,
