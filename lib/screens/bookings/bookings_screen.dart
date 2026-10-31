@@ -329,6 +329,17 @@ class _BookingsScreenState extends State<BookingsScreen> {
                       'Not provided',
                     );
                     final preferredTime = _text(data['preferredTime'], '');
+                    final cancelRequest = data['cancelRequest'] is Map
+                        ? Map<String, dynamic>.from(data['cancelRequest'] as Map)
+                        : <String, dynamic>{};
+                    final cancelStatus = _text(
+                      cancelRequest['status'],
+                      data['cancelRequest'] == null ? 'None' : 'Pending',
+                    );
+                    final cancelRequestedBy = _text(
+                      cancelRequest['requestedBy'],
+                      'Unknown',
+                    );
                     final amount = data['amount'] ??
                         data['totalAmount'] ??
                         data['price'];
@@ -427,6 +438,13 @@ class _BookingsScreenState extends State<BookingsScreen> {
                               'Amount',
                               amount == null ? 'Not finalized' : '₹$amount',
                             ),
+                            if (data['cancelRequest'] != null)
+                              _detailRow(
+                                Icons.cancel_outlined,
+                                'Cancellation',
+                                '$cancelStatus • $cancelRequestedBy'
+                                    ' • ${cancelRequest['requestedAt'] == null ? 'Time unavailable' : _date(cancelRequest['requestedAt'])}',
+                              ),
                           ],
                         ),
                       ),
