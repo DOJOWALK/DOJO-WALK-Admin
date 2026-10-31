@@ -29,4 +29,28 @@ void main() {
   test('returns an empty summary when no approved fields exist', () {
     expect(safeLiveBookingSummary({'pickupAddress': 'private'}), isEmpty);
   });
+  test('booking details response is ignored after walker selection changes', () {
+    expect(
+      shouldApplyBookingDetails(
+        selectedWalkerId: 'walker-a',
+        requestedWalkerId: 'walker-a',
+      ),
+      isTrue,
+    );
+    expect(
+      shouldApplyBookingDetails(
+        selectedWalkerId: 'walker-b',
+        requestedWalkerId: 'walker-a',
+      ),
+      isFalse,
+    );
+    expect(
+      shouldApplyBookingDetails(
+        selectedWalkerId: null,
+        requestedWalkerId: 'walker-a',
+      ),
+      isFalse,
+    );
+  });
+
 }
