@@ -12,6 +12,10 @@ String displayBookingStatus(dynamic rawValue) {
   switch (normalized) {
     case 'pending':
       return 'Pending';
+    case 'finding walker':
+      return 'Finding Walker';
+    case 'walker arriving':
+      return 'Walker Arriving';
     case 'walker assigned':
     case 'assigned':
       return 'Walker Assigned';
@@ -19,8 +23,10 @@ String displayBookingStatus(dynamic rawValue) {
     case 'pickup complete':
       return 'Picked Up';
     case 'walker accepted':
-    case 'accepted':
       return 'Walker Accepted';
+    case 'accepted':
+    case 'confirmed':
+      return 'Confirmed';
     case 'in progress':
     case 'walk in progress':
     case 'active walk':
@@ -66,10 +72,16 @@ List<String> bookingStatusQueryAliases(String canonicalLabel) {
   switch (canonicalLabel) {
     case 'Pending':
       return const ['pending', 'Pending'];
+    case 'Finding Walker':
+      return const ['finding_walker', 'finding-walker', 'finding walker'];
+    case 'Walker Arriving':
+      return const ['walker_arriving', 'walker-arriving', 'walker arriving'];
     case 'Walker Assigned':
       return const ['assigned', 'walker_assigned', 'walker-assigned', 'walker assigned', 'Walker Assigned'];
     case 'Walker Accepted':
-      return const ['accepted', 'walker_accepted', 'walker-accepted', 'walker accepted', 'Walker Accepted'];
+      return const ['walker_accepted', 'walker-accepted', 'walker accepted', 'Walker Accepted'];
+    case 'Confirmed':
+      return const ['confirmed', 'Confirmed', 'accepted'];
     case 'Picked Up':
       return const ['picked_up', 'picked-up', 'picked up', 'Picked Up', 'pickup_complete', 'pickup-complete'];
     case 'Walk In Progress':
@@ -100,8 +112,11 @@ List<String> bookingStatusQueryAliases(String canonicalLabel) {
 const List<String> bookingFilterStatuses = [
   'All',
   'Pending',
+  'Finding Walker',
   'Walker Assigned',
+  'Walker Arriving',
   'Walker Accepted',
+  'Confirmed',
   'Picked Up',
   'Walk In Progress',
   'Completed',
