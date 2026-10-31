@@ -55,7 +55,11 @@ void main() {
       expect(find.text('Dashboard'), findsWidgets);
       expect(find.text('Bookings'), findsOneWidget);
       expect(find.text('Service Locations'), findsOneWidget);
-      expect(find.text('Live Operations'), findsNothing);
+      expect(
+        find.text('Live Operations'),
+        findsOneWidget,
+        reason: 'Only the Dashboard card heading should be present; the sidebar must not duplicate this destination.',
+      );
       expect(find.byTooltip('Logout'), findsOneWidget);
       expect(tester.takeException(), isNull);
 
@@ -70,8 +74,8 @@ void main() {
       await tester.tap(find.byTooltip('Open navigation menu'));
       await tester.pumpAndSettle();
       expect(find.text('DOJO WALK'), findsOneWidget);
-      expect(find.text('Service Locations'), findsOneWidget);
-
+      await tester.ensureVisible(find.text('Settings'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Settings'));
       await tester.pumpAndSettle();
 
