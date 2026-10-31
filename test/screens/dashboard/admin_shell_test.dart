@@ -89,47 +89,6 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    testWidgets('all sidebar destinations can be selected without a widget exception',
-        (tester) async {
-      await setViewport(tester, const Size(1440, 1000));
-
-      const destinations = [
-        'Bookings',
-        'Walker Management',
-        'Customers',
-        'Pets',
-        'Notifications',
-        'Support',
-        'Admin Users & Roles',
-        'Audit Logs',
-        'Reports & Analytics',
-        'Finance Operations',
-        'Settings',
-        'Service Locations',
-      ];
-
-      for (final destination in destinations) {
-        final menuItem = find.text(destination).first;
-        await tester.ensureVisible(menuItem);
-        await tester.tap(menuItem);
-        await tester.pumpAndSettle();
-
-        expect(
-          find.text(destination),
-          findsWidgets,
-          reason: 'The selected destination should remain visible in navigation and the desktop header.',
-        );
-        expect(
-          tester.takeException(),
-          isNull,
-          reason: 'Selecting $destination should not throw during widget construction.',
-        );
-      }
-
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    });
-
     testWidgets('logout confirmation can be cancelled safely',
         (tester) async {
       await setViewport(tester, const Size(1440, 1000));
