@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../utils/admin_error_classifier.dart';
 import 'live_booking_details_helper.dart';
+import 'live_route_state_helper.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'live_map_widget.dart';
@@ -272,9 +273,7 @@ class _LiveOperationsScreenState
           };
         } else {
           _polylines = {};
-          _routeEmptyMessage = points.isEmpty
-              ? 'Route data not available yet. No GPS points have been received.'
-              : 'Not enough GPS points to draw a route yet.';
+          _routeEmptyMessage = liveRouteEmptyMessage(points.length);
         }
       });
     } catch (e) {
