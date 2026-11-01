@@ -36,6 +36,7 @@ class _LiveOperationsScreenState
   String? _selectedWalkerId;
   bool _isLoadingWalkers = true;
   bool _isLoadingRoute = false;
+  String? _routeEmptyMessage;
   String? _walkerLoadError;
 
   Set<Marker> _markers = {};
@@ -221,6 +222,7 @@ class _LiveOperationsScreenState
     if (!mounted || _selectedWalkerId != walkerId) return;
     setState(() {
       _isLoadingRoute = true;
+      _routeEmptyMessage = null;
       _polylines = {};
     });
     try {
@@ -270,16 +272,11 @@ class _LiveOperationsScreenState
           };
         } else {
           _polylines = {};
+          _routeEmptyMessage = points.isEmpty
+              ? 'Route data not available yet. No GPS points have been received.'
+              : 'Not enough GPS points to draw a route yet.';
         }
       });
-
-      if (points.length < 2 && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No route points are available for this walker yet.'),
-          ),
-        );
-      }
     } catch (e) {
       debugPrint('Unable to load walker route: $e');
       if (!mounted ||
@@ -542,6 +539,7 @@ class _LiveOperationsScreenState
                   child: _WalkerDetailsCard(
                     data: selected,
                     isLoadingRoute: _isLoadingRoute,
+                    routeEmptyMessage: _routeEmptyMessage,
                     onViewBooking: () => _showBookingDetails(
                       selected['currentBookingId']?.toString(),
                       selected['id']?.toString() ?? _selectedWalkerId!,
@@ -553,6 +551,7 @@ class _LiveOperationsScreenState
                       setState(() {
                         _selectedWalkerId = null;
                         _isLoadingRoute = false;
+                        _routeEmptyMessage = null;
                         _polylines = {};
                       });
                     },
@@ -573,6 +572,7 @@ class _LiveOperationsScreenState
 class _WalkerDetailsCard extends StatelessWidget {
   final Map<String, dynamic> data;
   final bool isLoadingRoute;
+  final String? routeEmptyMessage;
   final VoidCallback onClose;
   final VoidCallback onViewBooking;
   final VoidCallback onViewRoute;
@@ -580,6 +580,7 @@ class _WalkerDetailsCard extends StatelessWidget {
   const _WalkerDetailsCard({
     required this.data,
     required this.isLoadingRoute,
+    required this.routeEmptyMessage,
     required this.onClose,
     required this.onViewBooking,
     required this.onViewRoute,
@@ -722,6 +723,35 @@ class _WalkerDetailsCard extends StatelessWidget {
                   ),
               ],
             ),
+
+            if (routeEmptyMessage != null && !isLoadingRoute) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF7ED),
+                  border: Border.all(color: const Color(0xFFFED7AA)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.route_outlined, color: Color(0xFFB45309), size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        routeEmptyMessage!,
+                        style: const TextStyle(
+                          color: Color(0xFF92400E),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             const SizedBox(height: 16),
 
