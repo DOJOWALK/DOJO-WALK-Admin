@@ -1,5 +1,5 @@
 # DOJO WALK — Admin Role & Booking State Contract Audit
-**Date:** 2026-11-02  
+**Date:** 2026-11-02
 **Status:** Documentation-only audit; proposal for review, not an approved production contract.
 
 ## 1. Purpose and guardrails
