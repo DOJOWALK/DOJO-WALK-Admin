@@ -29,8 +29,8 @@ class ServiceBoundaryPreviewValidator {
       longitude <= 180;
 
   static String feedback(List<LatLng> points) {
-    if (points.length < 3) {
-      return 'Add at least 3 points (${points.length}/3).';
+    if (points.length < 4) {
+      return 'Add at least 4 points (${points.length}/4), including the closing point.';
     }
 
     if (!points.every((point) => isCoordinateInRange(
@@ -45,7 +45,7 @@ class ServiceBoundaryPreviewValidator {
             '${point.longitude.toStringAsFixed(7)}')
         .toSet();
     if (distinctPoints.length < 3) {
-      return 'Invalid preview: at least 3 distinct points are required.';
+      return 'Invalid preview: at least 3 distinct vertices are required plus a closing point.';
     }
 
     final geoPoints = points
