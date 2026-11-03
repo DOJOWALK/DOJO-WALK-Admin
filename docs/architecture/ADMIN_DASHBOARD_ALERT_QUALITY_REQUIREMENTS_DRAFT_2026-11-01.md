@@ -1,10 +1,10 @@
 # Admin Dashboard Alert Quality — Implementation Requirements (Draft)
 
-**Task:** ADM-P2-04  
-**Date:** 2026-11-01  
-**Status:** DRAFT — requirements only; source policies and alert thresholds remain unapproved. Not implemented, not tested.  
-**Repository:** DOJOWALK/DOJO-WALK-Admin  
-**Branch:** ui/notion-brand-foundation-2026-10-28  
+**Task:** ADM-P2-04
+**Date:** 2026-11-01
+**Status:** DRAFT — requirements only; source policies and alert thresholds remain unapproved. Not implemented, not tested.
+**Repository:** DOJOWALK/DOJO-WALK-Admin
+**Branch:** ui/notion-brand-foundation-2026-10-28
 **PR:** #51 — Draft, unmerged
 
 ## 1. Purpose and implementation boundary
