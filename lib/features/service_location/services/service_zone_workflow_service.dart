@@ -20,6 +20,59 @@ class ServiceZoneWorkflowService {
   CollectionReference<Map<String, dynamic>> get _zones =>
       _firestore.collection('service_zones');
 
+  /// Read-only State catalog. Document IDs are the canonical State IDs.
+  /// The country ID must come from the authoritative service_countries record;
+  /// no display-name or mock-ID fallback is permitted.
+  Stream<List<ServiceLocationCatalogRecord>> watchStates({
+    required String countryId,
+  }) =>
+      _watchCatalog(
+        _firestore
+            .collection('service_states')
+            .where('countryId', isEqualTo: _required(countryId, 'Country ID')),
+        activeField: 'isActive',
+      );
+
+  /// Read-only District catalog scoped to the selected canonical State ID.
+  Stream<List<ServiceLocationCatalogRecord>> watchDistricts({
+    required String stateId,
+  }) =>
+      _watchCatalog(
+        _firestore
+            .collection('service_districts')
+            .where('stateId', isEqualTo: _required(stateId, 'State ID')),
+        activeField: 'isServiceActive',
+      );
+
+  /// Read-only City catalog scoped to the selected canonical District ID.
+  Stream<List<ServiceLocationCatalogRecord>> watchCities({
+    required String districtId,
+  }) =>
+      _watchCatalog(
+        _firestore
+            .collection('service_cities')
+            .where('districtId', isEqualTo: _required(districtId, 'District ID')),
+        activeField: 'isServiceActive',
+      );
+
+  Stream<List<ServiceLocationCatalogRecord>> _watchCatalog(
+    Query<Map<String, dynamic>> query, {
+    required String activeField,
+  }) =>
+      query.snapshots().map((snapshot) {
+        final records = snapshot.docs
+            .map((doc) => ServiceLocationCatalogRecord.fromMap(
+                  doc.id,
+                  doc.data(),
+                  activeField: activeField,
+                ))
+            .where((record) => record.isActive)
+            .toList(growable: true)
+          ..sort((a, b) =>
+              a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+        return List.unmodifiable(records);
+      });
+
   /// Live Zone records. Reference hierarchy is loaded separately.
   Stream<List<ServiceZoneRecord>> watchZones({
     String? stateId,
@@ -234,6 +287,40 @@ class ServiceZoneWorkflowService {
     if (data is Map) return Map<String, dynamic>.from(data);
     return {'result': data};
   }
+}
+
+/// Read-only reference record for the State → District → City selectors.
+/// Firestore document IDs are retained as canonical IDs; names are display-only.
+class ServiceLocationCatalogRecord {
+  const ServiceLocationCatalogRecord({
+    required this.id,
+    required this.name,
+    required this.countryId,
+    required this.stateId,
+    required this.districtId,
+    required this.isActive,
+  });
+
+  final String id;
+  final String name;
+  final String? countryId;
+  final String? stateId;
+  final String? districtId;
+  final bool isActive;
+
+  factory ServiceLocationCatalogRecord.fromMap(
+    String id,
+    Map<String, dynamic> data, {
+    required String activeField,
+  }) =>
+      ServiceLocationCatalogRecord(
+        id: id,
+        name: data['name']?.toString() ?? '',
+        countryId: data['countryId']?.toString(),
+        stateId: data['stateId']?.toString(),
+        districtId: data['districtId']?.toString(),
+        isActive: data[activeField] == true,
+      );
 }
 
 /// Read model for a Zone document. It exposes backend workflow fields without
