@@ -2,6 +2,78 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dojo_admin/features/service_location/services/service_zone_workflow_service.dart';
 
 void main() {
+  group('Zone boundary draft contract', () {
+    test('builds the pending Firestore Rules payload without verification fields', () {
+      final points = [
+        const GeoPoint(28.60, 77.35),
+        const GeoPoint(28.61, 77.36),
+        const GeoPoint(28.62, 77.35),
+      ];
+
+      final payload = ServiceZoneWorkflowService.boundaryDraftPayload(
+        zoneId: 'zone-123',
+        points: points,
+        sourceType: 'manuallyDrawn',
+        sourceName: 'Government GIS reference',
+        sourceReference: 'https://example.gov.in/gis/zone-123',
+      );
+
+      expect(payload['locationId'], 'zone-123');
+      expect(payload['locationType'], 'zone');
+      expect(payload['points'], points);
+      expect(payload['sourceType'], 'manuallyDrawn');
+      expect(payload['sourceName'], 'Government GIS reference');
+      expect(payload['sourceReference'], 'https://example.gov.in/gis/zone-123');
+      expect(payload['verificationStatus'], 'pending');
+      expect(payload.keys, containsAll(['createdAt', 'updatedAt']));
+      expect(payload, isNot(contains('verifiedBy')));
+      expect(payload, isNot(contains('verifiedAt')));
+      expect(payload, isNot(contains('verificationNotes')));
+    });
+
+    test('rejects fewer than three polygon points', () {
+      expect(
+        () => ServiceZoneWorkflowService.boundaryDraftPayload(
+          zoneId: 'zone-123',
+          points: const [GeoPoint(28.60, 77.35), GeoPoint(28.61, 77.36)],
+          sourceType: 'manuallyDrawn',
+          sourceName: 'Source',
+          sourceReference: 'source-ref',
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('rejects missing provenance and unsupported source types', () {
+      final points = const [
+        GeoPoint(28.60, 77.35),
+        GeoPoint(28.61, 77.36),
+        GeoPoint(28.62, 77.35),
+      ];
+
+      expect(
+        () => ServiceZoneWorkflowService.boundaryDraftPayload(
+          zoneId: 'zone-123',
+          points: points,
+          sourceType: 'unknown',
+          sourceName: 'Source',
+          sourceReference: 'source-ref',
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => ServiceZoneWorkflowService.boundaryDraftPayload(
+          zoneId: 'zone-123',
+          points: points,
+          sourceType: 'manuallyDrawn',
+          sourceName: ' ',
+          sourceReference: 'source-ref',
+        ),
+        throwsArgumentError,
+      );
+    });
+  });
+
   group('ServiceZoneRecord', () {
     test('parses the canonical Zone fields from Firebase', () {
       final zone = ServiceZoneRecord.fromMap('zone-123', {
