@@ -1,6 +1,6 @@
 # DOJO WALK Admin — Notion-to-File UI Map
 
-**Working branch:** `ui/notion-brand-foundation-2026-10-28`  
+**Working branch:** `ui/notion-brand-foundation-2026-10-28`
 **Rule:** Notion is the source of truth. This document records the current UI mapping and gaps; it does not approve draft policies. No new Firebase integration, merge, or deployment is performed in this UI phase.
 
 ## Shared UI rules
