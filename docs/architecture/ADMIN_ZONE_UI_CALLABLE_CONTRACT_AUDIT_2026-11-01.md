@@ -71,3 +71,30 @@ These are prototype protections, not live workflow integration or production rea
 ## Next safe step
 
 Before any API wiring, obtain approval of the final operation map and role/state matrix in Notion, then run a read-only cross-repository schema and response-shape reconciliation against the exact Firebase PR head. Keep Create Zone save, boundary upload, review and lifecycle controls disabled until the contract and emulator-backed acceptance tests are ready.
+
+
+## Addendum — Firestore boundary-draft path reconciled (2026-11-03)
+
+A further read-only inspection of Firebase PR #39 head `04acc1bb11b38326fba4cf22d3a70553ff50c625` found an approved Rules-governed draft-write path that was not captured in the original audit:
+
+- `service_location_boundaries/{boundaryId}` allows create only for an active `central_admin` via `isZoneOperator()`.
+- Required create fields: `locationId`, `locationType`, `points`, `sourceType`, `sourceName`, `sourceReference`, `verificationStatus`, `createdAt`, `updatedAt`.
+- Allowed `locationType` values include `zone`; allowed source types are `governmentGis`, `governmentCadastralMap`, `importedGeoJson`, and `manuallyDrawn`.
+- Rules require 3–10,000 points, non-empty source name/reference, `verificationStatus == pending`, server request timestamps, and no client-supplied verification identity/timestamp/notes.
+- Draft updates are restricted to active Central Admin and pending/rejected records. Verified/rejected transitions remain callable/Admin-SDK controlled; verified boundaries cannot be deleted.
+
+Admin PR #51 now adds `ServiceZoneWorkflowService.createBoundaryDraft()`, which writes only the pending draft shape, plus a pure payload builder and unit tests for provenance, point-count and unverified-state constraints. It does not set verification fields or call the review transition. The Add Zone screen remains UI-only; no mock hierarchy IDs or local preview points are submitted.
+
+### Validation clarification
+
+The Admin CI on commit `a9ec9c29e491189d64ef292f188a716bca848bf9` passed Analyze, complete Admin tests and Flutter Web build. The paired Firebase Emulator workflow is `workflow_dispatch` only and was not run by that CI. Therefore no Admin↔Firebase Zone Emulator PASS is claimed by this addendum.
+
+### Remaining gates
+
+1. Confirm the authoritative State/District/City catalog and canonical document IDs.
+2. Add source-provenance inputs to the Zone creation UX before enabling boundary draft creation.
+3. Run the manual paired Emulator workflow with the exact Admin head and Firebase SHA, and inspect the actual run summary.
+4. Add authenticated role tests: Central Admin can create a pending Zone boundary; inactive/non-Central actors cannot; verification is not client-writable.
+5. Exercise the complete Zone lifecycle and negative cases before enabling operational actions.
+
+This addendum corrects the earlier statement that no approved boundary persistence path exists: the Firebase Rules-governed Central Admin draft-create path exists on the inspected PR #39 head. It does not imply Firebase PR #39 is merged or deployed.
