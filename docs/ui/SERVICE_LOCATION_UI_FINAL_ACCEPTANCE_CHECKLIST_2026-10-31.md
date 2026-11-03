@@ -1,7 +1,7 @@
 # DOJO WALK Admin — Service Location UI Final Acceptance Checklist
-**Date:** 2026-10-31  
-**Repository:** `DOJOWALK/DOJO-WALK-Admin`  
-**Branch:** `ui/notion-brand-foundation-2026-10-28`  
+**Date:** 2026-10-31
+**Repository:** `DOJOWALK/DOJO-WALK-Admin`
+**Branch:** `ui/notion-brand-foundation-2026-10-28`
 **Scope:** UI acceptance planning and source-level review only. This checklist does not authorize Firebase/Firestore integration, Emulator work, merge, or deployment.
 
 ## Evidence labels
@@ -121,7 +121,7 @@ A real GitHub Actions run was found for code commit `71055eeb3268c9195b8cc001706
 These CI runs validate code commit `2caff9d00d24020969a7744880101475d2afa9d2`. A subsequent documentation-only update does not change that tested code.
 
 ## 11. Acceptance decision
-**Status: NOT YET ACCEPTED.**  
+**Status: NOT YET ACCEPTED.**
 Reason: automated CI is now green (Analyze, 320 tests, and Web release build), but the remaining manual/device/browser/accessibility checks in Sections 1–7 and explicit Founder/product-owner acceptance are still outstanding. This is not a claim that the Service Location UI is complete or production-ready.
 
 **Next engineering action:** add focused ServiceBoundaryEditor interaction coverage (undo, clear, read-only behavior, and callback safety), then run the full validation workflow. Actual Google Maps taps still require browser/device verification.
