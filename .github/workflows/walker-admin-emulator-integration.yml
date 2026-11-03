@@ -138,14 +138,20 @@ jobs:
         working-directory: firebase-rules
         run: npm install --no-audit --no-fund
 
-      - name: Start Auth and Firestore emulators
+      - name: Build Firebase callable functions
+        working-directory: firebase-rules/functions
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+
+      - name: Start Auth, Firestore and Functions emulators
         working-directory: firebase-rules
         run: |
-          npx firebase emulators:start --only auth,firestore --project demo-dojo-admin-integration > "$RUNNER_TEMP/firebase-emulators.log" 2>&1 &
+          npx firebase emulators:start --only auth,firestore,functions --project demo-dojo-admin-integration > "$RUNNER_TEMP/firebase-emulators.log" 2>&1 &
           echo $! > "$RUNNER_TEMP/firebase-emulators.pid"
-          for attempt in $(seq 1 60); do
-            if (echo > /dev/tcp/127.0.0.1/9099) >/dev/null 2>&1 && (echo > /dev/tcp/127.0.0.1/8080) >/dev/null 2>&1; then
-              echo "Auth and Firestore emulator ports are accepting connections."
+          for attempt in $(seq 1 90); do
+            if (echo > /dev/tcp/127.0.0.1/9099) >/dev/null 2>&1 && (echo > /dev/tcp/127.0.0.1/8080) >/dev/null 2>&1 && (echo > /dev/tcp/127.0.0.1/5001) >/dev/null 2>&1; then
+              echo "Auth, Firestore and Functions emulator ports are accepting connections."
               exit 0
             fi
             sleep 2
@@ -175,6 +181,7 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: |
             timeout 15m flutter test integration_test/walker_admin_service_emulator_test.dart -d emulator-5554 --dart-define=DOJO_EMULATOR_PROJECT_ID=demo-dojo-admin-integration
+            timeout 15m flutter test integration_test/service_zone_workflow_emulator_test.dart -d emulator-5554 --dart-define=DOJO_EMULATOR_PROJECT_ID=demo-dojo-admin-integration
 
       - name: Show emulator logs on failure
         if: failure()
