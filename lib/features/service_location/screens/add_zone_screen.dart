@@ -25,7 +25,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
   String? _city;
   String? _zoneSelection;
   String _boundaryStatus = 'Not drawn';
-  String _boundaryValidationFeedback = 'Add at least 4 points (0/4), including the closing point.';
+  String _boundaryValidationFeedback = 'Add at least 4 boundary points (0/4).';
   List<LatLng> _boundaryPreviewPoints = const [];
   bool _saving = false;
 
