@@ -58,7 +58,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
   void _clearBoundaryPreview() {
     _boundaryPreviewPoints = const [];
     _boundaryStatus = 'Not drawn';
-    _boundaryValidationFeedback = 'Add at least 4 points (0/4), including the closing point.';
+    _boundaryValidationFeedback = 'Add at least 4 boundary points (0/4).';
   }
 
   Future<void> _openBoundaryEditor() async {
@@ -146,8 +146,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
     final fieldsValid = _formKey.currentState!.validate();
     if (!fieldsValid) return;
 
-    // Existing mock Zones are reference-only and must never be treated as a
-    // new Zone submission.
+    // Only the explicit create-new option is available on this screen.
     final isCreatingNewZone = _creatingZone;
     final hasBasicGeometry =
         ServiceBoundaryPreviewValidator.isValid(_boundaryPreviewPoints);
@@ -166,7 +165,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(
-          isCreatingNewZone ? 'Validation incomplete' : 'Example Zone selected',
+          isCreatingNewZone ? 'Validation incomplete' : 'Select a Zone',
         ),
         content: Text(validationMessage),
         actions: [
@@ -332,21 +331,6 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                               _clearBoundaryPreview();
                             }),
                           ),
-                          if (_zoneSelection != null && !_creatingZone) ...[
-                            const SizedBox(height: 10),
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFF0DF),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Text(
-                                'Mock existing Zone selected. This form will not edit it; use Zone Details to review records. No live data is loaded.',
-                                style: TextStyle(fontSize: 12, height: 1.4),
-                              ),
-                            ),
-                          ],
                           if (_creatingZone) ...[
                             const SizedBox(height: 16),
                             TextFormField(
