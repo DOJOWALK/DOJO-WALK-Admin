@@ -1,8 +1,8 @@
 # DOJO WALK Admin Dashboard — Focused UI/Data Audit
 
-**Date:** 2026-10-30  
-**Branch:** `ui/notion-brand-foundation-2026-10-28`  
-**Status:** Source inspection only — no code or test changes in this audit.  
+**Date:** 2026-10-30
+**Branch:** `ui/notion-brand-foundation-2026-10-28`
+**Status:** Source inspection only — no code or test changes in this audit.
 **Scope:** Dashboard screen and its read-only data-source contract.
 
 ## Inspected source
