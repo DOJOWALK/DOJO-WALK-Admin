@@ -1,9 +1,9 @@
 # DOJO WALK Admin — GitHub File Structure Audit
 
-**Audit date:** 2026-10-29  
-**Repository:** `DOJOWALK/DOJO-WALK-Admin`  
-**Audited ref:** PR #51 head `df5562f2166d864f3817d06caff0a480076a3c91`  
-**Working branch:** `ui/notion-brand-foundation-2026-10-28`  
+**Audit date:** 2026-10-29
+**Repository:** `DOJOWALK/DOJO-WALK-Admin`
+**Audited ref:** PR #51 head `df5562f2166d864f3817d06caff0a480076a3c91`
+**Working branch:** `ui/notion-brand-foundation-2026-10-28`
 **Status:** Inventory only; no source files moved or deleted by this audit.
 
 ## 1. Scope and safety
