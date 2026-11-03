@@ -98,3 +98,8 @@ The Admin CI on commit `a9ec9c29e491189d64ef292f188a716bca848bf9` passed Analyze
 5. Exercise the complete Zone lifecycle and negative cases before enabling operational actions.
 
 This addendum corrects the earlier statement that no approved boundary persistence path exists: the Firebase Rules-governed Central Admin draft-create path exists on the inspected PR #39 head. It does not imply Firebase PR #39 is merged or deployed.
+
+
+### Geometry minimum reconciliation — 2026-11-03
+
+The Firestore create rule permits a minimum of 3 points, but the Firebase callable's canonical boundary hash requires at least 4 coordinate entries before approval. To fail early and avoid drafts that can never pass the backend approval path, the Admin draft payload builder and local preview validator now enforce 4 or more points (maximum 10,000). Google Maps renders polygons as closed shapes; the fourth point is a fourth boundary coordinate, not necessarily a duplicated first point. This is a stricter client-side readiness check than the Firestore create rule.
