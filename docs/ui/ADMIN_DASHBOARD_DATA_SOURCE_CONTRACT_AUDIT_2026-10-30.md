@@ -1,9 +1,9 @@
 # Admin Dashboard Data Source — Focused Contract Audit
 
-**Date:** 2026-10-30  
-**Branch:** `ui/notion-brand-foundation-2026-10-28`  
-**Source:** `lib/screens/dashboard/dashboard_data_source.dart`  
-**Source blob:** `f8463020ffada650a4a081dbec2d621280bd4aa7`  
+**Date:** 2026-10-30
+**Branch:** `ui/notion-brand-foundation-2026-10-28`
+**Source:** `lib/screens/dashboard/dashboard_data_source.dart`
+**Source blob:** `f8463020ffada650a4a081dbec2d621280bd4aa7`
 **Scope:** Read-only source inspection. No Firestore schema or production behavior changed.
 
 ## Current implementation verified
