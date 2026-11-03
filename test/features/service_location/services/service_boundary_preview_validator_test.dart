@@ -60,20 +60,20 @@ void main() {
   });
 
   group('ServiceBoundaryPreviewValidator.feedback', () {
-    test('asks for three points when preview is empty', () {
+    test('asks for four points when preview is empty', () {
       expect(
         ServiceBoundaryPreviewValidator.feedback(const []),
-        'Add at least 3 points (0/3).',
+        'Add at least 4 points (0/4), including the closing point.',
       );
     });
 
-    test('rejects fewer than three points', () {
+    test('rejects fewer than four points', () {
       expect(
         ServiceBoundaryPreviewValidator.feedback(const [
           LatLng(0, 0),
           LatLng(0, 2),
         ]),
-        'Add at least 3 points (2/3).',
+        'Add at least 4 points (2/4), including the closing point.',
       );
     });
 
@@ -83,8 +83,9 @@ void main() {
           LatLng(0, 0),
           LatLng(0, 0),
           LatLng(2, 2),
+          LatLng(0, 0),
         ]),
-        'Invalid preview: at least 3 distinct points are required.',
+        'Invalid preview: at least 3 distinct vertices are required plus a closing point.',
       );
     });
 
@@ -106,6 +107,7 @@ void main() {
           LatLng(0, 0),
           LatLng(0, 1),
           LatLng(0, 2),
+          LatLng(0, 3),
         ]),
         'Invalid preview: polygon crosses itself or encloses no area.',
       );
