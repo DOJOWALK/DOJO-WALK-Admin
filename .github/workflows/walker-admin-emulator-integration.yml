@@ -5,6 +5,11 @@ name: DOJO WALK Admin Firebase Emulator Integration
 # the UI-first phase; it does not affect live Firebase or deployment.
 on:
   workflow_dispatch:
+    inputs:
+      firebase_ref:
+        description: "Exact 40-character Firebase repository commit SHA to test against"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -26,8 +31,32 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: DOJOWALK/DOJO-WALK-Firebase
-          ref: main
+          ref: ${{ inputs.firebase_ref }}
           path: firebase-rules
+
+      - name: Validate and record paired source SHAs
+        env:
+          FIREBASE_REF_INPUT: ${{ inputs.firebase_ref }}
+        run: |
+          if ! [[ "$FIREBASE_REF_INPUT" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "firebase_ref must be an exact 40-character commit SHA; branches and tags are not accepted." >&2
+            exit 1
+          fi
+          actual_firebase_sha="$(git -C firebase-rules rev-parse HEAD)"
+          if [[ "$actual_firebase_sha" != "$FIREBASE_REF_INPUT" ]]; then
+            echo "Checked-out Firebase SHA does not match requested SHA." >&2
+            exit 1
+          fi
+          admin_sha="$(git rev-parse HEAD)"
+          {
+            echo "### Admin ↔ Firebase Emulator Integration"
+            echo "- Admin repository: \`$GITHUB_REPOSITORY\`"
+            echo "- Admin SHA: \`$admin_sha\`"
+            echo "- Firebase repository: \`DOJOWALK/DOJO-WALK-Firebase\`"
+            echo "- Firebase SHA: \`$actual_firebase_sha\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "Verified Admin SHA: $admin_sha"
+          echo "Verified Firebase SHA: $actual_firebase_sha"
 
       - name: Set up Java
         uses: actions/setup-java@v5
