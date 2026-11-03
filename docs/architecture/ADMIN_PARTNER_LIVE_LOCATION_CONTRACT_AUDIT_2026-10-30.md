@@ -9,9 +9,9 @@
 
 ### Admin reader
 
-Repository: `DOJOWALK/DOJO-WALK-Admin`  
-Branch: `ui/notion-brand-foundation-2026-10-28`  
-File: `lib/screens/live/live_operations_screen.dart`  
+Repository: `DOJOWALK/DOJO-WALK-Admin`
+Branch: `ui/notion-brand-foundation-2026-10-28`
+File: `lib/screens/live/live_operations_screen.dart`
 Blob: `841b4028dbfde736b69749dd11543cebb9329ba0`
 
 Observed behavior:
@@ -21,9 +21,9 @@ Observed behavior:
 
 ### Partner writer
 
-Repository: `DOJOWALK/DOJO-WALK-Partner`  
-Branch: `chore/notion-aligned-structure`  
-File: `lib/features/live_walk/screens/live_walk_screen.dart`  
+Repository: `DOJOWALK/DOJO-WALK-Partner`
+Branch: `chore/notion-aligned-structure`
+File: `lib/features/live_walk/screens/live_walk_screen.dart`
 Blob: `f035fa3410500ea9c798955c92e93c075a4e6132`
 
 Observed behavior:
