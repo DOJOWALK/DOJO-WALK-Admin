@@ -1,8 +1,8 @@
 # DOJO WALK Admin UI — POL-040 File Map & Gap Audit
 
-**Source of truth:** Notion POL-040 — Admin Service Location UI: Screen-by-Screen Design & Developer Checklist  
-**Related specifications:** POL-038 (Zone lifecycle), POL-041 (API/backend contract), POL-042 (implementation/test plan)  
-**Working branch:** `ui/notion-brand-foundation-2026-10-28`  
+**Source of truth:** Notion POL-040 — Admin Service Location UI: Screen-by-Screen Design & Developer Checklist
+**Related specifications:** POL-038 (Zone lifecycle), POL-041 (API/backend contract), POL-042 (implementation/test plan)
+**Working branch:** `ui/notion-brand-foundation-2026-10-28`
 **Scope boundary:** UI and file organization only. Do not add Firebase integration, merge, or deploy from this workstream.
 
 ## Governing rules
