@@ -103,3 +103,18 @@ This addendum corrects the earlier statement that no approved boundary persisten
 ### Geometry minimum reconciliation — 2026-11-03
 
 The Firestore create rule permits a minimum of 3 points, but the Firebase callable's canonical boundary hash requires at least 4 coordinate entries before approval. To fail early and avoid drafts that can never pass the backend approval path, the Admin draft payload builder and local preview validator now enforce 4 or more points (maximum 10,000). Google Maps renders polygons as closed shapes; the fourth point is a fourth boundary coordinate, not necessarily a duplicated first point. This is a stricter client-side readiness check than the Firestore create rule.
+
+
+### Hierarchy catalog UI integration — 2026-11-03
+
+Admin PR #51 now replaces the Add Zone screen's hard-coded example State/District/City values with the existing read-only `ServiceLocationService` streams:
+
+- State / UT: active records from `watchStates()`; selected value is the Firestore document ID.
+- District: active records from `watchDistricts(stateId: ..., activeOnly: true)`; selected value is the Firestore document ID.
+- City: active records from `watchCities(stateId: ..., activeOnly: true)`, then narrowed to the selected canonical `districtId`; selected value is the Firestore document ID.
+- Legacy City records without `districtId` are excluded from this four-level Zone creation flow.
+- The Zone selector now offers only “Create new Zone…”; no example Zone IDs are available to submit.
+
+Rules observation: `service_states`, `service_districts`, and `service_cities` reads are permitted to an active Zone workflow user. `service_countries` reads are restricted to `isAdmin()` (active `super_admin`) in the inspected Firebase PR #39 rules, so the Central Admin screen does not query the Country collection. The current DOJO WALK scope is India-only; if multi-country support is introduced, a separate least-privilege country-reference read contract will be needed.
+
+This is read-only hierarchy integration only. Zone save, boundary persistence, review, Founder approval and activation remain disabled in the screen pending paired Emulator and role-gated E2E evidence.
