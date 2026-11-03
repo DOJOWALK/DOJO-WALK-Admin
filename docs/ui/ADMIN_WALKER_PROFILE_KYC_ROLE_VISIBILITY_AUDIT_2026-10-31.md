@@ -1,8 +1,8 @@
 # Admin Walker Profile & Sensitive Document Role-Visibility Audit — 2026-10-31
 
-Repository: DOJOWALK/DOJO-WALK-Admin  
-Branch: ui/notion-brand-foundation-2026-10-28  
-Audit base: f423f29ac0e6a0b039c345283a4048f7a55f218d  
+Repository: DOJOWALK/DOJO-WALK-Admin
+Branch: ui/notion-brand-foundation-2026-10-28
+Audit base: f423f29ac0e6a0b039c345283a4048f7a55f218d
 PR #51: Open / Draft. No merge or deployment.
 
 ## Executive finding
