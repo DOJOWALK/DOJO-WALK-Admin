@@ -187,7 +187,7 @@ class _ServiceBoundaryEditorState
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'सेव करने से पहले सही सीमा बनाएं: कम-से-कम 3 पॉइंट, बिना self-intersection और वास्तविक क्षेत्रफल के साथ।',
+            'सेव करने से पहले सही सीमा बनाएं: कम-से-कम 4 पॉइंट, बिना self-intersection और वास्तविक क्षेत्रफल के साथ।',
           ),
         ),
       );
