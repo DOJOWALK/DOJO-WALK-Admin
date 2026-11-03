@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -112,16 +113,37 @@ Future<void> main() async {
         ),
       );
 
+      // Use the Emulator-only owner token for verification because the
+      // unauthenticated app is intentionally not allowed to read these paths.
+      // This token must never be used against a production Firebase endpoint.
+      final client = io.HttpClient();
+      addTearDown(client.close);
+      final documentsUri = Uri.parse(
+        'http://$host:8080/v1/projects/$projectId/databases/(default)/documents',
+      );
+
+      Future<List<dynamic>> readEmulatorCollection(String collection) async {
+        final uri = documentsUri.replace(path: '${documentsUri.path}/$collection');
+        final request = await client.getUrl(uri);
+        request.headers.set(io.HttpHeaders.authorizationHeader, 'Bearer owner');
+        final response = await request.close();
+        final body = await response.transform(utf8.decoder).join();
+        expect(
+          response.statusCode,
+          io.HttpStatus.ok,
+          reason: 'Emulator owner read failed for $collection: $body',
+        );
+        final decoded = jsonDecode(body) as Map<String, dynamic>;
+        return (decoded['documents'] as List<dynamic>?) ?? const [];
+      }
+
       expect(
-        (await firestore.collection('service_zones').get()).docs,
+        await readEmulatorCollection('service_zones'),
         isEmpty,
         reason: 'Unauthenticated Zone requests must not create Zone records.',
       );
       expect(
-        (await firestore
-                .collection('service_location_boundary_review_audit')
-                .get())
-            .docs,
+        await readEmulatorCollection('service_location_boundary_review_audit'),
         isEmpty,
         reason: 'Unauthenticated boundary reviews must not write audit records.',
       );
