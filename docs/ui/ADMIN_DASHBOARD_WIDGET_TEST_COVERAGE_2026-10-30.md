@@ -1,9 +1,9 @@
 # Dashboard Widget Test Coverage — Verified Inventory
 
-**Date:** 2026-10-30  
-**Branch:** `ui/notion-brand-foundation-2026-10-28`  
-**Source commit:** `3ee6c1212deff220dfb9bfd0c5d82d0bc9a17f3e` (parent of docs-only audit commit `c492c2c693c996204d9757733a9e5ec2150ae563`)  
-**Dashboard test:** `test/screens/dashboard/dashboard_screen_test.dart`  
+**Date:** 2026-10-30
+**Branch:** `ui/notion-brand-foundation-2026-10-28`
+**Source commit:** `3ee6c1212deff220dfb9bfd0c5d82d0bc9a17f3e` (parent of docs-only audit commit `c492c2c693c996204d9757733a9e5ec2150ae563`)
+**Dashboard test:** `test/screens/dashboard/dashboard_screen_test.dart`
 **Dashboard test blob:** `7a5fc87ab3aff5ec8dea97ad29b03b63417f6800`
 
 ## Correction to the prior audit
