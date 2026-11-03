@@ -9,6 +9,7 @@ void main() {
         const GeoPoint(28.60, 77.35),
         const GeoPoint(28.61, 77.36),
         const GeoPoint(28.62, 77.35),
+        const GeoPoint(28.60, 77.35),
       ];
 
       final payload = ServiceZoneWorkflowService.boundaryDraftPayload(
@@ -32,11 +33,15 @@ void main() {
       expect(payload, isNot(contains('verificationNotes')));
     });
 
-    test('rejects fewer than three polygon points', () {
+    test('rejects fewer than four polygon points', () {
       expect(
         () => ServiceZoneWorkflowService.boundaryDraftPayload(
           zoneId: 'zone-123',
-          points: const [GeoPoint(28.60, 77.35), GeoPoint(28.61, 77.36)],
+          points: const [
+            GeoPoint(28.60, 77.35),
+            GeoPoint(28.61, 77.36),
+            GeoPoint(28.62, 77.35),
+          ],
           sourceType: 'manuallyDrawn',
           sourceName: 'Source',
           sourceReference: 'source-ref',
@@ -50,6 +55,7 @@ void main() {
         GeoPoint(28.60, 77.35),
         GeoPoint(28.61, 77.36),
         GeoPoint(28.62, 77.35),
+        GeoPoint(28.60, 77.35),
       ];
 
       expect(
