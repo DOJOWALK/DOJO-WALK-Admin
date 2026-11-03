@@ -10,7 +10,18 @@ import 'boundary_review_screen.dart';
 /// UI-only Zone creation form based on DOJO WALK POL-040.
 /// This screen intentionally does not write to Firebase yet.
 class AddZoneScreen extends StatefulWidget {
-  const AddZoneScreen({super.key});
+  const AddZoneScreen({
+    super.key,
+    this.statesStream,
+    this.districtsStream,
+    this.citiesStream,
+  });
+
+  /// Optional stream seams for deterministic widget tests. Production uses
+  /// the existing ServiceLocationService backed by Firebase.
+  final Stream<List<ServiceState>> Function()? statesStream;
+  final Stream<List<ServiceDistrict>> Function(String stateId)? districtsStream;
+  final Stream<List<ServiceCity>> Function(String stateId)? citiesStream;
 
   @override
   State<AddZoneScreen> createState() => _AddZoneScreenState();
@@ -22,7 +33,23 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
 
   final _formKey = GlobalKey<FormState>();
   final _zoneName = TextEditingController();
-  late final ServiceLocationService _locationService = ServiceLocationService();
+  late final ServiceLocationService? _locationService =
+      widget.statesStream == null ||
+              widget.districtsStream == null ||
+              widget.citiesStream == null
+          ? ServiceLocationService()
+          : null;
+
+  Stream<List<ServiceState>> _watchStates() =>
+      widget.statesStream?.call() ?? _locationService!.watchStates();
+
+  Stream<List<ServiceDistrict>> _watchDistricts(String stateId) =>
+      widget.districtsStream?.call(stateId) ??
+      _locationService!.watchDistricts(stateId: stateId, activeOnly: true);
+
+  Stream<List<ServiceCity>> _watchCities(String stateId) =>
+      widget.citiesStream?.call(stateId) ??
+      _locationService!.watchCities(stateId: stateId, activeOnly: true);
   String? _stateId;
   String? _districtId;
   String? _cityId;
@@ -230,7 +257,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                           ),
                           const SizedBox(height: 18),
                           StreamBuilder<List<ServiceState>>(
-                            stream: _locationService.watchStates(),
+                            stream: _watchStates(),
                             builder: (context, snapshot) {
                               final states = (snapshot.data ?? const <ServiceState>[])
                                   .where((item) => item.isActive);
@@ -257,10 +284,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                           StreamBuilder<List<ServiceDistrict>>(
                             stream: _stateId == null
                                 ? null
-                                : _locationService.watchDistricts(
-                                    stateId: _stateId,
-                                    activeOnly: true,
-                                  ),
+                                : _watchDistricts(_stateId!),
                             builder: (context, snapshot) {
                               final districts = snapshot.data ?? const <ServiceDistrict>[];
                               final options = {
@@ -289,10 +313,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                           StreamBuilder<List<ServiceCity>>(
                             stream: _stateId == null
                                 ? null
-                                : _locationService.watchCities(
-                                    stateId: _stateId,
-                                    activeOnly: true,
-                                  ),
+                                : _watchCities(_stateId!),
                             builder: (context, snapshot) {
                               final cities = (snapshot.data ?? const <ServiceCity>[])
                                   .where((item) =>
