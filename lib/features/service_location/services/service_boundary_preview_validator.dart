@@ -30,7 +30,7 @@ class ServiceBoundaryPreviewValidator {
 
   static String feedback(List<LatLng> points) {
     if (points.length < 4) {
-      return 'Add at least 4 points (${points.length}/4), including the closing point.';
+      return 'Add at least 4 boundary points (${points.length}/4).';
     }
 
     if (!points.every((point) => isCoordinateInRange(
