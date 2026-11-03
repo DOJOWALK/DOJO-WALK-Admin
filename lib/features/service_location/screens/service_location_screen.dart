@@ -819,7 +819,7 @@ class _ServiceLocationScreenState
   // COUNTRIES
   // ============================================================
 
-  
+
   // ============================================================
   // STATES
   // ============================================================
@@ -1148,12 +1148,12 @@ class _ServiceLocationScreenState
   // AREAS / SUB-DISTRICTS
   // ============================================================
 
-  
+
   // ============================================================
   // LOCALITIES / VILLAGES
   // ============================================================
 
-  
+
   Future<void> _confirmAndRunCsvImport({
     required LocationCsvPreview preview,
     required String fileName,
