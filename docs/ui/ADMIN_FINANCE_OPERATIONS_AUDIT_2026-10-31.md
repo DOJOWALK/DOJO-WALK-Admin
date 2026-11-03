@@ -1,7 +1,7 @@
 # DOJO WALK Admin Finance Operations Audit — 2026-10-31
 
-**Repository:** `DOJOWALK/DOJO-WALK-Admin`  
-**Branch:** `ui/notion-brand-foundation-2026-10-28`  
+**Repository:** `DOJOWALK/DOJO-WALK-Admin`
+**Branch:** `ui/notion-brand-foundation-2026-10-28`
 **Scope:** Admin finance UI, available tests, and Notion finance policy alignment. Source review only; no financial mutation or backend work.
 
 ## 1. Executive result
