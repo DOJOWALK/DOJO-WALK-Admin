@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - 'AGENTS.md'
       - '**.dart'
       - 'pubspec.yaml'
       - 'pubspec.lock'
