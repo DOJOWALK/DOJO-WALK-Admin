@@ -1,9 +1,9 @@
 # AdminShell Live Operations Navigation Correction — 2026-10-31
 
 ## Scope
-Repository: `DOJOWALK/DOJO-WALK-Admin`  
-Branch: `ui/notion-brand-foundation-2026-10-28`  
-PR: #51 (Draft; no merge/deploy)  
+Repository: `DOJOWALK/DOJO-WALK-Admin`
+Branch: `ui/notion-brand-foundation-2026-10-28`
+PR: #51 (Draft; no merge/deploy)
 Source file: `lib/screens/dashboard/admin_shell.dart`
 
 ## Change made
