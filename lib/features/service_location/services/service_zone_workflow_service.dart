@@ -114,8 +114,8 @@ class ServiceZoneWorkflowService {
     if (normalizedZoneId.isEmpty) {
       throw ArgumentError('Zone ID is required.');
     }
-    if (points.length < 3 || points.length > 10000) {
-      throw ArgumentError('A boundary must contain between 3 and 10,000 points.');
+    if (points.length < 4 || points.length > 10000) {
+      throw ArgumentError('A boundary must contain between 4 and 10,000 points.');
     }
     if (!allowedSourceTypes.contains(sourceType)) {
       throw ArgumentError.value(sourceType, 'sourceType', 'Unsupported boundary source type.');
