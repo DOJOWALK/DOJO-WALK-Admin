@@ -1,7 +1,7 @@
 # Dashboard Partial-Failure Tests and Emulator Readiness
 
-**Date:** 2026-10-30  
-**Branch:** `ui/notion-brand-foundation-2026-10-28`  
+**Date:** 2026-10-30
+**Branch:** `ui/notion-brand-foundation-2026-10-28`
 **Scope:** Dashboard UI resilience and feasibility review for Firestore-backed tests.
 
 ## Partial-failure tests added
