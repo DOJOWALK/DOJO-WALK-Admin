@@ -63,7 +63,7 @@ void main() {
     test('asks for four points when preview is empty', () {
       expect(
         ServiceBoundaryPreviewValidator.feedback(const []),
-        'Add at least 4 points (0/4), including the closing point.',
+        'Add at least 4 boundary points (0/4).',
       );
     });
 
@@ -73,7 +73,7 @@ void main() {
           LatLng(0, 0),
           LatLng(0, 2),
         ]),
-        'Add at least 4 points (2/4), including the closing point.',
+        'Add at least 4 boundary points (2/4).',
       );
     });
 
