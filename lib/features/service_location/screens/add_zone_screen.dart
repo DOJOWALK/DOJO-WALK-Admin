@@ -25,7 +25,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
   String? _city;
   String? _zoneSelection;
   String _boundaryStatus = 'Not drawn';
-  String _boundaryValidationFeedback = 'Add at least 3 points (0/3).';
+  String _boundaryValidationFeedback = 'Add at least 4 points (0/4), including the closing point.';
   List<LatLng> _boundaryPreviewPoints = const [];
   bool _saving = false;
 
@@ -93,7 +93,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
   void _clearBoundaryPreview() {
     _boundaryPreviewPoints = const [];
     _boundaryStatus = 'Not drawn';
-    _boundaryValidationFeedback = 'Add at least 3 points (0/3).';
+    _boundaryValidationFeedback = 'Add at least 4 points (0/4), including the closing point.';
   }
 
   Future<void> _openBoundaryEditor() async {
@@ -187,7 +187,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
     final validationMessage = isCreatingNewZone
         ? [
             hasBasicGeometry
-                ? 'Local polygon shape check: passed (not GIS-verified).'
+                ? 'Local polygon shape check: passed locally (4+ points; not GIS-verified).'
                 : 'Local polygon shape check: failed — ' + _boundaryValidationFeedback,
             'Boundary evidence is not uploaded and GIS verification is pending.',
             'The State/UT → District → City options are still example catalog data.',
