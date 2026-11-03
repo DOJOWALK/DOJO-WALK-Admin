@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../models/service_location_models.dart';
 import '../services/service_boundary_preview_validator.dart';
+import '../services/service_location_service.dart';
 import '../widgets/service_boundary_editor.dart';
 import 'boundary_review_screen.dart';
 
@@ -20,25 +22,18 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
 
   final _formKey = GlobalKey<FormState>();
   final _zoneName = TextEditingController();
-  String? _state;
-  String? _district;
-  String? _city;
+  late final ServiceLocationService _locationService = ServiceLocationService();
+  String? _stateId;
+  String? _districtId;
+  String? _cityId;
   String? _zoneSelection;
   String _boundaryStatus = 'Not drawn';
   String _boundaryValidationFeedback = 'Add at least 4 boundary points (0/4).';
   List<LatLng> _boundaryPreviewPoints = const [];
   bool _saving = false;
 
-  // Placeholder catalog values for UI development only; not production data.
-  final Map<String, Map<String, List<String>>> _catalog = const {
-    'Uttar Pradesh': {
-      'Gautam Buddha Nagar': ['Noida', 'Greater Noida'],
-      'Ghaziabad': ['Ghaziabad'],
-    },
-    'Delhi': {
-      'New Delhi': ['New Delhi'],
-    },
-  };
+  // Hierarchy selectors read canonical Firestore document IDs. No local
+  // example catalog or display-name-derived IDs are permitted.
 
   @override
   void dispose() {
@@ -46,45 +41,15 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
     super.dispose();
   }
 
-  List<String> get _districts =>
-      _state == null ? const [] : (_catalog[_state]?.keys.toList() ?? const []);
+  static const Map<String, String> _zoneOptions = {
+    'create_new': 'Create new Zone…',
+  };
 
-  List<String> get _cities => _state == null || _district == null
-      ? const []
-      : (_catalog[_state]?[_district] ?? const []);
-
-  // Clearly labelled example catalog for UI-only development. These are
-  // not live Zone records; the approved catalog will replace them after the
-  // Notion-defined data contract is connected.
-  List<String> get _zoneOptions {
-    if (_city == null) return const [];
-    return switch (_city) {
-      'Noida' => const [
-          'Create new Zone…',
-          'Example Zone North (mock)',
-          'Example Zone Central (mock)',
-        ],
-      'Greater Noida' => const [
-          'Create new Zone…',
-          'Example Zone South (mock)',
-        ],
-      'Ghaziabad' => const [
-          'Create new Zone…',
-          'Example Zone East (mock)',
-        ],
-      'New Delhi' => const [
-          'Create new Zone…',
-          'Example Zone Capital (mock)',
-        ],
-      _ => const ['Create new Zone…'],
-    };
-  }
-
-  bool get _creatingZone => _zoneSelection == 'Create new Zone…';
+  bool get _creatingZone => _zoneSelection == 'create_new';
 
   void _resetBelowState() {
-    _district = null;
-    _city = null;
+    _districtId = null;
+    _cityId = null;
     _zoneSelection = null;
     _zoneName.clear();
     _clearBoundaryPreview();
@@ -157,7 +122,7 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
   Widget _selector({
     required String label,
     required String? value,
-    required List<String> options,
+    required Map<String, String> options,
     required ValueChanged<String?> onChanged,
     String? helper,
   }) {
@@ -165,9 +130,11 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
       initialValue: value,
       isExpanded: true,
       decoration: _decoration(label, helper: helper),
-      items: options
-          .map((option) =>
-              DropdownMenuItem<String>(value: option, child: Text(option)))
+      items: options.entries
+          .map((entry) => DropdownMenuItem<String>(
+                value: entry.key,
+                child: Text(entry.value),
+              ))
           .toList(),
       onChanged: options.isEmpty ? null : onChanged,
       validator: (selected) =>
@@ -190,11 +157,10 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                 ? 'Local polygon shape check: passed locally (4+ points; not GIS-verified).'
                 : 'Local polygon shape check: failed — ' + _boundaryValidationFeedback,
             'Boundary evidence is not uploaded and GIS verification is pending.',
-            'The State/UT → District → City options are still example catalog data.',
+            'State/UT → District → City values are loaded from the read-only Firebase hierarchy.',
             'Save Draft and Submit for Review remain disabled. Nothing has been saved.',
           ].join(' | ')
-        : 'Existing Zone options are mock records for preview only. '
-            'Select “Create new Zone…” to validate a new Zone draft. '
+        : 'Select “Create new Zone…” to validate a new Zone draft. '
             'Nothing has been edited or saved.';
     await showDialog<void>(
       context: context,
@@ -264,52 +230,106 @@ class _AddZoneScreenState extends State<AddZoneScreen> {
                             ),
                           ),
                           const SizedBox(height: 18),
-                          _selector(
-                            label: 'State / UT',
-                            value: _state,
-                            options: _catalog.keys.toList(),
-                            onChanged: (value) => setState(() {
-                              _state = value;
-                              _resetBelowState();
-                            }),
+                          StreamBuilder<List<ServiceState>>(
+                            stream: _locationService.watchStates(),
+                            builder: (context, snapshot) {
+                              final states = (snapshot.data ?? const <ServiceState>[])
+                                  .where((item) => item.isActive);
+                              final options = {
+                                for (final item in states) item.id: item.name,
+                              };
+                              return _selector(
+                                label: 'State / UT',
+                                value: _stateId,
+                                options: options,
+                                helper: snapshot.hasError
+                                    ? 'Unable to load States. Check access and try again.'
+                                    : snapshot.connectionState == ConnectionState.waiting
+                                        ? 'Loading official State / UT records…'
+                                        : 'Live Firebase records; document IDs are used internally.',
+                                onChanged: (value) => setState(() {
+                                  _stateId = value;
+                                  _resetBelowState();
+                                }),
+                              );
+                            },
                           ),
                           const SizedBox(height: 16),
-                          _selector(
-                            label: 'District',
-                            value: _district,
-                            options: _districts,
-                            onChanged: (value) => setState(() {
-                              _district = value;
-                              _city = null;
-                              _zoneSelection = null;
-                              _zoneName.clear();
-                              _clearBoundaryPreview();
-                            }),
+                          StreamBuilder<List<ServiceDistrict>>(
+                            stream: _stateId == null
+                                ? null
+                                : _locationService.watchDistricts(
+                                    stateId: _stateId,
+                                    activeOnly: true,
+                                  ),
+                            builder: (context, snapshot) {
+                              final districts = snapshot.data ?? const <ServiceDistrict>[];
+                              final options = {
+                                for (final item in districts) item.id: item.name,
+                              };
+                              return _selector(
+                                label: 'District',
+                                value: _districtId,
+                                options: options,
+                                helper: _stateId == null
+                                    ? 'Select a State / UT first.'
+                                    : snapshot.hasError
+                                        ? 'Unable to load Districts. Check access and try again.'
+                                        : 'Filtered by the selected State / UT.',
+                                onChanged: (value) => setState(() {
+                                  _districtId = value;
+                                  _cityId = null;
+                                  _zoneSelection = null;
+                                  _zoneName.clear();
+                                  _clearBoundaryPreview();
+                                }),
+                              );
+                            },
                           ),
                           const SizedBox(height: 16),
-                          _selector(
-                            label: 'City',
-                            value: _city,
-                            options: _cities,
-                            onChanged: (value) => setState(() {
-                              _city = value;
-                              _zoneSelection = null;
-                              _zoneName.clear();
-                              _clearBoundaryPreview();
-                            }),
+                          StreamBuilder<List<ServiceCity>>(
+                            stream: _stateId == null
+                                ? null
+                                : _locationService.watchCities(
+                                    stateId: _stateId,
+                                    activeOnly: true,
+                                  ),
+                            builder: (context, snapshot) {
+                              final cities = (snapshot.data ?? const <ServiceCity>[])
+                                  .where((item) =>
+                                      _districtId != null &&
+                                      item.districtId == _districtId);
+                              final options = {
+                                for (final item in cities) item.id: item.name,
+                              };
+                              return _selector(
+                                label: 'City',
+                                value: _cityId,
+                                options: options,
+                                helper: _districtId == null
+                                    ? 'Select a District first.'
+                                    : snapshot.hasError
+                                        ? 'Unable to load Cities. Check access and try again.'
+                                        : 'Filtered by the selected District; legacy Cities without a District ID are excluded.',
+                                onChanged: (value) => setState(() {
+                                  _cityId = value;
+                                  _zoneSelection = null;
+                                  _zoneName.clear();
+                                  _clearBoundaryPreview();
+                                }),
+                              );
+                            },
                           ),
                           const SizedBox(height: 16),
                           _selector(
                             label: 'Zone',
                             value: _zoneSelection,
                             options: _zoneOptions,
-                            helper: 'Fourth dependent selector. Any existing Zone options shown are clearly marked mock records; live catalog is not connected.',
+                            helper: 'Fourth selector. Create a new Zone under the selected City.',
                             onChanged: (value) => setState(() {
                               _zoneSelection = value;
-                              if (value != 'Create new Zone…') {
-                                _zoneName.clear();
-                                _clearBoundaryPreview();
-                              }
+                              _zoneName.clear();
+                              _clearBoundaryPreview();
                             }),
                           ),
                           if (_zoneSelection != null && !_creatingZone) ...[
