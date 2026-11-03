@@ -81,6 +81,37 @@ void main() {
     });
   });
 
+  group('ServiceLocationCatalogRecord', () {
+    test('preserves canonical document ID and hierarchy parents', () {
+      final record = ServiceLocationCatalogRecord.fromMap(
+        'district-doc-123',
+        {
+          'name': 'Gautam Buddha Nagar',
+          'countryId': 'country-in',
+          'stateId': 'state-up',
+          'isServiceActive': true,
+        },
+        activeField: 'isServiceActive',
+      );
+
+      expect(record.id, 'district-doc-123');
+      expect(record.name, 'Gautam Buddha Nagar');
+      expect(record.countryId, 'country-in');
+      expect(record.stateId, 'state-up');
+      expect(record.isActive, isTrue);
+    });
+
+    test('fails closed when active flag is missing', () {
+      final record = ServiceLocationCatalogRecord.fromMap(
+        'state-doc-123',
+        {'name': 'Uttar Pradesh'},
+        activeField: 'isActive',
+      );
+
+      expect(record.isActive, isFalse);
+    });
+  });
+
   group('ServiceZoneRecord', () {
     test('parses the canonical Zone fields from Firebase', () {
       final zone = ServiceZoneRecord.fromMap('zone-123', {
