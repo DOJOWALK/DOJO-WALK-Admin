@@ -1,10 +1,10 @@
 # Admin Settings & Governance — Implementation Requirements (Draft)
 
-**Task:** ADM-P2-03  
-**Date:** 2026-11-01  
-**Status:** DRAFT — requirements only; source policies remain unapproved where noted. Not implemented, not tested.  
-**Repository:** DOJOWALK/DOJO-WALK-Admin  
-**Branch:** ui/notion-brand-foundation-2026-10-28  
+**Task:** ADM-P2-03
+**Date:** 2026-11-01
+**Status:** DRAFT — requirements only; source policies remain unapproved where noted. Not implemented, not tested.
+**Repository:** DOJOWALK/DOJO-WALK-Admin
+**Branch:** ui/notion-brand-foundation-2026-10-28
 **PR:** #51 — Draft, unmerged
 
 ## 1. Purpose and implementation boundary
