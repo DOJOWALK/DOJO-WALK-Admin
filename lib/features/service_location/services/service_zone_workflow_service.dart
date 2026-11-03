@@ -66,6 +66,77 @@ class ServiceZoneWorkflowService {
     throw StateError('Zone save response did not contain a location ID.');
   }
 
+  /// Create a pending Zone boundary draft using the Firestore Rules contract.
+  ///
+  /// Rules permit only an active Central Admin to create these drafts. The
+  /// server callable remains the only path that can verify/reject a boundary.
+  /// The caller must supply genuine source provenance; this method does not
+  /// mark a boundary as verified.
+  Future<String> createBoundaryDraft({
+    required String zoneId,
+    required List<GeoPoint> points,
+    required String sourceType,
+    required String sourceName,
+    required String sourceReference,
+  }) async {
+    final data = boundaryDraftPayload(
+      zoneId: zoneId,
+      points: points,
+      sourceType: sourceType,
+      sourceName: sourceName,
+      sourceReference: sourceReference,
+    );
+    final document = await _firestore
+        .collection('service_location_boundaries')
+        .add(data);
+    return document.id;
+  }
+
+  /// Pure payload builder shared with unit tests to guard the Firestore Rules
+  /// schema. Valid source types mirror firestore.rules exactly.
+  static Map<String, dynamic> boundaryDraftPayload({
+    required String zoneId,
+    required List<GeoPoint> points,
+    required String sourceType,
+    required String sourceName,
+    required String sourceReference,
+  }) {
+    final normalizedZoneId = zoneId.trim();
+    final normalizedSourceName = sourceName.trim();
+    final normalizedSourceReference = sourceReference.trim();
+    const allowedSourceTypes = {
+      'governmentGis',
+      'governmentCadastralMap',
+      'importedGeoJson',
+      'manuallyDrawn',
+    };
+
+    if (normalizedZoneId.isEmpty) {
+      throw ArgumentError('Zone ID is required.');
+    }
+    if (points.length < 3 || points.length > 10000) {
+      throw ArgumentError('A boundary must contain between 3 and 10,000 points.');
+    }
+    if (!allowedSourceTypes.contains(sourceType)) {
+      throw ArgumentError.value(sourceType, 'sourceType', 'Unsupported boundary source type.');
+    }
+    if (normalizedSourceName.isEmpty || normalizedSourceReference.isEmpty) {
+      throw ArgumentError('Boundary source name and reference are required.');
+    }
+
+    return {
+      'locationId': normalizedZoneId,
+      'locationType': 'zone',
+      'points': points,
+      'sourceType': sourceType,
+      'sourceName': normalizedSourceName,
+      'sourceReference': normalizedSourceReference,
+      'verificationStatus': 'pending',
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+  }
+
   Future<Map<String, dynamic>> submitForFounderReview(
     String zoneId,
   ) =>
