@@ -1,10 +1,10 @@
 # Admin Navigation Regression & Final UI Coverage Audit — 2026-11-01
 
-**Task:** ADM-P2-05  
-**Repository:** DOJOWALK/DOJO-WALK-Admin  
-**Branch:** ui/notion-brand-foundation-2026-10-28  
-**PR:** #51 — Open, Draft, Unmerged  
-**Audit type:** Read-only source, test and documentation reconciliation  
+**Task:** ADM-P2-05
+**Repository:** DOJOWALK/DOJO-WALK-Admin
+**Branch:** ui/notion-brand-foundation-2026-10-28
+**PR:** #51 — Open, Draft, Unmerged
+**Audit type:** Read-only source, test and documentation reconciliation
 **Status:** PARTIAL — sidebar navigation correction is present and has focused widget coverage; actual screen mapping, key Dashboard routes, AuthGate authorization states, visual QA and canonical file-tree migration remain incomplete.
 
 ## 1. Purpose and scope
