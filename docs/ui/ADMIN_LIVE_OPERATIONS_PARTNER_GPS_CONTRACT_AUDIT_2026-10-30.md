@@ -1,8 +1,8 @@
 # DOJO WALK Live Operations ↔ Partner GPS Contract Audit
 
-**Date:** 2026-10-30  
-**Status:** Read-only source audit; proposed contract only  
-**Admin branch:** `ui/notion-brand-foundation-2026-10-28`  
+**Date:** 2026-10-30
+**Status:** Read-only source audit; proposed contract only
+**Admin branch:** `ui/notion-brand-foundation-2026-10-28`
 **Repositories inspected:** `DOJOWALK/DOJO-WALK-Admin`, `DOJOWALK/DOJO-WALK-Partner`
 
 ## 1. Executive finding
