@@ -195,3 +195,18 @@ Use only synthetic addresses, synthetic users, synthetic polygons and a Firebase
 - No exposing building polygons to Partner/Walker or Customer apps.
 - No modifying the existing Zone lifecycle approval process.
 - No merging, deploying, migrating or writing production records.
+
+
+## 10. Compatibility audit against current Zone backend (2026-11-04)
+
+Read-only code review confirmed the existing Zone lifecycle already implements a strong pattern for independent review:
+- Reviewer must be an active Admin with `permissions.zoneBoundaryReview == true`.
+- Reviewer must have an active exact assignment in `zone_boundary_review_assignments` for the same Zone and Boundary.
+- A submitter cannot review their own Boundary.
+- Review runs through the trusted `reviewServiceZoneBoundary` callable; server checks the current pending Boundary, Zone revision, assignment and geometry hash in a transaction.
+
+**Building Footprint recommendation:** use the same architectural pattern, but a separate assignment scope/collection such as `building_footprint_review_assignments`. Do not reuse Zone assignments because the reviewed object, ownership, and scope are different. Proposed permission names (for example `buildingFootprintCreate` and `buildingFootprintReview`) are candidates only; align with the central Admin permission registry before implementation.
+
+The existing Admin `ServiceBoundaryEditor` is a useful map interaction reference, but the current `ServiceLocationBoundary` model and service explicitly accept only `city` and `area`; it must not be extended by quietly adding a customer-house type. The existing boundary client flow can write pending non-Zone boundary records; a Building Footprint must instead be created/reviewed through a dedicated trusted callable and server-owned record path.
+
+**No implementation has been started.** The above is a code-compatibility audit, not approval of the proposed permission names, collection path, evidence sources or schema.
