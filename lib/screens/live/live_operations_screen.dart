@@ -2,9 +2,19 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
+import '../../utils/admin_error_classifier.dart';
+import 'live_booking_details_helper.dart';
+import 'live_route_state_helper.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'live_map_widget.dart';
+
+/// Online presence is not proof of an active walk or fresh GPS.
+bool shouldApplyLiveRoute({required String? selectedWalkerId, required String requestedWalkerId}) => selectedWalkerId == requestedWalkerId;
+
+String liveWalkerPresenceLabel(int count) =>
+    "${count} walkers online · active walk not verified";
 
 class LiveOperationsScreen extends StatefulWidget {
   const LiveOperationsScreen({super.key});
@@ -25,6 +35,10 @@ class _LiveOperationsScreenState
   final Map<String, Map<String, dynamic>> _walkers = {};
 
   String? _selectedWalkerId;
+  bool _isLoadingWalkers = true;
+  bool _isLoadingRoute = false;
+  String? _routeEmptyMessage;
+  String? _walkerLoadError;
 
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
@@ -49,6 +63,7 @@ class _LiveOperationsScreenState
   // ============================================================
 
   void _listenToWalkers() {
+    _walkerSubscription?.cancel();
     _walkerSubscription = _firestore
         .collection('walkers')
         .where('isOnline', isEqualTo: true)
@@ -66,6 +81,8 @@ class _LiveOperationsScreenState
       if (!mounted) return;
 
       setState(() {
+        _isLoadingWalkers = false;
+        _walkerLoadError = null;
         _walkers
           ..clear()
           ..addAll(updated);
@@ -73,6 +90,7 @@ class _LiveOperationsScreenState
         if (_selectedWalkerId != null &&
             !updated.containsKey(_selectedWalkerId)) {
           _selectedWalkerId = null;
+          _isLoadingRoute = false;
           _polylines = {};
         }
 
@@ -80,13 +98,31 @@ class _LiveOperationsScreenState
       });
     }, onError: (Object error, StackTrace stackTrace) {
       debugPrint('Live walker listener failed: $error');
-      if (!mounted) return;
+      final permissionDenied = isPermissionDeniedError(error);
+      setState(() {
+        _isLoadingWalkers = false;
+        _walkerLoadError = permissionDenied
+            ? 'Permission denied for live walker data. Ask an authorized administrator to review scope.'
+            : 'Live walker data could not be refreshed. Check the connection and retry.';
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to refresh live walkers. Check connection and permissions.'),
+        SnackBar(
+          content: Text(
+            permissionDenied
+                ? 'Permission denied for live walker data. Ask an authorized administrator to review scope.'
+                : 'Unable to refresh live walkers. Check the connection; the listener will retry.',
+          ),
         ),
       );
     });
+  }
+
+  void _retryLiveWalkers() {
+    setState(() {
+      _isLoadingWalkers = true;
+      _walkerLoadError = null;
+    });
+    _listenToWalkers();
   }
 
   // ============================================================
@@ -184,6 +220,12 @@ class _LiveOperationsScreenState
   Future<void> _loadWalkerRoute(
     String walkerId,
   ) async {
+    if (!mounted || _selectedWalkerId != walkerId) return;
+    setState(() {
+      _isLoadingRoute = true;
+      _routeEmptyMessage = null;
+      _polylines = {};
+    });
     try {
       final snapshot = await _firestore
           .collection('walk_locations')
@@ -216,7 +258,7 @@ class _LiveOperationsScreenState
         }
       }
 
-      if (!mounted) return;
+      if (!mounted || !shouldApplyLiveRoute(selectedWalkerId: _selectedWalkerId, requestedWalkerId: walkerId)) return;
 
       setState(() {
         if (points.length >= 2) {
@@ -231,24 +273,36 @@ class _LiveOperationsScreenState
           };
         } else {
           _polylines = {};
+          _routeEmptyMessage = liveRouteEmptyMessage(points.length);
         }
       });
-
-      if (points.length < 2 && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No route points are available for this walker yet.'),
-          ),
-        );
-      }
     } catch (e) {
       debugPrint('Unable to load walker route: $e');
-      if (!mounted) return;
+      if (!mounted ||
+          !shouldApplyLiveRoute(
+            selectedWalkerId: _selectedWalkerId,
+            requestedWalkerId: walkerId,
+          )) {
+        return;
+      }
+      final permissionDenied = isPermissionDeniedError(e);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to load walker route. Please retry.'),
+        SnackBar(
+          content: Text(
+            permissionDenied
+                ? 'Permission denied for this walker route.'
+                : 'Unable to load walker route. Please retry.',
+          ),
         ),
       );
+    } finally {
+      if (mounted &&
+          shouldApplyLiveRoute(
+            selectedWalkerId: _selectedWalkerId,
+            requestedWalkerId: walkerId,
+          )) {
+        setState(() => _isLoadingRoute = false);
+      }
     }
   }
 
@@ -264,7 +318,12 @@ class _LiveOperationsScreenState
     return _walkers[_selectedWalkerId!];
   }
 
-  Future<void> _showBookingDetails(String? bookingId) async {
+  Future<void> _showBookingDetails(String? bookingId, String requestedWalkerId) async {
+    bool selectionIsCurrent() => mounted &&
+        shouldApplyBookingDetails(
+          selectedWalkerId: _selectedWalkerId,
+          requestedWalkerId: requestedWalkerId,
+        );
     if (bookingId == null || bookingId.trim().isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -274,7 +333,7 @@ class _LiveOperationsScreenState
     }
     try {
       final booking = await _firestore.collection('bookings').doc(bookingId).get();
-      if (!mounted) return;
+      if (!selectionIsCurrent()) return;
       if (!booking.exists) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Booking ' + bookingId + ' was not found.')),
@@ -282,27 +341,51 @@ class _LiveOperationsScreenState
         return;
       }
       final data = booking.data() ?? <String, dynamic>{};
-      final details = data.entries
-          .where((entry) => entry.value != null)
-          .take(12)
-          .map((entry) => entry.key + ': ' + entry.value.toString())
-          .join('\n');
+      final details = safeLiveBookingSummary(data);
       await showDialog<void>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Booking Details'),
+          title: Text('Booking summary · $bookingId'),
           content: SingleChildScrollView(
-            child: SelectableText(details.isEmpty ? 'No booking details available.' : details),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (details.isEmpty)
+                  const Text('No approved operational summary fields are available.')
+                else
+                  for (final entry in details.entries)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text('${entry.key}: ${entry.value}'),
+                    ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Sensitive fields are intentionally omitted from this operational summary.',
+                  style: TextStyle(fontSize: 12, color: Colors.black54),
+                ),
+              ],
+            ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Close')),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Close'),
+            ),
           ],
         ),
       );
     } catch (error) {
       if (!mounted) return;
+      final permissionDenied = isPermissionDeniedError(error);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to load booking: ' + error.toString())),
+        SnackBar(
+          content: Text(
+            permissionDenied
+                ? 'Permission denied for booking details.'
+                : 'Unable to load booking details. Please retry.',
+          ),
+        ),
       );
     }
   }
@@ -371,11 +454,16 @@ class _LiveOperationsScreenState
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '${_walkers.length} walkers online',
-                        style:
-                            const TextStyle(
-                          fontWeight:
-                              FontWeight.w700,
+                        _isLoadingWalkers
+                            ? 'Loading walker presence…'
+                            : _walkerLoadError != null
+                                ? 'Walker presence unavailable'
+                                : liveWalkerPresenceLabel(_walkers.length),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: _walkerLoadError != null
+                              ? const Color(0xFFB91C1C)
+                              : const Color(0xFF292524),
                         ),
                       ),
                     ],
@@ -384,6 +472,54 @@ class _LiveOperationsScreenState
               ],
             ),
           ),
+
+          if (_walkerLoadError != null)
+            Positioned(
+              top: 82,
+              left: 20,
+              right: 20,
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF1F0),
+                    border: Border.all(
+                      color: const Color(0xFFFECACA),
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Color(0xFFB91C1C),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _walkerLoadError!,
+                          style: const TextStyle(
+                            color: Color(0xFF991B1B),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      TextButton(
+                        onPressed: _retryLiveWalkers,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
 
           // ======================================================
           // SELECTED WALKER PANEL
@@ -394,16 +530,32 @@ class _LiveOperationsScreenState
               left: 20,
               right: 20,
               bottom: 20,
-              child: _WalkerDetailsCard(
-                data: selected,
-                onViewBooking: () => _showBookingDetails(selected['currentBookingId']?.toString()),
-                onViewRoute: () => _loadWalkerRoute(selected['id']?.toString() ?? _selectedWalkerId!),
-                onClose: () {
-                  setState(() {
-                    _selectedWalkerId = null;
-                    _polylines = {};
-                  });
-                },
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(context).height * 0.48,
+                ),
+                child: SingleChildScrollView(
+                  child: _WalkerDetailsCard(
+                    data: selected,
+                    isLoadingRoute: _isLoadingRoute,
+                    routeEmptyMessage: _routeEmptyMessage,
+                    onViewBooking: () => _showBookingDetails(
+                      selected['currentBookingId']?.toString(),
+                      selected['id']?.toString() ?? _selectedWalkerId!,
+                    ),
+                    onViewRoute: () => _loadWalkerRoute(
+                      selected['id']?.toString() ?? _selectedWalkerId!,
+                    ),
+                    onClose: () {
+                      setState(() {
+                        _selectedWalkerId = null;
+                        _isLoadingRoute = false;
+                        _routeEmptyMessage = null;
+                        _polylines = {};
+                      });
+                    },
+                  ),
+                ),
               ),
             ),
         ],
@@ -418,12 +570,16 @@ class _LiveOperationsScreenState
 
 class _WalkerDetailsCard extends StatelessWidget {
   final Map<String, dynamic> data;
+  final bool isLoadingRoute;
+  final String? routeEmptyMessage;
   final VoidCallback onClose;
   final VoidCallback onViewBooking;
   final VoidCallback onViewRoute;
 
   const _WalkerDetailsCard({
     required this.data,
+    required this.isLoadingRoute,
+    required this.routeEmptyMessage,
     required this.onClose,
     required this.onViewBooking,
     required this.onViewRoute,
@@ -567,6 +723,35 @@ class _WalkerDetailsCard extends StatelessWidget {
               ],
             ),
 
+            if (routeEmptyMessage != null && !isLoadingRoute) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF7ED),
+                  border: Border.all(color: const Color(0xFFFED7AA)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.route_outlined, color: Color(0xFFB45309), size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        routeEmptyMessage!,
+                        style: const TextStyle(
+                          color: Color(0xFF92400E),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             const SizedBox(height: 16),
 
             Row(
@@ -585,7 +770,7 @@ class _WalkerDetailsCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: onViewRoute,
+                    onPressed: isLoadingRoute ? null : onViewRoute,
                     style:
                         ElevatedButton.styleFrom(
                       backgroundColor:
@@ -595,12 +780,17 @@ class _WalkerDetailsCard extends StatelessWidget {
                       foregroundColor:
                           Colors.white,
                     ),
-                    icon: const Icon(
-                      Icons.route,
-                    ),
-                    label: const Text(
-                      'VIEW ROUTE',
-                    ),
+                    icon: isLoadingRoute
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.route),
+                    label: Text(isLoadingRoute ? 'LOADING ROUTE' : 'VIEW ROUTE'),
                   ),
                 ),
               ],

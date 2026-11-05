@@ -1,0 +1,120 @@
+# Admin Zone UI ↔ Callable Contract Audit
+
+- Date: 2026-11-01
+- Admin repository: `DOJOWALK/DOJO-WALK-Admin`
+- Admin branch: `ui/notion-brand-foundation-2026-10-28`
+- Firebase repository: `DOJOWALK/DOJO-WALK-Firebase`
+- Firebase branch inspected: `fix/disable-legacy-location-activation-2026-10-28`
+- Scope: read-only contract comparison. No API wiring, Firebase writes, schema/rules/functions changes, merge or deployment.
+
+## Sources inspected
+
+- Notion POL-040 — Admin Service Location UI: screen-by-screen design and developer checklist.
+- Notion POL-041 — India Service Location API & Backend Workflow Specification.
+- Admin `lib/features/service_location/screens/add_zone_screen.dart`.
+- Admin `lib/features/service_location/services/service_zone_workflow_service.dart`.
+- Admin `test/features/service_location/add_zone_screen_test.dart`.
+- Firebase `functions/src/index.ts` on the branch above.
+- Admin PR #51 and Firebase PR #40 metadata.
+
+POL-041 explicitly labels its operation names and request envelopes as proposed logical contracts, not deployed endpoint names. Therefore the concrete callable names below are a source-level mapping observed in the Firebase Draft branch, not an approval to integrate them.
+
+## Observed Admin service-to-Firebase callable mapping
+
+| Admin service method | Callable and payload observed in source | Notes |
+|---|---|---|
+| `saveDraft` | `saveServiceLocationWithNameIndex` with `locationType: zone`, optional `locationId`, and `payload: {stateId, districtId, cityId, name}` | Server-owned name-index save; creation is inactive and does not accept boundary/activation fields. |
+| `submitForFounderReview` | `submitServiceZoneForFounderReview({zoneId})` | Submission is bound to the verified boundary hash in the Firebase implementation. |
+| `reviewBoundary` | `reviewServiceLocationBoundary({boundaryId, decision, notes})` | Decision is `verified` or `rejected`; requires an existing boundary record. |
+| `decideFounderApproval` | `decideServiceZoneFounderApproval({zoneId, decision, notes})` | Supported decisions in both inspected sources: approve, reject, changes_required, deactivate, reactivate. |
+| `activate` | `activateServiceZone({zoneId})` | Dedicated activation path; generic status callable rejects activation. |
+| `requestDeactivation` | `requestServiceZoneDeactivation({zoneId, notes})` | Central Admin request; Founder decision is a separate step. |
+| `deactivate` | `setServiceLocationStatus({locationType: zone, locationId, isActive: false})` | Firebase implementation requires Founder-approved current revision and boundary hash before Central Admin can execute. |
+| `emergencySuspend` | `suspendServiceZoneForEmergency({zoneId, reason, severity})` | Safety-only suspension path; not activation/reactivation authority. |
+| `requestReactivation` | `requestServiceZoneReactivation({zoneId, reason})` | Submits a fresh Founder reactivation decision. |
+
+## Confirmed UI boundary
+
+- `AddZoneScreen` is explicitly UI-only.
+- State/UT → District → City → Zone is exactly four dependent selectors; no Locality selector.
+- The hierarchy catalog is hard-coded example data, and existing Zone options are labelled mock.
+- Boundary points are held in local widget state only; they are not uploaded or independently verified.
+- Save Draft and Submit for Review are disabled.
+- Boundary Review preview navigation does not submit a Zone.
+- Focused widget tests cover the four selectors, parent reset behavior, mock Zone handling, disabled save/submit, preview-only navigation, narrow mobile layout, and missing boundary evidence.
+
+These are prototype protections, not live workflow integration or production readiness.
+
+## Integration blockers and safeguards
+
+1. **Do not wire AddZoneScreen yet.** Its current mock hierarchy and local-only polygon cannot safely supply authoritative parent IDs, boundary IDs, revision or canonical hash.
+2. **Resolve the canonical API contract before UI wiring.** POL-041 names logical operations; the Firebase branch exposes concrete callable names. Record the approved mapping and response/error envelope in Notion before connecting screens.
+3. **Keep lifecycle sequencing explicit.** Zone draft save → boundary draft/upload → independent boundary verification → Founder submission/decision bound to revision + boundary hash → Central Admin activation. Approval alone must not activate.
+4. **Deactivation is a two-step approval/execution flow.** Request deactivation, obtain Founder decision for the exact current revision/hash, then Central Admin executes the status change. Do not call the generic status method as a shortcut.
+5. **Keep the emergency path separate.** Emergency suspension is a narrowly scoped safety stop with reason/severity and audit/notification; it cannot be reused for reactivation.
+6. **Check all read operations and data sources.** The current Create Zone hierarchy options are not live. Do not silently replace them with a collection until the authoritative India hierarchy/catalog and IDs are confirmed.
+7. **Validate exact Firebase head before integration.** At audit time Firebase PR #40 is Draft/open/unmerged. Its source branch is not production/deployed evidence. Recheck PR state, exact head, Rules/Functions emulator CI and cross-app compatibility at the time integration is authorized.
+8. **Preserve disabled UI actions.** No privileged button should be enabled merely because a client service method exists. Backend authorization and audit behavior must be tested first.
+
+## Status
+
+- Source-level method-name/payload comparison: **completed for the methods listed above**.
+- UI-to-callable integration: **not started by this audit**.
+- Canonical contract approval: **pending**.
+- Firebase production/deployed parity: **not established**.
+- Admin/Firebase emulator end-to-end flow: **not established**.
+- Admin PR #51: Draft/open/unmerged; keep Draft.
+- Firebase PR #40: Draft/open/unmerged at time checked.
+- No code changes to Dart, Firebase Functions, Firestore Rules, indexes or data were made by this audit.
+- No merge or deployment was performed.
+
+## Next safe step
+
+Before any API wiring, obtain approval of the final operation map and role/state matrix in Notion, then run a read-only cross-repository schema and response-shape reconciliation against the exact Firebase PR head. Keep Create Zone save, boundary upload, review and lifecycle controls disabled until the contract and emulator-backed acceptance tests are ready.
+
+
+## Addendum — Firestore boundary-draft path reconciled (2026-11-03)
+
+A further read-only inspection of Firebase PR #39 head `04acc1bb11b38326fba4cf22d3a70553ff50c625` found an approved Rules-governed draft-write path that was not captured in the original audit:
+
+- `service_location_boundaries/{boundaryId}` allows create only for an active `central_admin` via `isZoneOperator()`.
+- Required create fields: `locationId`, `locationType`, `points`, `sourceType`, `sourceName`, `sourceReference`, `verificationStatus`, `createdAt`, `updatedAt`.
+- Allowed `locationType` values include `zone`; allowed source types are `governmentGis`, `governmentCadastralMap`, `importedGeoJson`, and `manuallyDrawn`.
+- Rules require 3–10,000 points, non-empty source name/reference, `verificationStatus == pending`, server request timestamps, and no client-supplied verification identity/timestamp/notes.
+- Draft updates are restricted to active Central Admin and pending/rejected records. Verified/rejected transitions remain callable/Admin-SDK controlled; verified boundaries cannot be deleted.
+
+Admin PR #51 now adds `ServiceZoneWorkflowService.createBoundaryDraft()`, which writes only the pending draft shape, plus a pure payload builder and unit tests for provenance, point-count and unverified-state constraints. It does not set verification fields or call the review transition. The Add Zone screen remains UI-only; no mock hierarchy IDs or local preview points are submitted.
+
+### Validation clarification
+
+The Admin CI on commit `a9ec9c29e491189d64ef292f188a716bca848bf9` passed Analyze, complete Admin tests and Flutter Web build. The paired Firebase Emulator workflow is `workflow_dispatch` only and was not run by that CI. Therefore no Admin↔Firebase Zone Emulator PASS is claimed by this addendum.
+
+### Remaining gates
+
+1. Confirm the authoritative State/District/City catalog and canonical document IDs.
+2. Add source-provenance inputs to the Zone creation UX before enabling boundary draft creation.
+3. Run the manual paired Emulator workflow with the exact Admin head and Firebase SHA, and inspect the actual run summary.
+4. Add authenticated role tests: Central Admin can create a pending Zone boundary; inactive/non-Central actors cannot; verification is not client-writable.
+5. Exercise the complete Zone lifecycle and negative cases before enabling operational actions.
+
+This addendum corrects the earlier statement that no approved boundary persistence path exists: the Firebase Rules-governed Central Admin draft-create path exists on the inspected PR #39 head. It does not imply Firebase PR #39 is merged or deployed.
+
+
+### Geometry minimum reconciliation — 2026-11-03
+
+The Firestore create rule permits a minimum of 3 points, but the Firebase callable's canonical boundary hash requires at least 4 coordinate entries before approval. To fail early and avoid drafts that can never pass the backend approval path, the Admin draft payload builder and local preview validator now enforce 4 or more points (maximum 10,000). Google Maps renders polygons as closed shapes; the fourth point is a fourth boundary coordinate, not necessarily a duplicated first point. This is a stricter client-side readiness check than the Firestore create rule.
+
+
+### Hierarchy catalog UI integration — 2026-11-03
+
+Admin PR #51 now replaces the Add Zone screen's hard-coded example State/District/City values with the existing read-only `ServiceLocationService` streams:
+
+- State / UT: active records from `watchStates()`; selected value is the Firestore document ID.
+- District: active records from `watchDistricts(stateId: ..., activeOnly: true)`; selected value is the Firestore document ID.
+- City: active records from `watchCities(stateId: ..., activeOnly: true)`, then narrowed to the selected canonical `districtId`; selected value is the Firestore document ID.
+- Legacy City records without `districtId` are excluded from this four-level Zone creation flow.
+- The Zone selector now offers only “Create new Zone…”; no example Zone IDs are available to submit.
+
+Rules observation: `service_states`, `service_districts`, and `service_cities` reads are permitted to an active Zone workflow user. `service_countries` reads are restricted to `isAdmin()` (active `super_admin`) in the inspected Firebase PR #39 rules, so the Central Admin screen does not query the Country collection. The current DOJO WALK scope is India-only; if multi-country support is introduced, a separate least-privilege country-reference read contract will be needed.
+
+This is read-only hierarchy integration only. Zone save, boundary persistence, review, Founder approval and activation remain disabled in the screen pending paired Emulator and role-gated E2E evidence.
