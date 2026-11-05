@@ -185,6 +185,12 @@ class WalkerDetailsSections extends StatelessWidget {
       return 'Document not uploaded';
     }
 
+    // Surface the migration requirement before any display filename so
+    // legacy URL-only records are never mistaken for securely viewable files.
+    if (_hasLegacyUrlOnlyDocument(key)) {
+      return 'Legacy URL only — secure Storage path migration required';
+    }
+
     if (document is Map) {
       final map = Map<String, dynamic>.from(document);
 
@@ -201,10 +207,6 @@ class WalkerDetailsSections extends StatelessWidget {
 
     if (_hasDocument(key)) {
       return 'Secure document available — tap to view';
-    }
-
-    if (_hasLegacyUrlOnlyDocument(key)) {
-      return 'Legacy URL only — secure Storage path migration required';
     }
 
     return 'Document reference unavailable';
