@@ -161,13 +161,21 @@ class WalkerDetailsSections extends StatelessWidget {
       return '';
     }
 
-    return WalkerAdminHelpers.documentReference(document) ?? '';
+    final reference = WalkerAdminHelpers.documentReference(document) ?? '';
+    return WalkerAdminHelpers.isHttpUrl(reference) ? '' : reference;
   }
 
   bool _hasDocument(String key) {
-    final reference = _documentReference(key).trim();
+    // Only canonical Storage paths can be opened through the trusted callable.
+    return _documentReference(key).isNotEmpty;
+  }
 
-    return reference.isNotEmpty;
+  bool _hasLegacyUrlOnlyDocument(String key) {
+    final document = _documents[key];
+    if (document == null) return false;
+
+    final reference = WalkerAdminHelpers.documentReference(document);
+    return WalkerAdminHelpers.isHttpUrl(reference);
   }
 
   String _documentSubtitle(String key) {
@@ -191,9 +199,15 @@ class WalkerDetailsSections extends StatelessWidget {
       }
     }
 
-    return _hasDocument(key)
-        ? 'Document available — tap to view'
-        : 'Document reference unavailable';
+    if (_hasDocument(key)) {
+      return 'Secure document available — tap to view';
+    }
+
+    if (_hasLegacyUrlOnlyDocument(key)) {
+      return 'Legacy URL only — secure Storage path migration required';
+    }
+
+    return 'Document reference unavailable';
   }
 
   Color _statusColor(String status) {
