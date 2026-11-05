@@ -138,6 +138,7 @@ void main() {
         home: Scaffold(
           body: KycDocumentViewerDialog(
             title: 'Aadhaar Front',
+            walkerUid: 'walker-001',
             document: <String, dynamic>{},
           ),
         ),
