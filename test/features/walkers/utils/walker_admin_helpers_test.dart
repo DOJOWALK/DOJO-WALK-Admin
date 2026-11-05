@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:dojo_walk_admin/features/walkers/utils/walker_admin_helpers.dart';
+import 'package:dojo_admin/features/walkers/utils/walker_admin_helpers.dart';
 
 void main() {
   group('WalkerAdminHelpers.documentReference', () {
