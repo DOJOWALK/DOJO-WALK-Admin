@@ -1,8 +1,8 @@
 # DOJO WALK Admin Google Sign-In & Individual Account Decision
 
-**Decision date:** 2026-11-05  
-**Decision time:** 06:37 IST (Asia/Kolkata)  
-**Decision owner:** Founder / DOJO WALK  
+**Decision date:** 2026-11-05
+**Decision time:** 06:37 IST (Asia/Kolkata)
+**Decision owner:** Founder / DOJO WALK
 **Status:** Founder-selected authentication method; implementation remains gated by the active Admin UI integration sequence.
 
 ## 1. Confirmed decision
