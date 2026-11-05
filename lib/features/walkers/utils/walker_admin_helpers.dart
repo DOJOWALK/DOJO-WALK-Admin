@@ -433,15 +433,9 @@ class WalkerAdminHelpers {
     if (document is Map) {
       final map = asMap(document);
 
-      final url = firstString(
-        map,
-        ['downloadUrl', 'url'],
-      );
-
-      if (url != null) {
-        return url;
-      }
-
+      // Prefer the canonical private Storage path. Legacy download URLs
+      // must never mask a valid path because the secure viewer uses a
+      // server-authorized callable rather than direct client URL access.
       final path = firstString(
         map,
         ['storagePath', 'path'],
@@ -449,6 +443,15 @@ class WalkerAdminHelpers {
 
       if (path != null) {
         return path;
+      }
+
+      final url = firstString(
+        map,
+        ['downloadUrl', 'url'],
+      );
+
+      if (url != null) {
+        return url;
       }
     }
 
