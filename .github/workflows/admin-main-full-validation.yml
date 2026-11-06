@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - working
     paths:
       - 'AGENTS.md'
       - '**.dart'
@@ -15,7 +16,7 @@ on:
   push:
     branches:
       - main
-      - ui/notion-brand-foundation-2026-10-28
+      - working
     paths:
       - '**.dart'
       - 'pubspec.yaml'
