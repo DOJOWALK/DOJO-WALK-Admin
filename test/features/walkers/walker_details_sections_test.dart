@@ -30,8 +30,9 @@ void main() {
         'kyc': {
           'documents': {
             'aadhaar_front': {
-              'downloadUrl': 'https://example.com/aadhaar-front.pdf',
-              'fileName': 'aadhaar-front.pdf',
+              'storagePath':
+                  'walker_documents/walker-001/aadhaar_front_1762400000000000.jpg',
+              'fileName': 'aadhaar-front.jpg',
             },
           },
         },
